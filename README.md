@@ -1,6 +1,8 @@
-# Alimi / PricePilot
+# Alimi — iPhone 가격 추적 앱
 
-K-뷰티 가격 추적 UI 프로토타입. 기존 프로젝트와 격리된 신규 소스입니다.
+현재 개발 대상은 **Alimi iPhone 앱**입니다. `ios/`의 SwiftUI 소스와 [iOS 실행 안내](ios/README.md)를 참고하세요. iOS 빌드/시뮬레이터 검증은 아직 미실행입니다.
+
+아래 `dist/`는 초기 PricePilot 웹 프로토타입이며 네이티브 앱과는 별도입니다.
 
 ## 실행
 
