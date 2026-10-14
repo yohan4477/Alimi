@@ -1,0 +1,61 @@
+{
+  "classification": "offline arithmetic and policy simulation; NOT load/RLS/APNs test",
+  "assumptions": {
+    "dau": 1000,
+    "watchesPerUser": 10,
+    "uniqueRatio": 0.2,
+    "pollsPerDay": 4,
+    "apiPerUser": 5
+  },
+  "capacity": {
+    "watches": 10000,
+    "offers": 2000,
+    "pollsPerDay": 8000,
+    "pollsPerMonth": 240000,
+    "apiPerDay": 5000,
+    "queueOpsPerDay": 24000,
+    "historyRows90Days": 720000
+  },
+  "historyStorage90DaysMB": {
+    "low": 144,
+    "high": 432
+  },
+  "checks": {
+    "baseline": "PASS",
+    "sharedCollection": "PASS",
+    "singleEventPerRuleVersion": "PASS",
+    "explicitRearm": "PASS"
+  },
+  "sensitivity": [
+    {
+      "uniqueRatio": 0.2,
+      "watches": 10000,
+      "offers": 2000,
+      "pollsPerDay": 8000,
+      "pollsPerMonth": 240000,
+      "apiPerDay": 5000,
+      "queueOpsPerDay": 24000,
+      "historyRows90Days": 720000
+    },
+    {
+      "uniqueRatio": 0.5,
+      "watches": 10000,
+      "offers": 5000,
+      "pollsPerDay": 20000,
+      "pollsPerMonth": 600000,
+      "apiPerDay": 5000,
+      "queueOpsPerDay": 60000,
+      "historyRows90Days": 1800000
+    },
+    {
+      "uniqueRatio": 1,
+      "watches": 10000,
+      "offers": 10000,
+      "pollsPerDay": 40000,
+      "pollsPerMonth": 1200000,
+      "apiPerDay": 5000,
+      "queueOpsPerDay": 120000,
+      "historyRows90Days": 3600000
+    }
+  ]
+}
