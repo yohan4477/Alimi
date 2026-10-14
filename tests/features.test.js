@@ -1,0 +1,7 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {catalog,search,offersFor,alertState,validPrice,readState,toggleFavorite} from '../dist/model.js';
+test('F1 검색: 조선미녀 → 1개 / 영문 / 공백 / 없는 상품',()=>{assert.equal(search('조선미녀').length,1);assert.equal(search('  anua ')[0].id,'3');assert.equal(search('없는제품').length,0);assert.equal(search('').length,10)});
+test('F2 선택 모델별 이력: 30개이며 제품 간 상이',()=>{assert.equal(catalog[0].history.length,30);assert.notDeepEqual(catalog[0].history,catalog[1].history)});
+test('F3 배송비 포함: 14000+3000보다 15700+0이 최저',()=>{const o=offersFor(catalog[0]);assert.equal(o[0].name,'브랜드몰 B');assert.equal(o[0].total,15700);assert.ok(o.every(x=>x.total>=o[0].total))});
+test('F4 관심 추가/삭제/재로딩',()=>{let s={favorites:[],targets:{}};toggleFavorite(s,'1');assert.deepEqual(s.favorites,['1']);const loaded=readState({getItem:()=>JSON.stringify(s)});assert.deepEqual(loaded,s);toggleFavorite(s,'1');assert.deepEqual(s.favorites,[])});
+test('F5 목표 15000 → 현재 15700 대기 → 14000 도달 / 경계 / 복원',()=>{const p=catalog[0];assert.equal(alertState(15000,offersFor(p)[0].total),'기다리는 중');assert.equal(alertState(15000,offersFor(p,14000)[0].total),'목표가 도달');assert.equal(alertState(15000,15000),'목표가 도달');assert.equal(alertState(null,14000),'미설정');assert.equal(alertState(15000,offersFor(p)[0].total),'기다리는 중')});
+test('입력 오류와 저장 데이터 손상',()=>{for(const n of [-1,0,1.2,'NaN','<script>',10000001])assert.equal(validPrice(n),false);assert.equal(validPrice(15000),true);assert.deepEqual(readState({getItem:()=>'{broken'}),{favorites:[],targets:{}})});
