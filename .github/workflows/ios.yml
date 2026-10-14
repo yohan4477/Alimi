@@ -1,0 +1,64 @@
+name: Alimi iPhone build
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/ios.yml'
+permissions:
+  contents: read
+concurrency:
+  group: alimi-ios-validation
+  cancel-in-progress: true
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Xcode project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          xcodebuild -version | tee artifacts/environment.txt
+          if ! command -v xcodegen >/dev/null; then brew install xcodegen; fi
+          xcodegen --version | tee -a artifacts/environment.txt
+          cd ios
+          xcodegen generate
+      - name: Select available iPhone simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl list devices available -j > artifacts/simulators.json
+          DEVICE_ID=$(python3 - <<'PY'
+          import json
+          data=json.load(open("artifacts/simulators.json"))
+          choices=[d for runtime,devices in data["devices"].items() if ".iOS-" in runtime for d in devices if d.get("isAvailable") and d["name"].startswith("iPhone")]
+          if not choices: raise SystemExit("No available iPhone simulator")
+          print(choices[0]["udid"])
+          PY
+          )
+          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$DEVICE_ID" || true
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+      - name: Build and run XCTest
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild test -project ios/Alimi.xcodeproj -scheme Alimi -configuration Debug -destination "platform=iOS Simulator,id=$DEVICE_ID" -derivedDataPath build -resultBundlePath artifacts/Alimi.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO 2>&1 | tee artifacts/xcodebuild.log
+      - name: Launch and capture home screen
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl install "$DEVICE_ID" build/Build/Products/Debug-iphonesimulator/Alimi.app
+          xcrun simctl launch "$DEVICE_ID" com.alimi.prototype
+          sleep 3
+          xcrun simctl io "$DEVICE_ID" screenshot artifacts/alimi-iphone-home.png
+          ditto -c -k --sequesterRsrc --keepParent build/Build/Products/Debug-iphonesimulator/Alimi.app artifacts/Alimi-simulator.zip
+      - name: Preserve validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alimi-ios-validation
+          path: artifacts/
+          retention-days: 3
