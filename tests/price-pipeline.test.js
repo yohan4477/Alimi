@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,writeFile,mkdir,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {validate,ingest,run} from '../scripts/price-pipeline.mjs';
+const seed=JSON.parse(await readFile(new URL('../data/price-observations.json',import.meta.url),'utf8'))[0];
+test('reject wrong market, currency, size, source and quantity',()=>{for(const [k,v] of Object.entries({market:'JP',currency:'NZD',size:'200ml',url:'https://example.com',quantity:2}))assert.throws(()=>validate({...seed,[k]:v}));});
+test('reject invalid prices, dates and claimed shipping',()=>{for(const amount of [0,-1,NaN,Infinity,17.555,'17.50'])assert.throws(()=>validate({...seed,amount}));for(const observedOn of ['2026-02-30','2099-01-01','bad'])assert.throws(()=>validate({...seed,observedOn},'2026-10-15'));assert.throws(()=>validate({...seed,shipping:0}));});
+test('reimport is idempotent and not another observation',()=>{const result=ingest([seed],[seed]);assert.equal(result.records.length,1);assert.equal(result.added,0);assert.equal(result.duplicates,1);});
+test('same-day conflicting price requires precise timestamps',()=>assert.throws(()=>ingest([seed],[{...seed,amount:15}])));
+test('older observations cannot replace latest',()=>{const result=ingest([seed],[{...seed,observedOn:'2026-10-14',amount:18}]);assert.equal(result.records.at(-1).amount,17.5);});
+test('invalid batch never mutates ledger or UI data; valid run generates browser export',async()=>{const root=await mkdtemp(join(tmpdir(),'alimi-price-test-'));try{await mkdir(join(root,'data'));await mkdir(join(root,'dist'));const before=JSON.stringify([seed]);await writeFile(join(root,'data/price-observations.json'),before);await writeFile(join(root,'dist/observed-data.js'),'previous');const input=join(root,'input.json');await writeFile(input,JSON.stringify([seed,{...seed,currency:'NZD'}]));await assert.rejects(run(input,root));assert.equal(await readFile(join(root,'data/price-observations.json'),'utf8'),before);assert.equal(await readFile(join(root,'dist/observed-data.js'),'utf8'),'previous');await writeFile(input,JSON.stringify([seed]));assert.equal((await run(input,root)).total,1);assert.match(await readFile(join(root,'dist/observed-data.js'),'utf8'),/export const priceObservations/);}finally{await rm(root,{recursive:true,force:true});}});
