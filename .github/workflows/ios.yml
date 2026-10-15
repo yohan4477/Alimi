@@ -1,13 +1,17 @@
 name: Alimi iPhone build
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios.yml'
   push:
     paths:
       - '.github/workflows/ios.yml'
 permissions:
   contents: read
 concurrency:
-  group: alimi-ios-validation
+  group: alimi-ios-validation-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   simulator:
