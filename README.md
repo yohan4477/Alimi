@@ -1,6 +1,6 @@
 # Alimi — iPhone 가격 추적 앱
 
-현재 개발 대상은 **Alimi iPhone 앱**입니다. `ios/`의 SwiftUI 소스와 [iOS 실행 안내](ios/README.md)를 참고하세요. iOS 빌드/시뮬레이터 검증은 아직 미실행입니다.
+현재 개발 대상은 **Alimi iPhone 앱**입니다. `ios/`의 SwiftUI 소스와 [iOS 실행 안내](ios/README.md)를 참고하세요. 시뮬레이터 빌드·XCTest 7개·홈 실행/캡처는 통과했으며, 실제 iPhone과 전체 UI 조작 검증은 미완료입니다. [검증 기록](docs/validation/ios-build-2026-10-15.md)을 참고하세요.
 
 아래 `dist/`는 초기 PricePilot 웹 프로토타입이며 네이티브 앱과는 별도입니다.
 
@@ -41,7 +41,11 @@ http://localhost:3000 접속. `dist/index.html`을 file://로 직접 열면 ES �
 
 다국어 확장은 상품 ID를 유지하면서 브랜드/명칭 번역 필드와 UI 메시지 사전을 추가하는 방식으로 진행합니다. 현재 한국어 문구는 app.js/index.html에 있으며 메시지 사전 분리는 아직 미구현입니다. `Intl.NumberFormat`으로 숫자를 표시합니다.
 
-## 다음 검증 순서 (추가 개발 승인 후)
+## 과거 웹 프로토타입 검증 제안
+
+현재 iPhone 우선순위와 선행 관계는 [제품 로드맵](docs/ROADMAP.md)이 기준입니다. 아래 목록은 초기 웹 초안의 후속 제안이며 현재 실행 순서가 아닙니다.
+
+### 웹 제안 (추가 개발 승인 후)
 
 1. 실제 모바일/PC 브라우저에서 F1–F5 사용성 검증 및 스크린샷 확보
 2. UI 문구 사전 분리 및 영어 화면 한 개 검증
@@ -49,3 +53,9 @@ http://localhost:3000 접속. `dist/index.html`을 file://로 직접 열면 ES �
 4. 가격 정규화/동일 상품 매칭/수집 시각 검증 후 알림 연결
 
 실서비스 공개 또는 유료 인프라 도입은 별도 승인 대상입니다.
+
+## 제품 관리 시작점
+
+[운영 현황](docs/PRODUCT_STATUS.md) · [제품 비전](docs/PRODUCT_VISION.md) · [로드맵](docs/ROADMAP.md) · [기능/Issue 인덱스](docs/FEATURE_REGISTER.md) · [의사결정](docs/DECISIONS.md) · [운영 규칙](docs/PRODUCT_OPERATIONS.md)
+
+새 아이디어는 기존 이슈 중복 확인 후 기능 카드로 기록합니다. 개발 승인·검증 완료·출시는 별도 근거가 필요합니다.
