@@ -8,7 +8,7 @@
 
 | 구분 | 확인된 상태 | 근거 / 다음 행동 |
 |---|---|---|
-| 현재 구현 중 | 기존 웹 UI에 검증된 수동 가격 입력·이력 저장 연결 | [검증 기록](validation/price-history-pipeline-2026-10-15.md); 본 PR, 아직 main 미반영 |
+| 현재 구현 중 | 기존 웹 UI에 검증된 수동 가격 입력·이력 저장 연결 | [검증 기록](validation/price-history-pipeline-2026-10-15.md); [PR #30](https://github.com/yohan4477/Alimi/pull/30); 병합 상태는 PR에서 확인 |
 | 최우선 검증 중 | [ALM-001 #2](https://github.com/yohan4477/Alimi/issues/2), F1–F5 | 시뮬레이터 로직 부분 검증; 실기기 조작 기록 필요 |
 | 최근 통과한 검증 | 빌드, XCTest 7/7, 시뮬레이터 설치·실행·홈 캡처 | [Actions](https://github.com/yohan4477/Alimi/actions/runs/38657001190), [검증 기록](validation/ios-build-2026-10-15.md) |
 | 기능 전체 검증 완료 | 없음 | 실기기/UI 통합 게이트 미완료 |
