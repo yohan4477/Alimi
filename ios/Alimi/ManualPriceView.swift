@@ -40,7 +40,7 @@ struct ManualPriceView: View {
                     Text("가격 이력이 부족합니다. 자동 수집은 아직 시작되지 않았습니다.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
-                Section("확인 당시 가격으로 목표가 비교") {
+                Section {
                     TextField("배송비 포함 목표 가격 (원)", text: $input)
                         .keyboardType(.numberPad)
                         .accessibilityIdentifier("manual-target-input")
@@ -61,6 +61,8 @@ struct ManualPriceView: View {
                             target = 0; input = ""; error = nil
                         }
                     }
+                } header: {
+                    Text("확인 당시 가격으로 목표가 비교")
                 } footer: {
                     Text("이 기기에 저장됩니다. 과거 확인값과의 비교이며 현재 구매 가능 또는 가격 하락을 의미하지 않습니다. 자동 추적·푸시 알림은 제공하지 않습니다.")
                 }
