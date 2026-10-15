@@ -1,0 +1,42 @@
+# Alimi 운영 현황
+
+**확인 기준: 2026-10-15 KST / main cbe8887adbc29c7b7ef438b37168528dfbf6fef2.**
+수동 갱신 스냅샷이며 자동 실시간 보드가 아니다. 최신 상태는 연결된 Issues의 이력을 확인한다.
+[비전](PRODUCT_VISION.md) · [로드맵](ROADMAP.md) · [기능 인덱스](FEATURE_REGISTER.md) · [운영 규칙](PRODUCT_OPERATIONS.md) · [결정](DECISIONS.md)
+
+## 지금
+
+| 구분 | 확인된 상태 | 근거 / 다음 행동 |
+|---|---|---|
+| 현재 구현 중 | 새 구현 작업 진행 증거 없음 | 이번 작업은 문서·관리만 |
+| 최우선 검증 중 | [ALM-001 #2](https://github.com/yohan4477/Alimi/issues/2), F1–F5 | 시뮬레이터 로직 부분 검증; 실기기 조작 기록 필요 |
+| 최근 통과한 검증 | 빌드, XCTest 7/7, 시뮬레이터 설치·실행·홈 캡처 | [Actions](https://github.com/yohan4477/Alimi/actions/runs/38657001190), [검증 기록](validation/ios-build-2026-10-15.md) |
+| 기능 전체 검증 완료 | 없음 | 실기기/UI 통합 게이트 미완료 |
+| 출시 | 확인된 출시 없음 | TestFlight/App Store/실제 배포 증거 없음 |
+| 실제 가격·DB·인증·푸시 | 미구현 | [ALM-002 #8](https://github.com/yohan4477/Alimi/issues/8)→[ALM-003 #9](https://github.com/yohan4477/Alimi/issues/9)→[ALM-004 #10](https://github.com/yohan4477/Alimi/issues/10) |
+
+## 차단과 다음 우선순위
+
+| 순서 | 작업 | 차단/해제 조건 |
+|---|---|---|
+| 1 | F1–F5 실기기 검증 | Mac/Xcode·서명 가능한 실행 환경·실제 iPhone·검증 담당자 확보; 테스트 결과 첨부 |
+| 2 | 실제 가격 PoC 계획 | MVP 게이트, 허용 공급원·조건·비용 확인 및 개발 승인 |
+| 3 | DB·인증 설계 검증 | 가격 PoC 형식/결과와 계정 격리 조건 확정 |
+| 4 | 푸시→사용자 실험→제휴→글로벌 | 각 선행 Issue의 검증 기준 및 승인 충족 |
+
+## 장기 아이디어 — 개발 미승인
+
+| 기능 | 대상 | 우선순위 | 상태 | 선행 조건 |
+|---|---|---|---|---|
+| [ALM-101 #14](https://github.com/yohan4477/Alimi/issues/14) 공급자 구매 희망가격 분석 | 공급자 | 장기 | 아이디어 | ALM-005; 충분한 동의 기반 집계 데이터 |
+| [ALM-102 #15](https://github.com/yohan4477/Alimi/issues/15) 공급자 할인 제안 | 공급자 | 장기 | 아이디어 | ALM-101 검증; ALM-004; 사용자 수신 동의 |
+| [ALM-103 #16](https://github.com/yohan4477/Alimi/issues/16) 경쟁사 가격 모니터링 | 공급자 | 장기 | 아이디어 | ALM-002; 동일 상품 매칭; 데이터 사용 권한 |
+| [ALM-104 #17](https://github.com/yohan4477/Alimi/issues/17) 재고·재입고 수요 분석 | 공급자 | 장기 | 아이디어 | ALM-002/005; 재고 신호·동의된 수요 데이터 |
+| [ALM-105 #18](https://github.com/yohan4477/Alimi/issues/18) 국가별 한국 상품 수요 분석 | 공급자 | 장기 | 아이디어 | ALM-007/005; 국가별 대표성·개인정보 검토 |
+| [ALM-106 #1](https://github.com/yohan4477/Alimi/issues/1) SNS 인플루언서 상품 발견 | 소비자 | 장기 | 아이디어 | ALM-007; 상품 동일성·콘텐츠 권한; 기존 #1 |
+| [ALM-107 #19](https://github.com/yohan4477/Alimi/issues/19) 공급자 데이터 API | 공급자 | 장기 | 아이디어 | ALM-101/103/105 중 검증된 가치; 이용권·격리·가격정책 |
+
+
+## 증거 범위
+
+[감사 기록](validation/product-audit-2026-10-15.md)에 코드·문서·Issues·Actions 대조 결과를 기록했다. 진척률은 산출하지 않는다. Projects는 도구 기능 미지원으로 미생성, 이 페이지가 현재 통합 현황이다.
