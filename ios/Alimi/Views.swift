@@ -148,23 +148,19 @@ struct ProductDetail: View {
                     }
                 }.padding(16).background(Color.canvas, in: RoundedRectangle(cornerRadius: 16))
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("판매처별 가격 비교").font(.headline)
-                    ForEach(store.offers(product)) { offer in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(offer.name).font(.subheadline.bold())
-                                Text("예상 배송 \(offer.days)").font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            VStack(alignment: .trailing, spacing: 5) {
-                                Text(won(offer.total)).font(.headline)
-                                if offer.total == store.price(product) { Text("최저가").font(.caption.bold()).foregroundStyle(Color.alimi) }
-                                Text("배송 \(won(offer.shipping))").font(.caption).foregroundStyle(.secondary)
-                            }
-                        }.padding(.vertical, 8)
-                        Divider()
+                    HStack {
+                        Text("어디서 살까?").font(.title3.bold())
+                        Text("\(store.offers(product).count)").font(.title3.bold()).foregroundStyle(Color.alimi)
+                        Spacer()
+                        Text("배송비 포함 낮은순").font(.caption).foregroundStyle(.secondary)
                     }
+                    Text("\(product.size) · 동일 상품 기준 · 가상 판매처").font(.caption).foregroundStyle(.secondary)
+                    ForEach(store.offers(product)) { offer in
+                        OfferComparisonCard(offer: offer, lowest: store.price(product))
+                    }
+                    Text("테스트 가격이에요. 실제 판매처 연결 전입니다.").font(.caption).foregroundStyle(.secondary)
                 }
+
                 VStack(alignment: .leading, spacing: 12) {
                     Text(store.status(product)).font(.headline).foregroundStyle(Color.alimi)
                     if let target = store.saved.targets[product.id] {
@@ -201,6 +197,49 @@ struct ProductDetail: View {
     }
     private func metric(_ title: String, _ value: Int) -> some View {
         VStack(alignment: .leading, spacing: 6) { Text(title).font(.caption).foregroundStyle(.secondary); Text(won(value)).font(.subheadline.bold()) }
+    }
+}
+struct OfferComparisonCard: View {
+    let offer: Offer
+    let lowest: Int
+    private var isLowest: Bool { offer.total == lowest }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if isLowest {
+                HStack {
+                    Text("현재 비교 최저가").font(.caption.bold())
+                    Spacer()
+                    Text("배송비까지 포함했어요").font(.caption2)
+                }.foregroundStyle(Color.alimi).padding(12).background(Color.alimi.opacity(0.07))
+            }
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    Text(String(offer.name.suffix(1))).font(.subheadline.bold())
+                        .frame(width: 36, height: 36).background(Color.canvas, in: RoundedRectangle(cornerRadius: 10))
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(offer.name).font(.subheadline.bold())
+                        Text("\(offer.shipping == 0 ? "무료배송" : "배송비 " + won(offer.shipping)) · 예상 \(offer.days)")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                HStack(alignment: .firstTextBaseline) {
+                    Text(won(offer.total)).font(.system(size: 25, weight: .bold)).foregroundStyle(isLowest ? Color.alimi : Color.primary)
+                    Spacer()
+                    Text(isLowest ? "비교 최저가" : "최저가보다 " + won(offer.total - lowest) + " 더 높음")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+                Divider()
+                DisclosureGroup("가격 구성") {
+                    VStack(spacing: 8) {
+                        HStack { Text("상품 가격"); Spacer(); Text(won(offer.price)) }
+                        HStack { Text("배송비"); Spacer(); Text(won(offer.shipping)) }
+                        HStack { Text("합계"); Spacer(); Text(won(offer.total)) }
+                    }.font(.caption).padding(.top, 10)
+                }.font(.caption).foregroundStyle(.secondary)
+            }.padding(16)
+        }.background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(isLowest ? Color.alimi : Color.secondary.opacity(0.2), lineWidth: 1))
     }
 }
 struct TargetSheet: View {
