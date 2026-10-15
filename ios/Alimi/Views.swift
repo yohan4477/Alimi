@@ -19,17 +19,30 @@ struct DemoBanner: View {
 }
 struct ProductArt: View {
     let product: Product
+    private var isJar: Bool { product.category == "크림" || product.category == "립케어" }
+    private var shade: Color {
+        switch product.category {
+        case "선케어": return .orange
+        case "토너": return .cyan
+        case "립케어": return .pink
+        case "크림": return .mint
+        default: return .purple
+        }
+    }
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 14).fill(Color.alimi.opacity(0.06))
+            RoundedRectangle(cornerRadius: 20).fill(shade.opacity(0.10))
+            Circle().fill(shade.opacity(0.08)).frame(width: 120, height: 120).offset(x: 22, y: 10)
             VStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 3).fill(.white).frame(width: 32, height: 12)
+                RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.8))
+                    .frame(width: isJar ? 90 : 42, height: 15)
                 VStack(spacing: 8) {
-                    Text(product.brand).font(.system(size: 10, weight: .bold))
-                    Text(product.size).font(.system(size: 8)).foregroundStyle(.secondary)
-                }.frame(width: 56, height: 76).background(.white, in: RoundedRectangle(cornerRadius: 8))
-                    .shadow(color: .black.opacity(0.08), radius: 8, x: 4, y: 6)
-            }.padding(20)
+                    Text(product.brand).font(.system(size: 10, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                    Text(product.size).font(.system(size: 9)).foregroundStyle(.secondary)
+                }.frame(width: isJar ? 90 : 68, height: isJar ? 58 : 98)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+            }.rotationEffect(.degrees(-8)).shadow(color: shade.opacity(0.18), radius: 12, x: 8, y: 14)
+            VStack { Spacer(); Text("패키지 컨셉 · 실제 이미지 아님").font(.system(size: 9)).foregroundStyle(.secondary).padding(.bottom, 10) }
         }.accessibilityLabel("\(product.brand) 제품 대체 일러스트")
     }
 }
@@ -46,10 +59,10 @@ struct BrowseView: View {
                     DemoBanner()
                     if !favoritesOnly {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("사고 싶은 그 제품,\n좋은 가격에 알려드려요.").font(.title2.bold())
-                            Text("K-뷰티 가격의 흐름을 Alimi에서").font(.subheadline).foregroundStyle(.secondary)
-                        }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.alimi.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+                            Text("Your beauty.").font(.system(size: 36, weight: .bold, design: .rounded))
+                            Text("Better priced.").font(.system(size: 36, weight: .bold, design: .rounded)).foregroundStyle(Color.alimi)
+                            Text("눈여겨본 K-뷰티, 지금은 어떤 가격일까요?").font(.subheadline).foregroundStyle(.secondary)
+                        }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
                     }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
@@ -63,7 +76,7 @@ struct BrowseView: View {
                         }
                     }
                     HStack {
-                        Text(favoritesOnly ? "내가 기다리는 상품" : "K-뷰티 가격 모아보기").font(.headline)
+                        Text(favoritesOnly ? "내가 기다리는 상품" : "오늘의 뷰티 리스트").font(.headline)
                         Spacer()
                         Text("\(results.count)개").font(.subheadline).foregroundStyle(.secondary)
                     }
@@ -76,10 +89,10 @@ struct BrowseView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 NavigationLink { ProductDetail(product: product) } label: {
                                     VStack(alignment: .leading, spacing: 8) {
-                                        ProductArt(product: product).frame(height: 148)
+                                        ProductArt(product: product).frame(height: 180)
                                         Text(product.brand).font(.caption).foregroundStyle(.secondary)
                                         Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
-                                        Text(won(store.price(product))).font(.title3.bold())
+                                        Text(won(store.price(product))).font(.system(size: 23, weight: .bold, design: .rounded))
                                         Text("배송비 포함 · 가상 판매처 3곳").font(.caption2).foregroundStyle(.secondary)
                                     }.foregroundStyle(.primary)
                                 }.buttonStyle(.plain)
@@ -91,7 +104,8 @@ struct BrowseView: View {
                         }
                     }
                 }.padding(20)
-            }.navigationTitle(favoritesOnly ? "관심 상품" : "Alimi")
+            }.navigationTitle(favoritesOnly ? "관심 상품" : "alimi")
+                .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: "브랜드 또는 상품명 검색")
         }
     }
@@ -107,7 +121,7 @@ struct ProductDetail: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 DemoBanner()
-                ProductArt(product: product).frame(height: 200)
+                ProductArt(product: product).frame(height: 240)
                 Text("제품 대체 일러스트 · 실제 포장 아님").font(.caption2).foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 8) {
                     Text("\(product.brand) · \(product.size)").font(.subheadline).foregroundStyle(.secondary)
