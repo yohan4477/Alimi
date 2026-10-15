@@ -45,6 +45,12 @@ struct BrowseView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     DemoBanner()
                     if !favoritesOnly {
+                        NavigationLink { USPricePreview() } label: {
+                            Label("미국 가격 비교 · 흐름 UI 예시", systemImage: "chart.xyaxis.line")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                                .background(Color.alimi.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                        }.accessibilityIdentifier("us-price-preview")
                         VStack(alignment: .leading, spacing: 8) {
                             Text("사고 싶은 그 제품,\n좋은 가격에 알려드려요.").font(.title2.bold())
                             Text("K-뷰티 가격의 흐름을 Alimi에서").font(.subheadline).foregroundStyle(.secondary)
