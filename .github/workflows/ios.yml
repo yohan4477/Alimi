@@ -2,6 +2,7 @@ name: Alimi iPhone build
 on:
   workflow_dispatch:
   push:
+    # Validate this branch after the SwiftUI Section compatibility fix.
     paths:
       - '.github/workflows/ios.yml'
 permissions:
