@@ -6,6 +6,7 @@ struct RootView: View {
         TabView {
             BrowseView().tabItem { Label("홈", systemImage: "house.fill") }
             BrowseView(favoritesOnly: true).tabItem { Label("관심 상품", systemImage: "heart.fill") }
+            ManualPriceView().tabItem { Label("실제 가격", systemImage: "checkmark.seal") }
             AlertsView().tabItem { Label("알림", systemImage: "bell.fill") }
         }
     }
