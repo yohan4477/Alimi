@@ -16,13 +16,13 @@
 | [ALM-F4 #6](https://github.com/yohan4477/Alimi/issues/6) 관심 상품 저장 | 소비자 | P0 | 검증 중 | 실기기 테스트 환경 |
 | [ALM-F5 #7](https://github.com/yohan4477/Alimi/issues/7) 목표가 설정과 앱 내 상태 | 소비자 | P0 | 검증 중 | 실기기 테스트 환경 |
 
-현재 전체 상태는 **검증 중**이다. 기존 빌드/로직 검증이 시작됐고 일부 통과했지만 실기기 게이트가 남았다. 새 구현 작업 진행 증거는 없다. [ALM-001 #2](https://github.com/yohan4477/Alimi/issues/2)은 F1–F5 통합 게이트이며 독립 사용자 기능이나 완료 수에 중복 합산하지 않는다.
+현재 전체 상태는 **검증 중**이다. 기존 빌드/로직 검증이 시작됐고 일부 통과했지만 실기기 게이트가 남았다. 웹 PoC는 별도로 PR #29에서 기존 UI에 실제 수동 관측 1건을 연결했고, 본 PR에서 입력 검증·파일 원장·이력 그래프를 구현했다. [검증 기록](validation/price-history-pipeline-2026-10-15.md). iOS 실기기 게이트의 완료를 의미하지 않는다. [ALM-001 #2](https://github.com/yohan4477/Alimi/issues/2)은 F1–F5 통합 게이트이며 독립 사용자 기능이나 완료 수에 중복 합산하지 않는다.
 
 ## 다음 — 순서와 게이트
 
 | 기능 | 대상 | 우선순위 | 상태 | 선행 조건 |
 |---|---|---|---|---|
-| [ALM-002 #8](https://github.com/yohan4477/Alimi/issues/8) 허가된 실제 가격 수집 | 공통 인프라 | P1 | 아이디어 | ALM-001 검증 완료; 공급원 이용 권한·비용 확인; 개발 승인 |
+| [ALM-002 #8](https://github.com/yohan4477/Alimi/issues/8) 허가된 실제 가격 수집 | 공통 인프라 | P1 | 수동 입력 기반 PoC 구현; 자동 수집 미완료 | 공급원 이용 권한·접근 및 반복 수집 검증; iOS 게이트 별도 유지 |
 | [ALM-003 #9](https://github.com/yohan4477/Alimi/issues/9) DB·인증과 사용자 데이터 격리 | 공통 인프라 | P1 | 아이디어 | ALM-002 PoC 검증 완료; 스키마·보존정책·개발 승인 |
 | [ALM-004 #10](https://github.com/yohan4477/Alimi/issues/10) 실제 목표가 푸시 | 소비자 | P1 | 아이디어 | ALM-002/003 검증 완료; APNs 자격·개발 승인 |
 | [ALM-005 #11](https://github.com/yohan4477/Alimi/issues/11) 실사용자 실험 | 소비자 | P1 | 아이디어 | ALM-004 검증 완료; 동의·모집·실험계획 승인 |

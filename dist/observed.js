@@ -1,11 +1,8 @@
 // Manual public-page observation. Never mix these USD values with KRW fixtures.
 export const observedProductId = '2';
-export const observedPrice = {
-  currency: 'USD', market: 'US', amount: 17.50, observedOn: '2026-10-15',
-  retailer: 'Stylevana US', size: '100ml', quantity: 1,
-  shipping: null, tax: null, availability: 'unknown',
-  url: 'https://www.stylevana.com/en_US/cosrx-advanced-snail-96-mucin-power-essence-100ml10777.html'
-};
+import {priceObservations} from './observed-data.js';
+export const observedPrice = priceObservations.at(-1);
+export const observedHistory = priceObservations;
 export const alternativeProductPage = {
   retailer: 'iHerb', amount: null,
   url: 'https://www.iherb.com/pr/cosrx-advanced-snail-96-mucin-power-essence-3-38-fl-oz-100-ml/77208'
@@ -20,3 +17,4 @@ export function readUsdTarget(storage) {
   try { return parseUsdTarget(storage.getItem('alimi-observed-us-cosrx-target-v1')); }
   catch { return null; }
 }
+
