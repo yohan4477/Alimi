@@ -40,3 +40,10 @@
 ## 증거 범위
 
 [감사 기록](validation/product-audit-2026-10-15.md)에 코드·문서·Issues·Actions 대조 결과를 기록했다. 진척률은 산출하지 않는다. Projects는 도구 기능 미지원으로 미생성, 이 페이지가 현재 통합 현황이다.
+
+## 2026-10-16 KST — 제휴 승인 대기 중 비교 검증 준비
+
+- 사용자 제공 메일: Alimi Awin 계정 활성화 확인. 사용자가 보고한 Stylevana 신청 상태: Pending approval. 판매처 승인·피드 접근은 아직 미확인.
+- 영어 소개 사이트 공개: https://alimi-beauty.yohan4477.chatgpt.site (앱 출시 아님).
+- 본 비교 검증 PR: 옵션·제형·시장·배송지·신선도·총액 조건을 검증하는 오프라인 모듈 구현. 합성 테스트 12/12; UI/실제 피드 미연결. [검증 기록](validation/offer-comparison-2026-10-16.md).
+- 다음: 승인된 피드 샘플의 실제 필드 확인 → 출처별 매핑 → 기존 판매처 UI 연결 → 실제 반복 수집 검증.
