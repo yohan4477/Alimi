@@ -2,7 +2,7 @@
 
 **확인 기준: 2026-10-15 KST / 웹 PoC는 main PR #29 및 본 가격 이력 PR 기준. iOS 검증 기록은 기존 스냅샷 유지.**
 수동 갱신 스냅샷이며 자동 실시간 보드가 아니다. 최신 상태는 연결된 Issues의 이력을 확인한다.
-[비전](PRODUCT_VISION.md) · [로드맵](ROADMAP.md) · [기능 인덱스](FEATURE_REGISTER.md) · [운영 규칙](PRODUCT_OPERATIONS.md) · [결정](DECISIONS.md)
+[비전](PRODUCT_VISION.md) · [로드맵](ROADMAP.md) · [기획박스](IDEA_INBOX.md) · [기능 인덱스](FEATURE_REGISTER.md) · [운영 규칙](PRODUCT_OPERATIONS.md) · [결정](DECISIONS.md)
 
 ## 지금
 

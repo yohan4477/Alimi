@@ -59,3 +59,7 @@ http://localhost:3000 접속. `dist/index.html`을 file://로 직접 열면 ES �
 [운영 현황](docs/PRODUCT_STATUS.md) · [제품 비전](docs/PRODUCT_VISION.md) · [로드맵](docs/ROADMAP.md) · [기능/Issue 인덱스](docs/FEATURE_REGISTER.md) · [의사결정](docs/DECISIONS.md) · [운영 규칙](docs/PRODUCT_OPERATIONS.md)
 
 새 아이디어는 기존 이슈 중복 확인 후 기능 카드로 기록합니다. 개발 승인·검증 완료·출시는 별도 근거가 필요합니다.
+
+## 기획박스 — 아이디어 자유 수집
+
+새 사업/기능 아이디어는 [기획박스(IDEA_INBOX.md)](docs/IDEA_INBOX.md)에 명시적으로 저장할 수 있습니다. ChatGPT 대화에서 **“기획박스에 넣어”**, **“기획박스에 넣을게”** 또는 **“공급 박스에 넣어”**라고 요청하면 중복을 확인해 기존 Issue에 연결하거나 기획박스에 원문 취지와 미확정 가설을 남기는 운영 규칙을 적용합니다. 자동 저장은 아니며, 이 요청만으로 개발을 승인하거나 진행하지 않습니다.
