@@ -19,31 +19,29 @@ struct DemoBanner: View {
 }
 struct ProductArt: View {
     let product: Product
-    private var isJar: Bool { product.category == "크림" || product.category == "립케어" }
-    private var shade: Color {
-        switch product.category {
-        case "선케어": return .orange
-        case "토너": return .cyan
-        case "립케어": return .pink
-        case "크림": return .mint
-        default: return .purple
+    private var imageURL: URL? {
+        switch product.id {
+        case "1": return URL(string: "https://ie.beautyofjoseon.com/cdn/shop/files/02_0330___v2.jpg?v=1774857974")
+        case "2": return URL(string: "https://www.cosrx.com/cdn/shop/files/james_800x1067_1_1_4e9750cc-2cd6-4817-ace5-be2305a85806_1200x1200.jpg?v=1763111577")
+        default: return nil
         }
     }
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 20).fill(shade.opacity(0.10))
-            Circle().fill(shade.opacity(0.08)).frame(width: 120, height: 120).offset(x: 22, y: 10)
-            VStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.8))
-                    .frame(width: isJar ? 90 : 42, height: 15)
-                VStack(spacing: 8) {
-                    Text(product.brand).font(.system(size: 10, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(product.size).font(.system(size: 9)).foregroundStyle(.secondary)
-                }.frame(width: isJar ? 90 : 68, height: isJar ? 58 : 98)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
-            }.rotationEffect(.degrees(-8)).shadow(color: shade.opacity(0.18), radius: 12, x: 8, y: 14)
-            VStack { Spacer(); Text("패키지 컨셉 · 실제 이미지 아님").font(.system(size: 9)).foregroundStyle(.secondary).padding(.bottom, 10) }
-        }.accessibilityLabel("\(product.brand) 제품 대체 일러스트")
+        VStack(spacing: 4) {
+            if let imageURL {
+                AsyncImage(url: imageURL) { phase in
+                    if let image = phase.image { image.resizable().scaledToFit() }
+                    else { placeholder }
+                }
+                if product.id == "1" { Text("브랜드 연출 이미지 · 가격은 50ml 1개 기준").font(.system(size: 8)).foregroundStyle(.secondary) }
+            } else { placeholder }
+        }.frame(maxWidth: .infinity).accessibilityLabel(product.name)
+    }
+    private var placeholder: some View {
+        VStack(spacing: 10) {
+            Text(product.brand).font(.caption)
+            Text("상품 사진 준비 중").font(.caption2)
+        }.foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.canvas)
     }
 }
 struct BrowseView: View {
@@ -59,8 +57,8 @@ struct BrowseView: View {
                     DemoBanner()
                     if !favoritesOnly {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Your beauty.").font(.system(size: 36, weight: .bold, design: .rounded))
-                            Text("Better priced.").font(.system(size: 36, weight: .bold, design: .rounded)).foregroundStyle(Color.alimi)
+                            Text("매일 쓰는 뷰티,").font(.system(size: 28, weight: .bold))
+                            Text("가격은 가볍게.").font(.system(size: 28, weight: .bold))
                             Text("눈여겨본 K-뷰티, 지금은 어떤 가격일까요?").font(.subheadline).foregroundStyle(.secondary)
                         }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -131,10 +129,10 @@ struct ProductDetail: View {
                 }
                 VStack(alignment: .leading, spacing: 16) {
                     HStack { Text("가격 변동 그래프").font(.headline); Spacer(); Text("단위: 원").font(.caption).foregroundStyle(.secondary) }
-                    Picker("기간", selection: $days) { Text("7일").tag(7); Text("30일").tag(30) }.pickerStyle(.segmented)
+                    Picker("기간", selection: $days) { Text("7일").tag(7); Text("14일").tag(14); Text("30일").tag(30) }.pickerStyle(.segmented)
                     Chart {
                         ForEach(Array(store.history(product).suffix(days).enumerated()), id: \.offset) { item in
-                            LineMark(x: .value("일", item.offset - days + 1), y: .value("원", item.element)).foregroundStyle(Color.alimi)
+                            LineMark(x: .value("일", item.offset - days + 1), y: .value("원", item.element)).foregroundStyle(Color.red)
                         }
                         if let target = store.saved.targets[product.id] {
                             RuleMark(y: .value("목표가", target)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [4]))
@@ -144,9 +142,11 @@ struct ProductDetail: View {
                     HStack {
                         metric("기간 최저", store.history(product).suffix(days).min() ?? 0)
                         Spacer()
+                        metric("기간 평균", Int(Double(store.history(product).suffix(days).reduce(0, +)) / Double(store.history(product).suffix(days).count)))
+                        Spacer()
                         metric("기간 최고", store.history(product).suffix(days).max() ?? 0)
                     }
-                }.padding(16).background(Color.canvas, in: RoundedRectangle(cornerRadius: 16))
+                }.padding(.vertical, 16)
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Text("어디서 살까?").font(.title3.bold())
@@ -202,44 +202,28 @@ struct ProductDetail: View {
 struct OfferComparisonCard: View {
     let offer: Offer
     let lowest: Int
-    private var isLowest: Bool { offer.total == lowest }
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if isLowest {
-                HStack {
-                    Text("현재 비교 최저가").font(.caption.bold())
-                    Spacer()
-                    Text("배송비까지 포함했어요").font(.caption2)
-                }.foregroundStyle(Color.alimi).padding(12).background(Color.alimi.opacity(0.07))
-            }
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 10) {
-                    Text(String(offer.name.suffix(1))).font(.subheadline.bold())
-                        .frame(width: 36, height: 36).background(Color.canvas, in: RoundedRectangle(cornerRadius: 10))
-                    VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack {
                         Text(offer.name).font(.subheadline.bold())
-                        Text("\(offer.shipping == 0 ? "무료배송" : "배송비 " + won(offer.shipping)) · 예상 \(offer.days)")
-                            .font(.caption).foregroundStyle(.secondary)
+                        if offer.total == lowest { Text("최저가").font(.caption2).foregroundStyle(.red) }
                     }
+                    Text("\(offer.shipping == 0 ? "무료배송" : "배송비 " + won(offer.shipping)) · 예상 \(offer.days)")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                HStack(alignment: .firstTextBaseline) {
-                    Text(won(offer.total)).font(.system(size: 25, weight: .bold)).foregroundStyle(isLowest ? Color.alimi : Color.primary)
-                    Spacer()
-                    Text(isLowest ? "비교 최저가" : "최저가보다 " + won(offer.total - lowest) + " 더 높음")
-                        .font(.caption2).foregroundStyle(.secondary)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 7) {
+                    Text(won(offer.total)).font(.headline).foregroundStyle(offer.total == lowest ? Color.red : Color.primary)
+                    Text(offer.total == lowest ? "배송비 포함" : "최저가 +" + won(offer.total - lowest)).font(.caption2).foregroundStyle(.secondary)
                 }
-                Divider()
-                DisclosureGroup("가격 구성") {
-                    VStack(spacing: 8) {
-                        HStack { Text("상품 가격"); Spacer(); Text(won(offer.price)) }
-                        HStack { Text("배송비"); Spacer(); Text(won(offer.shipping)) }
-                        HStack { Text("합계"); Spacer(); Text(won(offer.total)) }
-                    }.font(.caption).padding(.top, 10)
-                }.font(.caption).foregroundStyle(.secondary)
-            }.padding(16)
-        }.background(Color(uiColor: .systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(isLowest ? Color.alimi : Color.secondary.opacity(0.2), lineWidth: 1))
+            }
+            DisclosureGroup("가격 구성 보기") {
+                Text("상품 " + won(offer.price) + " + 배송 " + won(offer.shipping)).font(.caption)
+            }.font(.caption2).foregroundStyle(.secondary)
+            Divider()
+        }.padding(.vertical, 8)
     }
 }
 struct TargetSheet: View {
