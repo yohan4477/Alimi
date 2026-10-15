@@ -1,6 +1,6 @@
 # Alimi 운영 현황
 
-**확인 기준: 2026-10-15 KST / main cbe8887adbc29c7b7ef438b37168528dfbf6fef2.**
+**확인 기준: 2026-10-15 KST / 웹 PoC는 main PR #29 및 본 가격 이력 PR 기준. iOS 검증 기록은 기존 스냅샷 유지.**
 수동 갱신 스냅샷이며 자동 실시간 보드가 아니다. 최신 상태는 연결된 Issues의 이력을 확인한다.
 [비전](PRODUCT_VISION.md) · [로드맵](ROADMAP.md) · [기능 인덱스](FEATURE_REGISTER.md) · [운영 규칙](PRODUCT_OPERATIONS.md) · [결정](DECISIONS.md)
 
@@ -8,19 +8,19 @@
 
 | 구분 | 확인된 상태 | 근거 / 다음 행동 |
 |---|---|---|
-| 현재 구현 중 | 새 구현 작업 진행 증거 없음 | 이번 작업은 문서·관리만 |
+| 현재 구현 중 | 기존 웹 UI에 검증된 수동 가격 입력·이력 저장 연결 | [검증 기록](validation/price-history-pipeline-2026-10-15.md); 본 PR, 아직 main 미반영 |
 | 최우선 검증 중 | [ALM-001 #2](https://github.com/yohan4477/Alimi/issues/2), F1–F5 | 시뮬레이터 로직 부분 검증; 실기기 조작 기록 필요 |
 | 최근 통과한 검증 | 빌드, XCTest 7/7, 시뮬레이터 설치·실행·홈 캡처 | [Actions](https://github.com/yohan4477/Alimi/actions/runs/38657001190), [검증 기록](validation/ios-build-2026-10-15.md) |
 | 기능 전체 검증 완료 | 없음 | 실기기/UI 통합 게이트 미완료 |
 | 출시 | 확인된 출시 없음 | TestFlight/App Store/실제 배포 증거 없음 |
-| 실제 가격·DB·인증·푸시 | 미구현 | [ALM-002 #8](https://github.com/yohan4477/Alimi/issues/8)→[ALM-003 #9](https://github.com/yohan4477/Alimi/issues/9)→[ALM-004 #10](https://github.com/yohan4477/Alimi/issues/10) |
+| 실제 가격·DB·인증·푸시 | 웹 수동 관측 1건; 자동 수집·DB·인증·푸시 미연결 | [ALM-002 #8](https://github.com/yohan4477/Alimi/issues/8)→[ALM-003 #9](https://github.com/yohan4477/Alimi/issues/9)→[ALM-004 #10](https://github.com/yohan4477/Alimi/issues/10) |
 
 ## 차단과 다음 우선순위
 
 | 순서 | 작업 | 차단/해제 조건 |
 |---|---|---|
 | 1 | F1–F5 실기기 검증 | Mac/Xcode·서명 가능한 실행 환경·실제 iPhone·검증 담당자 확보; 테스트 결과 첨부 |
-| 2 | 실제 가격 PoC 계획 | MVP 게이트, 허용 공급원·조건·비용 확인 및 개발 승인 |
+| 2 | 실제 가격 PoC | 수동 입력 기반 구현·검증; 공급원 접근·이용 조건 및 반복 수집 검증 필요 |
 | 3 | DB·인증 설계 검증 | 가격 PoC 형식/결과와 계정 격리 조건 확정 |
 | 4 | 푸시→사용자 실험→제휴→글로벌 | 각 선행 Issue의 검증 기준 및 승인 충족 |
 
