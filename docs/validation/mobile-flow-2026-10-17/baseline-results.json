@@ -1,0 +1,211 @@
+{
+  "browser": "Chromium",
+  "version": "153.0.8010.0",
+  "realIPhone": false,
+  "results": [
+    {
+      "width": 320,
+      "name": "discovery and touch environment",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "favorite and target-only USD survives reload and edit",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "dialog cancel restores action focus without jumping",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "USD deletion persists",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "KRW target edit and deletion; favorite independent",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "list return scroll and focus",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "modal preserves detail position after target save",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "save restores focus to target action",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n\n'' !== 'set-target'\n"
+    },
+    {
+      "width": 320,
+      "name": "invalid exponent gets an accessible dialog error",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n\nnull !== 'true'\n"
+    },
+    {
+      "width": 320,
+      "name": "mobile input constraints and invalid values",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "no uncaught browser errors",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "blocked storage never reports save success",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "reset failure is disclosed",
+      "status": "failed",
+      "error": "The input did not match the regular expression /현재 화면/. Input:\n\n''\n"
+    },
+    {
+      "width": 390,
+      "name": "discovery and touch environment",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "favorite and target-only USD survives reload and edit",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "dialog cancel restores action focus without jumping",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "USD deletion persists",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "KRW target edit and deletion; favorite independent",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "list return scroll and focus",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "modal preserves detail position after target save",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "save restores focus to target action",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n\n'' !== 'set-target'\n"
+    },
+    {
+      "width": 390,
+      "name": "invalid exponent gets an accessible dialog error",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n\nnull !== 'true'\n"
+    },
+    {
+      "width": 390,
+      "name": "mobile input constraints and invalid values",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "no uncaught browser errors",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "blocked storage never reports save success",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "reset failure is disclosed",
+      "status": "failed",
+      "error": "The input did not match the regular expression /현재 화면/. Input:\n\n''\n"
+    },
+    {
+      "width": 430,
+      "name": "discovery and touch environment",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "favorite and target-only USD survives reload and edit",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "dialog cancel restores action focus without jumping",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "USD deletion persists",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "KRW target edit and deletion; favorite independent",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "list return scroll and focus",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "modal preserves detail position after target save",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "save restores focus to target action",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n\n'' !== 'set-target'\n"
+    },
+    {
+      "width": 430,
+      "name": "invalid exponent gets an accessible dialog error",
+      "status": "failed",
+      "error": "Expected values to be strictly equal:\n\nnull !== 'true'\n"
+    },
+    {
+      "width": 430,
+      "name": "mobile input constraints and invalid values",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "no uncaught browser errors",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "blocked storage never reports save success",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "reset failure is disclosed",
+      "status": "failed",
+      "error": "The input did not match the regular expression /현재 화면/. Input:\n\n''\n"
+    }
+  ]
+}

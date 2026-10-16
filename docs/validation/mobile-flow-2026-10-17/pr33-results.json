@@ -1,0 +1,243 @@
+{
+  "startedAt": "2026-10-16T23:32:40.407Z",
+  "sourceSha256": {
+    "app.js": "f621004d7b688937dce89f135202515f8168d92af807df118dab5f30275e94f8",
+    "index.html": "3ba521b584ae801c1e8e07ad3ba3543a17d1995372cf45db4cb2bce0080154ed",
+    "style.css": "fce208ef21ab352e91e25c902b984d0568873c633c4ef80dff27d19cbc90ef46"
+  },
+  "node": "v24.19.0",
+  "viewportHeight": 844,
+  "hasTouch": true,
+  "isMobile": true,
+  "browser": "Chromium",
+  "version": "153.0.8010.0",
+  "realIPhone": false,
+  "fontFallback": "Noto Sans KR registered as missing Apple SD Gothic Neo fallback",
+  "results": [
+    {
+      "width": 320,
+      "name": "discovery and touch environment",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "favorite and target-only USD survives reload and edit",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "USD decimal keyboard and accessible range validation",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "removing heart preserves target-only tracking",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "dialog cancel restores action focus without jumping",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "USD deletion persists",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "KRW target edit and deletion; favorite independent",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "list return scroll and focus",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "modal preserves detail position after target save",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "save restores focus to target action",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "invalid exponent gets an accessible dialog error",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "mobile input constraints and invalid values",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "no uncaught browser errors",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "blocked storage never reports save success",
+      "status": "passed"
+    },
+    {
+      "width": 320,
+      "name": "reset failure is disclosed",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "discovery and touch environment",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "favorite and target-only USD survives reload and edit",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "USD decimal keyboard and accessible range validation",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "removing heart preserves target-only tracking",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "dialog cancel restores action focus without jumping",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "USD deletion persists",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "KRW target edit and deletion; favorite independent",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "list return scroll and focus",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "modal preserves detail position after target save",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "save restores focus to target action",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "invalid exponent gets an accessible dialog error",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "mobile input constraints and invalid values",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "no uncaught browser errors",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "blocked storage never reports save success",
+      "status": "passed"
+    },
+    {
+      "width": 390,
+      "name": "reset failure is disclosed",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "discovery and touch environment",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "favorite and target-only USD survives reload and edit",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "USD decimal keyboard and accessible range validation",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "removing heart preserves target-only tracking",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "dialog cancel restores action focus without jumping",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "USD deletion persists",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "KRW target edit and deletion; favorite independent",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "list return scroll and focus",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "modal preserves detail position after target save",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "save restores focus to target action",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "invalid exponent gets an accessible dialog error",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "mobile input constraints and invalid values",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "no uncaught browser errors",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "blocked storage never reports save success",
+      "status": "passed"
+    },
+    {
+      "width": 430,
+      "name": "reset failure is disclosed",
+      "status": "passed"
+    }
+  ]
+}

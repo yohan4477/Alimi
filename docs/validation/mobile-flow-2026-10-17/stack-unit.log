@@ -1,0 +1,136 @@
+✔ ranks by complete destination total, not sticker price (2.379897ms)
+✔ unknown shipping, tax or duties never becomes free (0.433049ms)
+✔ size, unit, quantity, formulation and variant must match (0.475302ms)
+✔ matching names or keys without reviewed evidence are insufficient (0.398828ms)
+✔ market, currency, destination and stock block comparison (0.376505ms)
+✔ subscription, coupon and basket conditions excluded (0.315593ms)
+✔ fresh download cannot revive stale source data (0.301232ms)
+✔ bad, future and inconsistent timestamps excluded (0.276995ms)
+✔ one retailer cannot receive lowest-price label (0.781621ms)
+✔ ties preserve both eligible retailer offers (0.388342ms)
+✔ invalid amounts and missing rows fail closed (0.595573ms)
+✔ duplicate offer identifiers rejected; comparison is deterministic and nonmutating (1.286128ms)
+✔ F1 검색: 조선미녀 → 1개 / 영문 / 공백 / 없는 상품 (1.120219ms)
+✔ F2 선택 모델별 이력: 30개이며 제품 간 상이 (0.852307ms)
+✔ F3 배송비 포함: 14000+3000보다 15700+0이 최저 (0.332017ms)
+✔ F4 관심 추가/삭제/재로딩 (0.391838ms)
+✔ F5 목표 15000 → 현재 15700 대기 → 14000 도달 / 경계 / 복원 (0.25343ms)
+✔ 입력 오류와 저장 데이터 손상 (0.348232ms)
+✔ real manual observation remains unranked without invented destination or zero costs (19.069231ms)
+✔ two verified synthetic retailers rank by total and disclose components (3.099385ms)
+✔ one eligible retailer and unknown costs do not earn lowest badge (0.902593ms)
+✔ stale data and option mismatch remain excluded with reasons (0.245929ms)
+✔ invalid context fails closed; seller text is escaped and unsafe links omitted (0.736374ms)
+✔ reject wrong market, currency, size, source and quantity (1.788801ms)
+✔ reject invalid prices, dates and claimed shipping (0.588793ms)
+✔ reimport is idempotent and not another observation (0.601532ms)
+✔ same-day conflicting price requires precise timestamps (0.258998ms)
+✔ older observations cannot replace latest (9.940589ms)
+✔ invalid batch never mutates ledger or UI data; valid run generates browser export (20.936816ms)
+{
+  "scope": {
+    "market": "US",
+    "currency": "USD",
+    "postalCode": "10001",
+    "asOf": "2026-10-17T00:00:00.000Z",
+    "maxAgeHours": 24
+  },
+  "status": "insufficient_retailers",
+  "ranked": [],
+  "excluded": [
+    {
+      "index": 0,
+      "offerId": "stylevana-100ml",
+      "retailer": "Stylevana US",
+      "eligible": false,
+      "reasons": [
+        "identity_unverified",
+        "identity_incomplete",
+        "delivery_unverified",
+        "stock_unconfirmed",
+        "total_cost_unknown",
+        "total_cost_unverified",
+        "invalid_observedAt",
+        "invalid_sourceUpdatedAt"
+      ],
+      "total": null
+    },
+    {
+      "index": 1,
+      "offerId": "2504912",
+      "retailer": "Ulta",
+      "eligible": false,
+      "reasons": [
+        "identity_unverified",
+        "identity_incomplete",
+        "delivery_unverified",
+        "total_cost_unknown",
+        "total_cost_unverified",
+        "invalid_observedAt",
+        "invalid_sourceUpdatedAt"
+      ],
+      "total": null
+    },
+    {
+      "index": 2,
+      "offerId": "official-100ml",
+      "retailer": "COSRX Official",
+      "eligible": false,
+      "reasons": [
+        "identity_unverified",
+        "identity_incomplete",
+        "delivery_unverified",
+        "stock_unconfirmed",
+        "total_cost_unknown",
+        "total_cost_unverified",
+        "invalid_observedAt",
+        "invalid_sourceUpdatedAt"
+      ],
+      "total": null
+    },
+    {
+      "index": 3,
+      "offerId": "cosS02-Essence",
+      "retailer": "StyleKorean",
+      "eligible": false,
+      "reasons": [
+        "identity_unverified",
+        "identity_incomplete",
+        "market_or_currency_mismatch",
+        "delivery_unverified",
+        "stock_unconfirmed",
+        "total_cost_unknown",
+        "total_cost_unverified",
+        "invalid_observedAt",
+        "invalid_sourceUpdatedAt"
+      ],
+      "total": null
+    },
+    {
+      "index": 4,
+      "offerId": "1052684695",
+      "retailer": "YesStyle",
+      "eligible": false,
+      "reasons": [
+        "identity_unverified",
+        "identity_incomplete",
+        "market_or_currency_mismatch",
+        "delivery_unverified",
+        "total_cost_unknown",
+        "total_cost_unverified",
+        "invalid_observedAt",
+        "invalid_sourceUpdatedAt"
+      ],
+      "total": null
+    }
+  ]
+}
+✔ actual public-page review cannot be promoted to purchasable lowest total (2.602541ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 136.148547

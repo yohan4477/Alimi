@@ -1,0 +1,20 @@
+✔ F1 검색: 조선미녀 → 1개 / 영문 / 공백 / 없는 상품 (0.799408ms)
+✔ F2 선택 모델별 이력: 30개이며 제품 간 상이 (0.578447ms)
+✔ F3 배송비 포함: 14000+3000보다 15700+0이 최저 (0.196765ms)
+✔ F4 관심 추가/삭제/재로딩 (0.286239ms)
+✔ F5 목표 15000 → 현재 15700 대기 → 14000 도달 / 경계 / 복원 (0.188843ms)
+✔ 입력 오류와 저장 데이터 손상 (0.287972ms)
+✔ reject wrong market, currency, size, source and quantity (1.333108ms)
+✔ reject invalid prices, dates and claimed shipping (0.408202ms)
+✔ reimport is idempotent and not another observation (0.310566ms)
+✔ same-day conflicting price requires precise timestamps (0.151217ms)
+✔ older observations cannot replace latest (6.080886ms)
+✔ invalid batch never mutates ledger or UI data; valid run generates browser export (16.683961ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.769023
