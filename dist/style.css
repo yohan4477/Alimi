@@ -8,3 +8,7 @@
 .observed-buy{grid-column:1/-1;color:var(--blue);font-size:13px;display:flex;align-items:center;min-height:44px}.chart-note{font-size:11px}.info-chips{flex-wrap:wrap}
 
 .history-pending{min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#92979e}.history-pending strong{font-size:16px;font-weight:500;color:#747a82}.history-pending p{font-size:12px;line-height:1.6;margin:10px 0}.history-pending small{font-size:11px}
+
+
+/* Mobile saved-product flow: retain the existing visual design. */
+.saved-target{display:block;margin-top:8px;color:var(--blue);font-size:11px;line-height:1.5}.empty-browse{color:var(--blue);min-height:44px}.heart{width:44px;height:44px;right:-6px}#toast{white-space:normal;width:max-content;max-width:calc(100% - 32px);text-align:center;overflow-wrap:anywhere}.searchbar input{font-size:16px}.detail-nav button,.save-action{min-width:44px;min-height:44px}dialog{max-height:calc(100dvh - 32px);overflow-y:auto}#detail{padding-bottom:calc(105px + env(safe-area-inset-bottom))}
