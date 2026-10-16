@@ -36,3 +36,12 @@
 - 배송주소별 총액 비교, 다른 판매처, 실시간 알림, 수익 정산은 연결 완료 아님.
 
 롤백: 이 PR을 되돌리면 기존 10/15 수동 관측 화면으로 복귀. 기존 원장은 수정하지 않음. 비밀 URL을 채팅·PR·앱 assets에 붙이지 않음.
+
+## 2026-10-17 07:43 KST — 승인된 활성화 실행
+
+- 사용자 «ㄱㄱ»로 PR 병합 및 비밀 URL 등록 승인. PR #36 → main 0befc585d0428eec4eafa8b3b8b4f263c8381742 병합 완료.
+- iOS PR run 38975751710 및 main run 38976155404에서 빌드/XCTest/시뮬레이터 설치·실행·홈 캡처 성공. 실제 iPhone 검증과 구분.
+- GitHub 정상 로그인/2FA 확인 완료 후 AWIN_STYLEVANA_US_FEED_URL을 암호화 Repository secret으로 등록. 값은 코드·문서에 미포함.
+- 자동 수집 run 38977354895: 공식 다운로드·파싱 성공, Node 20/20, 데이터 커밋 5065937 생성 및 브랜치 저장 성공. 마지막 gh pr create는 저장소 정책(GitHub Actions is not permitted to create or approve pull requests)으로 실패.
+- 추가 권한을 부여하지 않고 마지막 단계를 data/stylevana-us 브랜치 저장으로 변경. 다음 실행 전 기존 브랜치의 이력을 복원하여 main에 미병합된 기간의 수집 이력도 보존. 롤링 데이터 브랜치만 force-with-lease로 갱신하며 main은 갱신하지 않음.
+- 예약은 기존 cron 22:30 UTC = 07:30 KST 유지. 사이트·iPhone 실서비스 배포를 뜻하지 않음.
