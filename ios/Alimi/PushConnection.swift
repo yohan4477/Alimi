@@ -52,6 +52,13 @@ struct AlertQuote: Decodable {
     let amount_cents: Int
     let collected_at: String
     let in_stock: Bool
+    var formattedCollection: String {
+        let parser = ISO8601DateFormatter()
+        parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let fractional = parser.date(from: collected_at)
+        parser.formatOptions = [.withInternetDateTime]
+        return (fractional ?? parser.date(from: collected_at))?.formatted(date:.abbreviated,time:.shortened) ?? "확인 시각 미상"
+    }
 }
 
 @MainActor final class PushConnection: ObservableObject {

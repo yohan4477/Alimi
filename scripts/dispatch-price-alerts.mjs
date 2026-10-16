@@ -4,12 +4,13 @@ import {fileURLToPath} from 'node:url';
 import {validQuote, priceDrop, quietHours, apnsJWT, sendAPNs} from './price-alerts.mjs';
 
 export function databaseClient(url, key, fetcher = fetch) {
+  if(typeof key!=='string' || !key)throw Error('Backend key missing');
   const base = new URL(url);
   if (base.protocol !== 'https:' || !/^[a-z0-9]+\.supabase\.co$/.test(base.hostname) || base.pathname !== '/' || base.search || base.hash)
     throw Error('Unexpected backend URL');
   return async (path, method='GET', body, prefer) => {
     const response=await fetcher(new URL('/rest/v1/'+path,base),{method,redirect:'error',signal:AbortSignal.timeout(20000),
-      headers:{apikey:key,authorization:`Bearer ${key}`,'content-type':'application/json',...(prefer?{prefer}:{})},
+      headers:{apikey:key,...(key?.startsWith('sb_secret_')?{}:{authorization:`Bearer ${key}`}), 'content-type':'application/json',...(prefer?{prefer}:{})},
       body:body===undefined?undefined:JSON.stringify(body)});
     if(!response.ok)throw Error('Backend HTTP '+response.status); // Never log body, keys or device tokens.
     const text=await response.text();
@@ -27,11 +28,15 @@ export async function dispatch({snapshot, db, send, clock = () => new Date()}) {
     const filter=`user_id=eq.${encodeURIComponent(claim.user_id)}`;
     const devices=await db(`alimi_devices?${filter}&select=token,environment,time_zone,enabled`);
     const watches=await db(`alimi_watches?${filter}&product_id=eq.2&select=enabled`);
+    const quotes=await db('alimi_quotes?product_id=eq.2&select=amount_cents,collected_at,in_stock');
+    const latest=quotes?.[0];
     const device=devices?.[0];
     // Check opt-out/token rotation/quiet hours immediately before handing off to APNs.
     let result='failed';
     let fresh=true;try{validQuote(snapshot,clock().getTime());}catch{fresh=false;}
-    if(!fresh || !device?.enabled || !watches?.[0]?.enabled || device.token!==claim.token || device.environment!==claim.environment ||
+    if(!fresh || !latest?.in_stock || latest.amount_cents!==quote.amount_cents ||
+       !Number.isFinite(Date.parse(latest.collected_at)) || clock().getTime()-Date.parse(latest.collected_at)>7200000 ||
+       Date.parse(latest.collected_at)>clock().getTime()+60000 || !device?.enabled || !watches?.[0]?.enabled || device.token!==claim.token || device.environment!==claim.environment ||
        quietHours(device.time_zone,clock()) || claim.product_id!=='2' || claim.amount_cents!==quote.amount_cents ||
        !priceDrop({current:quote.amount_cents,baseline:claim.baseline_cents,lastAccepted:claim.last_accepted_cents,inStock:quote.in_stock})) {
       counts.skipped++;

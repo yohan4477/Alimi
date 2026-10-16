@@ -8,7 +8,7 @@ create table public.alimi_quotes (
 );
 create table public.alimi_devices (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  token text not null check (token ~ '^[a-f0-9]{32,256}$'),
+  token text not null check (token ~ '^[a-f0-9]+$' and length(token) between 32 and 256),
   environment text not null check (environment in ('sandbox','production')),
   time_zone text not null,
   enabled boolean not null default true,

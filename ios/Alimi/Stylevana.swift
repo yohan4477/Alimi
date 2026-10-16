@@ -67,7 +67,7 @@ struct StylevanaDetail: View {
                 Text("100ml · 단품 1개").font(.subheadline).foregroundStyle(.secondary)
                 if let quote = push.quote {
                     Text((Double(quote.amount_cents) / 100).formatted(.currency(code: "USD"))).font(.largeTitle.bold())
-                    Text("서버 피드 확인: \(quote.collected_at)").font(.caption)
+                    Text("마지막 가격 확인: \(quote.formattedCollection)").font(.caption)
                     Text(quote.in_stock ? "피드 재고 있음 · 결제 전 확인" : "피드 품절").font(.caption)
                 } else {
                     Text(observation.formattedAmount).font(.largeTitle.bold())

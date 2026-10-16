@@ -12,6 +12,7 @@ function fakeDB({device={},watch=true}={}) {
     calls.push({path,method,body});
     if(path==='rpc/alimi_claim_alerts')return [{...claim}];
     if(path.startsWith('alimi_devices')&& !method)return [{...claim,enabled:true,...device}];
+    if(path.startsWith('alimi_quotes'))return [{amount_cents:1600,collected_at:now.toISOString(),in_stock:true}];
     if(path.startsWith('alimi_watches'))return [{enabled:watch}];
     return null;
   };
