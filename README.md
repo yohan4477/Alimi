@@ -63,6 +63,6 @@ http://localhost:3000 접속. `dist/index.html`을 file://로 직접 열면 ES �
 
 ## Stylevana 공식 피드 (2026-10-17 구현 브랜치)
 
-COSRX 100ml 단품에 한해 Stylevana 미국 공식 피드 스냅샷·USD·제휴 링크를 웹/iOS에 연결했다. [실제 수신 결과와 남은 게이트](docs/validation/stylevana-official-feed-2026-10-17.md). 위 초기 가상 데이터 설명의 예외는 이 상품 1개뿐이다. main 병합/배포 전이며 자동 푸시는 없다.
+COSRX 100ml 단품에 한해 Stylevana 미국 공식 피드 스냅샷·USD·제휴 링크를 웹/iOS에 연결했다. [실제 수신 결과와 남은 게이트](docs/validation/stylevana-official-feed-2026-10-17.md). 위 초기 가상 데이터 설명의 예외는 이 상품 1개뿐이다. main 병합 및 실제 자동 수집 실행 검증을 완료했다. 앱/웹 배포와 자동 푸시는 미완료다.
 
-다운로드한 CSV/gzip 재현: `node scripts/stylevana-feed.mjs <downloaded-feed.csv.gz>`. 주기 수집에는 GitHub Actions secret `AWIN_STYLEVANA_US_FEED_URL`이 필요하다. 비밀 다운로드 URL을 코드 또는 앱에 넣지 않는다. 워크플로 갱신은 데이터 PR을 만들며 검토/병합 전까지 배포 스냅샷은 바뀌지 않는다.
+다운로드한 CSV/gzip 재현: `node scripts/stylevana-feed.mjs <downloaded-feed.csv.gz>`. 주기 수집에는 GitHub Actions secret `AWIN_STYLEVANA_US_FEED_URL`이 필요하다. 비밀 다운로드 URL을 코드 또는 앱에 넣지 않는다. 워크플로는 매일 07:30 KST에 수집하며 결과를 `data/stylevana-us` 브랜치에 누적한다. 저장소의 Actions PR 생성 권한을 확대하지 않는다. 데이터 검토/병합·앱 빌드/배포 전까지 배포 스냅샷은 바뀌지 않는다. [최초 수집 및 이력 복원 성공](https://github.com/yohan4477/Alimi/actions/runs/38977590617).
