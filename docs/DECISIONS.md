@@ -21,3 +21,8 @@
 ID / 날짜 / 관련 기능·Issue / 이전 결정 / 선택지 / 결정과 이유 / 검증 근거 / 승인자·승인 링크 / 영향·롤백 조건 / 대체하는 결정 ID.
 
 결정 변경 시 Issue 상태 이력과 ROADMAP, PRODUCT_STATUS를 같은 작업에서 갱신한다. 아이디어 논의·문서 PR 승인·개발 승인·출시 승인을 서로 대체하지 않는다.
+
+
+## D-009 / 2026-10-17 — 승인된 Stylevana 실제 피드 연결
+
+사용자 John Choi의 “연결” 지시로 ALM-002/006의 Stylevana 미국 COSRX 100ml 단품 피드·제휴 링크 연결을 구현한다. Awin Joined와 실제 다운로드 24,203행을 확인했다. 기존 manual 스키마를 변형하지 않고 method=awin_feed를 별도 저장한다. 배송비 $3.99는 피드 참고값이며 주소별 총액이 아니므로 최저가 계산에서 제외한다. 비밀 URL 저장·main 병합·출시는 아직 미수행. [검증 및 롤백](validation/stylevana-official-feed-2026-10-17.md).

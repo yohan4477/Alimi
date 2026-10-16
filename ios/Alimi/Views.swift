@@ -12,7 +12,7 @@ struct RootView: View {
 }
 struct DemoBanner: View {
     var body: some View {
-        Label("테스트 데이터 · 실제 가격/푸시 알림 아님", systemImage: "info.circle")
+        Label("COSRX는 공식 미국 상품가 · 다른 상품은 데모 · 푸시 미연결", systemImage: "info.circle")
             .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             .padding(12).background(Color.canvas, in: RoundedRectangle(cornerRadius: 10))
     }
@@ -20,6 +20,7 @@ struct DemoBanner: View {
 struct ProductArt: View {
     let product: Product
     private var imageURL: URL? {
+        if product.id == "2", let row = StylevanaSnapshot.bundled?.latest { return row.imageUrl }
         switch product.id {
         case "1": return URL(string: "https://ie.beautyofjoseon.com/cdn/shop/files/02_0330___v2.jpg?v=1774857974")
         case "2": return URL(string: "https://www.cosrx.com/cdn/shop/files/james_800x1067_1_1_4e9750cc-2cd6-4817-ace5-be2305a85806_1200x1200.jpg?v=1763111577")
@@ -85,13 +86,20 @@ struct BrowseView: View {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 16)], spacing: 24) {
                         ForEach(results) { product in
                             VStack(alignment: .leading, spacing: 8) {
-                                NavigationLink { ProductDetail(product: product) } label: {
+                                NavigationLink { ProductDestination(product: product) } label: {
                                     VStack(alignment: .leading, spacing: 8) {
                                         ProductArt(product: product).frame(height: 180)
                                         Text(product.brand).font(.caption).foregroundStyle(.secondary)
                                         Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
-                                        Text(won(store.price(product))).font(.system(size: 23, weight: .bold, design: .rounded))
-                                        Text("배송비 포함 · 가상 판매처 3곳").font(.caption2).foregroundStyle(.secondary)
+                                        if product.id == "2" {
+                                            if let row = StylevanaSnapshot.bundled?.latest {
+                                                Text(row.formattedAmount).font(.system(size: 23, weight: .bold, design: .rounded))
+                                                Text("미국 공식 피드 · 배송비·세금 별도").font(.caption2).foregroundStyle(.secondary)
+                                            } else { Text("가격 확인 대기").font(.caption) }
+                                        } else {
+                                            Text(won(store.price(product))).font(.system(size: 23, weight: .bold, design: .rounded))
+                                            Text("배송비 포함 · 가상 판매처 3곳").font(.caption2).foregroundStyle(.secondary)
+                                        }
                                     }.foregroundStyle(.primary)
                                 }.buttonStyle(.plain)
                                 Button { store.toggle(product.id) } label: {
@@ -102,7 +110,7 @@ struct BrowseView: View {
                         }
                     }
                 }.padding(20)
-            }.navigationTitle(favoritesOnly ? "관심 상품" : "alimi")
+            }.navigationTitle(favoritesOnly ? "관심 상품" : "Alimi")
                 .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: "브랜드 또는 상품명 검색")
         }
@@ -257,12 +265,15 @@ struct AlertsView: View {
         NavigationStack {
             List {
                 DemoBanner().listRowSeparator(.hidden)
-                let products = store.products.filter { store.saved.targets[$0.id] != nil }
+                let products = store.products.filter { store.saved.targets[$0.id] != nil && $0.id != "2" }
+                if let row = StylevanaSnapshot.bundled?.latest {
+                    Text("COSRX 미국 상품가 \(row.formattedAmount) · USD 목표가는 상품 상세에서 확인 · 푸시 미연결").font(.caption)
+                }
                 if products.isEmpty {
                     ContentUnavailableView("설정한 알림이 없어요", systemImage: "bell", description: Text("상품 상세에서 목표 가격을 설정하세요."))
                 }
                 ForEach(products) { product in
-                    NavigationLink { ProductDetail(product: product) } label: {
+                    NavigationLink { ProductDestination(product: product) } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(product.name).font(.headline)
                             Text(store.status(product)).foregroundStyle(Color.alimi)
@@ -274,3 +285,4 @@ struct AlertsView: View {
         }
     }
 }
+
