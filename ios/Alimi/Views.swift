@@ -102,7 +102,7 @@ struct BrowseView: View {
                         }
                     }
                 }.padding(20)
-            }.navigationTitle(favoritesOnly ? "관심 상품" : "alimi")
+            }.navigationTitle(favoritesOnly ? "관심 상품" : "Alimi")
                 .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: "브랜드 또는 상품명 검색")
         }
