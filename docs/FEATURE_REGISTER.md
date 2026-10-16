@@ -11,8 +11,8 @@
 | [ALM-F4 #6](https://github.com/yohan4477/Alimi/issues/6) 관심 상품 저장 | 소비자 | P0 | 검증 중 | 실기기 테스트 환경 |
 | [ALM-F5 #7](https://github.com/yohan4477/Alimi/issues/7) 목표가 설정과 앱 내 상태 | 소비자 | P0 | 검증 중 | 실기기 테스트 환경 |
 | [ALM-002 #8](https://github.com/yohan4477/Alimi/issues/8) 허가된 실제 가격 수집 | 공통 인프라 | P1 | 구현 중 (2026-10-17 공식 피드 1회 수신) | 반복 수집·실기기·비밀 URL 설정 게이트 유지 |
-| [ALM-003 #9](https://github.com/yohan4477/Alimi/issues/9) DB·인증과 사용자 데이터 격리 | 공통 인프라 | P1 | 아이디어 | ALM-002 PoC 검증 완료; 스키마·보존정책·개발 승인 |
-| [ALM-004 #10](https://github.com/yohan4477/Alimi/issues/10) 실제 목표가 푸시 | 소비자 | P1 | 아이디어 | ALM-002/003 검증 완료; APNs 자격·개발 승인 |
+| [ALM-003 #9](https://github.com/yohan4477/Alimi/issues/9) DB·인증과 사용자 데이터 격리 | 공통 인프라 | P1 | 구현 중 (PR #40; 운영 DB 미생성) | 선택 조직·익명 인증·격리/보존 검증 |
+| [ALM-004 #10](https://github.com/yohan4477/Alimi/issues/10) 실제 목표가 푸시 | 소비자 | P1 | 구현 중 (PR #39 병합, #40; 기본 하락 알림) | 선택 서버·Apple 자격·서명·실기기 수신; 목표가 푸시 미완료 |
 | [ALM-005 #11](https://github.com/yohan4477/Alimi/issues/11) 실사용자 실험 | 소비자 | P1 | 아이디어 | ALM-004 검증 완료; 동의·모집·실험계획 승인 |
 | [ALM-006 #12](https://github.com/yohan4477/Alimi/issues/12) 제휴 수익화 | 공통 인프라 | P2 | 구현 중 (Stylevana 승인 링크 연결) | ALM-005 결과; 실제 전환·취소·정산 검증 |
 | [ALM-007 #13](https://github.com/yohan4477/Alimi/issues/13) 글로벌 실구매가 비교 | 소비자 | P2 | 아이디어 | ALM-006 검증 완료; 국가별 비용·배송·상품 동일성 확인; 개발 승인 |
