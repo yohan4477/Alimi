@@ -5,7 +5,6 @@ on:
     - cron: '30 22 * * *'
 permissions:
   contents: write
-  pull-requests: write
 concurrency:
   group: stylevana-feed
   cancel-in-progress: false
@@ -18,28 +17,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore previously collected history
+        shell: bash
+        run: |
+          set -euo pipefail
+          data_branch_sha=$(git ls-remote --heads origin refs/heads/data/stylevana-us | cut -f1)
+          echo "DATA_BRANCH_SHA=$data_branch_sha" >> "$GITHUB_ENV"
+          if [ -n "$data_branch_sha" ]; then
+            git fetch --no-tags origin refs/heads/data/stylevana-us
+            git restore --source=FETCH_HEAD -- data/stylevana-us.json dist/stylevana-data.js ios/Alimi/stylevana-us.json
+          fi
       - name: Import official US feed
         env:
           AWIN_FEED_URL: ${{ secrets.AWIN_STYLEVANA_US_FEED_URL }}
         run: node scripts/stylevana-feed.mjs
       - run: npm test
+      - name: Preserve collected snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add data/stylevana-us.json dist/stylevana-data.js ios/Alimi/stylevana-us.json
+          if git diff --cached --quiet; then exit 0; fi
+          git switch -c "collection-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'data: refresh official Stylevana US snapshot'
+          git push --force-with-lease="refs/heads/data/stylevana-us:${DATA_BRANCH_SHA}" origin HEAD:refs/heads/data/stylevana-us
+          echo "Official feed collected, validated and saved to [data/stylevana-us](https://github.com/yohan4477/Alimi/tree/data/stylevana-us)." >> "$GITHUB_STEP_SUMMARY"
+          echo "Review [the snapshot comparison](https://github.com/yohan4477/Alimi/compare/main...data/stylevana-us) before updating the bundled app data. No automatic deployment." >> "$GITHUB_STEP_SUMMARY"
       - name: Publish fresh quote to alert backend
         if: vars.ALIMI_BACKEND_ENABLED == 'true'
         env:
           ALIMI_SUPABASE_URL: ${{ vars.ALIMI_SUPABASE_URL }}
           ALIMI_SUPABASE_SERVICE_KEY: ${{ secrets.ALIMI_SUPABASE_SERVICE_KEY }}
         run: node scripts/dispatch-price-alerts.mjs --ingest
-      - name: Propose updated snapshots
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -eu
-          git add data/stylevana-us.json dist/stylevana-data.js ios/Alimi/stylevana-us.json
-          if git diff --cached --quiet; then exit 0; fi
-          branch="data/stylevana-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          git switch -c "$branch"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'data: refresh official Stylevana US snapshot'
-          git push origin "$branch"
-          gh pr create --base main --head "$branch" --title 'data: Stylevana US official feed refresh' --body 'Daily official feed collection. Checkout shipping and tax remain unverified. Review and merge to update bundled app snapshots.'
