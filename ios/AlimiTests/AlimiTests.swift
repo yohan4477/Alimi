@@ -42,6 +42,16 @@ final class AlimiTests: XCTestCase {
         store.simulations.removeValue(forKey: p.id)
         XCTAssertEqual(store.status(p), "기다리는 중")
     }
+    func testOfficialStylevanaResourceIsBundled() {
+        guard let snapshot = StylevanaSnapshot.bundled else { return XCTFail("Official Stylevana JSON resource missing or invalid") }
+        XCTAssertEqual(snapshot.latest.currency, "USD")
+        XCTAssertEqual(snapshot.latest.market, "US")
+        XCTAssertEqual(snapshot.latest.size, "100ml")
+        XCTAssertEqual(snapshot.latest.quantity, 1)
+        XCTAssertGreaterThan(snapshot.latest.amount, 0)
+        XCTAssertEqual(snapshot.latest.affiliateUrl.host, "www.awin1.com")
+        XCTAssertFalse(snapshot.history.isEmpty)
+    }
     func testInputValidation() {
         for invalid in ["", "0", "-1", "1.5", "10000001", "abc"] { XCTAssertNil(PriceRule.valid(invalid)) }
         XCTAssertEqual(PriceRule.valid("15000"), 15000)
@@ -55,3 +65,4 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(second.saved.targets["1"], 15000)
     }
 }
+
