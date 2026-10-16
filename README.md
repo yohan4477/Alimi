@@ -59,3 +59,10 @@ http://localhost:3000 접속. `dist/index.html`을 file://로 직접 열면 ES �
 [운영 현황](docs/PRODUCT_STATUS.md) · [제품 비전](docs/PRODUCT_VISION.md) · [로드맵](docs/ROADMAP.md) · [기능/Issue 인덱스](docs/FEATURE_REGISTER.md) · [의사결정](docs/DECISIONS.md) · [운영 규칙](docs/PRODUCT_OPERATIONS.md)
 
 새 아이디어는 기존 이슈 중복 확인 후 기능 카드로 기록합니다. 개발 승인·검증 완료·출시는 별도 근거가 필요합니다.
+
+
+## Stylevana 공식 피드 (2026-10-17 구현 브랜치)
+
+COSRX 100ml 단품에 한해 Stylevana 미국 공식 피드 스냅샷·USD·제휴 링크를 웹/iOS에 연결했다. [실제 수신 결과와 남은 게이트](docs/validation/stylevana-official-feed-2026-10-17.md). 위 초기 가상 데이터 설명의 예외는 이 상품 1개뿐이다. main 병합/배포 전이며 자동 푸시는 없다.
+
+다운로드한 CSV/gzip 재현: `node scripts/stylevana-feed.mjs <downloaded-feed.csv.gz>`. 주기 수집에는 GitHub Actions secret `AWIN_STYLEVANA_US_FEED_URL`이 필요하다. 비밀 다운로드 URL을 코드 또는 앱에 넣지 않는다. 워크플로 갱신은 데이터 PR을 만들며 검토/병합 전까지 배포 스냅샷은 바뀌지 않는다.
