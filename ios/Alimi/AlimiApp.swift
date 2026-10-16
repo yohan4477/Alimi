@@ -4,7 +4,7 @@ import SwiftUI
 struct AlimiApp: App {
     @StateObject private var store = AlimiStore()
     var body: some Scene {
-        WindowGroup { RootView().environmentObject(store).tint(.alimi) }
+        WindowGroup { NotificationOnboarding().environmentObject(store).tint(.alimi) }
     }
 }
 

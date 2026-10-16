@@ -1,4 +1,5 @@
 import XCTest
+import UserNotifications
 @testable import Alimi
 
 final class AlimiTests: XCTestCase {
@@ -7,6 +8,13 @@ final class AlimiTests: XCTestCase {
         let first = Product(id: "1", brand: "조선미녀", name: "선크림", size: "50ml", category: "선케어", keywords: "Beauty of Joseon", base: 14500, history: Array(repeating: 17000, count: 30), offers: [Offer(name: "A", price: 14500, shipping: 2500, days: "2일"), Offer(name: "B", price: 15700, shipping: 0, days: "1일")])
         let second = Product(id: "2", brand: "아누아", name: "토너", size: "250ml", category: "토너", keywords: "Anua", base: 18900, history: Array(repeating: 20000, count: 30), offers: [Offer(name: "A", price: 18900, shipping: 0, days: "2일")])
         return AlimiStore(defaults: defaults, products: [first, second])
+    }
+    func testNotificationPermissionRouting() {
+        XCTAssertEqual(NotificationPermissionAction.resolve(.notDetermined), .request)
+        XCTAssertEqual(NotificationPermissionAction.resolve(.denied), .settings)
+        XCTAssertEqual(NotificationPermissionAction.resolve(.authorized), .enabled)
+        XCTAssertEqual(NotificationPermissionAction.resolve(.provisional), .enabled)
+        XCTAssertEqual(NotificationPermissionAction.resolve(.ephemeral), .enabled)
     }
     func testF1Search() {
         let store = makeStore()
