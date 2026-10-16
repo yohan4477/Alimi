@@ -17,6 +17,8 @@ enum NotificationPermissionAction: Equatable {
 /// Permission setup only. Remote price alert delivery still requires APNs/backend integration.
 struct NotificationOnboarding: View {
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var store: AlimiStore
+    @ObservedObject private var push = PushConnection.shared
     @AppStorage("alimi.notifications.introductionSeen.v1") private var introductionSeen = false
     @State private var showIntroduction = false
     @State private var action: NotificationPermissionAction = .request
@@ -35,9 +37,11 @@ struct NotificationOnboarding: View {
                 }
             }
             .task {
+                push.update(favorites: store.saved.favorites)
                 await refresh()
                 if !introductionSeen && action != .enabled { showIntroduction = true }
             }
+            .onChange(of: store.saved.favorites) { _, value in push.update(favorites: value) }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { Task { await refresh() } }
             }
@@ -50,7 +54,7 @@ struct NotificationOnboarding: View {
                         .font(.title2.bold()).multilineTextAlignment(.center)
                     Text("관심 상품의 가격 하락 소식을 받으려면 알림을 허용해 주세요.")
                         .multilineTextAlignment(.center)
-                    Text("현재 알림 발송 기능은 준비 중이에요. 권한을 허용해도 아직 가격 알림이 발송되지는 않아요.")
+                    Text(push.status)
                         .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     if let errorMessage { Text(errorMessage).font(.footnote).foregroundStyle(.red) }
                     Button(action == .settings ? "아이폰 알림 설정 열기" : action == .enabled ? "확인" : "알림 켜기") {
@@ -69,6 +73,7 @@ struct NotificationOnboarding: View {
     @MainActor private func refresh() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         action = NotificationPermissionAction.resolve(settings.authorizationStatus)
+        await push.refreshPermission()
     }
 
     @MainActor private func enable() async {
@@ -97,3 +102,4 @@ struct NotificationOnboarding: View {
         }
     }
 }
+

@@ -22,6 +22,19 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: Alimi/Alimi.entitlements
+        ALIMI_SUPABASE_URL: ''
+        ALIMI_SUPABASE_PUBLISHABLE_KEY: ''
+        INFOPLIST_KEY_ALIMISupabaseURL: $(ALIMI_SUPABASE_URL)
+        INFOPLIST_KEY_ALIMISupabasePublishableKey: $(ALIMI_SUPABASE_PUBLISHABLE_KEY)
+        INFOPLIST_KEY_ALIMIAPNSEnvironment: $(ALIMI_APNS_ENVIRONMENT)
+      configs:
+        Debug:
+          ALIMI_APNS_ENVIRONMENT: sandbox
+          ALIMI_APNS_ENTITLEMENT: development
+        Release:
+          ALIMI_APNS_ENVIRONMENT: production
+          ALIMI_APNS_ENTITLEMENT: production
   AlimiTests:
     type: bundle.unit-test
     platform: iOS
@@ -40,3 +53,4 @@ schemes:
     test:
       targets:
         - AlimiTests
+

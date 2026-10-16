@@ -1,0 +1,41 @@
+name: Price alert pipeline validation
+on:
+  pull_request:
+    paths:
+      - 'scripts/*alerts.mjs'
+      - 'server/**'
+      - 'tests/price-alerts.test.js'
+      - '.github/workflows/price-alert-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: alimi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - name: Validate PostgreSQL rules and owner isolation
+        env:
+          PGPASSWORD: ci-only
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -d alimi_test -v ON_ERROR_STOP=1 -f server/test-bootstrap.sql
+          psql -h localhost -U postgres -d alimi_test -v ON_ERROR_STOP=1 -f server/price-alerts.sql
+          psql -h localhost -U postgres -d alimi_test -v ON_ERROR_STOP=1 -f server/price-alerts.test.sql

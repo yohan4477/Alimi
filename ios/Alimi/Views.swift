@@ -261,13 +261,15 @@ struct TargetSheet: View {
 }
 struct AlertsView: View {
     @EnvironmentObject var store: AlimiStore
+    @ObservedObject private var push = PushConnection.shared
     var body: some View {
         NavigationStack {
             List {
                 DemoBanner().listRowSeparator(.hidden)
                 let products = store.products.filter { store.saved.targets[$0.id] != nil && $0.id != "2" }
                 if let row = StylevanaSnapshot.bundled?.latest {
-                    Text("COSRX 미국 상품가 \(row.formattedAmount) · USD 목표가는 상품 상세에서 확인 · 푸시 미연결").font(.caption)
+                    Text("COSRX 미국 번들 상품가 \(row.formattedAmount) · USD 목표가는 상품 상세에서 확인").font(.caption)
+                    Text(push.status).font(.caption).foregroundStyle(.secondary)
                 }
                 if products.isEmpty {
                     ContentUnavailableView("설정한 알림이 없어요", systemImage: "bell", description: Text("상품 상세에서 목표 가격을 설정하세요."))

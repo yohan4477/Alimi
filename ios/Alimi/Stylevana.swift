@@ -47,6 +47,7 @@ struct ProductDestination: View {
     }
 }
 struct StylevanaDetail: View {
+    @ObservedObject private var push = PushConnection.shared
     @EnvironmentObject var store: AlimiStore
     let product: Product
     let snapshot: StylevanaSnapshot
@@ -64,8 +65,14 @@ struct StylevanaDetail: View {
                 AsyncImage(url: observation.imageUrl) { image in image.resizable().scaledToFit() } placeholder: { ProgressView() }.frame(height: 240).frame(maxWidth: .infinity)
                 Text(product.name).font(.title2.bold())
                 Text("100ml · 단품 1개").font(.subheadline).foregroundStyle(.secondary)
-                Text(observation.formattedAmount).font(.largeTitle.bold())
-                Text("상품가 · \(observation.observedOn) 수집 (한국 날짜)").font(.caption)
+                if let quote = push.quote {
+                    Text((Double(quote.amount_cents) / 100).formatted(.currency(code: "USD"))).font(.largeTitle.bold())
+                    Text("서버 피드 확인: \(quote.collected_at)").font(.caption)
+                    Text(quote.in_stock ? "피드 재고 있음 · 결제 전 확인" : "피드 품절").font(.caption)
+                } else {
+                    Text(observation.formattedAmount).font(.largeTitle.bold())
+                }
+                Text("번들 이력: \(observation.observedOn) 수집 (한국 날짜)").font(.caption)
                 Text("배송비·세금 별도 · 현재 가격은 판매처에서 확인").font(.caption).foregroundStyle(.secondary)
                 Text("가격 흐름").font(.headline)
                 if daily.count >= 2 {
@@ -95,11 +102,12 @@ struct StylevanaDetail: View {
                     Text("저장한 목표: \(value.formatted(.currency(code: "USD"))) · 현재 도달 여부 미확인").font(.caption)
                     Button("목표가 삭제") { target = ""; draft = "" }
                 }
-                Text("목표가는 이 기기에 저장합니다. 앱에는 수집 시점의 피드가 포함돼 있으며, 자동 감시·푸시는 아직 연결되지 않았어요.").font(.caption).foregroundStyle(.secondary)
+                Text("목표가는 이 기기에만 저장하며 목표가 알림은 준비 중입니다. 기본 가격 하락 알림은 관심 등록 시 가격에서 5% 이상 하락하면 안내합니다.").font(.caption).foregroundStyle(.secondary)
+                Text(push.status).font(.caption).foregroundStyle(.secondary)
                 Button { store.toggle(product.id) } label: {
                     Label(store.saved.favorites.contains(product.id) ? "관심 등록됨" : "관심 등록", systemImage: store.saved.favorites.contains(product.id) ? "heart.fill" : "heart")
                 }
             }.padding(20)
-        }.navigationTitle("상품 상세").navigationBarTitleDisplayMode(.inline).onAppear { draft = target }
+        }.navigationTitle("상품 상세").navigationBarTitleDisplayMode(.inline).onAppear { draft = target }.task { await push.loadQuote() }
     }
 }

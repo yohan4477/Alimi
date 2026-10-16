@@ -1,0 +1,46 @@
+name: Dispatch official price alerts
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: alimi-price-alert-dispatch
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    if: vars.ALIMI_PRICE_ALERTS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore latest validated official collection
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/data/stylevana-us
+          git restore --source=FETCH_HEAD -- data/stylevana-us.json
+      - name: Check freshness before dispatch
+        id: freshness
+        run: |
+          node --input-type=module <<'JS'
+          import {readFile,appendFile} from 'node:fs/promises';
+          const snapshot=JSON.parse(await readFile('data/stylevana-us.json','utf8'));
+          const age=Date.now()-Date.parse(snapshot.latest.observedAt);
+          if (!Number.isFinite(age) || age < -60000) throw Error('Invalid collection timestamp');
+          await appendFile(process.env.GITHUB_OUTPUT,`fresh=${age<=7200000}\n`);
+          if(age>7200000)console.log('No fresh official collection. No push attempted.');
+          JS
+      - name: Dispatch price drops
+        if: steps.freshness.outputs.fresh == 'true'
+        env:
+          ALIMI_SUPABASE_URL: ${{ vars.ALIMI_SUPABASE_URL }}
+          ALIMI_SUPABASE_SERVICE_KEY: ${{ secrets.ALIMI_SUPABASE_SERVICE_KEY }}
+          ALIMI_APNS_KEY_ID: ${{ secrets.ALIMI_APNS_KEY_ID }}
+          ALIMI_APNS_TEAM_ID: ${{ secrets.ALIMI_APNS_TEAM_ID }}
+          ALIMI_APNS_PRIVATE_KEY: ${{ secrets.ALIMI_APNS_PRIVATE_KEY }}
+          ALIMI_APNS_TOPIC: ${{ vars.ALIMI_APNS_TOPIC }}
+        run: node scripts/dispatch-price-alerts.mjs
