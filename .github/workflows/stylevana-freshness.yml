@@ -1,0 +1,24 @@
+name: Stylevana feed freshness
+on:
+  workflow_dispatch:
+  schedule:
+    # 12:30 KST, five hours after the 07:30 KST collection. Fails when no successful collection in 36h.
+    - cron: '30 3 * * *'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check last successful collection
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin refs/heads/data/stylevana-us
+          git show FETCH_HEAD:data/stylevana-us.json > "$RUNNER_TEMP/stylevana-us.json"
+          node scripts/feed-freshness.mjs "$RUNNER_TEMP/stylevana-us.json" | tee "$RUNNER_TEMP/freshness.json"
