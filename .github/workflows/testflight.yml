@@ -139,11 +139,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          xcrun iTMSTransporter \
-            -m upload \
-            -assetFile "$IPA_PATH" \
-            -apiKey "$APP_STORE_CONNECT_KEY_ID" \
-            -apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+          # Xcode 26 no longer ships iTMSTransporter. altool reads the key from
+          # ~/.appstoreconnect/private_keys/AuthKey_<id>.p8 prepared above.
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
 
       - name: Keep the uploaded IPA as a short-lived artifact
         uses: actions/upload-artifact@v4
