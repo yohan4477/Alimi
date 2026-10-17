@@ -23,7 +23,7 @@ Alimi 저장소의 **Settings → Secrets and variables → Actions**에서 추�
 | `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect API issuer ID |
 | `APP_STORE_CONNECT_API_KEY_P8` | 다운로드한 `.p8` 개인 키 파일의 전체 내용 |
 
-개인 키를 채팅, 커밋, 일반 저장소 변수에 넣지 않습니다. 저장소 Secret에만 저장합니다.
+`ASC_KEY_ID`·`ASC_ISSUER_ID`·`ASC_KEY_P8` 이름으로 등록된 Secret도 같은 값으로 인식합니다(현재 저장소 설정). 개인 키를 채팅, 커밋, 일반 저장소 변수에 넣지 않습니다. 저장소 Secret에만 저장합니다.
 
 ### Variables
 
@@ -32,7 +32,7 @@ Alimi 저장소의 **Settings → Secrets and variables → Actions**에서 추�
 | `APPLE_TEAM_ID` | Apple Developer 계정의 10자리 Team ID |
 | `IOS_BUNDLE_ID` | App ID와 App Store Connect 앱 레코드에 등록한 Bundle ID |
 
-Bundle ID는 현재 XcodeGen 기본값인 `com.alimi.prototype`을 그대로 쓰기보다, 계정에서 등록 가능한 Alimi 전용 값으로 정한 뒤 App ID와 App Store Connect 앱에 동일하게 등록합니다. 워크플로가 빌드 때 해당 변수로 Bundle ID를 덮어씁니다.
+변수가 없으면 `APPLE_TEAM_ID`는 같은 이름의 Secret을, `IOS_BUNDLE_ID`는 등록된 `com.yohan4477.alimi`를 사용합니다. App Store Connect 앱 레코드: `Alimi: K-Beauty Price Alerts`. Bundle ID는 현재 XcodeGen 기본값인 `com.alimi.prototype`을 그대로 쓰기보다, 계정에서 등록 가능한 Alimi 전용 값으로 정한 뒤 App ID와 App Store Connect 앱에 동일하게 등록합니다. 워크플로가 빌드 때 해당 변수로 Bundle ID를 덮어씁니다.
 
 ## 수동 업로드
 
