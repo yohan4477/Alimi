@@ -7,7 +7,7 @@
 1. Apple Developer Program 멤버십이 활성화됐는지 확인합니다.
 2. Apple Developer 계정의 **Certificates, Identifiers & Profiles**에서 Alimi용 App ID를 등록합니다. Bundle ID는 앱 등록 때 사용할 값과 정확히 같아야 합니다.
 3. App Store Connect에서 Alimi 앱 레코드를 만듭니다. 플랫폼은 iOS, Bundle ID는 2번에서 등록한 값, SKU는 계정 안에서 고유한 문자열을 사용합니다. 앱 레코드는 첫 빌드 업로드 전에 필요합니다.
-4. App Store Connect의 **Users and Access → Integrations → App Store Connect API**에서 API 키를 만듭니다. GitHub Actions에서 자동 서명 프로파일을 관리할 수 있도록 필요한 Certificates, Identifiers & Profiles 권한을 포함한 키를 사용합니다. `.p8` 개인 키는 생성 직후 안전한 곳에 보관합니다.
+4. App Store Connect의 **Users and Access → Integrations → App Store Connect API → Team Keys**에서 API 키를 만듭니다. 개인 키는 생성 직후 안전한 곳에 보관합니다. 자동 서명에 필요한 권한이 있는 Team Key를 사용해야 합니다. 개인용 API 키는 Apple의 프로비저닝 API를 사용할 수 없어 이 워크플로의 자동 서명에 맞지 않습니다.
 
 Apple은 2026년부터 TestFlight 업로드용 iOS 앱 빌드에 Xcode 26 이상을 요구합니다. 이 워크플로는 GitHub의 macOS 26 runner를 사용합니다.
 
@@ -19,9 +19,9 @@ Alimi 저장소의 **Settings → Secrets and variables → Actions**에서 추�
 
 | 이름 | 값 |
 |---|---|
-| `APP_STORE_CONNECT_KEY_ID` | App Store Connect API 키 ID |
+| `APP_STORE_CONNECT_KEY_ID` | Team API 키 ID |
 | `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect API issuer ID |
-| `APP_STORE_CONNECT_API_KEY_P8` | `.p8` 개인 키 파일의 전체 내용 |
+| `APP_STORE_CONNECT_API_KEY_P8` | 다운로드한 `.p8` 개인 키 파일의 전체 내용 |
 
 개인 키를 채팅, 커밋, 일반 저장소 변수에 넣지 않습니다. 저장소 Secret에만 저장합니다.
 
@@ -46,10 +46,11 @@ Bundle ID는 현재 XcodeGen 기본값인 `com.alimi.prototype`을 그대로 쓰
 
 ## 테스트 범위와 현재 한계
 
-TestFlight 설치는 실제 iPhone에서 실행하는 게이트를 통과하게 해 주지만, 그 자체가 앱의 모든 기능 검증을 의미하지는 않습니다. 현재 앱은 가격·판매처 데이터 대부분이 예시 데이터이고, Stylevana 공식 피드 연결은 COSRX 100ml 상품 한 건에 한정됩니다. 가격 수집 자동화와 실제 가격 하락 푸시 전달은 아직 구현되지 않았습니다. 업로드 후에는 실제 iPhone에서 검색·상세·판매처 비교·관심 상품 저장·목표가 설정을 직접 확인하고, 검증 결과를 별도로 기록해야 합니다.
+TestFlight 설치는 실제 iPhone에서 실행하는 게이트를 통과하게 해 주지만, 그 자체가 앱의 모든 기능 검증을 의미하지는 않습니다. 현재 main의 앱은 가격·판매처 데이터 대부분이 예시 데이터이고, Stylevana 공식 피드 연결은 COSRX 100ml 상품 한 건에 한정됩니다. 실제 가격 하락 푸시 전달은 아직 main에서 검증되지 않았습니다. 업로드 후에는 실제 iPhone에서 검색·상세·판매처 비교·관심 상품 저장·목표가 설정을 직접 확인하고, 검증 결과를 별도로 기록해야 합니다. PR #40의 APNs 경로는 아직 main에 반영되지 않은 별도 변경입니다.
 
 ## 근거
 
 - [Apple: 빌드 업로드](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds)
 - [Apple: TestFlight 개요](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview)
+- [Apple: App Store Connect API 키](https://developer.apple.com/documentation/AppStoreConnectAPI/creating-api-keys-for-app-store-connect-api)
 - [Apple: Xcode 클라우드 서명 설명](https://developer.apple.com/videos/play/wwdc2021/10204/)
