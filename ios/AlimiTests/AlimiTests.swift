@@ -4,6 +4,8 @@ import UserNotifications
 
 @MainActor
 final class AlimiTests: XCTestCase {
+    // Assertions use the Korean copy; testEnglishCopy covers English.
+    nonisolated override func setUp() { super.setUp(); L10n.language = "ko" }
     private func point(_ iso: String, _ price: Double) -> PricePoint { PricePoint(date: ISODate.parse(iso)!, price: price) }
     private func product(_ id: String, brand: String, brandKo: String? = nil, name: String, category: String, price: Double, history: [PricePoint] = []) -> Product {
         Product(id: id, sku: id, brand: brand, brandKo: brandKo, name: name, size: "50ml", category: category, retailer: "Stylevana US",
@@ -57,6 +59,16 @@ final class AlimiTests: XCTestCase {
         let now = ISODate.parse("2026-10-20T03:00:00Z")!
         XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20)], current: 20, now: now), "지켜본 지 3일 · 아직 가격 변동 없음")
         XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20), point("2026-10-19T22:30:00Z", 18)], current: 18, now: now), "지켜본 3일 중 지금이 최저가")
+    }
+    func testEnglishCopy() {
+        L10n.language = "en"
+        defer { L10n.language = "ko" }
+        let now = ISODate.parse("2026-10-20T03:00:00Z")!
+        XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20)], current: 20, now: now), "Watched 3d · no price change yet")
+        XCTAssertEqual(PriceRule.status(target: 25, current: 20), "Target reached")
+        XCTAssertEqual(L10n.category("선케어"), "Sun care")
+        XCTAssertEqual(makeStore().products[0].brandLabel, "COSRX")
+        XCTAssertEqual(L("count", ["n": 4]), "4 items")
     }
     func testFavorites() {
         let store = makeStore()

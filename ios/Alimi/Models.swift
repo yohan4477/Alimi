@@ -62,7 +62,7 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     let imageUrl: URL?
     var id: String { "\(retailer)|\(market)|\(sku)" }
     var price: Double { Double(priceMinor) / 100 }
-    var brandLabel: String { brandKo ?? brand }
+    var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
     static let fields = "retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url"
     enum CodingKeys: String, CodingKey {
         case retailer, market, sku, brand, brandKo = "brand_ko", name, category, priceMinor = "price_minor", currency, availability, imageUrl = "image_url"
@@ -126,10 +126,10 @@ struct Product: Identifiable, Hashable {
     let checkedAt: Date
     let history: [PricePoint]
     var buyURL: URL { affiliateUrl ?? url }
-    var brandLabel: String { brandKo ?? brand }
+    var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
     // Same order as scripts/catalog-taxonomy.mjs; the category itself is computed by the collector and stored.
     static let categories = ["선케어", "클렌징", "토너·패드", "에센스·세럼", "크림·로션", "마스크팩", "립", "베이스메이크업", "아이메이크업", "헤어·바디", "세트", "기타"]
-    var stockLabel: String { availability == "in_stock" ? "재고 있음" : availability == "out_of_stock" ? "품절" : "재고 미확인" }
+    var stockLabel: String { L(availability == "in_stock" ? "stock.in" : availability == "out_of_stock" ? "stock.out" : "stock.unknown") }
 
     static func from(_ rows: [OfferRow]) -> [Product] {
         rows.compactMap { r -> Product? in
@@ -168,8 +168,8 @@ enum PriceHistory {
     // One plain sentence about what we know so far, instead of an empty chart.
     static func summary(_ history: [PricePoint], current: Double, now: Date = Date()) -> String {
         let days = trackedDays(history, now: now)
-        guard history.count >= 2, let low = history.map(\.price).min() else { return "지켜본 지 \(days)일 · 아직 가격 변동 없음" }
-        return current <= low ? "지켜본 \(days)일 중 지금이 최저가" : "지켜본 \(days)일 동안 가격 \(history.count - 1)번 변동"
+        guard history.count >= 2, let low = history.map(\.price).min() else { return L("watch.none", ["days": days]) }
+        return current <= low ? L("watch.lowest", ["days": days]) : L("watch.changes", ["days": days, "n": history.count - 1])
     }
     static func trackedDays(_ history: [PricePoint], now: Date = Date()) -> Int {
         guard let first = history.first else { return 0 }
@@ -184,8 +184,8 @@ enum PriceRule {
         return value
     }
     static func status(target: Double?, current: Double) -> String {
-        guard let target else { return "미설정" }
-        return current <= target ? "목표가 도달" : "기다리는 중"
+        guard let target else { return L("alert.unset") }
+        return L(current <= target ? "alert.reached" : "alert.waiting")
     }
 }
 
