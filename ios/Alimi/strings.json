@@ -751,5 +751,85 @@
   "brand.empty": {
     "ko": "이 브랜드 상품을 불러오지 못했어요",
     "en": "Couldn't load this brand's products"
+  },
+  "settings.title": {
+    "ko": "설정",
+    "en": "Settings"
+  },
+  "settings.service": {
+    "ko": "서비스 설정",
+    "en": "Preferences"
+  },
+  "settings.alerts": {
+    "ko": "알림 설정",
+    "en": "Notifications"
+  },
+  "settings.alertsHint": {
+    "ko": "목표가에 도달하면 알려드려요. 푸시 알림은 준비 중이에요.",
+    "en": "We'll let you know when a price hits your target. Push alerts are coming soon."
+  },
+  "settings.language": {
+    "ko": "언어",
+    "en": "Language"
+  },
+  "settings.languageHint": {
+    "ko": "앱 화면 언어를 바꿔요.",
+    "en": "Change the app language."
+  },
+  "settings.data": {
+    "ko": "내 데이터",
+    "en": "My data"
+  },
+  "settings.clearSaved": {
+    "ko": "관심상품 정리하기",
+    "en": "Clear saved products"
+  },
+  "settings.clearSavedConfirm": {
+    "ko": "관심상품과 목표가를 모두 지울까요?",
+    "en": "Remove all saved products and target prices?"
+  },
+  "settings.cleared": {
+    "ko": "정리했어요",
+    "en": "Cleared"
+  },
+  "settings.clearCache": {
+    "ko": "앱 캐시 삭제",
+    "en": "Clear app cache"
+  },
+  "settings.cacheCleared": {
+    "ko": "캐시를 지웠어요",
+    "en": "Cache cleared"
+  },
+  "settings.support": {
+    "ko": "고객센터",
+    "en": "Support"
+  },
+  "settings.feedback": {
+    "ko": "불편한 점을 알려주세요",
+    "en": "Tell us what's not working"
+  },
+  "settings.feedbackSub": {
+    "ko": "SeoulBeauty가 빠르게 개선해 볼게요!",
+    "en": "We'll fix it fast!"
+  },
+  "settings.terms": {
+    "ko": "이용약관",
+    "en": "Terms of use"
+  },
+  "settings.privacy": {
+    "ko": "개인정보 처리방침",
+    "en": "Privacy policy"
+  },
+  "settings.version": {
+    "ko": "현재 버전 {v}",
+    "en": "Version {v}"
+  },
+  "settings.soon": {
+    "ko": "준비 중이에요",
+    "en": "Coming soon"
+  },
+  "settings.open": {
+    "ko": "설정 열기",
+    "en": "Open settings"
   }
 }
