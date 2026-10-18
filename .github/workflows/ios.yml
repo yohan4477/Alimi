@@ -55,7 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           xcrun simctl install "$DEVICE_ID" build/Build/Products/Debug-iphonesimulator/Alimi.app
-          xcrun simctl launch "$DEVICE_ID" com.yohan4477.alimi
+          xcrun simctl launch "$DEVICE_ID" com.yohan4477.alimi -disableEvents  # keep CI launches out of the funnel
           sleep 3
           xcrun simctl io "$DEVICE_ID" screenshot artifacts/alimi-iphone-home.png
           ditto -c -k --sequesterRsrc --keepParent build/Build/Products/Debug-iphonesimulator/Alimi.app artifacts/Alimi-simulator.zip
