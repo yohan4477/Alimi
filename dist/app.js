@@ -1,7 +1,7 @@
 import {track} from './events.js';
 import {openChat} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
-import {loadProducts,searchCatalog,fetchFamiliesPage,fetchFamily,unitName,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
+import {loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,fetchFamily,unitName,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let storage;try{storage=localStorage}catch{}
@@ -40,6 +40,13 @@ async function loadOtherSizes(p){
   const box=$('#other-sizes');if(!box||!p.familyKey)return;
   try{const list=(await fetchFamily(p.familyKey));if(list.length<2||selected!==p.id)return;box.innerHTML=`<h2>${esc(t('family.otherSizes'))}</h2>${variantRows(list)}`;box.hidden=false}catch{}
 }
+// Popular-brand strip: round badges like a delivery app's brand grid; tapping one filters the catalog below.
+let brands=[];
+const brandName=b=>{const x=brands.find(v=>v.brand===b);return x?brandLabel(x):b};
+const brandBadge=b=>b.logo_url?`<img src="${esc(b.logo_url)}" alt="" loading="lazy">`:`<span style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}</span>`;
+function renderBrands(){const box=$('#brands');if(!brands.length){box.hidden=true;return}box.hidden=false;
+  box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><div class="brand-grid">${brands.map(b=>`<button class="brand-item${brand===b.brand?' active':''}" data-brand="${esc(b.brand)}"><i>${brandBadge(b)}</i><small>${esc(brandLabel(b))}</small></button>`).join('')}</div>`}
+function pickBrand(b){brand=brand===b?null:b;renderBrands();renderList();if(brand){track('search',null,{brand});$('#catalog-results')?.scrollIntoView({behavior:'smooth'})}}
 function renderList(){
   const q=$('#search').value.trim();
   const items=search(products,q,category).filter(p=>view==='all'||state.favorites.includes(p.id));
@@ -57,12 +64,12 @@ function renderCatalogSearch(q){clearTimeout(catalogTimer);const seq=++catalogSe
     $('#catalog-results').innerHTML=list===null?'':`<div class="heading"><div><h2>${esc(t('section.more'))}</h2><p>${esc(t('section.moreHint'))}</p></div><span>${esc(t('count',{n:list.length}))}</span></div>`+(list.length?`<div class="catalog-grid">${list.map(catalogCard).join('')}</div>`:`<p class="empty">${esc(t('empty.catalogSearch'))}</p>`);
   },350)}
 // Home browsing of the Korean-brand catalog by category, loaded page by page as the user scrolls.
-const browse={category:null,items:[],done:false,loading:false};let observer;
+const browse={category:null,brand:null,items:[],done:false,loading:false};let brand=null;let observer;
 function renderCatalogBrowse(reset){
   const box=$('#catalog-results');if(!box)return;
-  if(reset&&browse.category!==category){Object.assign(browse,{category,items:[],done:false});catalogSeq++}
+  if(reset&&(browse.category!==category||browse.brand!==brand)){Object.assign(browse,{category,brand,items:[],done:false});catalogSeq++}
   const tracked=new Set(products.map(p=>p.sku));
-  box.innerHTML=`<div class="heading"><div><h2>${esc(t('section.all'))}</h2><p>${esc(t('family.pick'))}</p></div></div><div class="catalog-grid">${browse.items.map(familyCard).join('')}</div>${browse.done?(browse.items.length?'':`<p class="empty">${esc(t('empty.products'))}</p>`):`<p class="empty" id="catalog-more">${esc(t('loading'))}</p>`}`;
+  box.innerHTML=`<div class="heading"><div><h2>${brand?esc(t('brands.products',{brand:brandName(brand)})):esc(t('section.all'))}</h2><p>${esc(t('family.pick'))}</p></div>${brand?`<button class="brand-clear" data-brand-clear>${esc(t('brands.clear'))}</button>`:''}</div><div class="catalog-grid">${browse.items.map(familyCard).join('')}</div>${browse.done?(browse.items.length?'':`<p class="empty">${esc(t('empty.products'))}</p>`):`<p class="empty" id="catalog-more">${esc(t('loading'))}</p>`}`;
   observer?.disconnect();
   const more=$('#catalog-more');if(!more)return;
   // First page loads right away; later pages load when the sentinel comes near the viewport.
@@ -71,9 +78,12 @@ function renderCatalogBrowse(reset){
 }
 async function loadMoreCatalog(){
   if(browse.loading||browse.done)return;browse.loading=true;const seq=catalogSeq;
-  try{const page=await fetchFamiliesPage(browse.category,browse.items.length);if(seq!==catalogSeq)return;browse.items.push(...page);if(page.length<24)browse.done=true}
-  catch{browse.done=true}
+  let stale=false;
+  try{const page=await fetchFamiliesPage(browse.category,browse.items.length,24,fetch,browse.brand);stale=seq!==catalogSeq;if(!stale){browse.items.push(...page);if(page.length<24)browse.done=true}}
+  catch{stale=seq!==catalogSeq;if(!stale)browse.done=true}
   finally{browse.loading=false}
+  // Category or brand changed while this page was loading: load the first page of the new selection.
+  if(stale){loadMoreCatalog();return}
   if(seq===catalogSeq&&!$('#search').value.trim()&&view==='all')renderCatalogBrowse(false);
 }
 async function startTracking(b){b.disabled=true;try{const slug=await requestTracking({retailer:b.dataset.retailer,market:b.dataset.market,sku:b.dataset.track});const r=await loadProducts();products=r.products;if(!state.favorites.includes(slug))toggleFavorite(state,slug);save();track('wishlist_add',slug,{from:'catalog'});renderList();if(detailOpen)renderDetail();b.outerHTML=`<button class="variant-heart" data-favorite="${esc(slug)}" aria-pressed="true">♥</button>`;toast(t('toast.saved'))}catch{b.disabled=false;toast(t('toast.saveFailed'))}}
@@ -105,6 +115,8 @@ localizePage();
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.track){startTracking(b);return}
   if(b.dataset.family){openFamily(b.dataset.family);return}
+  if(b.dataset.brand){pickBrand(b.dataset.brand);return}
+  if('brandClear' in b.dataset){pickBrand(brand);return}
   if(b.dataset.product)openDetail(b.dataset.product);
   if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);track(state.favorites.includes(b.dataset.favorite)?'wishlist_add':'wishlist_remove',b.dataset.favorite);save();renderList();if(detailOpen)renderDetail()}
   if(b.dataset.days){days=+b.dataset.days;const y=window.scrollY;renderDetail();window.scrollTo(0,y)}
@@ -126,4 +138,5 @@ loadProducts().then(({products:list,source,exportedAt})=>{
   $('.notice').textContent=source==='live'?t('notice.live',{date:latest?kstDate(latest):''}):t('notice.offline',{date:exportedAt?kstDate(exportedAt):''});
   renderList();
   track('home_view',null,{source,lang});
+  fetchBrands().then(list=>{brands=list;renderBrands()}).catch(()=>{});
 }).catch(()=>{$('#products').innerHTML=`<p class="empty">${esc(t('loadFailed'))}</p>`});

@@ -1,0 +1,28 @@
+-- Popular-brand strip on home (like a delivery app's brand grid). Brands are ranked by how many product
+-- families they have. Logos are optional: whoever owns brand images fills brand_logos with an https URL;
+-- clients show an initials badge until then.
+
+create table public.brand_logos (
+  brand text primary key,
+  logo_url text not null check (logo_url like 'https://%'),
+  updated_at timestamptz not null default now()
+);
+alter table public.brand_logos enable row level security;
+revoke all on public.brand_logos from anon, authenticated;
+grant select on public.brand_logos to anon, authenticated;
+create policy "public read" on public.brand_logos for select using (true);
+
+create view public.catalog_brands with (security_invoker = true) as
+  select f.brand, min(f.brand_ko) as brand_ko, count(*) as families, l.logo_url
+  from public.catalog_families f
+  left join public.brand_logos l on l.brand = f.brand
+  group by f.brand, l.logo_url;
+grant select on public.catalog_brands to anon, authenticated;
+
+-- Round badges made from logos on each brand's own site (THE SAEM: Wikimedia Commons, CC BY 4.0), served
+-- from the web app. Sources: dist/brand-logos/CREDITS.md.
+insert into public.brand_logos (brand, logo_url)
+select v.brand, 'https://alimi-omega.vercel.app/brand-logos/' || v.slug || '.png'
+from (values ('MISSHA', 'missha'), ('ETUDE', 'etude'), ('medicube', 'medicube'), ('APLB', 'aplb'), ('SKIN1004', 'skin1004'),
+  ('COSRX', 'cosrx'), ('LANEIGE', 'laneige'), ('Purito SEOUL', 'purito-seoul'), ('numbuzin', 'numbuzin'),
+  ('THE SAEM', 'the-saem'), ('Pyunkang Yul', 'pyunkang-yul'), ('PRETTYSKIN', 'prettyskin')) as v (brand, slug);
