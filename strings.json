@@ -61,8 +61,8 @@
     "en": "Save or unsave"
   },
   "section.watching": {
-    "ko": "둘러볼 K뷰티",
-    "en": "Explore K-beauty"
+    "ko": "상품 둘러보기",
+    "en": "Explore products"
   },
   "section.saved": {
     "ko": "내 관심 상품",
@@ -405,8 +405,8 @@
     "en": "Saved"
   },
   "html.title": {
-    "ko": "SeoulBeauty · K뷰티 발견과 이야기",
-    "en": "SeoulBeauty · Discover and discuss K-beauty"
+    "ko": "서울뷰티 · K뷰티 커뮤니티",
+    "en": "SeoulBeauty · K-beauty community"
   },
   "search.label": {
     "ko": "상품 검색",
@@ -421,20 +421,20 @@
     "en": "Clear search"
   },
   "hero.kicker": {
-    "ko": "THE DAILY BEAUTY EDIT",
-    "en": "THE DAILY BEAUTY EDIT"
+    "ko": "한국 뷰티 상품 찾기",
+    "en": "FIND K-BEAUTY"
   },
   "hero.line1": {
-    "ko": "궁금했던 K뷰티,",
-    "en": "Curious about K-beauty?"
+    "ko": "대화에서 만난",
+    "en": "Discover K-beauty"
   },
   "hero.line2": {
-    "ko": "함께 이야기해요.",
-    "en": "Find your next favorite together."
+    "ko": "한국 뷰티",
+    "en": "through conversation"
   },
   "hero.sub": {
-    "ko": "제품을 발견하고, 경험을 나누고, 구매처까지 확인하세요.",
-    "en": "Discover products, explore experiences and find where to buy."
+    "ko": "궁금한 상품과 브랜드를 찾아보세요",
+    "en": "Find the products and brands you’re curious about"
   },
   "hero.subApp": {
     "ko": "제품과 경험을 살펴보고 나에게 맞는 선택을 찾아요.",
@@ -445,8 +445,8 @@
     "en": "Browse products ↗"
   },
   "list.subtitle": {
-    "ko": "좋아하는 제품, 좋은 가격에",
-    "en": "Products you love, at prices you like"
+    "ko": "설명과 현재 판매 정보를 확인해 보세요",
+    "en": "Find product details and current offers"
   },
   "footer": {
     "ko": "SeoulBeauty · Stylevana US 공식 제휴 피드 · 피드 갱신 시 1시간 안에 반영",
@@ -545,8 +545,8 @@
     "en": "Other sizes & options"
   },
   "family.watching": {
-    "ko": "지켜보는 중",
-    "en": "Watching"
+    "ko": "상품 정보 있음",
+    "en": "Product details available"
   },
   "family.default": {
     "ko": "기본",
@@ -561,8 +561,8 @@
     "en": "Best value"
   },
   "nav.chat": {
-    "ko": "채팅",
-    "en": "Chat"
+    "ko": "커뮤니티",
+    "en": "Community"
   },
   "chat.title": {
     "ko": "채팅",
@@ -673,8 +673,8 @@
     "en": "No messages yet. Say hi!"
   },
   "chat.sharedPrice": {
-    "ko": "공유 당시 {v}",
-    "en": "{v} when shared"
+    "ko": "현재 가격 {v}",
+    "en": "Current price {v}"
   },
   "chat.err.slow": {
     "ko": "조금 천천히 보내 주세요",
@@ -721,12 +721,12 @@
     "en": "Saved"
   },
   "saved.hint": {
-    "ko": "마음에 드는 제품을 모아 보세요",
-    "en": "Keep the products you’re considering"
+    "ko": "다시 보고 싶은 상품과 글을 저장해 보세요",
+    "en": "Save products and posts you’d like to revisit"
   },
   "saved.hintMore": {
-    "ko": "다른 관심 제품도 모아 보세요",
-    "en": "Save other products you’re considering"
+    "ko": "저장한 상품을 다시 찾아보세요. {n}개 더 저장할 수 있어요",
+    "en": "Revisit your saved products. Room for {n} more"
   },
   "saved.add": {
     "ko": "추가",
@@ -901,8 +901,8 @@
     "en": "Get a price alert"
   },
   "family.buyHint": {
-    "ko": "옵션을 고르고 판매처에서 확인하세요",
-    "en": "Pick an option and check it at the retailer"
+    "ko": "옵션과 현재 판매 정보를 확인하세요",
+    "en": "Check options and current retailer offers"
   },
   "detail.alertsTitle": {
     "ko": "가격이 내려가면 알려드릴까요?",
@@ -913,12 +913,12 @@
     "en": "Community"
   },
   "community.title": {
-    "ko": "커뮤니티",
-    "en": "Community"
+    "ko": "서울뷰티",
+    "en": "SeoulBeauty"
   },
   "community.sub": {
-    "ko": "한국 제품, 묻고 추천하고 바로 확인해요",
-    "en": "Ask, recommend, and check Korean products"
+    "ko": "나와 비슷한 경험, 함께 나누는 K뷰티",
+    "en": "K-beauty experiences, shared together"
   },
   "community.posts": {
     "ko": "글",
@@ -1359,5 +1359,85 @@
   "community.homeCTA": {
     "ko": "커뮤니티에서 묻고 추천받기",
     "en": "Ask and discover in the community"
+  },
+  "home.active": {
+    "ko": "지금 활발한 대화",
+    "en": "Conversations happening now"
+  },
+  "home.quiet": {
+    "ko": "아직 활발한 대화가 없어요. 주제를 골라 첫 이야기를 나눠보세요.",
+    "en": "It’s quiet here. Pick a topic and start a conversation."
+  },
+  "home.mentioned": {
+    "ko": "대화에 나온 제품",
+    "en": "Products in the conversation"
+  },
+  "home.scope": {
+    "ko": "최근 24시간, 불러온 대화에서 집계했어요. 언급은 추천을 뜻하지 않아요.",
+    "en": "From the recent conversations loaded in the last 24 hours. Mentions aren’t endorsements."
+  },
+  "home.noProducts": {
+    "ko": "상품이 연결된 대화가 생기면 여기에 보여드려요.",
+    "en": "Products will appear here when people share them in conversations."
+  },
+  "home.mentionCount": {
+    "ko": "{people}명 · 대화방 {rooms}개",
+    "en": "{people} people · {rooms} rooms"
+  },
+  "home.viewConversation": {
+    "ko": "관련 대화 보기",
+    "en": "See the conversation"
+  },
+  "home.productInfo": {
+    "ko": "상품 정보 보기",
+    "en": "View product info"
+  },
+  "home.questions": {
+    "ko": "최근 질문과 경험",
+    "en": "Recent questions and experiences"
+  },
+  "home.topics": {
+    "ko": "주제별 대화 찾기",
+    "en": "Find a conversation"
+  },
+  "home.resume": {
+    "ko": "참여한 대화 이어보기",
+    "en": "Continue your conversations"
+  },
+  "home.messages": {
+    "ko": "최근 24시간 메시지 {n}개",
+    "en": "{n} messages in 24h"
+  },
+  "home.ask": {
+    "ko": "이야기 시작하기",
+    "en": "Start a conversation"
+  },
+  "home.askHint": {
+    "ko": "이야기를 나눌 주제를 선택해 주세요.",
+    "en": "Choose a topic for your conversation."
+  },
+  "home.retry": {
+    "ko": "대화를 불러오지 못했어요. 다시 시도해 주세요.",
+    "en": "Couldn’t load conversations. Please try again."
+  },
+  "home.productsFailed": {
+    "ko": "상품이 언급된 대화를 일부 불러오지 못했어요.",
+    "en": "Some conversations with products couldn’t be loaded."
+  },
+  "nav.activity": {
+    "ko": "내 활동",
+    "en": "My activity"
+  },
+  "activity.saved": {
+    "ko": "저장한 상품과 글",
+    "en": "Saved products and posts"
+  },
+  "activity.chats": {
+    "ko": "참여한 대화",
+    "en": "My conversations"
+  },
+  "detail.currentChecked": {
+    "ko": "가격 확인: {date}",
+    "en": "Price checked: {date}"
   }
 }

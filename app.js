@@ -1,6 +1,6 @@
 import {renderProductInfo} from './product-info.js';
 import {track} from './events.js';
-import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts} from './chat.js';
+import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
 import {buyUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
@@ -23,7 +23,7 @@ function localizePage(){
 }
 
 function change(p){const s=stats(dailySeries(p,30));if(!s||s.days<2||s.max===s.min)return null;return Math.round((p.price/s.avg-1)*100)}
-const card=p=>{const c=change(p);return `<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><div class="price-line">${c===null?'':`<span class="${c<=0?'down':'up'}">${c<=0?'▼':'▲'} ${Math.abs(c)}%</span> `}<strong>${usd(p.price)}</strong></div><small class="meta">${esc(categoryLabel(p.category)+(p.size?' · '+p.size:''))}</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="${state.favorites.includes(p.id)}">${state.favorites.includes(p.id)?'♥':'♡'}</button></article>`};
+const card=p=>`<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><div class="price-line"><strong>${usd(p.price)}</strong></div><small class="meta">${esc(t('detail.currentChecked',{date:kstDate(p.checkedAt)}))}</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="${state.favorites.includes(p.id)}">${state.favorites.includes(p.id)?'♥':'♡'}</button></article>`;
 const catalogCard=c=>`<article class="card"><div class="visual">${c.image_url?`<img src="${esc(c.image_url)}" alt="${esc(brandLabel(c)+' '+c.name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(c))}</div><div class="product-name">${esc(c.name)}</div><div class="price-line"><strong>${usd(c.price)}</strong></div><small class="meta">${esc(categoryLabel(c.category??'기타'))} · ${esc(t('todayPrice'))}</small><button class="heart" data-track="${esc(c.sku)}" data-retailer="${esc(c.retailer)}" data-market="${esc(c.market)}" aria-label="${esc(t('save.action'))}">♡</button></article>`;
 const familyCard=f=>`<article class="card"><button class="product-open" data-family="${esc(f.family_key)}"><div class="visual">${f.image_url?`<img src="${esc(f.image_url)}" alt="${esc(brandLabel(f)+' '+f.base_name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(f))}</div><div class="product-name">${esc(f.base_name)}</div><div class="price-line"><strong>${f.variants>1&&f.minPrice!==f.maxPrice?esc(t('family.from',{v:usd(f.minPrice)})):usd(f.minPrice)}</strong></div><small class="meta">${esc(categoryLabel(f.category??'기타'))}${f.variants>1?' · '+esc(t('family.options',{n:f.variants})):''}</small></button></article>`;
 // Variant list of one family: size / option, price, unit price, best-value badge and a heart per variant.
@@ -57,8 +57,8 @@ const icon={
 };
 // Screens: home / saved / search / brand / settings / detail / chat. The bottom tab bar stays on every
 // screen except product detail (which has its own bottom action bar).
-const TABS=['home','saved','search','chat'];
-let screen='home',lastTab='home',detailReturn='home';
+const TABS=['saved','search','chat'];
+let screen='chat',lastTab='chat',detailReturn='chat';
 const screenEl=n=>n==='home'?$('#browse'):n==='search'?$('#search-screen'):$('#'+n);
 function show(n){
   if(screen==='chat'&&n!=='chat')leaveChat();
@@ -70,7 +70,7 @@ function show(n){
   if(n==='saved')renderSaved();
   if(n==='settings')renderSettings();
   if(n==='search'){renderSearch();setTimeout(()=>$('#search').focus(),0)}
-  if(n==='chat')openChat({toast,onClose:()=>show('home')});
+  if(n==='chat')openChat({toast,onClose:()=>show('chat')});
 }
 // Popular-brand strip: round badges like a delivery app's brand grid; tapping one opens that brand's page.
 let brands=[];
@@ -101,7 +101,8 @@ const savedCard=p=>`<article class="saved-card"><button class="product-open" dat
 function renderSaved(){
   const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
   const hint=n===0?t('saved.hint'):n<3?t('saved.hintMore',{n:3-n}):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('saved.title'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`;
+  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('nav.activity'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div><section id="activity-conversations"></section><h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`;
+  renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
@@ -120,7 +121,7 @@ async function settingsAction(a){
 // Search has its own screen: watched products that match, then the whole catalog.
 function renderSearch(){
   const q=$('#search').value.trim(),box=$('#search-results');
-  if(!q){box.innerHTML=`<p class="empty search-empty">${esc(t('search.recentEmpty'))}</p>`;return}
+  if(!q){box.innerHTML=`<button class="explore-link" data-screen="home">${esc(t('section.watching'))} ${icon.chevron}</button><p class="empty search-empty">${esc(t('search.recentEmpty'))}</p>`;return}
   const items=search(products,q,'전체');
   box.innerHTML=(items.length?`<div class="heading"><div><h2>${esc(t('section.watching'))}</h2></div><span>${esc(t('count',{n:items.length}))}</span></div><div class="product-grid">${items.map(card).join('')}</div>`:'')+'<div id="search-catalog" class="catalog-results"></div>';
   if(q.length>=2)renderCatalogSearch(q);
@@ -182,17 +183,18 @@ function chart(p){
 function renderDetail(){
   const p=product(selected),target=state.targets[p.id]??null,fav=state.favorites.includes(p.id);
   const shipping=p.delivery==null?t('unknown'):usd(p.delivery);
-  $('#detail').innerHTML=`<div class="detail-nav"><button id="back" aria-label="${esc(t('back'))}">←</button><strong>${esc(t('detail.title'))}</strong><button data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}">${fav?'♥':'♡'}</button></div><div class="detail-product"><div class="detail-art">${art(p)}</div><div class="price-summary"><small>${esc(t('detail.usPrice',{retailer:p.retailer}))}</small><div class="current"><strong>${usd(p.price)}</strong></div><p class="price-baseline">${esc(t('detail.checked',{checked:kstDate(p.checkedAt),changed:kstDate(p.changedAt)}))}</p><h1>${esc(p.name)}</h1><p class="product-meta">${esc(brandLabel(p))}${p.size?' · '+esc(p.size):''} · ${esc(categoryLabel(p.category))}</p><div class="info-chips"><span>${stock(p)}</span><span>${esc(t('detail.shippingChip',{v:shipping}))}</span></div></div></div><section id="detail-description" class="offer-section"></section><section class="offer-section other-sizes" id="other-sizes" hidden></section><section class="offer-section"><div class="offer-heading"><h2>${esc(t('detail.retailer'))}</h2><small>${esc(t('detail.officialFeed'))}</small></div><article class="seller-row"><div class="seller-info"><strong>${esc(p.retailer)}</strong><small>${esc(t('detail.feedShipping',{v:shipping}))}</small></div><div class="seller-price"><strong>${usd(p.price)}</strong><small>${stock(p)}</small></div><a class="observed-buy" href="${esc(buyUrl(p)??p.url)}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('buy.at',{retailer:p.retailer}))}</a></article><p class="chart-note">${esc(t('detail.disclaimer'))}</p></section><section class="offer-section product-talk" id="detail-talk"></section><section class="analysis-section"><h2>${esc(t('detail.priceHistory'))}</h2><div class="periods" aria-label="${esc(t('period.aria'))}">${[7,14,30].map(n=>`<button data-days="${n}" aria-pressed="${n===days}" class="${n===days?'active':''}">${esc(t('days',{n}))}</button>`).join('')}</div>${chart(p)}</section><section class="target-section"><h2>${esc(t('detail.alertsTitle'))}</h2><div id="alert-status">${target===null?esc(t('target.empty')):usd(target)+' · '+esc(alertState(target,p.price))}</div><p class="chart-note">${esc(t('target.note'))}</p><div class="target-actions"><button id="set-target" class="secondary">${esc(t(target===null?'target.secondary':'target.set'))}</button>${target===null?'':`<button id="remove-target">${esc(t('target.remove'))}</button>`}</div></section><div class="detail-actions"><button data-favorite="${esc(p.id)}" class="save-action">${fav?'♥':'♡'}<small>${esc(t('save.short'))}</small></button><a class="primary buy-cta observed-buy" href="${esc(buyUrl(p)??p.url)}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('buy.at',{retailer:p.retailer}))}</a></div>`;
+  $('#detail').innerHTML=`<div class="detail-nav"><button id="back" aria-label="${esc(t('back'))}">←</button><strong>${esc(t('detail.title'))}</strong><button data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}">${fav?'♥':'♡'}</button></div><div class="detail-product"><div class="detail-art">${art(p)}</div><div class="price-summary"><small>${esc(t('detail.usPrice',{retailer:p.retailer}))}</small><div class="current"><strong>${usd(p.price)}</strong></div><p class="price-baseline">${esc(t('detail.currentChecked',{date:kstDate(p.checkedAt)}))}</p><h1>${esc(p.name)}</h1><p class="product-meta">${esc(brandLabel(p))}${p.size?' · '+esc(p.size):''} · ${esc(categoryLabel(p.category))}</p><div class="info-chips"><span>${stock(p)}</span><span>${esc(t('detail.shippingChip',{v:shipping}))}</span></div></div></div><section id="detail-description" class="offer-section"></section><section class="offer-section other-sizes" id="other-sizes" hidden></section><section class="offer-section"><div class="offer-heading"><h2>${esc(t('detail.retailer'))}</h2><small>${esc(t('detail.officialFeed'))}</small></div><article class="seller-row"><div class="seller-info"><strong>${esc(p.retailer)}</strong><small>${esc(t('detail.feedShipping',{v:shipping}))}</small></div><div class="seller-price"><strong>${usd(p.price)}</strong><small>${stock(p)}</small></div><a class="observed-buy" href="${esc(buyUrl(p)??p.url)}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('buy.at',{retailer:p.retailer}))}</a></article><p class="chart-note">${esc(t('detail.disclaimer'))}</p></section><section class="offer-section product-talk" id="detail-talk"></section><div class="detail-actions"><button data-favorite="${esc(p.id)}" class="save-action">${fav?'♥':'♡'}<small>${esc(t('save.short'))}</small></button><a class="primary buy-cta observed-buy" href="${esc(buyUrl(p)??p.url)}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('buy.at',{retailer:p.retailer}))}</a></div>`;
   loadOtherSizes(p);renderProductInfo($('#detail-description'),p);renderProductTalk($('#detail-talk'),p.familyKey);
   $('#back').onclick=closeDetail;
-  $('#set-target').onclick=()=>{$('#target').value=state.targets[p.id]??'';$('#target-dialog').showModal()};
   if($('#remove-target'))$('#remove-target').onclick=()=>{delete state.targets[p.id];save();renderDetail()};
 }
 function closeDetail(){detailOpen=false;show(detailReturn)}
 function openDetail(id){selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
 
 localizePage();
+show('chat');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.openRoom){openRoomNext(b.dataset.openRoom);show('chat');return}
   if(b.dataset.track){startTracking(b);return}
   if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null);return}
   if(b.dataset.post&&screen!=='chat'){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);show('chat');return}
@@ -211,7 +213,7 @@ let searchTimer;$('#search').oninput=()=>{renderSearch();clearTimeout(searchTime
 $('#browse-now').onclick=()=>$('.results').scrollIntoView({behavior:'smooth'});
 $('#reset').onclick=()=>{if(confirm(t('reset.confirm'))){state={favorites:[],targets:{}};save();renderList()}};
 document.addEventListener('click',e=>{const a=e.target.closest('a.observed-buy');if(!a)return;if(a.dataset.sku)track('merchant_click',null,{sku:a.dataset.sku,from:a.dataset.ref||'options'});else if(selected)track('merchant_click',selected,{retailer:product(selected)?.retailer,from:a.classList.contains('buy-cta')?'detail_cta':'detail_retailer'})});
-document.addEventListener('error',e=>{if(e.target.tagName==='IMG'&&!e.target.matches('.brand-item img,.brand-badge-lg img')){const box=document.createElement('div');box.className='no-photo';box.textContent=t('photoFailed');e.target.replaceWith(box)}},true);
+document.addEventListener('error',e=>{if(e.target.matches?.('.room-ico img')){e.target.remove();return}if(e.target.tagName==='IMG'&&!e.target.matches('.brand-item img,.brand-badge-lg img')){const box=document.createElement('div');box.className='no-photo';box.textContent=t('photoFailed');e.target.replaceWith(box)}},true);
 
 async function loadBrandStrip(){
   const box=$('#brands');box.hidden=false;box.setAttribute('aria-busy','true');
