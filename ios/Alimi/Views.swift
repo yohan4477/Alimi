@@ -264,7 +264,7 @@ extension BrowseView {
                     Button("전체 브랜드") { selectedBrand = nil }.font(.caption)
                 }
             }
-            Text(selectedBrand == nil ? L("family.pick") : "선택한 브랜드의 상품 · 현재 확인된 카탈로그")
+            Text(selectedBrand == nil ? L("family.pick") : "선택한 브랜드의 불러온 상품")
                 .font(.caption).foregroundStyle(.secondary)
             ForEach(visibleFamilies) { family in
                 FamilyRow(family: family) { openFamily = family }
