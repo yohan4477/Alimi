@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "retailer": "Stylevana US",
+  "market": "US",
+  "currency": "USD",
+  "merchantId": "90791",
+  "feedId": "111294",
+  "note": "One representative option per product, selected 2026-10-18 from the official feed: non-[Deal] listing, in stock, EAN present, standard size. Identity is locked by merchant SKU + EAN + brand; shades share one product URL.",
+  "products": [
+    {"slug": "tirtir-mask-fit-red-cushion-18g-21c", "brand": "TIRTIR", "name": "Mask Fit Red Cushion", "size": "18g", "option": "21C Cool Ivory", "sku": "62672", "ean": "8809928134888", "feedBrand": "TIRTIR"},
+    {"slug": "tirtir-waterism-glow-mini-tint-03", "brand": "TIRTIR", "name": "Waterism Glow Mini Tint", "size": "1.8g", "option": "03 Sand Mond", "sku": "66688", "ean": "8809928138701", "feedBrand": "TIRTIR"},
+    {"slug": "fwee-blurry-pudding-pot-pk01", "brand": "fwee", "name": "Lip & Cheek Blurry Pudding Pot", "size": "5g", "option": "PK01 Baby", "sku": "64584", "ean": "8809652582580", "feedBrand": "Fwee"},
+    {"slug": "fwee-3d-voluming-gloss-b03", "brand": "fwee", "name": "3D Voluming Gloss", "size": "5.3g", "option": "B03 Candy 70%", "sku": "64960", "ean": "8809652582870", "feedBrand": "Fwee"},
+    {"slug": "romand-the-juicy-lasting-tint-07", "brand": "rom&nd", "name": "The Juicy Lasting Tint", "size": "3.5g", "option": "07 Cherry Bomb", "sku": "66606", "ean": "8800258080111", "feedBrand": "Romand"},
+    {"slug": "medicube-zero-pore-pad-2-70pcs", "brand": "medicube", "name": "Zero Pore Pad 2.0", "size": "70pcs", "option": null, "sku": "12926", "ean": "8809506808705", "feedBrand": "medicube"},
+    {"slug": "medicube-pdrn-pink-peptide-serum-30ml", "brand": "medicube", "name": "PDRN Pink Peptide Serum", "size": "30ml", "option": null, "sku": "25026", "ean": "8800256108053", "feedBrand": "medicube"},
+    {"slug": "cosrx-snail-96-100ml", "brand": "COSRX", "name": "Advanced Snail 96 Mucin Power Essence", "size": "100ml", "option": null, "sku": "10759", "ean": "8809416470009", "feedBrand": "COSRX"},
+    {"slug": "anua-heartleaf-cleansing-oil-200ml", "brand": "ANUA", "name": "Heartleaf Pore Control Cleansing Oil", "size": "200ml", "option": null, "sku": "3967", "ean": "8809640732829", "feedBrand": "ANUA"},
+    {"slug": "laneige-lip-sleeping-mask-ex-berry", "brand": "LANEIGE", "name": "Lip Sleeping Mask EX", "size": "20g", "option": "Berry", "sku": "14621", "ean": "0643459974241", "feedBrand": "LANEIGE"}
+  ]
+}
