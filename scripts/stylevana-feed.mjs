@@ -52,20 +52,29 @@ export function mergeHistory(existing, incoming) {
   if(!same)history.push(incoming);
   return history.sort((a,b)=>a.observedAt.localeCompare(b.observedAt));
 }
+// history records price/stock changes only; checks records every successful collection so
+// "unchanged" can be told apart from "not collected".
+export const maxChecks=180;
+export function appendCheck(existing, row, sourceRowCount) {
+  const checks=[...(existing||[])];
+  if(checks.length && row.observedAt <= checks.at(-1).checkedAt)throw Error('Older collection cannot replace latest');
+  checks.push({checkedAt:row.observedAt,checkedOn:row.observedOn,fingerprint:row.fingerprint,amount:row.amount,availability:row.availability,sourceRowCount});
+  return checks.slice(-maxChecks);
+}
 async function atomic(path,text){await mkdir(dirname(path),{recursive:true});await writeFile(path+'.tmp',text);await rename(path+'.tmp',path);}
 export async function runFeed(inputPath,root,observedAt=new Date().toISOString()) {
   const bytes=await readFile(inputPath);
   const rows=parseCsv((bytes[0]===31&&bytes[1]===139?gunzipSync(bytes):bytes).toString('utf8'));
   const row=normalize(rows,observedAt), path=resolve(root,'data/stylevana-us.json');
-  let existing=[];try{existing=JSON.parse(await readFile(path,'utf8')).history;}catch(e){if(e.code!=='ENOENT')throw e;}
-  const history=mergeHistory(existing,row);
-  const payload={schemaVersion:1,source:'Awin Stylevana US official feed',feedId:'111294',sourceRowCount:rows.length,collectedAt:row.observedAt,latest:row,history};
+  let previous={};try{previous=JSON.parse(await readFile(path,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}
+  const history=mergeHistory(previous.history||[],row), checks=appendCheck(previous.checks,row,rows.length);
+  const payload={schemaVersion:1,source:'Awin Stylevana US official feed',feedId:'111294',sourceRowCount:rows.length,collectedAt:row.observedAt,latest:row,history,checks};
   // All validation happens before replacing the last known-good snapshot. No API keys are exported.
   const json=JSON.stringify(payload,null,2)+'\n';
   await atomic(path,json);
   await atomic(resolve(root,'dist/stylevana-data.js'),'// Generated official feed snapshot. Never contains the private download URL.\nexport const stylevanaFeed = '+JSON.stringify(payload,null,2)+';\n');
   await atomic(resolve(root,'ios/Alimi/stylevana-us.json'),json);
-  return {sourceRows:rows.length,matchedProducts:1,historyCount:history.length,amount:row.amount,currency:row.currency,observedOn:row.observedOn};
+  return {sourceRows:rows.length,matchedProducts:1,historyCount:history.length,checkCount:checks.length,amount:row.amount,currency:row.currency,observedOn:row.observedOn};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   try {
