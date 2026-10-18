@@ -831,5 +831,61 @@
   "settings.open": {
     "ko": "설정 열기",
     "en": "Open settings"
+  },
+  "chat.tab.rooms": {
+    "ko": "채팅",
+    "en": "Rooms"
+  },
+  "chat.tab.topics": {
+    "ko": "토픽",
+    "en": "Topics"
+  },
+  "chat.tab.mine": {
+    "ko": "내 채팅",
+    "en": "My chats"
+  },
+  "chat.hot": {
+    "ko": "최근 대화가 활발한 채팅방",
+    "en": "Active right now"
+  },
+  "chat.brandRooms": {
+    "ko": "브랜드별 채팅방",
+    "en": "Brand rooms"
+  },
+  "chat.mineEmpty": {
+    "ko": "참여한 채팅방이 없어요",
+    "en": "You haven't joined any rooms yet"
+  },
+  "chat.tag.all": {
+    "ko": "최신",
+    "en": "Latest"
+  },
+  "chat.tag.talk": {
+    "ko": "대화",
+    "en": "General"
+  },
+  "chat.tag.skin": {
+    "ko": "피부 고민",
+    "en": "Skin concerns"
+  },
+  "chat.tag.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "chat.tag.deals": {
+    "ko": "세일·정보",
+    "en": "Deals"
+  },
+  "chat.count": {
+    "ko": "({n}명)",
+    "en": "({n})"
+  },
+  "chat.searchRooms": {
+    "ko": "채팅방 검색",
+    "en": "Search rooms"
+  },
+  "chat.noMessages": {
+    "ko": "아직 대화가 없어요",
+    "en": "No messages yet"
   }
 }
