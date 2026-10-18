@@ -9,7 +9,7 @@ struct AlimiApp: App {
 }
 
 extension Color {
-    static let alimi = Color(red: 0.03, green: 0.53, blue: 1.0)
+    static let alimi = Color(red: 0.14, green: 0.34, blue: 0.84)
     static let canvas = Color(uiColor: .systemGroupedBackground)
     init(rgb: UInt32) { self.init(red: Double(rgb >> 16 & 0xff) / 255, green: Double(rgb >> 8 & 0xff) / 255, blue: Double(rgb & 0xff) / 255) }
 }
