@@ -1,6 +1,7 @@
 import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
+import {GoogleAuth} from './auth.js';
 import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
 import {buyUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
@@ -108,8 +109,17 @@ function renderSaved(){
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
+// Optional Google account; saved items and settings stay on this device either way.
+const auth=new GoogleAuth();
+async function authAction(a){
+  try{
+    if(a==='google'){await auth.startGoogleLogin();return}
+    await auth.signOut();renderSettings();toast(t('account.signedOut'));
+  }catch(error){toast(error?.message||t('account.failed'))}
+}
 function renderSettings(){
   $('#settings').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="saved" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('settings.title'))}</h1></div>
+<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span class="account-avatar">${esc((auth.user.email||'?').slice(0,1).toUpperCase())}</span><span><b>${esc(auth.user.email||'')}</b><em>${esc(t('account.signedIn'))}</em></span></div><button class="auth-button secondary" data-auth="signout">${esc(t('account.signout'))}</button>`:`<button class="auth-button" data-auth="google"><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
 <section class="set-group"><h3>${esc(t('settings.service'))}</h3>
 <div class="set-row static"><span class="set-ico">${icon.globe}</span><span class="set-label">${esc(t('settings.language'))}</span><span class="seg"><button data-lang="ko" class="${lang==='ko'?'on':''}">한국어</button><button data-lang="en" class="${lang==='en'?'on':''}">English</button></span></div><p class="set-hint">${esc(t('settings.languageHint'))}</p></section>
 <section class="set-group"><h3>${esc(t('settings.data'))}</h3>${row(icon.tray,t('settings.clearSaved'),'data-set="clear-saved"')}${row(icon.trash,t('settings.clearCache'),'data-set="clear-cache"')}</section>
@@ -198,6 +208,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.brand){openBrand(b.dataset.brand);return}
   if('brandsRetry' in b.dataset){loadBrandStrip();return}
   if('brandRetry' in b.dataset){brandPage.failed=false;renderBrandPage();return}
+  if(b.dataset.auth){authAction(b.dataset.auth);return}
   if(b.dataset.screen){show(b.dataset.screen);return}
   if(b.dataset.set){settingsAction(b.dataset.set);return}
   if(b.dataset.lang){try{localStorage.setItem('alimi-lang',b.dataset.lang)}catch{}location.href='?lang='+b.dataset.lang;return}
@@ -229,3 +240,4 @@ loadProducts().then(({products:list,source,exportedAt})=>{
   track('home_view',null,{source,lang});
 
 }).catch(()=>{$('#products').innerHTML=`<p class="empty">${esc(t('loadFailed'))}</p>`});
+auth.handleCallback().catch(error=>{const clean=new URL(location.href);for(const key of ['code','state','error','error_description'])clean.searchParams.delete(key);history.replaceState({},'',clean.toString());toast(error?.message||t('account.failed'))}).finally(()=>auth.restore().then(()=>{if(screen==='settings')renderSettings()}));
