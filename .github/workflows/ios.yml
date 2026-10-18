@@ -14,7 +14,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: alimi-ios-validation
+  group: alimi-ios-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   simulator:
