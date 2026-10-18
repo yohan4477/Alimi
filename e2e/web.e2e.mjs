@@ -51,6 +51,17 @@ try {
     await page.waitForSelector('#products > .card img', {timeout: 10000});
     await page.waitForFunction(() => [...document.querySelectorAll('#products > .card img')].every(i => i.complete && i.naturalWidth > 0), null, {timeout: 20000});
   });
+  await step('popular-brand badge filters the catalog to that brand', async () => {
+    await page.route('**/rest/v1/catalog_brands*', r => r.fulfill({json: [{brand: 'COSRX', brand_ko: '코스알엑스', families: 300, logo_url: null}, {brand: 'MISSHA', brand_ko: '미샤', families: 900, logo_url: null}]}));
+    await page.goto(withLang('ko'));
+    await page.click('[data-brand="COSRX"]');
+    await page.waitForFunction(() => document.querySelector('#catalog-results h2')?.textContent === '코스알엑스 상품', null, {timeout: 15000});
+    await page.waitForFunction(() => document.querySelectorAll('.catalog-grid .card').length > 0, null, {timeout: 15000});
+    const brands = await page.locator('.catalog-grid .card .brand').allTextContents();
+    assert.ok(brands.every(b => b === '코스알엑스'), 'only COSRX families');
+    await page.click('[data-brand-clear]');
+    await page.waitForFunction(() => document.querySelector('#catalog-results h2')?.textContent === '전체 상품', null, {timeout: 15000});
+  });
   await step('chat: join a room, share a searched item, report and block', async () => {
     // Chat endpoints are mocked so the test never posts into real rooms. Item search uses the live catalog.
     const room = {id: 'acne', title_en: 'Acne & breakouts', title_ko: '트러블·여드름', intro_en: 'x', intro_ko: '트러블에 효과 본 제품 이야기', sort: 1, members: 3, messages_24h: 1};

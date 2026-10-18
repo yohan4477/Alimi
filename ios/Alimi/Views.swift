@@ -99,6 +99,8 @@ struct BrowseView: View {
     @State private var browseDone = false
     @State private var browseLoading = false
     @State private var tracking: String?
+    @State private var brand: String?
+    @State private var brands: [CatalogBrand] = []
     private var results: [Product] { store.search(query, category: category, favoritesOnly: favoritesOnly) }
     private var searching: Bool { CatalogItem.query(query).count >= 2 }
     var body: some View {
@@ -113,6 +115,7 @@ struct BrowseView: View {
                             Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
                         }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    if !favoritesOnly && !brands.isEmpty { BrandStrip(brands: brands, selection: $brand) }
                     CategoryTabs(categories: store.categories, selection: $category)
                     HStack {
                         Text(L(favoritesOnly ? "section.saved" : "section.watching")).font(.headline)
@@ -137,11 +140,12 @@ struct BrowseView: View {
                     guard !Task.isCancelled else { return }
                     catalog = await store.searchCatalog(query)
                 }
-                .task(id: category) {
+                .task(id: category + "|" + (brand ?? "")) {
                     guard !favoritesOnly else { return }
                     browse = []; browseDone = false
                     await loadMore()
                 }
+                .task { if !favoritesOnly && brands.isEmpty { brands = await store.brands() } }
                 .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: L("search.prompt"))
                 .onSubmit(of: .search) {
@@ -150,6 +154,39 @@ struct BrowseView: View {
                 }
                 .refreshable { await store.refresh() }
                 .sheet(item: $openFamily) { family in FamilySheet(family: family).environmentObject(store) }
+        }
+    }
+}
+// Round brand badges, five per row, like a delivery app's popular-brand grid. Tap again to clear.
+struct BrandStrip: View {
+    let brands: [CatalogBrand]
+    @Binding var selection: String?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L("brands.title")).font(.title3.bold())
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5), spacing: 14) {
+                ForEach(brands) { b in
+                    Button { selection = selection == b.brand ? nil : b.brand } label: { BrandBadge(brand: b, selected: selection == b.brand) }
+                        .buttonStyle(.plain).accessibilityIdentifier("brand-\(b.brand)")
+                        .accessibilityAddTraits(selection == b.brand ? .isSelected : [])
+                }
+            }
+        }
+    }
+}
+struct BrandBadge: View {
+    let brand: CatalogBrand
+    let selected: Bool
+    var body: some View {
+        VStack(spacing: 6) {
+            ZStack {
+                Circle().fill(Color(rgb: brand.color))
+                Text(brand.initials).font(.system(size: 18, weight: .heavy)).foregroundStyle(.white)
+                if let url = brand.logoUrl { RemoteImage(url: url, label: brand.label).clipShape(Circle()) }
+            }
+            .frame(width: 60, height: 60)
+            .overlay(Circle().stroke(selected ? Color.primary : .clear, lineWidth: 2))
+            Text(brand.label).font(.caption2).lineLimit(1)
         }
     }
 }
@@ -218,7 +255,11 @@ extension BrowseView {
     // Home browsing: one row per product family (sizes / shades grouped), one page at a time.
     var browseSection: some View {
         LazyVStack(alignment: .leading, spacing: 12) {
-            Text(L("section.all")).font(.headline)
+            HStack {
+                Text(browseTitle).font(.headline)
+                Spacer()
+                if brand != nil { Button(L("brands.clear")) { brand = nil }.font(.caption).buttonStyle(.bordered) }
+            }
             Text(L("family.pick")).font(.caption).foregroundStyle(.secondary)
             ForEach(browse) { family in
                 FamilyRow(family: family) { openFamily = family }
@@ -228,13 +269,17 @@ extension BrowseView {
             else if browseDone && browse.isEmpty { Text(L("empty.products")).font(.caption).foregroundStyle(.secondary) }
         }.padding(.top, 12)
     }
+    private var browseTitle: String {
+        guard let brand else { return L("section.all") }
+        return L("brands.products", ["brand": brands.first { $0.brand == brand }?.label ?? brand])
+    }
     func loadMore() async {
         guard !browseLoading, !browseDone else { return }
         browseLoading = true
-        let requested = category
-        let page = await store.familiesPage(category: requested, offset: browse.count)
+        let requested = category, requestedBrand = brand
+        let page = await store.familiesPage(category: requested, offset: browse.count, brand: requestedBrand)
         browseLoading = false
-        guard requested == category else { return }
+        guard requested == category, requestedBrand == brand else { return }
         guard let page else { browseDone = true; return }
         browse.append(contentsOf: page)
         if page.count < 24 { browseDone = true }

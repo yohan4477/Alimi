@@ -94,6 +94,15 @@ final class AlimiUITests: XCTestCase {
         attach("category-essence")
     }
 
+    func testBrandStripFiltersBrowsing() {
+        let cosrx = app.buttons["brand-COSRX"]
+        XCTAssertTrue(cosrx.waitForExistence(timeout: 10), "popular-brand badges on home")
+        attach("brand-strip")
+        reveal(cosrx).tap()
+        XCTAssertTrue(app.staticTexts["코스알엑스 상품"].waitForExistence(timeout: 5))
+        app.buttons["전체 보기"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["전체 상품"].waitForExistence(timeout: 5) || !app.staticTexts["코스알엑스 상품"].exists)
+    }
     func testChatJoinSendAndBlock() {
         app.tabBars.buttons["채팅"].tap()
         let room = app.buttons["chat-room-acne"]

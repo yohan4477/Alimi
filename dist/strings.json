@@ -703,5 +703,17 @@
   "chat.loadFailed": {
     "ko": "채팅을 불러오지 못했어요",
     "en": "Couldn't load chat."
+  },
+  "brands.title": {
+    "ko": "인기 브랜드",
+    "en": "Popular brands"
+  },
+  "brands.products": {
+    "ko": "{brand} 상품",
+    "en": "{brand} products"
+  },
+  "brands.clear": {
+    "ko": "전체 보기",
+    "en": "Show all"
   }
 }

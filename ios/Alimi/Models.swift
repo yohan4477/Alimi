@@ -141,15 +141,39 @@ struct ProductFamily: Codable, Identifiable, Hashable {
         case familyKey = "family_key", brand, brandKo = "brand_ko", baseName = "base_name", category, imageUrl = "image_url"
         case minPriceMinor = "min_price_minor", maxPriceMinor = "max_price_minor", variants
     }
-    static func pageURL(category: String, offset: Int, limit: Int = 24) -> URL {
+    static func pageURL(category: String, offset: Int, limit: Int = 24, brand: String? = nil) -> URL {
         var c = URLComponents(url: URL(string: "/rest/v1/catalog_families", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
         var items = [URLQueryItem(name: "select", value: "family_key,brand,brand_ko,base_name,category,image_url,min_price_minor,max_price_minor,variants"),
                      URLQueryItem(name: "order", value: "sort_key.desc"), URLQueryItem(name: "offset", value: String(offset)),
                      URLQueryItem(name: "limit", value: String(limit))]
         if category != "전체" { items.append(URLQueryItem(name: "category", value: "eq." + category)) }
+        if let brand { items.append(URLQueryItem(name: "brand", value: "eq." + brand)) }
         c.queryItems = items
         return c.url!
     }
+}
+// Popular-brand strip on home. logoUrl is optional; until a logo is added the app draws an initials badge.
+struct CatalogBrand: Codable, Identifiable, Hashable {
+    let brand: String
+    let brandKo: String?
+    let families: Int
+    let logoUrl: URL?
+    var id: String { brand }
+    var label: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
+    var initials: String {
+        let words = brand.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+        let s = words.count > 1 ? String(words[0].prefix(1)) + String(words[1].prefix(1)) : String((words.first ?? "?").prefix(2))
+        return s.uppercased()
+    }
+    // Same palette and hash as the web (live.js brandColor).
+    static let palette: [UInt32] = [0xf35e56, 0xff8a3d, 0xf5b82e, 0x3cba7a, 0x1fa2a8, 0x3d7bf5, 0x7a5af5, 0xd94f9b, 0x5b6472, 0x2f4858]
+    var color: UInt32 {
+        var h: UInt32 = 7
+        for c in brand.unicodeScalars { h = h &* 31 &+ c.value }
+        return Self.palette[Int(h % UInt32(Self.palette.count))]
+    }
+    enum CodingKeys: String, CodingKey { case brand, brandKo = "brand_ko", families, logoUrl = "logo_url" }
+    static let listURL = URL(string: "/rest/v1/catalog_brands?select=brand,brand_ko,families,logo_url&order=families.desc&limit=15", relativeTo: LiveAPI.baseURL)!
 }
 
 struct LiveSnapshot: Codable {
@@ -333,9 +357,18 @@ final class AlimiStore: ObservableObject {
         }
     }
     var categories: [String] { ["전체"] + Product.categories }
-    func familiesPage(category: String, offset: Int) async -> [ProductFamily]? {
+    func brands() async -> [CatalogBrand] {
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") {
+            return [CatalogBrand(brand: "COSRX", brandKo: "코스알엑스", families: 2, logoUrl: nil), CatalogBrand(brand: "ANUA", brandKo: "아누아", families: 1, logoUrl: nil)]
+        }
+        var request = URLRequest(url: CatalogBrand.listURL, timeoutInterval: 15)
+        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
+        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return [] }
+        return (try? JSONDecoder().decode([CatalogBrand].self, from: data)) ?? []
+    }
+    func familiesPage(category: String, offset: Int, brand: String? = nil) async -> [ProductFamily]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
-        var request = URLRequest(url: ProductFamily.pageURL(category: category, offset: offset), timeoutInterval: 15)
+        var request = URLRequest(url: ProductFamily.pageURL(category: category, offset: offset, brand: brand), timeoutInterval: 15)
         request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
         guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
         return try? JSONDecoder().decode([ProductFamily].self, from: data)

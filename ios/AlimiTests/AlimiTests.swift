@@ -93,6 +93,15 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(q.first { $0.name == "id" }?.value, "gt.42")
         XCTAssertEqual(q.first { $0.name == "order" }?.value, "id.asc")
     }
+    func testBrandBadgeMatchesWeb() {
+        let cosrx = CatalogBrand(brand: "COSRX", brandKo: "코스알엑스", families: 3, logoUrl: nil)
+        XCTAssertEqual(cosrx.initials, "CO")
+        XCTAssertEqual(CatalogBrand(brand: "Beauty of Joseon", brandKo: nil, families: 1, logoUrl: nil).initials, "BO")
+        XCTAssertEqual(CatalogBrand(brand: "A'PIEU", brandKo: nil, families: 1, logoUrl: nil).initials, "AP")
+        XCTAssertEqual(cosrx.color, 0x7a5af5, "same color as the web badge")
+        let q = URLComponents(url: ProductFamily.pageURL(category: "전체", offset: 0, brand: "COSRX"), resolvingAgainstBaseURL: true)!.queryItems!
+        XCTAssertEqual(q.first { $0.name == "brand" }?.value, "eq.COSRX")
+    }
     func testFavorites() {
         let store = makeStore()
         store.toggle("cosrx")

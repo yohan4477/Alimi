@@ -78,13 +78,14 @@ export async function searchCatalog(q, fetchImpl = fetch) {
 }
 // Product families (sizes / shades of one product grouped) for home browsing.
 const FAMILY_FIELDS = 'family_key,brand,brand_ko,base_name,category,image_url,min_price_minor,max_price_minor,variants,best_unit_price_minor';
-export function familiesPageUrl(category, offset, limit = 24) {
+export function familiesPageUrl(category, offset, limit = 24, brand = null) {
   const params = new URLSearchParams({select: FAMILY_FIELDS, order: 'sort_key.desc', offset: String(offset), limit: String(limit)});
   if (category && category !== '전체') params.set('category', 'eq.' + category);
+  if (brand) params.set('brand', 'eq.' + brand);
   return SUPABASE_URL + '/rest/v1/catalog_families?' + params;
 }
-export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch) {
-  const res = await fetchImpl(familiesPageUrl(category, offset, limit), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
+export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
+  const res = await fetchImpl(familiesPageUrl(category, offset, limit, brand), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
   if (!res.ok) throw Error('HTTP ' + res.status);
   return (await res.json()).map(f => ({...f, brandKo: f.brand_ko ?? null, minPrice: f.min_price_minor / 100, maxPrice: f.max_price_minor / 100}));
 }
@@ -108,6 +109,21 @@ export async function fetchFamily(familyKey, fetchImpl = fetch) {
   if (!res.ok) throw Error('HTTP ' + res.status);
   return collapseVariants(await res.json());
 }
+// Popular brands for the home strip, most product families first. logo_url is optional (filled by whoever
+// owns brand images); until then the client draws an initials badge in a stable per-brand color.
+export const brandsUrl = (limit = 15) => SUPABASE_URL + '/rest/v1/catalog_brands?' +
+  new URLSearchParams({select: 'brand,brand_ko,families,logo_url', order: 'families.desc', limit: String(limit)});
+export async function fetchBrands(fetchImpl = fetch) {
+  const res = await fetchImpl(brandsUrl(), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
+  if (!res.ok) throw Error('HTTP ' + res.status);
+  return (await res.json()).map(b => ({...b, brandKo: b.brand_ko ?? null}));
+}
+export const brandInitials = brand => {
+  const words = brand.replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).filter(Boolean);
+  return (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? '?').slice(0, 2)).toUpperCase();
+};
+const BRAND_COLORS = ['#f35e56', '#ff8a3d', '#f5b82e', '#3cba7a', '#1fa2a8', '#3d7bf5', '#7a5af5', '#d94f9b', '#5b6472', '#2f4858'];
+export const brandColor = brand => BRAND_COLORS[[...brand].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7) % BRAND_COLORS.length];
 export const unitName = unit => (unit === 'ml' || unit === 'g' ? '10' + unit : unit === 'pcs' ? '1pc' : unit);
 
 // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
