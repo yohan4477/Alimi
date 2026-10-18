@@ -21,7 +21,7 @@ const form={origin:'https://admin.example','content-type':'application/x-www-for
 test('anonymous page and direct API do not read or expose private content',async()=>{
   for (const url of ['/admin','/api/admin','/admin/']) {
     const r=await request({url,readPage:()=>assert.fail('private page read')});assert.equal(r.statusCode,401);assert.doesNotMatch(r.body,/PRIVATE STRATEGY|sb-strategy/);
-    assert.match(r.headers['cache-control'],/no-store/);assert.equal(r.headers['vercel-cdn-cache-control'],'no-store');assert.match(r.headers['content-security-policy'],/frame-ancestors 'none'/);
+    assert.equal(r.headers['referrer-policy'],'same-origin');assert.match(r.headers['cache-control'],/no-store/);assert.equal(r.headers['vercel-cdn-cache-control'],'no-store');assert.match(r.headers['content-security-policy'],/frame-ancestors 'none'/);
   }
 });
 test('authorization ignores editable metadata and requires verified nonanonymous admin',()=>{

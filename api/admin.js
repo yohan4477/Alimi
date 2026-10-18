@@ -8,7 +8,7 @@ const headers = {
   'CDN-Cache-Control': 'no-store', 'Vercel-CDN-Cache-Control': 'no-store',
   'Pragma': 'no-cache', 'Vary': 'Cookie',
   'X-Robots-Tag': 'noindex, nofollow, noarchive',
-  'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
+  'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin',
   'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 };
 function loginPage(message = '관리자로 지정된 계정으로 로그인하세요.') {
