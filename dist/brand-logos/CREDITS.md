@@ -20,3 +20,5 @@ Trademarks belong to their owners.
 | abib.png | abib.com header logo |
 | anillo.png | anillo.co.kr header logo |
 | round-lab.png | roundlab.co.kr header logo |
+| vt.png | vt-cosmetics.com header logo |
+| some-by-mi.png | somebymi.co.kr official store header image |
