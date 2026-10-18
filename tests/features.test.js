@@ -1,3 +1,5 @@
+import {setLang} from '../dist/i18n.js';
+setLang('ko'); // assertions below use the Korean copy; English is covered in i18n.test.js
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';

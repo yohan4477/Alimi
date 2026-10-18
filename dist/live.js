@@ -1,5 +1,7 @@
 // Live price data from Supabase (public read-only API). The publishable key is designed to ship in clients;
 // row-level security limits it to SELECT on public price tables.
+import {t, lang} from './i18n.js';
+
 export const SUPABASE_URL = 'https://mqsnshnlfwsgabrsmqsz.supabase.co';
 export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CJjQ-l5ev-D4OH0Na0gFoQ_szunygff';
 export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,currency,url,affiliate_url,image_url,' +
@@ -10,7 +12,7 @@ const DAY = 86400000;
 const minor = n => n == null ? null : n / 100;
 // Same order as scripts/catalog-taxonomy.mjs. Category itself is computed by the collector and stored in the DB.
 export const CATEGORIES = ['선케어', '클렌징', '토너·패드', '에센스·세럼', '크림·로션', '마스크팩', '립', '베이스메이크업', '아이메이크업', '헤어·바디', '세트', '기타'];
-export const brandLabel = p => p.brandKo || p.brand;
+export const brandLabel = p => (lang === 'ko' && p.brandKo) || p.brand;
 
 // Converts API rows (or the bundled snapshot, which stores the same rows) into view models.
 export function toProducts(rows) {
@@ -123,14 +125,14 @@ export function stats(series) {
 export function watchSummary(p, now = new Date()) {
   const days = trackedDays(p, now);
   const prices = p.history.map(h => h.price);
-  if (prices.length < 2) return {days, changes: 0, lowest: false, text: `지켜본 지 ${days}일 · 아직 가격 변동 없음`};
+  if (prices.length < 2) return {days, changes: 0, lowest: false, text: t('watch.none', {days})};
   const lowest = p.price <= Math.min(...prices);
   return {days, changes: prices.length - 1, lowest,
-    text: lowest ? `지켜본 ${days}일 중 지금이 최저가` : `지켜본 ${days}일 동안 가격 ${prices.length - 1}번 변동`};
+    text: lowest ? t('watch.lowest', {days}) : t('watch.changes', {days, n: prices.length - 1})};
 }
 export const trackedDays = (p, now = new Date()) => p.history.length ? Math.floor((now - Date.parse(p.history[0].at)) / DAY) + 1 : 0;
 export const usd = n => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(n);
-export const alertState = (target, current) => target == null ? '미설정' : current <= target ? '목표가 도달' : '기다리는 중';
+export const alertState = (target, current) => t(target == null ? 'alert.unset' : current <= target ? 'alert.reached' : 'alert.waiting');
 
 export function parseTarget(raw) {
   if (!/^\d+(\.\d{1,2})?$/.test(String(raw))) return null;

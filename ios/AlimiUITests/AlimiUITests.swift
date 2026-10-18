@@ -9,8 +9,9 @@ final class AlimiUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
         app = XCUIApplication()
+        // Flows run in Korean (the operator's language); testEnglishForUSUsers checks the English UI.
         app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
-                               "-alimi.notifications.introductionSeen.v1", "YES"]
+                               "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
         app.launch()
     }
 
@@ -21,9 +22,9 @@ final class AlimiUITests: XCTestCase {
         add(shot)
     }
 
-    // Cards expose "사진 있음" once the photo has actually loaded (see TrackedCard).
+    // Cards expose "photo-loaded" once the photo has actually loaded (see TrackedCard).
     private func waitForPhoto(_ card: XCUIElement, timeout: TimeInterval = 30) -> Bool {
-        let loaded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "사진 있음"), object: card)
+        let loaded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "photo-loaded"), object: card)
         return XCTWaiter().wait(for: [loaded], timeout: timeout) == .completed
     }
     // Lazy grids only create cells near the screen, so scroll until the element exists and is tappable.
@@ -91,5 +92,17 @@ final class AlimiUITests: XCTestCase {
         tapCategory("에센스·세럼")
         XCTAssertTrue(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.waitForExistence(timeout: 5))
         attach("category-essence")
+    }
+
+    func testEnglishForUSUsers() {
+        app.terminate()
+        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
+                               "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Saved"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.tabBars.buttons["Home"].exists)
+        XCTAssertTrue(app.staticTexts["Watching prices"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["가격을 지켜보는 상품"].firstMatch.exists)
+        attach("english-home")
     }
 }

@@ -4,7 +4,8 @@
 import {chromium} from 'playwright-core';
 import assert from 'node:assert/strict';
 
-const url = process.argv[2] ?? 'http://localhost:3000/';
+const base = process.argv[2] ?? 'http://localhost:3000/';
+const withLang = l => { const u = new URL(base); u.searchParams.set('lang', l); return u.href; };
 const browser = await chromium.launch(process.env.CHROME_PATH ? {executablePath: process.env.CHROME_PATH} : {channel: 'chrome'});
 const page = await browser.newPage({viewport: {width: 390, height: 844}});
 const errors = [];
@@ -13,7 +14,7 @@ await page.route('**/rest/v1/app_events', r => r.fulfill({status: 201, body: ''}
 const step = async (name, fn) => { await fn(); console.log('ok -', name); };
 
 try {
-  await page.goto(url);
+  await page.goto(withLang('ko')); // flows below assert the Korean copy
   await step('tracked products and first catalog page render without scrolling', async () => {
     await page.waitForSelector('#products > .card', {timeout: 20000});
     await page.waitForSelector('.catalog-grid .card', {timeout: 20000});
@@ -38,6 +39,14 @@ try {
     await page.click('nav [data-view="saved"]');
     await page.waitForSelector('#products > .card img', {timeout: 10000});
     await page.waitForFunction(() => [...document.querySelectorAll('#products > .card img')].every(i => i.complete && i.naturalWidth > 0), null, {timeout: 20000});
+  });
+  await step('English UI for US users', async () => {
+    await page.goto(withLang('en'));
+    await page.waitForSelector('.catalog-grid .card', {timeout: 20000});
+    assert.equal(await page.textContent('#list-title'), 'Watching prices');
+    assert.ok((await page.locator('#categories .chip').allTextContents()).includes('Sun care'));
+    assert.match(await page.textContent('.notice'), /Official Stylevana US prices/);
+    assert.equal(await page.locator('text=/[가-힣]/').count(), 0, 'no Korean text in the English UI');
   });
   assert.deepEqual(errors, [], 'no JavaScript errors');
   console.log('web e2e passed');
