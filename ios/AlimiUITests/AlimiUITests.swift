@@ -139,6 +139,7 @@ final class AlimiUITests: XCTestCase {
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
+        app.segmentedControls.buttons["실시간 채팅"].tap()
         let join = app.buttons["chat-join"]
         XCTAssertTrue(join.waitForExistence(timeout: 5), "rules are shown before the first join")
         attach("chat-rules")

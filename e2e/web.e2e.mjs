@@ -38,9 +38,13 @@ try {
     await card.waitFor({timeout: 15000});
     await card.locator('button').click();
     await page.waitForSelector('#family-body .variant-row', {timeout: 10000});
+    assert.ok(await page.locator('#family-description h2').isVisible(), 'product information precedes options');
+    assert.match(await page.locator('#family-description').innerText(), /제품 분류에 대한 안내/);
+    assert.ok(await page.locator('#family-body .variant-buy').first().getAttribute('href'), 'buy directly without saving');
     const rows = await page.locator('#family-body .variant-row').allInnerTexts();
     assert.ok(rows.length >= 2, 'family with options lists at least two variants');
     assert.ok(rows.every(r => /\$\d/.test(r)), 'every variant shows a price');
+    await page.screenshot({path: '/tmp/alimi-product-description.png'});
     await page.click('#family-dialog .close-dialog');
   });
   await step('saved tab: add slots when empty, favorite shows up with a loaded photo', async () => {

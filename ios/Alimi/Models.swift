@@ -421,7 +421,7 @@ final class AlimiStore: ObservableObject {
 enum Purchase {
     static func buyURL(_ raw: String?, ref: String? = nil) -> URL? {
         guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
-              var c = URLComponents(string: raw) else { return nil }
+              var c = URLComponents(string: raw), c.scheme == "https", c.host != nil, c.user == nil, c.password == nil else { return nil }
         if c.host == "www.awin1.com", let ref {
             let allowed = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-")
             let clean = String(ref.filter { allowed.contains($0) }.prefix(50))
