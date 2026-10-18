@@ -1,6 +1,7 @@
 // P0 funnel events (#49). Anonymous random device ID; never sends search text or personal data.
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY} from './live.js';
-export const EVENT_NAMES = ['home_view', 'search', 'product_view', 'wishlist_add', 'wishlist_remove', 'target_price_set', 'merchant_click', 'chat_open', 'chat_join', 'chat_send'];
+export const EVENT_NAMES = ['home_view', 'search', 'product_view', 'wishlist_add', 'wishlist_remove', 'target_price_set', 'merchant_click', 'chat_open', 'chat_join', 'chat_send',
+  'community_open', 'post_view', 'post_create', 'comment_create', 'product_card_click', 'post_save'];
 let memoryId;
 export function deviceId(storage) {
   try {

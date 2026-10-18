@@ -80,4 +80,29 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
 .variant-row{grid-template-columns:1fr auto auto 40px}.variant-row .variant-buy{grid-column:auto;display:inline-flex;min-height:0;width:auto;margin:0;line-height:1.2;color:#fff;background:var(--blue);color:#fff;border-radius:9px;padding:8px 12px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
 .detail-actions .buy-cta{grid-column:auto;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;font-size:16px;height:48px}
 .target-actions{display:flex;gap:10px;margin-top:12px}.target-actions .secondary{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:#fff;font-weight:600}
-
+.community-head p{margin:4px 0 0;color:#7b8188;font-size:14px}
+.topic-head{padding:0 16px 10px}.topic-head p{margin:0 0 12px;color:#6b7178;font-size:14px}.topic-seg{display:flex}.topic-seg button{flex:1;padding:9px 0;font-size:14px}
+#chat .page-bar{padding:0 8px}#topic-body{padding:0 16px calc(var(--tabbar) + 24px)}
+.write-btn{display:flex;align-items:center;gap:8px;width:100%;padding:13px 14px;border:1px solid #e3e5e8;border-radius:12px;background:#fafbfc;color:#5c6168;font-size:15px;margin:4px 0 6px}.write-btn svg{width:20px;height:20px}
+.post-row{display:flex;gap:12px;align-items:center;width:100%;padding:14px 0;border:0;border-bottom:1px solid #f0f1f3;background:none;text-align:left}
+.post-main{flex:1;min-width:0}.post-main b{display:block;font-size:16px;line-height:1.35;margin:5px 0 4px;max-height:2.7em;overflow:hidden}.post-main small{display:flex;align-items:center;gap:4px;color:#8b9097;font-size:12px}.post-main small svg{width:13px;height:13px}
+.post-row img{width:56px;height:56px;border-radius:10px;object-fit:cover;flex:none;background:#f6f7f8}
+.post-kind{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:#eef0ff;color:#3a43b8}.post-kind.k-recommend{background:#e8f6ee;color:#1b7a43}.post-kind.k-review{background:#fff2e5;color:#b25b0a}
+.post-view{padding:0 16px calc(var(--tabbar) + 110px)}.post-full h1{font-size:21px;margin:8px 0 6px;line-height:1.35}.post-meta{color:#8b9097;font-size:12px}.post-body{white-space:pre-wrap;font-size:15px;line-height:1.6;margin:14px 0}
+.reason-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}.reason-chips span{font-size:12px;background:#f2f3f5;border-radius:12px;padding:4px 10px;color:#4b5058}
+.post-actions{display:flex;gap:6px;margin-top:8px}.post-actions button{border:1px solid #e9ebee;background:#fff;border-radius:16px;padding:5px 12px;font-size:13px;color:#5c6168}
+.comment{padding:12px 0;border-bottom:1px solid #f0f1f3}.comment p{margin:4px 0;font-size:15px;white-space:pre-wrap}
+.post-write input,.post-write textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;margin:8px 0 0}
+.post-write .chat-chips{margin:0;padding:10px 0 4px;border:0}.write-attach{border:1px dashed #c9cdd3;background:#fafbfc;border-radius:10px;padding:10px;width:100%;margin-top:10px;color:#5c6168}.write-label{margin:12px 0 0;font-size:13px;color:#7b8188}
+.product-talk .post-row:last-child{border-bottom:0}.talk-chat{color:#6b7178;font-size:13px;margin:8px 0}.talk-empty{padding:10px 0!important}
+.post-actions button.on{border-color:var(--blue);color:var(--blue)}#saved .chat-section{margin-top:28px}
+.post-photos{display:flex;gap:8px;overflow-x:auto;margin:10px 0}.post-photos img{width:140px;height:140px;object-fit:cover;border-radius:12px;background:#f2f3f5}
+.review-facts .sponsored{background:#fff4d6;color:#8a6100}
+.buyer-info{margin-top:10px;background:#f7f8fa;border-radius:10px;padding:10px 12px}.buyer-info small{color:#8b9097;font-size:11px}.buyer-info p{margin:3px 0 0;font-size:13px;color:#4b5058}
+.write-warn{color:#c2410c;font-size:13px;margin:10px 0 0}.write-note{font-size:12px;color:#8b9097;margin:4px 0 8px;line-height:1.5}
+.write-photos{display:flex;gap:8px;flex-wrap:wrap}.write-photos span{position:relative}.write-photos img{width:72px;height:72px;object-fit:cover;border-radius:10px}
+.write-photos span button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:#222;color:#fff;font-size:13px}
+.photo-add{width:72px;height:72px;border-radius:10px;border:1px dashed #c9cdd3;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#7b8188;font-size:20px;cursor:pointer}.photo-add span{font-size:10px}
+.write-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.write-grid input{margin:0}.write-check{display:flex;align-items:center;gap:8px;font-size:14px;margin:12px 0 4px}
+.post-write{max-height:90vh;overflow:auto}.chat-section em{font-style:normal;color:var(--blue);font-weight:700}
+.review-filter{border:0;padding:4px 0 6px;margin:0}.similar-note{font-size:12px;color:#8b9097;margin:0 0 6px}
