@@ -1,0 +1,28 @@
+name: Preserve v1 before community UI
+on:
+  push:
+    branches: [maintenance/tag-v1-before-community-20261019]
+permissions:
+  contents: write
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e162c88a4f595abfcc09bd63562ddfea1faf97e2
+          fetch-depth: 1
+      - name: Create immutable rollback tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=e162c88a4f595abfcc09bd63562ddfea1faf97e2
+          if git ls-remote --exit-code --tags origin refs/tags/v1 >/dev/null 2>&1; then
+            git fetch origin tag v1
+            test "$(git rev-parse 'v1^{commit}')" = "$target"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a v1 "$target" -m "Before community-first UI, 2026-10-19 KST"
+          git push origin refs/tags/v1
