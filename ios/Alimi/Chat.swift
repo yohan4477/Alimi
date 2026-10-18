@@ -85,11 +85,8 @@ enum ChatAPI {
     }
 
     struct Failure: Error { let message: String }
-    static func send(_ request: URLRequest) async throws -> Data {
-        var request = request
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 10
+    static func send(_ url: URL, method: String = "GET", body: Data? = nil) async throws -> Data {
+        let request = LiveAPI.request(url, method: method, body: body, contentType: "application/json", timeout: 10)
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["message"] as? String
@@ -98,10 +95,8 @@ enum ChatAPI {
         return data
     }
     static func rpc(_ name: String, _ body: [String: Any?]) async throws -> Data {
-        var request = URLRequest(url: URL(string: "/rest/v1/rpc/" + name, relativeTo: LiveAPI.baseURL)!)
-        request.httpMethod = "POST"
-        request.httpBody = try JSONSerialization.data(withJSONObject: body.mapValues { $0 ?? NSNull() })
-        return try await send(request)
+        let payload = try JSONSerialization.data(withJSONObject: body.mapValues { $0 ?? NSNull() })
+        return try await send(URL(string: "/rest/v1/rpc/" + name, relativeTo: LiveAPI.baseURL)!, method: "POST", body: payload)
     }
 
     static func rooms() async throws -> [ChatRoom] {
@@ -110,7 +105,7 @@ enum ChatAPI {
                                 ChatRoom(id: "brand-cosrx", titleEn: "COSRX", titleKo: "코스알엑스", introEn: "COSRX fans", introKo: "코스알엑스 팬 모임",
                                          members: 2, messages24h: 0, kind: "brand", brand: "COSRX")] }
         let url = URL(string: "/rest/v1/chat_room_list?select=*&order=sort", relativeTo: LiveAPI.baseURL)!
-        return try JSONDecoder().decode([ChatRoom].self, from: try await send(URLRequest(url: url)))
+        return try JSONDecoder().decode([ChatRoom].self, from: try await send(url))
     }
     struct Last { let body: String; let createdAt: String? }
     // Rooms this device joined (chat_members is publicly readable), each with its newest message for the preview.
@@ -118,12 +113,12 @@ enum ChatAPI {
         if offline { return all.filter { $0.id == "acne" }.map { ($0, nil) } }
         let url = URL(string: "/rest/v1/chat_members?select=room_id&author_tag=eq." + myTag, relativeTo: LiveAPI.baseURL)!
         struct M: Decodable { let room_id: String }
-        let ids = Set(try JSONDecoder().decode([M].self, from: try await send(URLRequest(url: url))).map(\.room_id))
+        let ids = Set(try JSONDecoder().decode([M].self, from: try await send(url)).map(\.room_id))
         var out: [(room: ChatRoom, last: Last?)] = []
         for room in all where ids.contains(room.id) {
             struct R: Decodable { let body: String; let created_at: String }
             let u = URL(string: "/rest/v1/chat_messages?select=body,created_at&room_id=eq.\(room.id)&order=id.desc&limit=1", relativeTo: LiveAPI.baseURL)!
-            let row = (try? JSONDecoder().decode([R].self, from: try await send(URLRequest(url: u))))?.first
+            let row = (try? JSONDecoder().decode([R].self, from: try await send(u)))?.first
             out.append((room, row.map { Last(body: $0.body, createdAt: $0.created_at) }))
         }
         return out
@@ -131,7 +126,7 @@ enum ChatAPI {
     static func messages(room: String, after: Int = 0) async throws -> [ChatMessage] {
         if offline { return after > 0 ? [] : [ChatMessage(id: 1, authorTag: "other", nickname: "Calm Otter", body: "추천 좀 해주세요", item: nil,
                                                            replyTo: nil, likes: 2, createdAt: "2026-10-18T10:00:00Z")] }
-        let rows = try JSONDecoder().decode([ChatMessage].self, from: try await send(URLRequest(url: messagesURL(room: room, after: after))))
+        let rows = try JSONDecoder().decode([ChatMessage].self, from: try await send(messagesURL(room: room, after: after)))
         return after > 0 ? rows : rows.reversed()
     }
     static func join(room: String) async throws -> String {

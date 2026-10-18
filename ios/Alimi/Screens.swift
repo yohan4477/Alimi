@@ -251,7 +251,7 @@ struct SettingsView: View {
         .navigationTitle(L("settings.title")).navigationBarTitleDisplayMode(.inline)
         .alert(L("settings.clearSavedConfirm"), isPresented: $confirmClear) {
             Button(L("settings.clearSaved"), role: .destructive) {
-                store.saved.favorites = []; store.saved.targets = [:]
+                store.saved.favorites = []
                 message = L("settings.cleared")
             }
             Button(L("cancel"), role: .cancel) {}
