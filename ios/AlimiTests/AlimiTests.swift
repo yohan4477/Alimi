@@ -130,6 +130,12 @@ final class AlimiTests: XCTestCase {
         let q = URLComponents(url: ProductFamily.pageURL(category: "전체", offset: 0, brand: "COSRX"), resolvingAgainstBaseURL: true)!.queryItems!
         XCTAssertEqual(q.first { $0.name == "brand" }?.value, "eq.COSRX")
     }
+    func testCatalogCopyNeedsPermissionAndSafeSource() {
+        let row = CatalogCopyRow(url: "https://www.stylevana.com/a.html", description: "Snail mucin essence for hydration.", descriptionPermission: "Awin feed 111294")
+        XCTAssertEqual(row.copy(retailer: "Stylevana US", sku: "10759")?.description, "Snail mucin essence for hydration.")
+        XCTAssertNil(CatalogCopyRow(url: row.url, description: row.description, descriptionPermission: " ").copy(retailer: "Stylevana US", sku: "10759"))
+        XCTAssertNil(CatalogCopyRow(url: row.url, description: nil, descriptionPermission: "x").copy(retailer: "Stylevana US", sku: "10759"))
+    }
     func testFavorites() {
         let store = makeStore()
         store.toggle("cosrx")

@@ -15,7 +15,7 @@ Reviews accept optional usage period, self-selected skin type/tone/undertone, cl
 
 Product pages show our own category guidance, observed identity/options and a source link. Category guidance is explicitly distinct from product-specific manufacturer claims. No new claims about ingredients, clinical effects or individual suitability are invented.
 
-`product-content.json` accepts exact retailer/market/SKU matches only when description usage permission is recorded. It is currently empty: advertiser-specific app reuse/modification permission has not been verified in this session. Do not label category guidance as official copy.
+Retailer descriptions come from the Awin feed and are stored on `catalog_items` (`description`, `description_permission`) only when `data/catalog.json` records `descriptionPermission`. As of 2026-10-19 the owner chose to publish Stylevana feed descriptions as unmodified retailer text with a source link; Stylevana's program-specific app reuse terms have not been reviewed yet. Removing `descriptionPermission` stops publishing on the next collection. `product-content.json` remains for individually licensed copy. Never rewrite descriptions or add efficacy claims, and do not label category guidance as official copy.
 
 After verifying applicable advertiser programme terms, run:
 

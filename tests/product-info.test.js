@@ -20,3 +20,25 @@ test('category copy is labelled separately and publisher text is never interpret
  assert.match(productInfoHTML({category:'missing'}),/exact purpose/);
  assert.equal(descriptionText('<script>bad()</script><p>Good &amp; useful</p><p>Next</p>'),'Good & useful\nNext');
 });
+
+test('catalog description is shown only with a recorded permission and a safe source link', async () => {
+  const {catalogCopy} = await import('../dist/product-info.js');
+  const item = {retailer: 'Stylevana US', market: 'US', sku: '10759', url: 'https://www.stylevana.com/a.html'};
+  const row = {url: 'https://www.stylevana.com/a.html', description: 'Snail mucin essence for hydration.', description_permission: 'Awin feed 111294'};
+  assert.equal(catalogCopy(row, item).description, row.description);
+  assert.equal(catalogCopy({...row, description_permission: ''}, item), null);
+  assert.equal(catalogCopy({...row, description: ' '}, item), null);
+  assert.equal(catalogCopy({...row, url: 'javascript:alert(1)'}, {...item, url: 'javascript:alert(1)'}), null);
+});
+
+test('collector stores feed descriptions only when catalog.json records the permission basis', async () => {
+  const {buildCatalogItems} = await import('../scripts/stylevana-catalog.mjs');
+  const row = {data_feed_id: '1', merchant_id: '2', currency: 'USD', merchant_product_id: '9', brand_name: 'COSRX', product_name: 'COSRX - Snail Essence 100ml', search_price: '17.50',
+    merchant_deep_link: 'https://www.stylevana.com/a.html', aw_deep_link: 'https://www.awin1.com/pclick.php?p=1&a=2&m=2', in_stock: '1', description: '<p>Lightweight <b>snail</b> essence &amp; toner.</p>'};
+  const base = {feedId: '1', merchantId: '2', currency: 'USD', retailer: 'Stylevana US', market: 'US'};
+  const [withPerm] = buildCatalogItems([row], {...base, descriptionPermission: 'Awin feed'}, 'now');
+  assert.equal(withPerm.description, 'Lightweight snail essence & toner.');
+  assert.equal(withPerm.description_permission, 'Awin feed');
+  const [without] = buildCatalogItems([row], base, 'now');
+  assert.equal(without.description, null);
+});
