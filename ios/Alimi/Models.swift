@@ -180,7 +180,8 @@ final class AlimiStore: ObservableObject {
         if let data = try? JSONEncoder().encode(saved) { defaults.set(data, forKey: "alimi.live.v1") }
     }
     func toggle(_ id: String) {
-        if saved.favorites.contains(id) { saved.favorites.remove(id) } else { saved.favorites.insert(id) }
+        if saved.favorites.contains(id) { saved.favorites.remove(id); EventLogger.shared.log(.wishlistRemove, productID: id) }
+        else { saved.favorites.insert(id); EventLogger.shared.log(.wishlistAdd, productID: id) }
     }
     func search(_ query: String, category: String = "전체", favoritesOnly: Bool = false) -> [Product] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)

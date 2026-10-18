@@ -1,3 +1,4 @@
+import {track} from './events.js';
 import {loadProducts,search,dailySeries,stats,trackedDays,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -38,18 +39,19 @@ function renderDetail(){
   if($('#remove-target'))$('#remove-target').onclick=()=>{delete state.targets[p.id];save();renderDetail()};
 }
 function closeDetail(){detailOpen=false;$('#detail').hidden=true;$('#browse').hidden=false;window.scrollTo(0,0)}
-function openDetail(id){selected=id;detailOpen=true;renderDetail();$('#browse').hidden=true;$('#detail').hidden=false;window.scrollTo(0,0)}
+function openDetail(id){selected=id;track('product_view',id);detailOpen=true;renderDetail();$('#browse').hidden=true;$('#detail').hidden=false;window.scrollTo(0,0)}
 
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.product)openDetail(b.dataset.product);
-  if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);save();renderList();if(detailOpen)renderDetail()}
+  if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);track(state.favorites.includes(b.dataset.favorite)?'wishlist_add':'wishlist_remove',b.dataset.favorite);save();renderList();if(detailOpen)renderDetail()}
   if(b.dataset.days){days=+b.dataset.days;const y=window.scrollY;renderDetail();window.scrollTo(0,y)}
   if(b.dataset.category){category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.classList.toggle('active',x.dataset.category===category));renderList()}
   if(b.dataset.view){view=b.dataset.view;document.querySelectorAll('nav [data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));renderList();window.scrollTo(0,0)}});
-$('#target-form').onsubmit=e=>{e.preventDefault();const v=parseTarget($('#target').value);if(v===null){toast('USD 0.01~10,000, 소수 둘째 자리까지 입력하세요');return}state.targets[selected]=v;save();$('#target-dialog').close();renderDetail();toast('목표가를 저장했어요')};
-$('#search').oninput=renderList;$('#clear').onclick=()=>{$('#search').value='';renderList()};$('#search-tab').onclick=()=>{$('#search').focus();window.scrollTo(0,0)};
+$('#target-form').onsubmit=e=>{e.preventDefault();const v=parseTarget($('#target').value);if(v===null){toast('USD 0.01~10,000, 소수 둘째 자리까지 입력하세요');return}state.targets[selected]=v;save();track('target_price_set',selected);$('#target-dialog').close();renderDetail();toast('목표가를 저장했어요')};
+let searchTimer;$('#search').oninput=()=>{renderList();clearTimeout(searchTimer);searchTimer=setTimeout(()=>{const q=$('#search').value.trim();if(q)track('search',null,{length:q.length,results:search(products,q,category).length})},1200)};$('#clear').onclick=()=>{$('#search').value='';renderList()};$('#search-tab').onclick=()=>{$('#search').focus();window.scrollTo(0,0)};
 $('#browse-now').onclick=()=>$('.results').scrollIntoView({behavior:'smooth'});
 $('#reset').onclick=()=>{if(confirm('관심 상품과 목표가를 초기화할까요?')){state={favorites:[],targets:{}};save();renderList()}};
+document.addEventListener('click',e=>{const a=e.target.closest('a.observed-buy');if(a&&selected)track('merchant_click',selected,{retailer:product(selected)?.retailer})});
 document.addEventListener('error',e=>{if(e.target.tagName==='IMG'){const box=document.createElement('div');box.className='no-photo';box.textContent='상품 사진을 불러오지 못했어요';e.target.replaceWith(box)}},true);
 
 $('#products').innerHTML='<p class="empty">가격을 불러오는 중…</p>';
@@ -60,4 +62,5 @@ loadProducts().then(({products:list,source,exportedAt})=>{
   const latest=products.map(p=>p.checkedAt).sort().at(-1);
   $('.notice').textContent=source==='live'?`Stylevana US 공식 피드 · 실제 상품 ${products.length}개 · ${latest?kstDate(latest):''} 확인`:`오프라인 데이터 · ${exportedAt?kstDate(exportedAt):''} 기준`;
   renderList();
+  track('home_view',null,{source});
 }).catch(()=>{$('#products').innerHTML='<p class="empty">가격을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>'});
