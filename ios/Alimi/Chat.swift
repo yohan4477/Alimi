@@ -72,7 +72,7 @@ enum ChatAPI {
     // Server errors are "chat:<code>"; anything else is a network / unknown failure.
     static func errorKey(_ message: String) -> String {
         let code = message.range(of: #"chat:(\w+)"#, options: .regularExpression).map { String(message[$0].dropFirst(5)) }
-        return ["slow", "link", "blocked", "banned", "long"].contains(code ?? "") ? "chat.err." + code! : "chat.err.other"
+        return ["slow", "link", "blocked", "banned", "long", "item", "photo"].contains(code ?? "") ? "chat.err." + code! : "chat.err.other"
     }
     static func messagesURL(room: String, after: Int = 0, limit: Int = 60) -> URL {
         var c = URLComponents(url: URL(string: "/rest/v1/chat_messages", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!

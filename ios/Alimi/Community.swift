@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 // Community (#68 direction): topic posts with comments next to each topic's live chat. Same anonymous identity,
 // filters and report flow as chat; every product card links to the same catalog item so a product page can list
@@ -17,8 +18,84 @@ struct CommunityPost: Codable, Identifiable, Hashable {
     var comments: Int
     var likes: Int
     let createdAt: String
+    // Review-only fields (all optional, chosen by the writer).
+    var usedFor: String? = nil
+    var skinType: String? = nil
+    var skinTone: String? = nil
+    var undertone: String? = nil
+    var climate: String? = nil
+    var goal: String? = nil
+    var photos: [String]? = nil
+    var boughtWhere: String? = nil
+    var boughtPriceMinor: Int? = nil
+    var boughtCurrency: String? = nil
+    var shipCountry: String? = nil
+    var shipDays: Int? = nil
+    var sponsored: Bool? = nil
     enum CodingKeys: String, CodingKey {
         case id, roomId = "room_id", authorTag = "author_tag", nickname, kind, title, body, item, reasons, comments, likes, createdAt = "created_at"
+        case usedFor = "used_for", skinType = "skin_type", skinTone = "skin_tone", undertone, climate, goal, photos
+        case boughtWhere = "bought_where", boughtPriceMinor = "bought_price_minor", boughtCurrency = "bought_currency"
+        case shipCountry = "ship_country", shipDays = "ship_days", sponsored
+    }
+    var isReview: Bool { kind == "review" }
+}
+
+// What the writer picked for a review; all optional.
+struct ReviewDraft {
+    var usedFor: String?
+    var skin: String?
+    var tone: String?
+    var undertone: String?
+    var climate: String?
+    var goal = ""
+    var photos: [Data] = []
+    var boughtWhere = ""
+    var price = ""
+    var shipCountry = ""
+    var shipDays = ""
+    var sponsored = false
+
+    func json(photoPaths: [String]) -> [String: Any] {
+        var o: [String: Any] = [:]
+        if let usedFor { o["used_for"] = usedFor }
+        if let skin { o["skin_type"] = skin }
+        if let tone { o["skin_tone"] = tone }
+        if let undertone { o["undertone"] = undertone }
+        if let climate { o["climate"] = climate }
+        let g = String(goal.trimmingCharacters(in: .whitespacesAndNewlines).prefix(60))
+        if !g.isEmpty { o["goal"] = g }
+        if !photoPaths.isEmpty { o["photos"] = photoPaths }
+        let w = String(boughtWhere.trimmingCharacters(in: .whitespacesAndNewlines).prefix(60))
+        if !w.isEmpty { o["bought_where"] = w }
+        if let p = Double(price.trimmingCharacters(in: .whitespaces)), p > 0 { o["bought_price_minor"] = Int((p * 100).rounded()); o["bought_currency"] = "USD" }
+        let c = shipCountry.trimmingCharacters(in: .whitespaces)
+        if c.count == 2 { o["ship_country"] = c.uppercased() }
+        if let d = Int(shipDays.trimmingCharacters(in: .whitespaces)), (0...120).contains(d) { o["ship_days"] = d }
+        if sponsored { o["sponsored"] = true }
+        return o
+    }
+}
+
+struct SavedPost: Codable, Identifiable, Hashable {
+    let id: Int
+    let title: String
+    let kind: String
+}
+enum SavedPosts {
+    private static let key = "alimi.savedPosts"
+    static var all: [SavedPost] {
+        guard let data = ChatAPI.defaults.data(forKey: key) else { return [] }
+        return (try? JSONDecoder().decode([SavedPost].self, from: data)) ?? []
+    }
+    static func contains(_ id: Int) -> Bool { all.contains { $0.id == id } }
+    // Returns true when the post is now saved.
+    @discardableResult static func toggle(_ post: CommunityPost) -> Bool {
+        var list = all
+        let nowSaved = !list.contains { $0.id == post.id }
+        if nowSaved { list.insert(SavedPost(id: post.id, title: post.title, kind: post.kind), at: 0) } else { list.removeAll { $0.id == post.id } }
+        if let data = try? JSONEncoder().encode(list) { ChatAPI.defaults.set(data, forKey: key) }
+        return nowSaved
     }
 }
 struct CommunityComment: Codable, Identifiable, Hashable {
@@ -85,7 +162,8 @@ extension ChatAPI {
         return try JSONDecoder().decode([CommunityPost].self, from: try await send(URLRequest(url: url)))
     }
     static func posts(ids: [Int]) async throws -> [CommunityPost] {
-        if offline || ids.isEmpty { return [] }
+        if offline { return (localPosts + [fixturePost]).filter { ids.contains($0.id) } }
+        if ids.isEmpty { return [] }
         let url = restURL("community_posts", [("select", postFields), ("id", "in.(" + ids.map(String.init).joined(separator: ",") + ")"),
                                                ("order", "created_at.desc")])
         return try JSONDecoder().decode([CommunityPost].self, from: try await send(URLRequest(url: url)))
@@ -100,7 +178,7 @@ extension ChatAPI {
         let url = restURL("product_mentions", [("select", "source,source_id,post_id,room_id,family_key,sku,created_at"), ("family_key", "eq." + familyKey)])
         return try JSONDecoder().decode([ProductMention].self, from: try await send(URLRequest(url: url)))
     }
-    static func createPost(room: String, kind: String, title: String, body: String, item: Attachment?, reasons: [String], fromMessage: Int?) async throws -> CommunityPost {
+    static func createPost(room: String, kind: String, title: String, body: String, item: Attachment?, reasons: [String], fromMessage: Int?, review: [String: Any] = [:]) async throws -> CommunityPost {
         if offline {
             let p = CommunityPost(id: Int(Date().timeIntervalSince1970), roomId: room, authorTag: myTag, nickname: "Dewy Panda", kind: kind, title: title,
                                   body: body, item: nil, reasons: reasons, comments: 0, likes: 0, createdAt: now())
@@ -109,8 +187,25 @@ extension ChatAPI {
         }
         let data = try await rpc("create_post", ["p_secret": secret, "p_room": room, "p_kind": kind, "p_title": title, "p_body": body,
                                                   "p_retailer": item?.retailer, "p_market": item?.market, "p_sku": item?.sku,
-                                                  "p_reasons": reasons, "p_from_message": fromMessage])
+                                                  "p_reasons": reasons, "p_from_message": fromMessage, "p_review": review])
         return try JSONDecoder().decode(CommunityPost.self, from: data)
+    }
+    // Review photos: public-read bucket, anonymous upload under v1/<uuid>.jpg. Returns the stored path.
+    static func uploadPhoto(_ jpeg: Data) async throws -> String {
+        let path = "v1/" + UUID().uuidString.lowercased() + ".jpg"
+        if offline { return path }
+        var request = URLRequest(url: URL(string: "/storage/v1/object/review-photos/" + path, relativeTo: LiveAPI.baseURL)!)
+        request.httpMethod = "POST"
+        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer " + LiveAPI.publishableKey, forHTTPHeaderField: "Authorization")
+        request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+        let (_, response) = try await URLSession.shared.upload(for: request, from: jpeg)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw Failure(message: "chat:photo") }
+        return path
+    }
+    static func photoURL(_ path: String) -> URL? {
+        URL(string: "/storage/v1/object/public/review-photos/" + path, relativeTo: LiveAPI.baseURL)
     }
     static func addComment(post: Int, body: String, item: Attachment?) async throws -> CommunityComment {
         if offline {
@@ -332,6 +427,7 @@ struct PostDetail: View {
     @State private var reporting: (target: String, id: Int)?
     @State private var notice: String?
     @State private var sending = false
+    @State private var saved = false
     private var shown: [CommunityComment] { (comments ?? []).filter { !blocked.contains($0.authorTag) } }
 
     var body: some View {
@@ -344,7 +440,14 @@ struct PostDetail: View {
         }
         .safeAreaInset(edge: .bottom) { composer }
         .navigationTitle(post.nickname).navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .primaryAction) { postMenu } }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button { toggleSave() } label: {
+                    Label(L(saved ? "community.saved" : "community.save"), systemImage: saved ? "bookmark.fill" : "bookmark")
+                }.accessibilityIdentifier("post-save")
+            }
+            ToolbarItem(placement: .primaryAction) { postMenu }
+        }
         .sheet(isPresented: $picking) { ItemPicker { attached = Attachment($0); picking = false }.environmentObject(store) }
         .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
         .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reporting != nil }, set: { if !$0 { reporting = nil } }), titleVisibility: .visible) {
@@ -354,6 +457,7 @@ struct PostDetail: View {
         }
         .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) { Button("OK") {} }
         .task {
+            saved = SavedPosts.contains(post.id)
             EventLogger.shared.log(.postView, props: ["room": post.roomId])
             comments = (try? await ChatAPI.comments(post: post.id)) ?? []
         }
@@ -381,6 +485,7 @@ struct PostDetail: View {
                 } }
             }
             if let item = post.item { ItemCard(item: item, open: openProduct) }
+            if post.isReview { ReviewInfo(post: post) }
         }
     }
 
@@ -424,6 +529,10 @@ struct PostDetail: View {
     private func openProduct(_ family: ProductFamily) {
         EventLogger.shared.log(.productCardClick, props: ["from": "post"])
         openFamily = family
+    }
+    private func toggleSave() {
+        saved = SavedPosts.toggle(post)
+        if saved { EventLogger.shared.log(.postSave, props: ["room": post.roomId, "kind": post.kind]) }
     }
     private func blockAuthor(_ tag: String) {
         ChatAPI.block(tag)
@@ -487,7 +596,8 @@ struct WritePostSheet: View {
     @State private var sending = false
     @State private var error: String?
     private static let allReasons = ["price", "texture", "color", "ingredients", "shipping", "skin_type", "scent"]
-    private var valid: Bool { title.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 }
+    @State private var draft = ReviewDraft()
+    private var valid: Bool { title.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 && (kind != "review" || attached != nil) }
 
     var body: some View {
         NavigationStack {
@@ -498,6 +608,10 @@ struct WritePostSheet: View {
                     TextField(L("community.bodyPh"), text: $body_, axis: .vertical).lineLimit(4...10).textFieldStyle(.roundedBorder)
                         .accessibilityIdentifier("write-body")
                     attachRow
+                    if kind == "review" {
+                        if attached == nil { Text(L("review.needItem")).font(.footnote).foregroundStyle(.orange) }
+                        ReviewFields(draft: $draft)
+                    }
                     Text(L("community.reasons")).font(.footnote).foregroundStyle(.secondary)
                     reasonChips
                     if let error { Text(error).font(.footnote).foregroundStyle(.red) }
@@ -553,14 +667,203 @@ struct WritePostSheet: View {
         sending = true
         defer { sending = false }
         do {
+            var review: [String: Any] = [:]
+            if kind == "review" {
+                var paths: [String] = []
+                for photo in draft.photos { paths.append(try await ChatAPI.uploadPhoto(photo)) }
+                review = draft.json(photoPaths: paths)
+            }
             let post = try await ChatAPI.createPost(room: room.id, kind: kind, title: title.trimmingCharacters(in: .whitespacesAndNewlines),
                                                     body: body_.trimmingCharacters(in: .whitespacesAndNewlines), item: attached, reasons: reasons,
-                                                    fromMessage: prefill?.id)
+                                                    fromMessage: prefill?.id, review: review)
             EventLogger.shared.log(prefill == nil ? .postCreate : .postSave, props: ["room": room.id, "kind": kind, "item": attached == nil ? "0" : "1"])
             done(post)
             dismiss()
         } catch {
             self.error = L(ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? ""))
+        }
+    }
+}
+
+// MARK: Reviews
+
+struct ReviewFields: View {
+    @Binding var draft: ReviewDraft
+    @State private var picked: [PhotosPickerItem] = []
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(L("review.showMine")).font(.footnote).foregroundStyle(.secondary)
+            choice("review.usedFor", "review.used.", ["first", "weeks", "months", "long"], $draft.usedFor)
+            choice("review.skin", "skin.", ["dry", "oily", "combination", "sensitive", "normal"], $draft.skin)
+            choice("review.tone", "tone.", ["fair", "light", "medium", "tan", "deep"], $draft.tone)
+            choice("review.undertone", "under.", ["cool", "warm", "neutral"], $draft.undertone)
+            choice("review.climate", "climate.", ["humid", "dry", "mixed"], $draft.climate)
+            Text(L("review.goal")).font(.subheadline.bold())
+            TextField(L("review.goal"), text: $draft.goal).textFieldStyle(.roundedBorder)
+            photosSection
+            purchaseSection
+        }
+    }
+
+    private func choice(_ title: String, _ prefix: String, _ values: [String], _ selection: Binding<String?>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(L(title)).font(.subheadline.bold())
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 80), spacing: 8)], alignment: .leading, spacing: 8) {
+                ForEach(values, id: \.self) { v in
+                    let on = selection.wrappedValue == v
+                    Button { selection.wrappedValue = on ? nil : v } label: {
+                        Text(L(prefix + v)).font(.subheadline).padding(.vertical, 6).padding(.horizontal, 12)
+                            .background(on ? Color.indigo.opacity(0.12) : Color(.systemBackground), in: Capsule())
+                            .overlay(Capsule().stroke(on ? Color.indigo : Color.gray.opacity(0.3), lineWidth: 1))
+                            .foregroundStyle(on ? Color.indigo : Color.primary)
+                    }.buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var photosSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(L("review.photos")).font(.subheadline.bold())
+            Text(L("review.photoNote")).font(.caption).foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(Array(draft.photos.enumerated()), id: \.offset) { i, data in
+                        ZStack(alignment: .topTrailing) {
+                            if let img = UIImage(data: data) {
+                                Image(uiImage: img).resizable().scaledToFill().frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            Button { draft.photos.remove(at: i) } label: { Image(systemName: "xmark.circle.fill") }
+                                .foregroundStyle(.white, .black.opacity(0.6)).padding(2)
+                        }
+                    }
+                }
+            }
+            if draft.photos.count < 4 {
+                PhotosPicker(selection: $picked, maxSelectionCount: 4 - draft.photos.count, matching: .images) {
+                    Label(L("review.addPhoto"), systemImage: "photo.badge.plus")
+                }.buttonStyle(.bordered)
+            }
+        }
+        .onChange(of: picked) {
+            let items = picked
+            picked = []
+            Task {
+                for item in items where draft.photos.count < 4 {
+                    if let data = try? await item.loadTransferable(type: Data.self), let jpeg = Self.reencode(data) { draft.photos.append(jpeg) }
+                }
+            }
+        }
+    }
+
+    // Redraw and re-compress: scales to at most 1600px and drops EXIF / location.
+    static func reencode(_ data: Data) -> Data? {
+        guard let image = UIImage(data: data) else { return nil }
+        let longest = max(image.size.width, image.size.height)
+        let scale = longest > 1600 ? 1600 / longest : 1
+        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let drawn = UIGraphicsImageRenderer(size: size, format: format).image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+        return drawn.jpegData(compressionQuality: 0.8)
+    }
+
+    private var purchaseSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L("review.purchase")).font(.subheadline.bold())
+            TextField(L("review.where"), text: $draft.boughtWhere).textFieldStyle(.roundedBorder)
+            TextField(L("review.price"), text: $draft.price).textFieldStyle(.roundedBorder).keyboardType(.decimalPad)
+            TextField(L("review.shipCountry"), text: $draft.shipCountry).textFieldStyle(.roundedBorder).textInputAutocapitalization(.characters)
+            TextField(L("review.shipDays"), text: $draft.shipDays).textFieldStyle(.roundedBorder).keyboardType(.numberPad)
+            Toggle(L("review.sponsored"), isOn: $draft.sponsored)
+        }
+    }
+}
+
+// Review details on a post: writer-chosen chips, photos, and the buyer's own purchase note.
+struct ReviewInfo: View {
+    let post: CommunityPost
+    private var chips: [String] {
+        var out: [String] = []
+        if post.sponsored == true { out.append(L("review.sponsoredTag")) }
+        if let v = post.usedFor { out.append(L("review.used." + v)) }
+        if let v = post.skinType { out.append(L("skin." + v)) }
+        if let v = post.skinTone { out.append(L("tone." + v)) }
+        if let v = post.undertone { out.append(L("under." + v)) }
+        if let v = post.climate { out.append(L("climate." + v)) }
+        if let v = post.goal, !v.isEmpty { out.append(v) }
+        return out
+    }
+    private var purchase: String {
+        var parts: [String] = []
+        if let w = post.boughtWhere, !w.isEmpty { parts.append(w) }
+        if let m = post.boughtPriceMinor {
+            let amount = Double(m) / 100
+            parts.append(post.boughtCurrency == nil || post.boughtCurrency == "USD" ? usd(amount) : "\(amount) \(post.boughtCurrency ?? "")")
+        }
+        if let c = post.shipCountry, let d = post.shipDays { parts.append(L("review.shipped", ["country": c, "days": d])) }
+        return parts.joined(separator: " · ")
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if !chips.isEmpty {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 6)], alignment: .leading, spacing: 6) {
+                    ForEach(chips, id: \.self) { Text($0).font(.caption).padding(.vertical, 4).padding(.horizontal, 10).background(Color.indigo.opacity(0.1), in: Capsule()) }
+                }
+            }
+            if let photos = post.photos, !photos.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(photos, id: \.self) { path in
+                            RemoteImage(url: ChatAPI.photoURL(path), label: "").frame(width: 160, height: 160).clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                    }
+                }
+            }
+            if !purchase.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(L("review.buyerInfo")).font(.caption.bold())
+                    Text(purchase).font(.caption)
+                }.padding(10).frame(maxWidth: .infinity, alignment: .leading).background(Color.gray.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+            }
+        }
+    }
+}
+
+// MARK: Saved posts
+
+struct SavedPostsSection: View {
+    @State private var posts = SavedPosts.all
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if !posts.isEmpty {
+                Text(L("saved.posts")).font(.title3.bold()).padding(.bottom, 8)
+                ForEach(posts) { p in
+                    NavigationLink { SavedPostLoader(saved: p) } label: {
+                        HStack(spacing: 8) {
+                            KindBadge(kind: p.kind)
+                            Text(p.title).font(.subheadline).foregroundStyle(.primary).lineLimit(2).multilineTextAlignment(.leading)
+                            Spacer(minLength: 0)
+                        }.padding(.vertical, 8).contentShape(Rectangle())
+                    }.buttonStyle(.plain)
+                    Divider()
+                }
+            }
+        }.onAppear { posts = SavedPosts.all }
+    }
+}
+struct SavedPostLoader: View {
+    let saved: SavedPost
+    @State private var post: CommunityPost?
+    @State private var missing = false
+    var body: some View {
+        Group {
+            if let post { PostDetail(post: post) }
+            else if missing { Text(L("chat.loadFailed")).foregroundStyle(.secondary) }
+            else { ProgressView() }
+        }.task {
+            if let p = (try? await ChatAPI.posts(ids: [saved.id]))?.first { post = p } else { missing = true }
         }
     }
 }
@@ -572,32 +875,77 @@ struct ProductTalk: View {
     @State private var posts: [CommunityPost]?
     @State private var chatCount = 0
     @State private var blocked = ChatAPI.blocked
+    @State private var filter: String?
+
+    private var visible: [CommunityPost] { (posts ?? []).filter { !blocked.contains($0.authorTag) } }
+    private var reviews: [CommunityPost] { visible.filter(\.isReview) }
+    private var related: [CommunityPost] { visible.filter { !$0.isReview } }
+    // "skin:dry" / "tone:fair" for every value present in the reviews.
+    private var filters: [String] {
+        let skins = Set(reviews.compactMap(\.skinType)).sorted().map { "skin:" + $0 }
+        let tones = Set(reviews.compactMap(\.skinTone)).sorted().map { "tone:" + $0 }
+        return skins + tones
+    }
+    private func filterLabel(_ f: String) -> String {
+        let parts = f.split(separator: ":").map(String.init)
+        return L(parts[0] == "skin" ? "skin." + parts[1] : "tone." + parts[1])
+    }
+    private var shownReviews: [CommunityPost] {
+        guard let f = filter else { return reviews }
+        let parts = f.split(separator: ":").map(String.init)
+        return reviews.filter { (parts[0] == "skin" ? $0.skinType : $0.skinTone) == parts[1] }
+    }
 
     var body: some View {
         if let familyKey {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(L("product.talk")).font(.title3.bold())
-                content
+            VStack(alignment: .leading, spacing: 12) {
+                reviewsSection
+                relatedSection
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .task(id: familyKey) { await load(familyKey) }
         }
     }
-    @ViewBuilder private var content: some View {
-        let shown = (posts ?? []).filter { !blocked.contains($0.authorTag) }
+    @ViewBuilder private var reviewsSection: some View {
+        Text(L("product.reviews")).font(.title3.bold())
         if posts == nil { ProgressView() }
-        else if shown.isEmpty && chatCount == 0 { Text(L("product.talkEmpty")).font(.subheadline).foregroundStyle(.secondary) }
+        else if reviews.isEmpty { Text(L("product.reviewsEmpty")).font(.subheadline).foregroundStyle(.secondary) }
         else {
-            ForEach(shown) { PostLink(post: $0) }.padding(.horizontal, -16)
+            if !filters.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        filterChip(L("product.filterAll"), on: filter == nil) { filter = nil }
+                        ForEach(filters, id: \.self) { f in filterChip(filterLabel(f), on: filter == f) { filter = filter == f ? nil : f } }
+                    }
+                }
+                Text(L("product.similarNote")).font(.caption).foregroundStyle(.secondary)
+            }
+            ForEach(shownReviews) { PostLink(post: $0) }.padding(.horizontal, -16)
+        }
+    }
+    @ViewBuilder private var relatedSection: some View {
+        Text(L("product.related")).font(.title3.bold())
+        if posts == nil { EmptyView() }
+        else if related.isEmpty && chatCount == 0 { Text(L("product.talkEmpty")).font(.subheadline).foregroundStyle(.secondary) }
+        else {
+            ForEach(related) { PostLink(post: $0) }.padding(.horizontal, -16)
             if chatCount > 0 { Text(L("product.inChat") + " · \(chatCount)").font(.footnote).foregroundStyle(.secondary) }
         }
+    }
+    private func filterChip(_ text: String, on: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(text).font(.caption).padding(.vertical, 5).padding(.horizontal, 12)
+                .background(on ? Color.indigo.opacity(0.12) : Color(.systemBackground), in: Capsule())
+                .overlay(Capsule().stroke(on ? Color.indigo : Color.gray.opacity(0.3), lineWidth: 1))
+                .foregroundStyle(on ? Color.indigo : Color.primary)
+        }.buttonStyle(.plain)
     }
     private func load(_ key: String) async {
         let mentions = (try? await ChatAPI.mentions(familyKey: key)) ?? []
         chatCount = mentions.filter { $0.source == "chat" }.count
         var ids: [Int] = []
         for m in mentions where m.source != "chat" {
-            if let id = m.postId, !ids.contains(id) { ids.append(id) }
+            if let id = m.postId ?? (m.source == "post" || m.source == "review" ? m.sourceId : nil), !ids.contains(id) { ids.append(id) }
         }
         posts = (try? await ChatAPI.posts(ids: ids)) ?? []
     }

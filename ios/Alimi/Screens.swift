@@ -32,6 +32,7 @@ struct SavedView: View {
                             AddSlot(highlighted: i == 0) { tab = .search }
                         }
                     }
+                    SavedPostsSection()
                 }.padding(20)
             }
             .navigationBarTitleDisplayMode(.inline)

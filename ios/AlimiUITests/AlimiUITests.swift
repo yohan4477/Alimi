@@ -155,8 +155,8 @@ final class AlimiUITests: XCTestCase {
         room.tap()
         let join = app.buttons["chat-join"]
         if join.waitForExistence(timeout: 5) { join.tap() }
-        let post = app.buttons["post-1"].firstMatch
-        XCTAssertTrue(post.waitForExistence(timeout: 10), "fixture post is listed")
+        let post = app.staticTexts["끈적이지 않는 선크림 추천해 주세요"].firstMatch
+        XCTAssertTrue(post.waitForExistence(timeout: 15), "fixture post is listed")
         post.tap()
         XCTAssertTrue(app.staticTexts["수분 선젤이 가볍더라고요"].waitForExistence(timeout: 10))
         let field = app.textFields["comment-text"].firstMatch.exists ? app.textFields["comment-text"].firstMatch : app.textViews["comment-text"].firstMatch
