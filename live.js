@@ -5,7 +5,7 @@ import {t, lang} from './i18n.js';
 export const SUPABASE_URL = 'https://mqsnshnlfwsgabrsmqsz.supabase.co';
 export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CJjQ-l5ev-D4OH0Na0gFoQ_szunygff';
 export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,currency,url,affiliate_url,image_url,' +
-  'products(slug,brand,brand_ko,name,size,category),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),' +
+  'products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),' +
   'price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id';
 
 const DAY = 86400000;
@@ -24,6 +24,8 @@ export function toProducts(rows) {
     name: r.products.name,
     size: r.products.size ?? '',
     category: r.products.category ?? '기타',
+    familyKey: r.products.family_key ?? null,
+    sizeLabel: r.products.size_label ?? r.products.size ?? null,
     retailer: r.retailer,
     currency: r.currency,
     url: r.url,
@@ -74,6 +76,40 @@ export async function searchCatalog(q, fetchImpl = fetch) {
   if (!res.ok) throw Error('HTTP ' + res.status);
   return (await res.json()).map(toCatalog);
 }
+// Product families (sizes / shades of one product grouped) for home browsing.
+const FAMILY_FIELDS = 'family_key,brand,brand_ko,base_name,category,image_url,min_price_minor,max_price_minor,variants,best_unit_price_minor';
+export function familiesPageUrl(category, offset, limit = 24) {
+  const params = new URLSearchParams({select: FAMILY_FIELDS, order: 'sort_key.desc', offset: String(offset), limit: String(limit)});
+  if (category && category !== '전체') params.set('category', 'eq.' + category);
+  return SUPABASE_URL + '/rest/v1/catalog_families?' + params;
+}
+export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch) {
+  const res = await fetchImpl(familiesPageUrl(category, offset, limit), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
+  if (!res.ok) throw Error('HTTP ' + res.status);
+  return (await res.json()).map(f => ({...f, brandKo: f.brand_ko ?? null, minPrice: f.min_price_minor / 100, maxPrice: f.max_price_minor / 100}));
+}
+// All variants of one family. Duplicate listings of the same size/option (e.g. [Deal] relistings without EAN)
+// collapse to the cheapest; sorted by unit price so the best value comes first.
+export function collapseVariants(rows) {
+  const best = new Map();
+  for (const r of rows) {
+    const k = (r.size_label ?? '') + '|' + (r.option_label ?? '');
+    if (!best.has(k) || r.price_minor < best.get(k).price_minor) best.set(k, r);
+  }
+  const list = [...best.values()].sort((a, b) => (a.unit_price_minor ?? Infinity) - (b.unit_price_minor ?? Infinity) || a.price_minor - b.price_minor);
+  const units = list.filter(v => v.unit_price_minor != null);
+  const bestUnit = units.length > 1 ? Math.min(...units.map(v => v.unit_price_minor)) : null;
+  return list.map(v => ({...v, price: v.price_minor / 100, unitPrice: v.unit_price_minor == null ? null : v.unit_price_minor / 100,
+    bestValue: bestUnit != null && v.unit_price_minor === bestUnit}));
+}
+export async function fetchFamily(familyKey, fetchImpl = fetch) {
+  const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor', active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
+  const res = await fetchImpl(SUPABASE_URL + '/rest/v1/catalog_items?' + params, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
+  if (!res.ok) throw Error('HTTP ' + res.status);
+  return collapseVariants(await res.json());
+}
+export const unitName = unit => (unit === 'ml' || unit === 'g' ? '10' + unit : unit === 'pcs' ? '1pc' : unit);
+
 // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
 export function catalogPageUrl(category, offset, limit = 24) {
   const params = new URLSearchParams({select: CATALOG_FIELDS, active: 'eq.true', order: 'sku.desc', offset: String(offset), limit: String(limit)});
