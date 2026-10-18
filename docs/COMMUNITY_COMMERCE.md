@@ -1,5 +1,8 @@
 # Community commerce — 2026-10-19
 
+**최신 결정 D-012:** 소비자 가격 추적·이력·목표가·가격 알림은 제외한다. 관심 저장은 추적을 시작하지 않는 기기 내 상품 스냅샷이다. 현재 가격·판매처·상품 설명·후기·대화는 유지한다. 아래의 이전 추적 관련 계획은 현재 실행 대상이 아니다.
+
+
 ## Product direction
 
 Help people interested in Korea discuss products and experiences, choose suitable products and buy through disclosed affiliate links. Start with K-beauty; Korea travel shopping is an adjacent topic. Additional categories depend on actual discussion and permitted merchant coverage. Price history and target alerts support decisions rather than define the main product.

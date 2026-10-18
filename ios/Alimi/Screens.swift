@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum MainTab: Hashable { case home, saved, search, chat, alerts }
+enum MainTab: Hashable { case home, saved, search, chat }
 
 // Pure layout rules for the Saved tab: the grid is padded to three slots and the headline depends on the count.
 enum SavedLayout {
@@ -199,7 +199,7 @@ struct SearchView: View {
     }
     @ViewBuilder private var trackedResults: some View {
         if !results.isEmpty {
-            Text(L("section.watching")).font(.headline)
+            Text(L("section.products")).font(.headline)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 16)], spacing: 24) {
                 ForEach(results) { TrackedCard(product: $0) }
             }
@@ -225,7 +225,7 @@ struct SearchView: View {
     private func start(_ item: CatalogItem) {
         tracking = item.id
         Task {
-            if await store.startTracking(item) { catalog?.removeAll { $0.id == item.id } }
+            if await store.saveCatalogItem(item) { catalog?.removeAll { $0.id == item.id } }
             tracking = nil
         }
     }
@@ -275,8 +275,6 @@ struct SettingsView: View {
     }
     private var serviceSection: some View {
         Section(L("settings.service")) {
-            NavigationLink { AlertsView() } label: { row("bell", "settings.alerts", chevron: false) }
-            hint("settings.alertsHint")
             HStack(spacing: 12) {
                 Image(systemName: "globe").frame(width: 24).foregroundStyle(.secondary)
                 Text(L("settings.language"))

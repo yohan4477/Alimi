@@ -159,6 +159,8 @@ try {
     assert.match(await page.textContent('.notice'), /Official Stylevana US prices/);
     assert.equal(await page.locator('#browse :text-matches("[가-힣]")').count(), 0, 'no Korean text in the English UI');
   });
+  await page.locator('#products > .card .product-open').first().click();
+  assert.equal(await page.locator('#set-target,.analysis-section,.target-section').count(),0,'no price tracking UI');
   if (errors.length) console.log('JS errors:', JSON.stringify(errors));
   assert.deepEqual(errors, [], 'no JavaScript errors');
   console.log('web e2e passed');

@@ -95,15 +95,15 @@ final class AlimiUITests: XCTestCase {
     }
 
     // Purchase path works without saving: the detail page leads with the retailer button, the price alert comes last.
-    func testDetailOffersRetailerButtonBeforePriceAlert() {
+    func testDetailOffersRetailerWithoutPriceTracking() {
         let card = app.buttons["product-cosrx-snail-96-100ml"].firstMatch
         XCTAssertTrue(card.waitForExistence(timeout: 15))
         reveal(card).tap()
         let buy = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Stylevana'")).firstMatch
         XCTAssertTrue(buy.waitForExistence(timeout: 10), "detail offers a view-at-retailer button")
-        let alerts = app.staticTexts["가격이 내려가면 알려드릴까요?"]
-        reveal(alerts, swipes: 10)
-        XCTAssertTrue(alerts.exists, "price alert section comes after the retailer section")
+        XCTAssertFalse(app.buttons["target-button"].exists)
+        XCTAssertFalse(app.staticTexts["가격이 내려가면 알려드릴까요?"].exists)
+        XCTAssertFalse(app.tabBars.buttons["알림"].exists)
         attach("detail-purchase-flow")
     }
     func testTappingBrandOpensItsPage() {
@@ -167,7 +167,7 @@ final class AlimiUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Saved"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.tabBars.buttons["Home"].exists)
-        XCTAssertTrue(app.staticTexts["Explore K-beauty"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Explore products"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["가격을 지켜보는 상품"].firstMatch.exists)
         attach("english-home")
     }
