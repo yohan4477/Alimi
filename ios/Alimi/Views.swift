@@ -93,7 +93,8 @@ struct BrowseView: View {
     @State private var query = ""
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
-    @State private var browse: [CatalogItem] = []
+    @State private var browse: [ProductFamily] = []
+    @State private var openFamily: ProductFamily?
     @State private var browseDone = false
     @State private var browseLoading = false
     @State private var tracking: String?
@@ -147,6 +148,7 @@ struct BrowseView: View {
                     if !q.isEmpty { EventLogger.shared.log(.search, props: ["length": String(q.count), "results": String(results.count)]) }
                 }
                 .refreshable { await store.refresh() }
+                .sheet(item: $openFamily) { family in FamilySheet(family: family).environmentObject(store) }
         }
     }
 }
@@ -212,15 +214,14 @@ extension BrowseView {
             Text(L("catalogFailed")).font(.caption).foregroundStyle(.secondary)
         }
     }
-    // Home browsing of the Korean-brand catalog, one page at a time as the user scrolls.
+    // Home browsing: one row per product family (sizes / shades grouped), one page at a time.
     var browseSection: some View {
-        let tracked = Set(store.products.map(\.sku))
-        return LazyVStack(alignment: .leading, spacing: 12) {
+        LazyVStack(alignment: .leading, spacing: 12) {
             Text(L("section.all")).font(.headline)
-            Text(L("section.allHint")).font(.caption).foregroundStyle(.secondary)
-            ForEach(browse.filter { !tracked.contains($0.sku) }) { item in
-                CatalogRow(item: item, busy: tracking == item.id, disabled: tracking != nil) { start(item) }
-                    .onAppear { if item.id == browse.last?.id { Task { await loadMore() } } }
+            Text(L("family.pick")).font(.caption).foregroundStyle(.secondary)
+            ForEach(browse) { family in
+                FamilyRow(family: family) { openFamily = family }
+                    .onAppear { if family.id == browse.last?.id { Task { await loadMore() } } }
             }
             if browseLoading { ProgressView().frame(maxWidth: .infinity) }
             else if browseDone && browse.isEmpty { Text(L("empty.products")).font(.caption).foregroundStyle(.secondary) }
@@ -230,7 +231,7 @@ extension BrowseView {
         guard !browseLoading, !browseDone else { return }
         browseLoading = true
         let requested = category
-        let page = await store.catalogPage(category: requested, offset: browse.count)
+        let page = await store.familiesPage(category: requested, offset: browse.count)
         browseLoading = false
         guard requested == category else { return }
         guard let page else { browseDone = true; return }
@@ -242,6 +243,101 @@ extension BrowseView {
         Task {
             if await store.startTracking(item) { catalog?.removeAll { $0.id == item.id } }
             tracking = nil
+        }
+    }
+}
+struct FamilyRow: View {
+    let family: ProductFamily
+    let open: () -> Void
+    var body: some View {
+        Button(action: open) {
+            HStack(spacing: 12) {
+                RemoteImage(url: family.imageUrl, label: family.brandLabel).frame(width: 64, height: 64)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(family.brandLabel).font(.caption).foregroundStyle(.secondary)
+                    Text(family.baseName).font(.subheadline).lineLimit(2)
+                    Text(family.priceText).font(.subheadline.bold())
+                    if family.variants > 1 { Text(L("family.options", ["n": family.variants])).font(.caption2).foregroundStyle(.secondary) }
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+            }.contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityIdentifier("family-\(family.familyKey)")
+    }
+}
+// Sizes / options of one family with price, unit price, best-value badge and a heart per variant.
+struct VariantList: View {
+    @EnvironmentObject var store: AlimiStore
+    let variants: [VariantChoice]
+    @State private var busy: String?
+    var body: some View {
+        ForEach(variants) { v in
+            let trackedID = store.products.first { $0.sku == v.item.sku }?.id
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(v.item.variantLabel.isEmpty ? L("family.default") : v.item.variantLabel).font(.subheadline.bold())
+                        if v.bestValue { Text(L("badge.bestValue")).font(.caption2.bold()).foregroundStyle(.red) }
+                    }
+                    if let unit = v.item.unitPrice {
+                        Text(L("unit.price", ["v": usd(unit), "u": CatalogItem.unitName(v.item.unit)])).font(.caption).foregroundStyle(.secondary)
+                    }
+                    if trackedID != nil { Text(L("family.watching")).font(.caption2).foregroundStyle(.secondary) }
+                }
+                Spacer()
+                Text(usd(v.item.price)).font(.headline)
+                Button {
+                    if let id = trackedID { store.toggle(id) }
+                    else { busy = v.item.id; Task { _ = await store.startTracking(v.item); busy = nil } }
+                } label: {
+                    let saved = trackedID.map { store.saved.favorites.contains($0) } ?? false
+                    Image(systemName: busy == v.item.id ? "hourglass" : saved ? "heart.fill" : "heart").font(.title3).frame(width: 44, height: 44)
+                }.disabled(busy != nil).accessibilityLabel(L("save.action"))
+            }
+            Divider()
+        }
+    }
+}
+struct FamilySheet: View {
+    @EnvironmentObject var store: AlimiStore
+    @Environment(\.dismiss) private var dismiss
+    let family: ProductFamily
+    @State private var variants: [VariantChoice]?
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    RemoteImage(url: family.imageUrl, label: family.brandLabel).frame(height: 180)
+                    Text(family.brandLabel).font(.caption).foregroundStyle(.secondary)
+                    Text(family.baseName).font(.title3.bold())
+                    Text(L("family.pick")).font(.caption).foregroundStyle(.secondary)
+                    if let variants { VariantList(variants: variants) } else { ProgressView().frame(maxWidth: .infinity) }
+                }.padding(20)
+            }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
+            .task {
+                variants = await store.family(family.familyKey) ?? []
+                EventLogger.shared.log(.productView, props: ["family": family.familyKey, "variants": String(variants?.count ?? 0)])
+            }
+        }.presentationDetents([.medium, .large])
+    }
+}
+// Other sizes / options of a tracked product, compared by unit price.
+struct OtherSizes: View {
+    @EnvironmentObject var store: AlimiStore
+    let product: Product
+    @State private var variants: [VariantChoice] = []
+    var body: some View {
+        Group {
+            if variants.count >= 2 {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(L("family.otherSizes")).font(.title3.bold())
+                    VariantList(variants: variants)
+                }
+            }
+        }.task(id: product.familyKey) {
+            guard let key = product.familyKey else { return }
+            variants = await store.family(key) ?? []
         }
     }
 }
@@ -313,6 +409,7 @@ struct ProductDetail: View {
                     }
                     Text(L("chart.note", ["date": product.history.first.map { $0.date.formatted(dayFormat) } ?? "—"])).font(.caption2).foregroundStyle(.secondary)
                 }
+                OtherSizes(product: product)
                 VStack(alignment: .leading, spacing: 10) {
                     Text(L("detail.retailer")).font(.title3.bold())
                     HStack(alignment: .top) {

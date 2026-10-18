@@ -70,6 +70,19 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(makeStore().products[0].brandLabel, "COSRX")
         XCTAssertEqual(L("count", ["n": 4]), "4 items")
     }
+    func testFamilyVariantsCollapseAndBestValue() {
+        func item(_ sku: String, _ size: String?, _ price: Int, _ unit: Int?) -> CatalogItem {
+            CatalogItem(retailer: "S", market: "US", sku: sku, brand: "ANUA", brandKo: nil, name: "Oil", category: "클렌징", priceMinor: price,
+                        currency: "USD", availability: "in_stock", imageUrl: nil, sizeLabel: size, optionLabel: nil, unit: "ml", unitPriceMinor: unit)
+        }
+        let v = CatalogItem.collapse([item("a", "200ml", 1700, 85), item("b", "200ml", 1800, 90), item("c", "20ml", 424, 212), item("d", nil, 3000, nil)])
+        XCTAssertEqual(v.map(\.item.sku), ["a", "c", "d"])
+        XCTAssertEqual(v.map(\.bestValue), [true, false, false])
+        XCTAssertEqual(CatalogItem.unitName("ml"), "10ml")
+        let q = URLComponents(url: ProductFamily.pageURL(category: "립", offset: 24), resolvingAgainstBaseURL: true)!.queryItems!
+        XCTAssertEqual(q.first { $0.name == "category" }?.value, "eq.립")
+        XCTAssertEqual(q.first { $0.name == "order" }?.value, "sort_key.desc")
+    }
     func testFavorites() {
         let store = makeStore()
         store.toggle("cosrx")

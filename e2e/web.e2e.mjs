@@ -32,6 +32,17 @@ try {
     const tracked = await page.locator('#products > .card .product-name').allTextContents();
     assert.ok(tracked.length > 0 && !tracked.some(n => /Essence|Serum/.test(n)), 'tracked under 립 must not include essence/serum');
   });
+  await step('a product family opens its sizes / options with prices', async () => {
+    await page.click('[data-category="클렌징"]');
+    const card = page.locator('.catalog-grid .card', {hasText: '옵션'}).first();
+    await card.waitFor({timeout: 15000});
+    await card.locator('button').click();
+    await page.waitForSelector('#family-body .variant-row', {timeout: 10000});
+    const rows = await page.locator('#family-body .variant-row').allInnerTexts();
+    assert.ok(rows.length >= 2, 'family with options lists at least two variants');
+    assert.ok(rows.every(r => /\$\d/.test(r)), 'every variant shows a price');
+    await page.click('#family-dialog .close-dialog');
+  });
   await step('favorite shows up in the favorites view with a loaded photo', async () => {
     await page.click('[data-category="전체"]');
     const heart = page.locator('#products > .card .heart').first();
