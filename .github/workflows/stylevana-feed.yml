@@ -1,9 +1,15 @@
 name: Stylevana official feed refresh
 on:
+  # Hourly trigger comes from Supabase pg_cron (feed-tick Edge Function) with force=false; GitHub's own
+  # cron is best-effort, so it only remains as a 6-hourly fallback. Manual runs default to force=true.
   workflow_dispatch:
-  # Hourly check of the Awin feed list; the feed is only downloaded when Awin imported a new version.
+    inputs:
+      force:
+        description: Download even if Awin has not imported a new feed
+        type: boolean
+        default: true
   schedule:
-    - cron: '5 * * * *'
+    - cron: '35 */6 * * *'
 permissions:
   contents: write
 concurrency:
@@ -24,7 +30,7 @@ jobs:
           AWIN_FEED_URL: ${{ secrets.AWIN_STYLEVANA_US_FEED_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          FORCE_DOWNLOAD: ${{ github.event_name == 'workflow_dispatch' }}
+          FORCE_DOWNLOAD: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
         run: node scripts/awin-feed-status.mjs
       - name: Restore previously collected history
         if: steps.status.outputs.changed == 'true'
