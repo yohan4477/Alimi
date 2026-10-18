@@ -88,11 +88,13 @@ try {
       r.fulfill({json: {id: 2, room_id: 'acne', author_tag: 'me', nickname: 'Dewy Panda', body: posted.p_body, reply_to: posted.p_reply_to, likes: 0, created_at: new Date().toISOString(),
         item: {retailer: posted.p_retailer, market: posted.p_market, sku: posted.p_sku, brand: 'ANUA', name: 'Heartleaf Oil', price_minor: 1700, image_url: null, family_key: 'anua|oil'}}}); });
     await page.click('#tabbar [data-screen="chat"]');
-    await page.click('[data-chat-tab="topics"]');
+    await page.route('**/rest/v1/community_posts*', r => r.fulfill({json: []}));
     assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
     await page.click('[data-chat-room="acne"]');
     await page.waitForSelector('#chat-join[open] .chat-rules');
     await page.click('[data-chat-action="join-ok"]');
+    await page.waitForSelector('#post-list >> text=아직 글이 없어요');
+    await page.click('[data-topic-mode="live"]');
     await page.waitForSelector('.chat-msg >> text=추천 좀 해주세요');
     assert.equal(await page.getAttribute('#chat-text', 'placeholder'), 'Dewy Panda(으)로 대화');
     await page.click('[data-chat-menu="1"]');
@@ -115,6 +117,32 @@ try {
     await page.click('#tabbar [data-screen="home"]');
     await page.waitForSelector('#browse:not([hidden])');
   });
+  await step('community: write a question with a product and reasons, then comment', async () => {
+    // Write RPCs are mocked; nothing reaches real topics.
+    let created, commented;
+    const post = {id: 41, room_id: 'acne', author_tag: 'me', nickname: 'Dewy Panda', kind: 'question', title: '', body: '', item: null, reasons: [], comments: 0, likes: 0, created_at: new Date().toISOString(), last_activity_at: new Date().toISOString()};
+    await page.route('**/rest/v1/rpc/create_post', r => { created = r.request().postDataJSON(); Object.assign(post, {title: created.p_title, reasons: created.p_reasons, item: created.p_sku ? {retailer: created.p_retailer, market: created.p_market, sku: created.p_sku, brand: 'ANUA', name: 'Heartleaf Oil', price_minor: 1700, image_url: null, family_key: 'anua|oil'} : null}); r.fulfill({json: post}); });
+    await page.route('**/rest/v1/community_posts*', r => r.fulfill({json: new URL(r.request().url()).searchParams.get('id') ? [post] : []}));
+    await page.route('**/rest/v1/community_comments*', r => r.fulfill({json: []}));
+    await page.route('**/rest/v1/rpc/add_comment', r => { commented = r.request().postDataJSON(); r.fulfill({json: {id: 9, post_id: 41, author_tag: 'me', nickname: 'Dewy Panda', body: commented.p_body, item: null, likes: 0, created_at: new Date().toISOString()}}); });
+    await page.click('#tabbar [data-screen="chat"]');
+    await page.click('.room-card[data-chat-room="acne"]');
+    await page.click('[data-chat-action="write"]');
+    await page.click('[data-write-kind="question"]');
+    await page.fill('#write-title', '끈적이지 않는 선크림 추천해 주세요');
+    await page.click('[data-write-reason="texture"]');
+    await page.click('[data-chat-action="attach-write"]');
+    await page.fill('#chat-pick-q', 'anua');
+    await page.click('.chat-pick-row', {timeout: 15000});
+    await page.click('[data-chat-action="write-submit"]');
+    await page.waitForSelector('.post-full h1 >> text=끈적이지 않는 선크림 추천해 주세요');
+    assert.deepEqual(created.p_reasons, ['texture']);
+    assert.ok(created.p_sku, 'product attached by reference');
+    await page.fill('#comment-text', '이거 가벼워요');
+    await page.click('#comment-form .chat-send');
+    await page.waitForSelector('.comment >> text=이거 가벼워요');
+    assert.equal(commented.p_post, 41);
+  });
   await step('English UI for US users', async () => {
     await page.goto(withLang('en'));
     await page.waitForSelector('.catalog-grid .card', {timeout: 20000});
@@ -123,6 +151,7 @@ try {
     assert.match(await page.textContent('.notice'), /Official Stylevana US prices/);
     assert.equal(await page.locator('text=/[가-힣]/').count(), 0, 'no Korean text in the English UI');
   });
+  if (errors.length) console.log('JS errors:', JSON.stringify(errors));
   assert.deepEqual(errors, [], 'no JavaScript errors');
   console.log('web e2e passed');
 } catch (e) {

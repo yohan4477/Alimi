@@ -907,5 +907,337 @@
   "detail.alertsTitle": {
     "ko": "가격이 내려가면 알려드릴까요?",
     "en": "Wait for a better price?"
+  },
+  "nav.community": {
+    "ko": "커뮤니티",
+    "en": "Community"
+  },
+  "community.title": {
+    "ko": "커뮤니티",
+    "en": "Community"
+  },
+  "community.sub": {
+    "ko": "한국 제품, 묻고 추천하고 바로 확인해요",
+    "en": "Ask, recommend, and check Korean products"
+  },
+  "community.posts": {
+    "ko": "글",
+    "en": "Posts"
+  },
+  "community.live": {
+    "ko": "실시간 채팅",
+    "en": "Live chat"
+  },
+  "community.write": {
+    "ko": "글쓰기",
+    "en": "Write"
+  },
+  "community.kind.question": {
+    "ko": "질문",
+    "en": "Question"
+  },
+  "community.kind.recommend": {
+    "ko": "추천",
+    "en": "Recommendation"
+  },
+  "community.kind.review": {
+    "ko": "후기",
+    "en": "Review"
+  },
+  "community.titlePh": {
+    "ko": "궁금한 점을 한 줄로",
+    "en": "Your question in one line"
+  },
+  "community.bodyPh": {
+    "ko": "자세히 적어 주세요 (선택)",
+    "en": "Add details (optional)"
+  },
+  "community.reasons": {
+    "ko": "무엇이 중요해요? (선택)",
+    "en": "What matters to you? (optional)"
+  },
+  "reason.price": {
+    "ko": "가격",
+    "en": "Price"
+  },
+  "reason.texture": {
+    "ko": "사용감",
+    "en": "Texture"
+  },
+  "reason.color": {
+    "ko": "색상",
+    "en": "Color"
+  },
+  "reason.ingredients": {
+    "ko": "성분",
+    "en": "Ingredients"
+  },
+  "reason.shipping": {
+    "ko": "배송",
+    "en": "Shipping"
+  },
+  "reason.skin_type": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "reason.scent": {
+    "ko": "향",
+    "en": "Scent"
+  },
+  "community.post": {
+    "ko": "올리기",
+    "en": "Post"
+  },
+  "community.comments": {
+    "ko": "댓글 {n}",
+    "en": "{n} comments"
+  },
+  "community.commentPh": {
+    "ko": "댓글 달기",
+    "en": "Add a comment"
+  },
+  "community.empty": {
+    "ko": "아직 글이 없어요. 첫 질문을 남겨 보세요",
+    "en": "No posts yet. Ask the first question"
+  },
+  "community.saveAsPost": {
+    "ko": "글로 남기기",
+    "en": "Save as post"
+  },
+  "community.savedAsPost": {
+    "ko": "글로 남겼어요",
+    "en": "Saved as a post"
+  },
+  "community.topics": {
+    "ko": "주제",
+    "en": "Topics"
+  },
+  "community.recent": {
+    "ko": "최근 글",
+    "en": "Recent posts"
+  },
+  "community.brandTalk": {
+    "ko": "브랜드별 이야기",
+    "en": "Brand talk"
+  },
+  "community.noComments": {
+    "ko": "첫 댓글을 남겨 보세요",
+    "en": "Be the first to reply"
+  },
+  "product.talk": {
+    "ko": "이 제품 이야기",
+    "en": "People talking about this"
+  },
+  "product.talkEmpty": {
+    "ko": "아직 이 제품 이야기가 없어요",
+    "en": "No one has talked about this yet"
+  },
+  "product.inChat": {
+    "ko": "채팅에서 언급",
+    "en": "Mentioned in chat"
+  },
+  "chat.tag.travel": {
+    "ko": "한국 여행 쇼핑",
+    "en": "Korea shopping"
+  },
+  "community.save": {
+    "ko": "저장",
+    "en": "Save"
+  },
+  "community.saved": {
+    "ko": "저장됨",
+    "en": "Saved"
+  },
+  "saved.posts": {
+    "ko": "저장한 글",
+    "en": "Saved posts"
+  },
+  "review.usedFor": {
+    "ko": "사용 기간",
+    "en": "How long you used it"
+  },
+  "review.used.first": {
+    "ko": "첫인상",
+    "en": "First impression"
+  },
+  "review.used.weeks": {
+    "ko": "몇 주",
+    "en": "A few weeks"
+  },
+  "review.used.months": {
+    "ko": "몇 달",
+    "en": "A few months"
+  },
+  "review.used.long": {
+    "ko": "6개월 이상",
+    "en": "6+ months"
+  },
+  "review.skin": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "skin.dry": {
+    "ko": "건성",
+    "en": "Dry"
+  },
+  "skin.oily": {
+    "ko": "지성",
+    "en": "Oily"
+  },
+  "skin.combination": {
+    "ko": "복합성",
+    "en": "Combination"
+  },
+  "skin.sensitive": {
+    "ko": "민감성",
+    "en": "Sensitive"
+  },
+  "skin.normal": {
+    "ko": "중성",
+    "en": "Normal"
+  },
+  "review.goal": {
+    "ko": "원하던 효과 (예: 보습, 진정)",
+    "en": "What you wanted (e.g. hydration, calming)"
+  },
+  "review.photos": {
+    "ko": "사진 (선택, 최대 4장)",
+    "en": "Photos (optional, up to 4)"
+  },
+  "review.photoNote": {
+    "ko": "직접 찍은 사진만 올려 주세요. 영수증·송장의 이름·주소·주문번호는 가려 주세요. 위치 정보는 자동으로 지워져요.",
+    "en": "Only photos you took. Cover names, addresses and order numbers on receipts or labels. Location data is removed automatically."
+  },
+  "review.addPhoto": {
+    "ko": "사진 추가",
+    "en": "Add photo"
+  },
+  "review.purchase": {
+    "ko": "구매 정보 (선택)",
+    "en": "Where you bought it (optional)"
+  },
+  "review.where": {
+    "ko": "구매처",
+    "en": "Store"
+  },
+  "review.price": {
+    "ko": "구매 가격 (USD)",
+    "en": "Price paid (USD)"
+  },
+  "review.shipCountry": {
+    "ko": "배송 국가 (예: US)",
+    "en": "Shipped to (e.g. US)"
+  },
+  "review.shipDays": {
+    "ko": "배송 기간 (일)",
+    "en": "Delivery days"
+  },
+  "review.sponsored": {
+    "ko": "협찬·무료로 받았어요",
+    "en": "I got this free or sponsored"
+  },
+  "review.sponsoredTag": {
+    "ko": "협찬",
+    "en": "Sponsored"
+  },
+  "review.buyerInfo": {
+    "ko": "작성자 구매 정보 (참고)",
+    "en": "Writer's purchase (for reference)"
+  },
+  "review.shipped": {
+    "ko": "{country} 배송 {days}일",
+    "en": "{days} days to {country}"
+  },
+  "review.needItem": {
+    "ko": "후기에는 사용한 상품을 붙여 주세요",
+    "en": "Attach the product you used"
+  },
+  "product.reviews": {
+    "ko": "사용 후기",
+    "en": "Reviews"
+  },
+  "product.reviewsEmpty": {
+    "ko": "아직 후기가 없어요",
+    "en": "No reviews yet"
+  },
+  "product.related": {
+    "ko": "관련 대화",
+    "en": "Related talk"
+  },
+  "chat.err.item": {
+    "ko": "후기에는 사용한 상품을 붙여 주세요",
+    "en": "Attach the product you used"
+  },
+  "chat.err.photo": {
+    "ko": "사진을 올리지 못했어요",
+    "en": "Couldn't upload the photo"
+  },
+  "review.tone": {
+    "ko": "피부 톤",
+    "en": "Skin tone"
+  },
+  "tone.fair": {
+    "ko": "아주 밝음",
+    "en": "Fair"
+  },
+  "tone.light": {
+    "ko": "밝음",
+    "en": "Light"
+  },
+  "tone.medium": {
+    "ko": "중간",
+    "en": "Medium"
+  },
+  "tone.tan": {
+    "ko": "어두운 편",
+    "en": "Tan"
+  },
+  "tone.deep": {
+    "ko": "어두움",
+    "en": "Deep"
+  },
+  "review.undertone": {
+    "ko": "언더톤",
+    "en": "Undertone"
+  },
+  "under.cool": {
+    "ko": "쿨",
+    "en": "Cool"
+  },
+  "under.warm": {
+    "ko": "웜",
+    "en": "Warm"
+  },
+  "under.neutral": {
+    "ko": "뉴트럴",
+    "en": "Neutral"
+  },
+  "review.climate": {
+    "ko": "사용 환경",
+    "en": "Climate"
+  },
+  "climate.humid": {
+    "ko": "덥고 습함",
+    "en": "Hot & humid"
+  },
+  "climate.dry": {
+    "ko": "건조함",
+    "en": "Dry"
+  },
+  "climate.mixed": {
+    "ko": "계절마다 다름",
+    "en": "Changes by season"
+  },
+  "review.showMine": {
+    "ko": "원하는 것만 고르세요. 이 글에만 표시돼요",
+    "en": "Pick only what you want shown on this post"
+  },
+  "product.filterAll": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "product.similarNote": {
+    "ko": "비슷한 조건의 사람이 써본 경험이에요. 같은 결과를 보장하지는 않아요.",
+    "en": "Experiences from people with similar conditions. Your results may differ."
   }
 }
