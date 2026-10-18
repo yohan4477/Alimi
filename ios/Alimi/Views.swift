@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 import UIKit
 import Charts
 
@@ -148,7 +148,7 @@ struct BrandStrip: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L("brands.title")).font(.title3.bold())
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHGrid(rows: [GridItem(.fixed(88)), GridItem(.fixed(88))], spacing: 10) {
+                LazyHGrid(rows: [GridItem(.fixed(88), spacing: 12), GridItem(.fixed(88))], spacing: 4) {
                     ForEach(BrandStrip.twoRowOrder(brands)) { b in
                         NavigationLink(value: b) { BrandBadge(brand: b) }
                             .buttonStyle(.plain).frame(width: 64).accessibilityIdentifier("brand-\(b.brand)")
