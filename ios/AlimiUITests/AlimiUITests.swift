@@ -135,7 +135,7 @@ final class AlimiUITests: XCTestCase {
         attach("settings")
     }
     func testChatJoinSendAndBlock() {
-        app.tabBars.buttons["채팅"].tap()
+        app.tabBars.buttons["커뮤니티"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
