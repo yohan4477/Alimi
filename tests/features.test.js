@@ -63,6 +63,6 @@ test('catalog search query is sanitized before reaching the PostgREST filter',as
 });
 test('catalog browse pages are filtered by category and ordered stably',()=>{
   const all=new URL(catalogPageUrl('전체',48));
-  assert.equal(all.searchParams.get('category'),null);assert.equal(all.searchParams.get('offset'),'48');assert.equal(all.searchParams.get('order'),'brand,name,sku');
+  assert.equal(all.searchParams.get('category'),null);assert.equal(all.searchParams.get('offset'),'48');assert.equal(all.searchParams.get('order'),'sku.desc');
   assert.equal(new URL(catalogPageUrl('선케어',0)).searchParams.get('category'),'eq.선케어');
 });

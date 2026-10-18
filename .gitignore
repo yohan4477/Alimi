@@ -3,3 +3,4 @@
 .env.*
 !.env.example
 node_modules/
+e2e-failure.png

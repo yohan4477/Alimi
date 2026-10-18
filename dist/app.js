@@ -39,6 +39,8 @@ function renderCatalogBrowse(reset){
   box.innerHTML=`<div class="heading"><div><h2>전체 상품</h2><p>한국 브랜드 · 하트를 누르면 오늘부터 가격을 기록해요</p></div></div><div class="catalog-grid">${browse.items.filter(c=>!tracked.has(c.sku)).map(catalogCard).join('')}</div>${browse.done?(browse.items.length?'':'<p class="empty">상품이 없어요.</p>'):'<p class="empty" id="catalog-more">불러오는 중…</p>'}`;
   observer?.disconnect();
   const more=$('#catalog-more');if(!more)return;
+  // First page loads right away; later pages load when the sentinel comes near the viewport.
+  if(!browse.items.length){loadMoreCatalog();return}
   observer=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))loadMoreCatalog()},{rootMargin:'600px'});observer.observe(more);
 }
 async function loadMoreCatalog(){

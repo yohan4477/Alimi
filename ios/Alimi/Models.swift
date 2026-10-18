@@ -71,7 +71,7 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     static func pageURL(category: String, offset: Int, limit: Int = 24) -> URL {
         var c = URLComponents(url: URL(string: "/rest/v1/catalog_items", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
         var items = [URLQueryItem(name: "select", value: fields), URLQueryItem(name: "active", value: "eq.true"),
-                     URLQueryItem(name: "order", value: "brand,name,sku"), URLQueryItem(name: "offset", value: String(offset)),
+                     URLQueryItem(name: "order", value: "sku.desc"), URLQueryItem(name: "offset", value: String(offset)),
                      URLQueryItem(name: "limit", value: String(limit))]
         if category != "전체" { items.append(URLQueryItem(name: "category", value: "eq." + category)) }
         c.queryItems = items

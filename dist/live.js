@@ -74,7 +74,7 @@ export async function searchCatalog(q, fetchImpl = fetch) {
 }
 // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
 export function catalogPageUrl(category, offset, limit = 24) {
-  const params = new URLSearchParams({select: CATALOG_FIELDS, active: 'eq.true', order: 'brand,name,sku', offset: String(offset), limit: String(limit)});
+  const params = new URLSearchParams({select: CATALOG_FIELDS, active: 'eq.true', order: 'sku.desc', offset: String(offset), limit: String(limit)});
   if (category && category !== '전체') params.set('category', 'eq.' + category);
   return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
 }
