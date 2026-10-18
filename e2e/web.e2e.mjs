@@ -51,6 +51,44 @@ try {
     await page.waitForSelector('#products > .card img', {timeout: 10000});
     await page.waitForFunction(() => [...document.querySelectorAll('#products > .card img')].every(i => i.complete && i.naturalWidth > 0), null, {timeout: 20000});
   });
+  await step('chat: join a room, share a searched item, report and block', async () => {
+    // Chat endpoints are mocked so the test never posts into real rooms. Item search uses the live catalog.
+    const room = {id: 'acne', title_en: 'Acne & breakouts', title_ko: '트러블·여드름', intro_en: 'x', intro_ko: '트러블에 효과 본 제품 이야기', sort: 1, members: 3, messages_24h: 1};
+    const other = {id: 1, room_id: 'acne', author_tag: 'other', nickname: 'Calm Otter', body: '추천 좀 해주세요', item: null, reply_to: null, likes: 2, created_at: new Date().toISOString()};
+    let posted;
+    await page.route('**/rest/v1/chat_room_list*', r => r.fulfill({json: [room]}));
+    await page.route('**/rest/v1/chat_messages*', r => r.fulfill({json: new URL(r.request().url()).searchParams.get('id') ? [] : [other]}));
+    await page.route('**/rest/v1/rpc/join_chat', r => r.fulfill({json: 'Dewy Panda'}));
+    await page.route('**/rest/v1/rpc/report_chat', r => r.fulfill({status: 204, body: ''}));
+    await page.route('**/rest/v1/rpc/post_chat', r => { posted = r.request().postDataJSON();
+      r.fulfill({json: {id: 2, room_id: 'acne', author_tag: 'me', nickname: 'Dewy Panda', body: posted.p_body, reply_to: posted.p_reply_to, likes: 0, created_at: new Date().toISOString(),
+        item: {retailer: posted.p_retailer, market: posted.p_market, sku: posted.p_sku, brand: 'ANUA', name: 'Heartleaf Oil', price_minor: 1700, image_url: null, family_key: 'anua|oil'}}}); });
+    await page.click('#chat-tab');
+    await page.click('[data-chat-room="acne"]');
+    await page.waitForSelector('#chat-join[open] .chat-rules');
+    await page.click('[data-chat-action="join-ok"]');
+    await page.waitForSelector('.chat-msg >> text=추천 좀 해주세요');
+    assert.equal(await page.getAttribute('#chat-text', 'placeholder'), 'Dewy Panda(으)로 대화');
+    await page.click('[data-chat-menu="1"]');
+    await page.click('[data-chat-action="reply"]');
+    await page.click('[data-chat-action="attach"]');
+    await page.fill('#chat-pick-q', 'anua');
+    await page.click('.chat-pick-row', {timeout: 15000});
+    await page.fill('#chat-text', '이거 좋아요');
+    await page.click('.chat-send');
+    await page.waitForSelector('.chat-msg .chat-item');
+    assert.equal(posted.p_reply_to, 1);
+    assert.ok(posted.p_sku, 'searched item is attached by reference');
+    await page.click('[data-chat-menu="1"]');
+    await page.click('[data-chat-action="report"]');
+    await page.click('[data-chat-report="spam"]');
+    await page.click('[data-chat-menu="1"]');
+    await page.click('[data-chat-action="block"]');
+    assert.equal(await page.locator('.chat-msg >> text=추천 좀 해주세요').count(), 0, 'blocked author is hidden');
+    await page.click('[data-chat-action="rooms"]');
+    await page.click('[data-chat-action="home"]');
+    await page.waitForSelector('#browse:not([hidden])');
+  });
   await step('English UI for US users', async () => {
     await page.goto(withLang('en'));
     await page.waitForSelector('.catalog-grid .card', {timeout: 20000});

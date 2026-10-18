@@ -559,5 +559,149 @@
   "badge.bestValue": {
     "ko": "단위 가격 최저",
     "en": "Best value"
+  },
+  "nav.chat": {
+    "ko": "채팅",
+    "en": "Chat"
+  },
+  "chat.title": {
+    "ko": "채팅",
+    "en": "Community chat"
+  },
+  "chat.sub": {
+    "ko": "주제별 방에서 익명으로 제품 이야기를 나눠요",
+    "en": "Talk K-beauty anonymously, room by room."
+  },
+  "chat.members": {
+    "ko": "{n}명",
+    "en": "{n} members"
+  },
+  "chat.active": {
+    "ko": "대화 중",
+    "en": "Active"
+  },
+  "chat.joinTitle": {
+    "ko": "{room}에 참여할까요?",
+    "en": "Join {room}?"
+  },
+  "chat.rules": {
+    "ko": "익명 닉네임으로 대화해요. 욕설·혐오·음란물·홍보·링크는 금지예요. 신고가 쌓인 메시지는 숨겨지고, 위반하면 이용이 제한돼요.",
+    "en": "You'll chat under an anonymous nickname. No harassment, hate, sexual content, spam or links. Reported messages are hidden and repeat offenders are blocked."
+  },
+  "chat.join": {
+    "ko": "참여",
+    "en": "Join"
+  },
+  "chat.placeholder": {
+    "ko": "{name}(으)로 대화",
+    "en": "Message as {name}"
+  },
+  "chat.send": {
+    "ko": "보내기",
+    "en": "Send"
+  },
+  "chat.attach": {
+    "ko": "상품 공유",
+    "en": "Share an item"
+  },
+  "chat.attachSearch": {
+    "ko": "브랜드나 제품명 검색",
+    "en": "Search brand or product"
+  },
+  "chat.attachHint": {
+    "ko": "검색한 상품을 메시지에 붙여 추천할 수 있어요",
+    "en": "Find a product and attach it to your message."
+  },
+  "chat.removeItem": {
+    "ko": "첨부 취소",
+    "en": "Remove item"
+  },
+  "chat.like": {
+    "ko": "공감",
+    "en": "Like"
+  },
+  "chat.reply": {
+    "ko": "답장",
+    "en": "Reply"
+  },
+  "chat.replyingTo": {
+    "ko": "{name}에게 답장",
+    "en": "Replying to {name}"
+  },
+  "chat.report": {
+    "ko": "신고",
+    "en": "Report"
+  },
+  "chat.block": {
+    "ko": "차단",
+    "en": "Block"
+  },
+  "chat.more": {
+    "ko": "메시지 메뉴",
+    "en": "Message options"
+  },
+  "chat.blocked": {
+    "ko": "이 사용자의 메시지를 숨겼어요",
+    "en": "You won't see this person's messages."
+  },
+  "chat.reported": {
+    "ko": "신고했어요. 확인할게요.",
+    "en": "Reported. Thanks for keeping it friendly."
+  },
+  "chat.reportTitle": {
+    "ko": "신고 사유",
+    "en": "Why are you reporting this?"
+  },
+  "chat.reason.spam": {
+    "ko": "스팸·홍보",
+    "en": "Spam or ads"
+  },
+  "chat.reason.abuse": {
+    "ko": "욕설·괴롭힘·혐오",
+    "en": "Harassment or hate"
+  },
+  "chat.reason.sexual": {
+    "ko": "음란물",
+    "en": "Sexual content"
+  },
+  "chat.reason.other": {
+    "ko": "기타",
+    "en": "Something else"
+  },
+  "chat.empty": {
+    "ko": "아직 메시지가 없어요. 첫 메시지를 남겨 보세요",
+    "en": "No messages yet. Say hi!"
+  },
+  "chat.sharedPrice": {
+    "ko": "공유 당시 {v}",
+    "en": "{v} when shared"
+  },
+  "chat.err.slow": {
+    "ko": "조금 천천히 보내 주세요",
+    "en": "Slow down a little."
+  },
+  "chat.err.link": {
+    "ko": "링크는 보낼 수 없어요. 상품은 '상품 공유'로 붙여 주세요",
+    "en": "Links aren't allowed. Use Share an item instead."
+  },
+  "chat.err.blocked": {
+    "ko": "보낼 수 없는 표현이 들어 있어요",
+    "en": "That message has words we don't allow."
+  },
+  "chat.err.banned": {
+    "ko": "지금은 메시지를 보낼 수 없어요",
+    "en": "You can't post right now."
+  },
+  "chat.err.long": {
+    "ko": "500자까지 보낼 수 있어요",
+    "en": "Up to 500 characters."
+  },
+  "chat.err.other": {
+    "ko": "보내지 못했어요. 다시 시도해 주세요",
+    "en": "Couldn't send. Try again."
+  },
+  "chat.loadFailed": {
+    "ko": "채팅을 불러오지 못했어요",
+    "en": "Couldn't load chat."
   }
 }

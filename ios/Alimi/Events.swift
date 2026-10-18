@@ -4,7 +4,7 @@ import Foundation
 enum AppEvent: String, CaseIterable {
     case homeView = "home_view", search, productView = "product_view", wishlistAdd = "wishlist_add"
     case wishlistRemove = "wishlist_remove", targetPriceSet = "target_price_set", merchantClick = "merchant_click"
-    case notificationOptIn = "notification_opt_in"
+    case notificationOptIn = "notification_opt_in", chatOpen = "chat_open", chatJoin = "chat_join", chatSend = "chat_send"
 }
 
 struct EventLogger {
