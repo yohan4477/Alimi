@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 import CryptoKit
 
 // Topic chat (#68), same backend as the web app. Anonymous: a random per-device secret proves authorship to
@@ -311,7 +311,7 @@ struct RoomCard: View {
             Text(L("chat.members", ["n": room.members])).font(.caption).foregroundStyle(.gray)
             HStack {
                 Spacer()
-                if room.isBrand { BrandBadge(room: room, size: 22) }
+                if room.isBrand { RoomBadge(room: room, size: 22) }
                 else { Image(systemName: "person.2.fill").font(.caption).foregroundStyle(Color.indigo.opacity(0.5)) }
             }
         }
@@ -321,7 +321,7 @@ struct RoomCard: View {
     }
 }
 
-struct BrandBadge: View {
+struct RoomBadge: View {
     let room: ChatRoom
     let size: CGFloat
     var body: some View {
@@ -341,7 +341,7 @@ struct RoomRow: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                if room.isBrand { BrandBadge(room: room, size: 48) }
+                if room.isBrand { RoomBadge(room: room, size: 48) }
                 else {
                     Image(systemName: "person.2.fill").foregroundStyle(Color.indigo)
                         .frame(width: 48, height: 48).background(Color.indigo.opacity(0.1), in: Circle())
