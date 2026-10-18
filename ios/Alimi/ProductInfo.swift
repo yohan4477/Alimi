@@ -35,10 +35,8 @@ extension ProductInformation {
         var c = URLComponents(url: URL(string: "/rest/v1/catalog_items", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
         c.queryItems = [URLQueryItem(name: "select", value: "url,description,description_permission"), URLQueryItem(name: "sku", value: "eq." + sku),
                         URLQueryItem(name: "retailer", value: "eq." + retailer), URLQueryItem(name: "limit", value: "1")]
-        var request = URLRequest(url: c.url!, timeoutInterval: 15)
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await URLSession.shared.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200,
-              let row = (try? JSONDecoder().decode([CatalogCopyRow].self, from: data))?.first else { return nil }
+        let rows: [CatalogCopyRow]? = await LiveAPI.get(c.url!, session: .shared)
+        guard let row = rows?.first else { return nil }
         return row.copy(retailer: retailer, sku: sku)
     }
 }

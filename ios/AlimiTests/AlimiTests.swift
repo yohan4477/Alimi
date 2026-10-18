@@ -1,5 +1,4 @@
 import XCTest
-import UserNotifications
 @testable import Alimi
 
 @MainActor
@@ -31,14 +30,6 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(second.products.count, 1)
         XCTAssertTrue(second.saved.favorites.contains(second.products[0].id))
         XCTAssertTrue(second.products[0].history.isEmpty)
-        XCTAssertTrue(second.saved.targets.isEmpty)
-    }
-    func testNotificationPermissionRouting() {
-        XCTAssertEqual(NotificationPermissionAction.resolve(.notDetermined), .request)
-        XCTAssertEqual(NotificationPermissionAction.resolve(.denied), .settings)
-        XCTAssertEqual(NotificationPermissionAction.resolve(.authorized), .enabled)
-        XCTAssertEqual(NotificationPermissionAction.resolve(.provisional), .enabled)
-        XCTAssertEqual(NotificationPermissionAction.resolve(.ephemeral), .enabled)
     }
     func testBundledSnapshotHasTenRealProducts() {
         guard let snap = AlimiStore.bundledSnapshot() else { return XCTFail("live-snapshot.json missing or invalid") }
@@ -61,25 +52,9 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(Array(store.categories.dropFirst()), Product.categories)
         XCTAssertEqual(store.products[0].brandLabel, "코스알엑스")
     }
-    func testDailyHistoryCarriesForwardInKoreanDays() {
-        let now = ISODate.parse("2026-10-20T03:00:00Z")!
-        let history = [point("2026-10-17T22:30:00Z", 20), point("2026-10-19T22:30:00Z", 18)]
-        let daily = PriceHistory.daily(history, days: 5, now: now)
-        XCTAssertEqual(daily.map(\.price), [20, 20, 18])
-        XCTAssertEqual(PriceHistory.trackedDays(history, now: now), 3)
-        XCTAssertTrue(PriceHistory.daily([], days: 7, now: now).isEmpty)
-    }
-    func testWatchSummary() {
-        let now = ISODate.parse("2026-10-20T03:00:00Z")!
-        XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20)], current: 20, now: now), "지켜본 지 3일 · 아직 가격 변동 없음")
-        XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20), point("2026-10-19T22:30:00Z", 18)], current: 18, now: now), "지켜본 3일 중 지금이 최저가")
-    }
     func testEnglishCopy() {
         L10n.language = "en"
         defer { L10n.language = "ko" }
-        let now = ISODate.parse("2026-10-20T03:00:00Z")!
-        XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20)], current: 20, now: now), "Watched 3d · no price change yet")
-        XCTAssertEqual(PriceRule.status(target: 25, current: 20), "Target reached")
         XCTAssertEqual(L10n.category("선케어"), "Sun care")
         XCTAssertEqual(makeStore().products[0].brandLabel, "COSRX")
         XCTAssertEqual(L("count", ["n": 4]), "4 items")
@@ -143,18 +118,6 @@ final class AlimiTests: XCTestCase {
         store.toggle("cosrx")
         XCTAssertTrue(store.search("", favoritesOnly: true).isEmpty)
     }
-    func testTargetStatusAndBoundary() {
-        let store = makeStore(); let p = store.products[0]
-        XCTAssertEqual(store.status(p), "미설정")
-        store.saved.targets[p.id] = 15
-        XCTAssertEqual(store.status(p), "기다리는 중")
-        store.saved.targets[p.id] = 17.5
-        XCTAssertEqual(store.status(p), "목표가 도달")
-    }
-    func testInputValidation() {
-        for invalid in ["", "0", "-1", "1.234", "10000.01", "abc"] { XCTAssertNil(PriceRule.valid(invalid)) }
-        XCTAssertEqual(PriceRule.valid("12.5"), 12.5)
-    }
     func testEventPayloadIsAnonymousAndWhitelisted() {
         var logger = EventLogger()
         logger.defaults = UserDefaults(suiteName: "AlimiTests.\(UUID().uuidString)")!
@@ -166,7 +129,7 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(body["platform"] as? String, "ios")
         XCTAssertEqual(body["name"] as? String, "product_view")
         XCTAssertLessThanOrEqual((body["app_version"] as? String)?.count ?? 99, 20)
-        XCTAssertEqual(Set(AppEvent.allCases.map(\.rawValue)), ["home_view", "search", "product_view", "wishlist_add", "wishlist_remove", "target_price_set", "merchant_click", "notification_opt_in", "chat_open", "chat_join", "chat_send", "community_open", "post_view", "post_create", "comment_create", "product_card_click", "post_save"])
+        XCTAssertEqual(Set(AppEvent.allCases.map(\.rawValue)), ["home_view", "search", "product_view", "wishlist_add", "wishlist_remove", "merchant_click", "chat_open", "chat_join", "chat_send", "community_open", "post_view", "post_create", "comment_create", "product_card_click", "post_save"])
     }
     func testCatalogQueryIsSanitized() {
         XCTAssertNil(CatalogItem.searchURL("a"))
@@ -187,10 +150,12 @@ final class AlimiTests: XCTestCase {
     func testPersistence() {
         let defaults = UserDefaults(suiteName: "AlimiTests.\(UUID().uuidString)")!
         let first = AlimiStore(defaults: defaults, products: [])
-        first.toggle("cosrx"); first.saved.targets["cosrx"] = 15
+        first.toggle("cosrx")
         let second = AlimiStore(defaults: defaults, products: [])
         XCTAssertTrue(second.saved.favorites.contains("cosrx"))
-        XCTAssertEqual(second.saved.targets["cosrx"], 15)
+        // A payload written by an older build (with "targets") still decodes.
+        defaults.set(Data(#"{"favorites":["a"],"targets":{"a":15}}"#.utf8), forKey: "alimi.live.v1")
+        XCTAssertEqual(AlimiStore(defaults: defaults, products: []).saved.favorites, ["a"])
     }
     func testSavedLayoutHeadlineAndSlots() {
         XCTAssertEqual(SavedLayout.emptySlots(0), 3)

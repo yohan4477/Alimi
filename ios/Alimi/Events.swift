@@ -4,8 +4,8 @@ import Foundation
 enum AppEvent: String, CaseIterable {
     case communityOpen = "community_open", postView = "post_view", postCreate = "post_create", commentCreate = "comment_create", productCardClick = "product_card_click", postSave = "post_save"
     case homeView = "home_view", search, productView = "product_view", wishlistAdd = "wishlist_add"
-    case wishlistRemove = "wishlist_remove", targetPriceSet = "target_price_set", merchantClick = "merchant_click"
-    case notificationOptIn = "notification_opt_in", chatOpen = "chat_open", chatJoin = "chat_join", chatSend = "chat_send"
+    case wishlistRemove = "wishlist_remove", merchantClick = "merchant_click"
+    case chatOpen = "chat_open", chatJoin = "chat_join", chatSend = "chat_send"
 }
 
 struct EventLogger {
@@ -30,11 +30,8 @@ struct EventLogger {
     }
     func log(_ event: AppEvent, productID: String? = nil, props: [String: String] = [:]) {
         guard enabled, let body = try? JSONSerialization.data(withJSONObject: payload(event, productID: productID, props: props)) else { return }
-        var request = URLRequest(url: URL(string: "/rest/v1/app_events", relativeTo: LiveAPI.baseURL)!, timeoutInterval: 10)
-        request.httpMethod = "POST"
-        request.httpBody = body
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var request = LiveAPI.request(URL(string: "/rest/v1/app_events", relativeTo: LiveAPI.baseURL)!, method: "POST", body: body,
+                                      contentType: "application/json", timeout: 10)
         request.setValue("return=minimal", forHTTPHeaderField: "Prefer")
         session.dataTask(with: request).resume()
     }

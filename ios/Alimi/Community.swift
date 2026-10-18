@@ -26,7 +26,7 @@ enum CommunityAPI {
     static func get<T: Decodable>(_ table: String, _ query: [String: String]) async throws -> T {
         var c = URLComponents(url: LiveAPI.baseURL.appendingPathComponent("rest/v1/" + table), resolvingAgainstBaseURL: true)!
         c.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
-        return try JSONDecoder().decode(T.self, from: try await ChatAPI.send(URLRequest(url: c.url!)))
+        return try JSONDecoder().decode(T.self, from: try await ChatAPI.send(c.url!))
     }
     static func posts(room: String? = nil, family: String? = nil) async throws -> [CommunityPost] {
         if ChatAPI.offline { return [] }
@@ -84,10 +84,8 @@ enum CommunityAPI {
         // Re-rendering produces fresh pixels without source EXIF / GPS metadata.
         guard let jpeg = flat.jpegData(compressionQuality: 0.75), jpeg.count <= 1_048_576 else { throw ChatAPI.Failure(message: "chat:photo") }
         let path = "v1/" + UUID().uuidString.lowercased() + ".jpg"
-        var request = URLRequest(url: LiveAPI.baseURL.appendingPathComponent("storage/v1/object/review-photos/" + path))
-        request.httpMethod = "POST"; request.httpBody = jpeg; request.timeoutInterval = 20
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+        let request = LiveAPI.request(LiveAPI.baseURL.appendingPathComponent("storage/v1/object/review-photos/" + path),
+                                      method: "POST", body: jpeg, contentType: "image/jpeg", timeout: 20)
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw ChatAPI.Failure(message: "chat:photo") }
         return path

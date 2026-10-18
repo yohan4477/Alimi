@@ -8,6 +8,22 @@ enum LiveAPI {
     static let publishableKey = "sb_publishable_CJjQ-l5ev-D4OH0Na0gFoQ_szunygff"
     static let offersQuery = "select=external_id,retailer,currency,url,affiliate_url,image_url,products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id"
     static var offersURL: URL { URL(string: "/rest/v1/offers?" + offersQuery, relativeTo: baseURL)! }
+
+    // Every Supabase call goes through here so the apikey header is set in one place.
+    static func request(_ url: URL, method: String = "GET", body: Data? = nil, contentType: String? = nil, timeout: TimeInterval = 15) -> URLRequest {
+        var request = URLRequest(url: url, timeoutInterval: timeout)
+        request.httpMethod = method
+        request.httpBody = body
+        request.setValue(publishableKey, forHTTPHeaderField: "apikey")
+        if let contentType { request.setValue(contentType, forHTTPHeaderField: "Content-Type") }
+        return request
+    }
+    // GET + 200 check + decode; nil on any failure.
+    static func get<T: Decodable>(_ url: URL, session: URLSession) async -> T? {
+        guard let (data, response) = try? await session.data(for: request(url)),
+              (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
 }
 
 // Mirrors one row of the offers query (also the format of the bundled live-snapshot.json).
@@ -240,46 +256,9 @@ enum ISODate {
     static func parse(_ s: String) -> Date? { fractional.date(from: s) ?? plain.date(from: s) }
 }
 
-enum PriceHistory {
-    static var calendar: Calendar = { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "Asia/Seoul")!; return c }()
-    // History is change-only: each day shows the last price observed by the end of that Korean day.
-    // Days before tracking started have no value.
-    static func daily(_ history: [PricePoint], days: Int, now: Date = Date()) -> [PricePoint] {
-        let today = calendar.startOfDay(for: now)
-        return (0..<days).reversed().compactMap { back in
-            guard let day = calendar.date(byAdding: .day, value: -back, to: today),
-                  let end = calendar.date(byAdding: .day, value: 1, to: day),
-                  let last = history.last(where: { $0.date < end }) else { return nil }
-            return PricePoint(date: day, price: last.price)
-        }
-    }
-    // One plain sentence about what we know so far, instead of an empty chart.
-    static func summary(_ history: [PricePoint], current: Double, now: Date = Date()) -> String {
-        let days = trackedDays(history, now: now)
-        guard history.count >= 2, let low = history.map(\.price).min() else { return L("watch.none", ["days": days]) }
-        return current <= low ? L("watch.lowest", ["days": days]) : L("watch.changes", ["days": days, "n": history.count - 1])
-    }
-    static func trackedDays(_ history: [PricePoint], now: Date = Date()) -> Int {
-        guard let first = history.first else { return 0 }
-        return (calendar.dateComponents([.day], from: calendar.startOfDay(for: first.date), to: calendar.startOfDay(for: now)).day ?? 0) + 1
-    }
-}
-
-enum PriceRule {
-    static func valid(_ text: String) -> Double? {
-        guard text.range(of: #"^\d+(\.\d{1,2})?$"#, options: .regularExpression) != nil,
-              let value = Double(text), (0.01...10_000).contains(value) else { return nil }
-        return value
-    }
-    static func status(target: Double?, current: Double) -> String {
-        guard let target else { return L("alert.unset") }
-        return L(current <= target ? "alert.reached" : "alert.waiting")
-    }
-}
-
+// Stored in UserDefaults; older payloads may still contain a "targets" key, which decoding ignores.
 struct SavedState: Codable {
     var favorites: Set<String> = []
-    var targets: [String: Double] = [:]
 }
 
 @MainActor
@@ -322,22 +301,16 @@ final class AlimiStore: ObservableObject {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return }
         loading = true
         defer { loading = false }
-        var request = URLRequest(url: LiveAPI.offersURL, timeoutInterval: 15)
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await session.data(for: request),
-              (response as? HTTPURLResponse)?.statusCode == 200,
-              let rows = try? JSONDecoder().decode([OfferRow].self, from: data) else { return }
+        guard let rows: [OfferRow] = await LiveAPI.get(LiveAPI.offersURL, session: session) else { return }
         let fresh = Product.from(rows)
         if !fresh.isEmpty { products = mergingCatalogSaves(fresh); source = .live }
     }
     func searchCatalog(_ q: String) async -> [CatalogItem]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
         guard let url = CatalogItem.searchURL(q) else { return [] }
-        var request = URLRequest(url: url, timeoutInterval: 15)
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        let rows: [CatalogItem]? = await LiveAPI.get(url, session: session)
         let tracked = Set(products.map(\.sku))
-        return (try? JSONDecoder().decode([CatalogItem].self, from: data))?.filter { !tracked.contains($0.sku) }
+        return rows?.filter { !tracked.contains($0.sku) }
     }
     // Save a local snapshot; no RPC, history subscription or price-alert enrollment.
     func saveCatalogItem(_ item: CatalogItem) async -> Bool {
@@ -382,17 +355,11 @@ final class AlimiStore: ObservableObject {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") {
             return [CatalogBrand(brand: "COSRX", brandKo: "코스알엑스", families: 2, logoUrl: nil), CatalogBrand(brand: "ANUA", brandKo: "아누아", families: 1, logoUrl: nil)]
         }
-        var request = URLRequest(url: CatalogBrand.listURL, timeoutInterval: 15)
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
-        return try? JSONDecoder().decode([CatalogBrand].self, from: data)
+        return await LiveAPI.get(CatalogBrand.listURL, session: session)
     }
     func familiesPage(category: String, offset: Int, brand: String? = nil) async -> [ProductFamily]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
-        var request = URLRequest(url: ProductFamily.pageURL(category: category, offset: offset, brand: brand), timeoutInterval: 15)
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
-        return try? JSONDecoder().decode([ProductFamily].self, from: data)
+        return await LiveAPI.get(ProductFamily.pageURL(category: category, offset: offset, brand: brand), session: session)
     }
     func family(_ key: String) async -> [VariantChoice]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
@@ -400,20 +367,13 @@ final class AlimiStore: ObservableObject {
         c.queryItems = [URLQueryItem(name: "select", value: CatalogItem.fields + ",size_label,option_label,unit,unit_price_minor,url,affiliate_url"),
                         URLQueryItem(name: "active", value: "eq.true"), URLQueryItem(name: "family_key", value: "eq." + key),
                         URLQueryItem(name: "limit", value: "60")]
-        var request = URLRequest(url: c.url!, timeoutInterval: 15)
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200,
-              let rows = try? JSONDecoder().decode([CatalogItem].self, from: data) else { return nil }
+        guard let rows: [CatalogItem] = await LiveAPI.get(c.url!, session: session) else { return nil }
         return CatalogItem.collapse(rows)
     }
     func catalogPage(category: String, offset: Int) async -> [CatalogItem]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
-        var request = URLRequest(url: CatalogItem.pageURL(category: category, offset: offset), timeoutInterval: 15)
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
-        return try? JSONDecoder().decode([CatalogItem].self, from: data)
+        return await LiveAPI.get(CatalogItem.pageURL(category: category, offset: offset), session: session)
     }
-    func status(_ p: Product) -> String { PriceRule.status(target: saved.targets[p.id], current: p.price) }
     func reset() { saved = SavedState() }
 }
 
