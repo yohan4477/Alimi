@@ -147,13 +147,25 @@ struct BrandStrip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L("brands.title")).font(.title3.bold())
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6, alignment: .top), count: 5), spacing: 14) {
-                ForEach(brands) { b in
-                    NavigationLink(value: b) { BrandBadge(brand: b) }
-                        .buttonStyle(.plain).accessibilityIdentifier("brand-\(b.brand)")
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHGrid(rows: [GridItem(.fixed(88)), GridItem(.fixed(88))], spacing: 10) {
+                    ForEach(BrandStrip.twoRowOrder(brands)) { b in
+                        NavigationLink(value: b) { BrandBadge(brand: b) }
+                            .buttonStyle(.plain).frame(width: 64).accessibilityIdentifier("brand-\(b.brand)")
+                    }
                 }
             }
         }
+    }
+    // LazyHGrid fills column by column; interleave so ranks 1...ceil(n/2) read left to right on the top row.
+    static func twoRowOrder<T>(_ a: [T]) -> [T] {
+        let cols = (a.count + 1) / 2
+        var out: [T] = []
+        for c in 0..<cols {
+            out.append(a[c])
+            if cols + c < a.count { out.append(a[cols + c]) }
+        }
+        return out
     }
 }
 struct BrandBadge: View {

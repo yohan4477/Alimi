@@ -168,4 +168,9 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(SavedLayout.headline(3).key, "saved.count")
         XCTAssertEqual(SavedLayout.headline(7).vars["n"], 7)
     }
+    func testBrandStripTwoRowOrder() {
+        XCTAssertEqual(BrandStrip.twoRowOrder(Array(0..<15)), [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7])
+        XCTAssertEqual(BrandStrip.twoRowOrder([1]), [1])
+        XCTAssertEqual(BrandStrip.twoRowOrder([Int]()), [])
+    }
 }
