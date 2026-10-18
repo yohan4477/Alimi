@@ -119,6 +119,15 @@ export function stats(series) {
   return {min: Math.min(...v), max: Math.max(...v), avg: v.reduce((a, b) => a + b, 0) / v.length, days: v.length};
 }
 
+// One plain sentence about what we know so far, instead of an empty chart.
+export function watchSummary(p, now = new Date()) {
+  const days = trackedDays(p, now);
+  const prices = p.history.map(h => h.price);
+  if (prices.length < 2) return {days, changes: 0, lowest: false, text: `지켜본 지 ${days}일 · 아직 가격 변동 없음`};
+  const lowest = p.price <= Math.min(...prices);
+  return {days, changes: prices.length - 1, lowest,
+    text: lowest ? `지켜본 ${days}일 중 지금이 최저가` : `지켜본 ${days}일 동안 가격 ${prices.length - 1}번 변동`};
+}
 export const trackedDays = (p, now = new Date()) => p.history.length ? Math.floor((now - Date.parse(p.history[0].at)) / DAY) + 1 : 0;
 export const usd = n => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(n);
 export const alertState = (target, current) => target == null ? '미설정' : current <= target ? '목표가 도달' : '기다리는 중';

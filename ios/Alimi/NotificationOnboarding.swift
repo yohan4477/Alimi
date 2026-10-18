@@ -15,6 +15,10 @@ enum NotificationPermissionAction: Equatable {
 }
 
 /// Permission setup only. Remote price alert delivery still requires APNs/backend integration.
+// Flip to true when price-drop push notifications are actually delivered (ALM-004). Until then the app
+// must not ask for permission or promise alerts it cannot send.
+enum PushFeature { static let available = false }
+
 struct NotificationOnboarding: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("alimi.notifications.introductionSeen.v1") private var introductionSeen = false
@@ -26,7 +30,7 @@ struct NotificationOnboarding: View {
     var body: some View {
         RootView()
             .safeAreaInset(edge: .top, spacing: 0) {
-                if action != .enabled {
+                if PushFeature.available && action != .enabled {
                     Button { showIntroduction = true } label: {
                         Label("가격 하락 알림 켜기", systemImage: "bell.badge")
                             .font(.subheadline.bold()).frame(maxWidth: .infinity).padding(12)
@@ -36,7 +40,7 @@ struct NotificationOnboarding: View {
             }
             .task {
                 await refresh()
-                if !introductionSeen && action != .enabled { showIntroduction = true }
+                if PushFeature.available && !introductionSeen && action != .enabled { showIntroduction = true }
             }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { Task { await refresh() } }

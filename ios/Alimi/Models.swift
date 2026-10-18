@@ -165,6 +165,12 @@ enum PriceHistory {
             return PricePoint(date: day, price: last.price)
         }
     }
+    // One plain sentence about what we know so far, instead of an empty chart.
+    static func summary(_ history: [PricePoint], current: Double, now: Date = Date()) -> String {
+        let days = trackedDays(history, now: now)
+        guard history.count >= 2, let low = history.map(\.price).min() else { return "지켜본 지 \(days)일 · 아직 가격 변동 없음" }
+        return current <= low ? "지켜본 \(days)일 중 지금이 최저가" : "지켜본 \(days)일 동안 가격 \(history.count - 1)번 변동"
+    }
     static func trackedDays(_ history: [PricePoint], now: Date = Date()) -> Int {
         guard let first = history.first else { return 0 }
         return (calendar.dateComponents([.day], from: calendar.startOfDay(for: first.date), to: calendar.startOfDay(for: now)).day ?? 0) + 1

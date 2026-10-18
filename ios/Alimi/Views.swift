@@ -20,7 +20,7 @@ struct SourceBanner: View {
         switch store.source {
         case .live:
             let latest = store.products.map(\.checkedAt).max()
-            return "Stylevana US 공식 피드 · 한국 브랜드 · 가격 추적 \(store.products.count)개" + (latest.map { " · \($0.formatted(dayFormat)) 확인" } ?? "")
+            return "Stylevana US 공식 가격 · 한국 브랜드" + (latest.map { " · \($0.formatted(dayFormat)) 확인" } ?? "")
         case .snapshot(let at):
             return "오프라인 데이터" + (ISODate.parse(at).map { " · \($0.formatted(dayFormat)) 기준" } ?? "")
         case .none:
@@ -113,12 +113,12 @@ struct BrowseView: View {
                     }
                     CategoryTabs(categories: store.categories, selection: $category)
                     HStack {
-                        Text(favoritesOnly ? "내가 기다리는 상품" : "가격 추적 중").font(.headline)
+                        Text(favoritesOnly ? "내 관심 상품" : "가격을 지켜보는 상품").font(.headline)
                         Spacer()
                         Text("\(results.count)개").font(.subheadline).foregroundStyle(.secondary)
                     }
                     if results.isEmpty {
-                        Text(favoritesOnly ? "관심 상품이 없어요. 하트를 눌러 추가해 보세요." : "이 카테고리에는 아직 추적 중인 상품이 없어요.")
+                        Text(favoritesOnly ? "관심 상품이 없어요. 하트를 눌러 추가해 보세요." : "이 카테고리에서 지켜보는 상품이 아직 없어요. 아래에서 하트를 눌러 보세요.")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 16)], spacing: 24) {
@@ -182,7 +182,7 @@ struct TrackedCard: View {
                     Text(product.brandLabel).font(.caption).foregroundStyle(.secondary)
                     Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
                     Text(usd(product.price)).font(.system(size: 23, weight: .bold, design: .rounded))
-                    Text("\(product.category) · \(product.stockLabel)").font(.caption2).foregroundStyle(.secondary)
+                    Text(PriceHistory.summary(product.history, current: product.price)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                 }.foregroundStyle(.primary)
             }.buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)").accessibilityValue(photoLoaded ? "사진 있음" : "사진 없음")
             Button { store.toggle(product.id) } label: {
@@ -192,11 +192,11 @@ struct TrackedCard: View {
     }
 }
 extension BrowseView {
-    // Whole-catalog search results: tapping 추적 시작 moves that exact SKU into the tracking layer.
+    // Whole-catalog search results: the heart saves the item and moves that exact SKU into the tracking layer.
     var catalogSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Stylevana 전체에서 찾기").font(.headline)
-            Text("추적을 시작하면 오늘부터 가격을 기록해요").font(.caption).foregroundStyle(.secondary)
+            Text("더 많은 상품").font(.headline)
+            Text("하트를 누르면 관심에 담고 오늘부터 가격을 지켜봐요").font(.caption).foregroundStyle(.secondary)
             catalogRows
         }.padding(.top, 12)
     }
@@ -217,7 +217,7 @@ extension BrowseView {
         let tracked = Set(store.products.map(\.sku))
         return LazyVStack(alignment: .leading, spacing: 12) {
             Text("전체 상품").font(.headline)
-            Text("한국 브랜드 · 추적을 시작하면 오늘부터 가격을 기록해요").font(.caption).foregroundStyle(.secondary)
+            Text("한국 브랜드 · 하트를 누르면 관심에 담고 오늘부터 가격을 지켜봐요").font(.caption).foregroundStyle(.secondary)
             ForEach(browse.filter { !tracked.contains($0.sku) }) { item in
                 CatalogRow(item: item, busy: tracking == item.id, disabled: tracking != nil) { start(item) }
                     .onAppear { if item.id == browse.last?.id { Task { await loadMore() } } }
@@ -259,7 +259,11 @@ struct CatalogRow: View {
                 Text(usd(item.price)).font(.subheadline.bold())
             }
             Spacer()
-            Button(busy ? "추가 중" : "추적 시작", action: action).buttonStyle(.bordered).disabled(disabled)
+            Button(action: action) {
+                Image(systemName: busy ? "hourglass" : "heart").font(.title3).frame(width: 44, height: 44)
+            }
+            .disabled(disabled)
+            .accessibilityLabel(busy ? "담는 중" : "관심에 담기")
         }
     }
 }
@@ -295,8 +299,8 @@ struct ProductDetail: View {
                         }.frame(height: 190).accessibilityLabel("\(product.name), 최근 \(days)일 상품가")
                     } else {
                         VStack(spacing: 6) {
-                            Text("가격 기록 중").font(.subheadline.bold())
-                            Text("\(PriceHistory.trackedDays(product.history))일째 수집 중 · 가격이 바뀌면 그래프가 그려져요").font(.caption).foregroundStyle(.secondary)
+                            Text(PriceHistory.summary(product.history, current: product.price)).font(.subheadline.bold())
+                            Text("가격이 바뀌면 여기에 그래프로 보여드려요").font(.caption).foregroundStyle(.secondary)
                         }.frame(maxWidth: .infinity, minHeight: 120).background(Color.canvas, in: RoundedRectangle(cornerRadius: 12))
                     }
                     let prices = series.map(\.price)
