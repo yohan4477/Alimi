@@ -56,18 +56,6 @@
     "ko": "관심 등록",
     "en": "Save"
   },
-  "favorite.toggle": {
-    "ko": "관심 상품 등록 또는 해제",
-    "en": "Save or unsave"
-  },
-  "section.watching": {
-    "ko": "상품 둘러보기",
-    "en": "Explore products"
-  },
-  "section.saved": {
-    "ko": "내 관심 상품",
-    "en": "My saved items"
-  },
   "section.more": {
     "ko": "더 많은 상품",
     "en": "More products"
@@ -80,21 +68,9 @@
     "ko": "전체 상품",
     "en": "All products"
   },
-  "section.allHint": {
-    "ko": "한국 브랜드 · 하트를 누르면 관심에 담고 오늘부터 가격을 지켜봐요",
-    "en": "Korean brands · Tap the heart to save and start watching the price"
-  },
   "count": {
     "ko": "{n}개",
     "en": "{n} items"
-  },
-  "empty.watchingCategory": {
-    "ko": "이 카테고리에서 지켜보는 상품이 아직 없어요. 아래에서 하트를 눌러 보세요.",
-    "en": "Nothing watched in this category yet. Tap a heart below."
-  },
-  "empty.saved": {
-    "ko": "관심 상품이 없어요. 하트를 눌러 추가해 보세요.",
-    "en": "No saved items yet. Tap a heart to add one."
   },
   "empty.catalogSearch": {
     "ko": "전체 카탈로그에서도 찾지 못했어요.",
@@ -148,78 +124,6 @@
     "ko": "오프라인 데이터",
     "en": "Offline data"
   },
-  "chart.pendingHint": {
-    "ko": "가격이 바뀌면 여기에 그래프로 보여드려요",
-    "en": "When the price changes, you'll see it charted here."
-  },
-  "chart.cadence": {
-    "ko": "공식 피드가 갱신되면 1시간 안에 반영",
-    "en": "Updated within an hour of each official feed refresh"
-  },
-  "chart.aria": {
-    "ko": "최근 {days}일 상품가, USD",
-    "en": "Product price over the last {days} days, USD"
-  },
-  "chart.a11y": {
-    "ko": "{name}, 최근 {days}일 상품가",
-    "en": "{name}, product price over the last {days} days"
-  },
-  "chart.title": {
-    "ko": "상품가 · USD",
-    "en": "Product price · USD"
-  },
-  "chart.high": {
-    "ko": "최고 {v}",
-    "en": "High {v}"
-  },
-  "chart.low": {
-    "ko": "최저 {v}",
-    "en": "Low {v}"
-  },
-  "chart.daysAgo": {
-    "ko": "{n}일 전",
-    "en": "{n}d ago"
-  },
-  "chart.today": {
-    "ko": "오늘",
-    "en": "Today"
-  },
-  "chart.note": {
-    "ko": "USD 상품가 · 수집 시작 {date} · 그 이전 가격은 표시하지 않아요",
-    "en": "USD product price · Tracking since {date} · Earlier prices aren't shown"
-  },
-  "stat.high": {
-    "ko": "최고가",
-    "en": "High"
-  },
-  "stat.avg": {
-    "ko": "평균가",
-    "en": "Average"
-  },
-  "stat.low": {
-    "ko": "최저가",
-    "en": "Low"
-  },
-  "period": {
-    "ko": "기간",
-    "en": "Period"
-  },
-  "period.aria": {
-    "ko": "가격 이력 기간",
-    "en": "Price history period"
-  },
-  "period.low": {
-    "ko": "기간 최저",
-    "en": "Period low"
-  },
-  "period.avg": {
-    "ko": "기간 평균",
-    "en": "Period average"
-  },
-  "period.high": {
-    "ko": "기간 최고",
-    "en": "Period high"
-  },
   "days": {
     "ko": "{n}일",
     "en": "{n}d"
@@ -260,10 +164,6 @@
     "ko": "배송비 {v}~",
     "en": "Shipping from {v}"
   },
-  "detail.priceHistory": {
-    "ko": "가격 흐름",
-    "en": "Price history"
-  },
   "detail.retailer": {
     "ko": "판매처",
     "en": "Retailer"
@@ -284,77 +184,13 @@
     "ko": "표시 가격은 결제 가격과 다를 수 있어요. 제휴 링크로 구매하면 SeoulBeauty가 수수료를 받을 수 있어요.",
     "en": "Prices may differ at checkout. SeoulBeauty may earn a commission when you buy through affiliate links."
   },
-  "target.title": {
-    "ko": "나의 목표가",
-    "en": "My target price"
-  },
-  "target.empty": {
-    "ko": "원하는 USD 상품가를 저장해 보세요",
-    "en": "Save the USD price you'd like to pay"
-  },
-  "target.note": {
-    "ko": "배송비·세금 제외 · 이 기기에 저장 · 푸시 알림은 준비 중",
-    "en": "Excludes shipping & tax · Saved on this device · Push alerts coming soon"
-  },
-  "target.deviceNote": {
-    "ko": "목표가는 이 기기에 저장돼요. 푸시 알림은 준비 중이에요.",
-    "en": "Target prices are saved on this device. Push alerts are coming soon."
-  },
-  "target.remove": {
-    "ko": "목표가 삭제",
-    "en": "Remove target"
-  },
-  "target.set": {
-    "ko": "목표가 설정",
-    "en": "Set target price"
-  },
-  "target.rule": {
-    "ko": "목표가",
-    "en": "Target"
-  },
-  "target.current": {
-    "ko": "목표 상품가 {v} · 배송비·세금 제외",
-    "en": "Target {v} · excludes shipping & tax"
-  },
   "target.invalid": {
     "ko": "USD 0.01~10,000, 소수 둘째 자리까지 입력하세요.",
     "en": "Enter USD 0.01–10,000 with up to 2 decimals."
   },
-  "target.saved": {
-    "ko": "목표가를 저장했어요",
-    "en": "Target price saved"
-  },
-  "target.field": {
-    "ko": "목표 상품가 (USD)",
-    "en": "Target price (USD)"
-  },
-  "target.footer": {
-    "ko": "미국 달러 상품가 기준 · 배송비와 세금 제외. 푸시 알림은 아직 발송하지 않습니다.",
-    "en": "US dollar product price · excludes shipping and tax. Push alerts are not sent yet."
-  },
-  "target.sheetTitle": {
-    "ko": "목표 가격 설정",
-    "en": "Set target price"
-  },
   "now": {
     "ko": "현재 {v}",
     "en": "Now {v}"
-  },
-  "alerts.title": {
-    "ko": "알림",
-    "en": "Alerts"
-  },
-  "alerts.empty": {
-    "ko": "설정한 알림이 없어요",
-    "en": "No alerts set"
-  },
-  "alerts.emptyHint": {
-    "ko": "상품 상세에서 목표 가격을 설정하세요.",
-    "en": "Set a target price on a product page."
-  },
-  "alerts.row": {
-    "ko": "현재 {now} · 목표 {target}",
-    "en": "Now {now} · Target {target}"
   },
   "alert.unset": {
     "ko": "미설정",
@@ -452,26 +288,6 @@
     "ko": "SeoulBeauty · Stylevana US 공식 제휴 피드 · 피드 갱신 시 1시간 안에 반영",
     "en": "SeoulBeauty · Official Stylevana US affiliate feed · updated within an hour of each refresh"
   },
-  "dialog.title": {
-    "ko": "원하는 가격을 저장하세요",
-    "en": "Save your target price"
-  },
-  "dialog.sub": {
-    "ko": "미국 달러 상품가 기준 · 배송비와 세금 제외",
-    "en": "US dollar product price · excludes shipping and tax"
-  },
-  "dialog.label": {
-    "ko": "목표 가격",
-    "en": "Target price"
-  },
-  "dialog.save": {
-    "ko": "목표가 저장",
-    "en": "Save target"
-  },
-  "dialog.note": {
-    "ko": "이 기기에 저장돼요. 푸시 알림은 준비 중이에요.",
-    "en": "Saved on this device. Push alerts are coming soon."
-  },
   "search.prompt": {
     "ko": "브랜드 또는 상품명 검색",
     "en": "Search brands or products"
@@ -544,10 +360,6 @@
     "ko": "다른 용량·옵션",
     "en": "Other sizes & options"
   },
-  "family.watching": {
-    "ko": "상품 보기",
-    "en": "View product"
-  },
   "family.default": {
     "ko": "기본",
     "en": "Standard"
@@ -567,10 +379,6 @@
   "chat.title": {
     "ko": "채팅",
     "en": "Community chat"
-  },
-  "chat.sub": {
-    "ko": "주제별 방에서 익명으로 제품 이야기를 나눠요",
-    "en": "Talk K-beauty anonymously, room by room."
   },
   "chat.members": {
     "ko": "{n}명",
@@ -708,14 +516,6 @@
     "ko": "브랜드 둘러보기",
     "en": "Explore brands"
   },
-  "brands.products": {
-    "ko": "{brand} 상품",
-    "en": "{brand} products"
-  },
-  "brands.clear": {
-    "ko": "전체 보기",
-    "en": "Show all"
-  },
   "saved.title": {
     "ko": "관심상품",
     "en": "Saved"
@@ -743,10 +543,6 @@
   "search.recentEmpty": {
     "ko": "브랜드나 제품명을 입력해 보세요",
     "en": "Type a brand or product name"
-  },
-  "brand.back": {
-    "ko": "브랜드",
-    "en": "Brands"
   },
   "brand.empty": {
     "ko": "이 브랜드에 등록된 상품이 없어요",
@@ -896,17 +692,9 @@
     "ko": "보기",
     "en": "View"
   },
-  "target.secondary": {
-    "ko": "가격 알림 받기",
-    "en": "Get a price alert"
-  },
   "family.buyHint": {
     "ko": "옵션과 현재 판매 정보를 확인하세요",
     "en": "Check options and current retailer offers"
-  },
-  "detail.alertsTitle": {
-    "ko": "가격이 내려가면 알려드릴까요?",
-    "en": "Wait for a better price?"
   },
   "nav.community": {
     "ko": "커뮤니티",
@@ -1023,10 +811,6 @@
   "community.noComments": {
     "ko": "첫 댓글을 남겨 보세요",
     "en": "Be the first to reply"
-  },
-  "product.talk": {
-    "ko": "이 제품 이야기",
-    "en": "People talking about this"
   },
   "product.talkEmpty": {
     "ko": "아직 이 제품 이야기가 없어요",
@@ -1232,10 +1016,6 @@
     "ko": "원하는 것만 고르세요. 이 글에만 표시돼요",
     "en": "Pick only what you want shown on this post"
   },
-  "product.filterAll": {
-    "ko": "전체",
-    "en": "All"
-  },
   "product.similarNote": {
     "ko": "비슷한 조건의 사람이 써본 경험이에요. 같은 결과를 보장하지는 않아요.",
     "en": "Experiences from people with similar conditions. Your results may differ."
@@ -1243,14 +1023,6 @@
   "about.title": {
     "ko": "어떤 제품인가요?",
     "en": "About this product"
-  },
-  "about.category": {
-    "ko": "제품 종류",
-    "en": "Product type"
-  },
-  "about.options": {
-    "ko": "용량·색상·옵션",
-    "en": "Size, shade & options"
   },
   "about.general": {
     "ko": "제품 분류에 대한 안내예요. 정확한 성분·사용법은 판매처 정보를 확인하세요.",
@@ -1280,10 +1052,6 @@
     "ko": "이용 규칙에 동의합니다",
     "en": "I agree to the community rules"
   },
-  "community.delete": {
-    "ko": "내 글 삭제",
-    "en": "Delete my post"
-  },
   "community.photosError": {
     "ko": "사진을 준비하지 못했어요. 작은 사진으로 다시 시도해 주세요.",
     "en": "Could not prepare the photo. Please try a smaller image."
@@ -1291,18 +1059,6 @@
   "community.titleNeeded": {
     "ko": "제목을 2~120자로 작성해 주세요.",
     "en": "Enter a title between 2 and 120 characters."
-  },
-  "community.purchaseDate": {
-    "ko": "구매 시점 (선택)",
-    "en": "Purchase date (optional)"
-  },
-  "community.savedPosts": {
-    "ko": "저장한 글",
-    "en": "Saved posts"
-  },
-  "community.sourceCount": {
-    "ko": "관련 채팅 언급 {n}건",
-    "en": "{n} related chat mentions"
   },
   "about.type.선케어": {
     "ko": "선크림·선스틱 등 자외선 차단 제품을 모았어요. 제품별 SPF·PA, 제형과 사용법을 확인해 보세요.",
@@ -1388,10 +1144,6 @@
     "ko": "관련 대화 보기",
     "en": "See the conversation"
   },
-  "home.productInfo": {
-    "ko": "상품 정보 보기",
-    "en": "View product info"
-  },
   "home.questions": {
     "ko": "최근 질문과 경험",
     "en": "Recent questions and experiences"
@@ -1435,10 +1187,6 @@
   "activity.chats": {
     "ko": "참여한 대화",
     "en": "My conversations"
-  },
-  "detail.currentChecked": {
-    "ko": "가격 확인: {date}",
-    "en": "Price checked: {date}"
   },
   "section.products": {
     "ko": "상품 둘러보기",
