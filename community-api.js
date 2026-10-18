@@ -1,8 +1,7 @@
 // Community posts and comments (topic Q&A next to each topic's live chat). Same anonymous identity,
 // filters and error codes as chat (see chat-api.js); writes go through RPCs, clients only read.
-import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY} from './live.js';
+import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet, rpc} from './supabase.js';
 
-const headers = {apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json'};
 export const POST_FIELDS = 'id,room_id,author_tag,nickname,kind,title,body,item,reasons,comments,likes,created_at,last_activity_at,' +
   'used_for,skin_type,skin_tone,undertone,climate,goal,photos,bought_where,bought_price_minor,bought_currency,ship_country,ship_days,sponsored';
 export const COMMENT_FIELDS = 'id,post_id,author_tag,nickname,body,item,likes,created_at';
@@ -46,16 +45,7 @@ export const postsUrl = (room = null, limit = 30) => rest('community_posts', {se
 export const commentsUrl = post => rest('community_comments', {select: COMMENT_FIELDS, post_id: 'eq.' + post, order: 'id.asc', limit: '200'});
 export const mentionsUrl = familyKey => rest('product_mentions', {select: 'source,source_id,post_id,room_id,created_at', family_key: 'eq.' + familyKey, order: 'created_at.desc', limit: '100'});
 
-async function get(url, fetchImpl) {
-  const res = await fetchImpl(url, {headers, signal: AbortSignal.timeout(10000)});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return res.json();
-}
-async function rpc(name, body, fetchImpl) {
-  const res = await fetchImpl(SUPABASE_URL + '/rest/v1/rpc/' + name, {method: 'POST', headers, body: JSON.stringify(body), signal: AbortSignal.timeout(10000)});
-  if (!res.ok) { let msg = 'HTTP ' + res.status; try { msg = (await res.json()).message ?? msg; } catch {} throw Error(msg); }
-  return res.status === 204 ? null : res.json();
-}
+const get = restGet;
 
 export const fetchPosts = (room = null, limit = 30, fetchImpl = fetch) => get(postsUrl(room, limit), fetchImpl);
 export async function fetchPost(id, fetchImpl = fetch) { const [p] = await get(rest('community_posts', {select: POST_FIELDS, id: 'eq.' + id}), fetchImpl); return p ?? null; }

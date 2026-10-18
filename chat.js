@@ -10,8 +10,7 @@ import {chatSecret, readBlocked, block, hasAgreed, agree, roomTitle, roomIntro, 
   fetchRooms, fetchMessages, fetchMyRooms, joinRoom, postMessage, likeMessage, reportMessage} from './chat-api.js';
 import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, filterReviews, photoUrl, reviewPayload, uploadPhoto, ago, fetchPosts, fetchPost, fetchComments, fetchProductTalk, createPost, addComment, likeCommunity, reportCommunity} from './community-api.js';
 
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+import {$, esc} from './util.js';
 let storage; try { storage = localStorage; } catch {}
 const secret = chatSecret(storage);
 const chat = {rooms: [], room: null, messages: [], nickname: '', myTag: '', item: null, replyTo: null, menuFor: null, poll: null, sending: false};
