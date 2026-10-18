@@ -162,16 +162,16 @@ struct BrandLogo: View {
         let key = brand.lowercased().filter { $0.isLetter || $0.isNumber }
         let source: String
         switch key {
-        case "cosrx": source = "https://cosrxinc.jpg3.kr/cosrximg/cosrx/downloads/COSRX_LOGO_Final.png"
-        case "drmelaxin": source = "https://melaxin.com/img/logo_melaxin_black.png"
-        case "peripera": source = "https://cliocosmetic.com/public/images/logo/peripera.png"
-        case "clio": source = "https://cliocosmetic.com/public/images/logo/clio.png"
-        case "goodal": source = "https://cliocosmetic.com/public/images/logo/goodal.png"
-        case "jungsaemmool": source = "https://www.jsmbeauty.com/design/jsmbeauty/img/logo_bk.png"
-        case "rejuran": source = "https://rejuran.co.kr/HTML/rejuran/img/logo_header_v2.png"
-        case "centellian24": source = "https://centellian24.com/cdn/shop/files/logo-transparent-crop.png?v=1729224346&width=300"
-        case "somebymi": source = "https://somebymi.com/web/upload/category/editor/2025/08/19/35279b3e93f1e77a767fe2d5850a75e0.png"
-        case "unleashia": source = "https://unleashiacosmetics.com/web/upload/category/editor/2021/11/02/24de4a1e629d7502a66f266f480e3493.png"
+        case "cosrx", "코스알엑스": source = "https://cosrxinc.jpg3.kr/cosrximg/cosrx/downloads/COSRX_LOGO_Final.png"
+        case "drmelaxin", "닥터멜락신": source = "https://melaxin.com/img/logo_melaxin_black.png"
+        case "peripera", "페리페라": source = "https://cliocosmetic.com/public/images/logo/peripera.png"
+        case "clio", "클리오": source = "https://cliocosmetic.com/public/images/logo/clio.png"
+        case "goodal", "구달": source = "https://cliocosmetic.com/public/images/logo/goodal.png"
+        case "jungsaemmool", "정샘물": source = "https://www.jsmbeauty.com/design/jsmbeauty/img/logo_bk.png"
+        case "rejuran", "리쥬란": source = "https://rejuran.co.kr/HTML/rejuran/img/logo_header_v2.png"
+        case "centellian24", "센텔리안24": source = "https://centellian24.com/cdn/shop/files/logo-transparent-crop.png?v=1729224346&width=300"
+        case "somebymi", "썸바이미": source = "https://somebymi.com/web/upload/category/editor/2025/08/19/35279b3e93f1e77a767fe2d5850a75e0.png"
+        case "unleashia", "언리시아": source = "https://unleashiacosmetics.com/web/upload/category/editor/2021/11/02/24de4a1e629d7502a66f266f480e3493.png"
         default: return nil
         }
         return URL(string: source)
