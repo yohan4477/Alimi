@@ -76,3 +76,16 @@ test('watch summary replaces the empty chart with a plain sentence',async()=>{
   assert.equal(watchSummary({price:18,history:h(['2026-10-17T22:30:00Z',20],['2026-10-19T22:30:00Z',18])},now).text,'지켜본 3일 중 지금이 최저가');
   assert.equal(watchSummary({price:21,history:h(['2026-10-17T22:30:00Z',20],['2026-10-18T22:30:00Z',18],['2026-10-19T22:30:00Z',21])},now).text,'지켜본 3일 동안 가격 2번 변동');
 });
+test('family variants collapse duplicate listings and flag the best unit price',async()=>{
+  const {collapseVariants,familiesPageUrl}=await import('../dist/live.js');
+  const v=collapseVariants([
+    {sku:'a',size_label:'200ml',option_label:null,price_minor:1700,unit_price_minor:85},
+    {sku:'b',size_label:'200ml',option_label:null,price_minor:1800,unit_price_minor:90},
+    {sku:'c',size_label:'20ml',option_label:null,price_minor:424,unit_price_minor:212},
+    {sku:'d',size_label:null,option_label:'Set',price_minor:3000,unit_price_minor:null}]);
+  assert.deepEqual(v.map(x=>x.sku),['a','c','d']);
+  assert.deepEqual(v.map(x=>x.bestValue),[true,false,false]);
+  assert.equal(v[0].unitPrice,0.85);
+  assert.equal(collapseVariants([{sku:'x',size_label:'50ml',price_minor:100,unit_price_minor:20}])[0].bestValue,false,'single sized variant is not a "best value"');
+  const u=new URL(familiesPageUrl('립',24));assert.equal(u.searchParams.get('category'),'eq.립');assert.equal(u.searchParams.get('order'),'sort_key.desc');
+});

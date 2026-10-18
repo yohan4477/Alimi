@@ -6,15 +6,15 @@ import Combine
 enum LiveAPI {
     static let baseURL = URL(string: "https://mqsnshnlfwsgabrsmqsz.supabase.co")!
     static let publishableKey = "sb_publishable_CJjQ-l5ev-D4OH0Na0gFoQ_szunygff"
-    static let offersQuery = "select=external_id,retailer,currency,url,affiliate_url,image_url,products(slug,brand,brand_ko,name,size,category),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id"
+    static let offersQuery = "select=external_id,retailer,currency,url,affiliate_url,image_url,products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id"
     static var offersURL: URL { URL(string: "/rest/v1/offers?" + offersQuery, relativeTo: baseURL)! }
 }
 
 // Mirrors one row of the offers query (also the format of the bundled live-snapshot.json).
 struct OfferRow: Codable {
     struct ProductRow: Codable {
-        let slug, brand, name, size, category, brandKo: String?
-        enum CodingKeys: String, CodingKey { case slug, brand, name, size, category, brandKo = "brand_ko" }
+        let slug, brand, name, size, category, brandKo, familyKey, sizeLabel: String?
+        enum CodingKeys: String, CodingKey { case slug, brand, name, size, category, brandKo = "brand_ko", familyKey = "family_key", sizeLabel = "size_label" }
     }
     struct Current: Codable {
         let amountMinor: Int
@@ -60,12 +60,33 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     let currency: String
     let availability: String
     let imageUrl: URL?
+    var sizeLabel: String? = nil
+    var optionLabel: String? = nil
+    var unit: String? = nil
+    var unitPriceMinor: Int? = nil
     var id: String { "\(retailer)|\(market)|\(sku)" }
+    var variantLabel: String { [sizeLabel, optionLabel].compactMap { $0 }.joined(separator: " · ") }
+    var unitPrice: Double? { unitPriceMinor.map { Double($0) / 100 } }
     var price: Double { Double(priceMinor) / 100 }
     var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
     static let fields = "retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url"
     enum CodingKeys: String, CodingKey {
         case retailer, market, sku, brand, brandKo = "brand_ko", name, category, priceMinor = "price_minor", currency, availability, imageUrl = "image_url"
+        case sizeLabel = "size_label", optionLabel = "option_label", unit, unitPriceMinor = "unit_price_minor"
+    }
+    static func unitName(_ unit: String?) -> String { unit == "ml" || unit == "g" ? "10" + (unit ?? "") : unit == "pcs" ? "1pc" : (unit ?? "") }
+    // Duplicate listings of the same size/option collapse to the cheapest; best unit price first.
+    static func collapse(_ rows: [CatalogItem]) -> [VariantChoice] {
+        var best: [String: CatalogItem] = [:]
+        for r in rows {
+            let k = (r.sizeLabel ?? "") + "|" + (r.optionLabel ?? "")
+            if let cur = best[k], cur.priceMinor <= r.priceMinor { continue }
+            best[k] = r
+        }
+        let list = best.values.sorted { ($0.unitPriceMinor ?? .max, $0.priceMinor) < ($1.unitPriceMinor ?? .max, $1.priceMinor) }
+        let units = list.compactMap(\.unitPriceMinor)
+        let bestUnit = units.count > 1 ? units.min() : nil
+        return list.map { VariantChoice(item: $0, bestValue: bestUnit != nil && $0.unitPriceMinor == bestUnit) }
     }
     // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
     static func pageURL(category: String, offset: Int, limit: Int = 24) -> URL {
@@ -96,6 +117,41 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     }
 }
 
+struct VariantChoice: Identifiable {
+    let item: CatalogItem
+    let bestValue: Bool
+    var id: String { item.id }
+}
+
+// One product family (sizes / shades grouped) for home browsing.
+struct ProductFamily: Codable, Identifiable, Hashable {
+    let familyKey: String
+    let brand: String
+    let brandKo: String?
+    let baseName: String
+    let category: String?
+    let imageUrl: URL?
+    let minPriceMinor: Int
+    let maxPriceMinor: Int
+    let variants: Int
+    var id: String { familyKey }
+    var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
+    var priceText: String { variants > 1 && minPriceMinor != maxPriceMinor ? L("family.from", ["v": usd(Double(minPriceMinor) / 100)]) : usd(Double(minPriceMinor) / 100) }
+    enum CodingKeys: String, CodingKey {
+        case familyKey = "family_key", brand, brandKo = "brand_ko", baseName = "base_name", category, imageUrl = "image_url"
+        case minPriceMinor = "min_price_minor", maxPriceMinor = "max_price_minor", variants
+    }
+    static func pageURL(category: String, offset: Int, limit: Int = 24) -> URL {
+        var c = URLComponents(url: URL(string: "/rest/v1/catalog_families", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
+        var items = [URLQueryItem(name: "select", value: "family_key,brand,brand_ko,base_name,category,image_url,min_price_minor,max_price_minor,variants"),
+                     URLQueryItem(name: "order", value: "sort_key.desc"), URLQueryItem(name: "offset", value: String(offset)),
+                     URLQueryItem(name: "limit", value: String(limit))]
+        if category != "전체" { items.append(URLQueryItem(name: "category", value: "eq." + category)) }
+        c.queryItems = items
+        return c.url!
+    }
+}
+
 struct LiveSnapshot: Codable {
     let exportedAt: String
     let rows: [OfferRow]
@@ -114,6 +170,8 @@ struct Product: Identifiable, Hashable {
     let name: String
     let size: String
     let category: String
+    var familyKey: String? = nil
+    var sizeLabel: String? = nil
     let retailer: String
     let currency: String
     let url: URL
@@ -139,6 +197,7 @@ struct Product: Identifiable, Hashable {
                 ISODate.parse(o.observedAt).map { PricePoint(date: $0, price: Double(o.amountMinor) / 100) }
             }.sorted { $0.date < $1.date }
             return Product(id: slug, sku: r.externalId, brand: brand, brandKo: p.brandKo, name: name, size: p.size ?? "", category: p.category ?? "기타",
+                           familyKey: p.familyKey, sizeLabel: p.sizeLabel ?? p.size,
                            retailer: r.retailer, currency: r.currency, url: r.url, affiliateUrl: r.affiliateUrl, imageUrl: r.imageUrl,
                            price: Double(c.amountMinor) / 100, delivery: c.deliveryMinor.map { Double($0) / 100 },
                            availability: c.availability, changedAt: changed, checkedAt: checked, history: history)
@@ -274,6 +333,25 @@ final class AlimiStore: ObservableObject {
         }
     }
     var categories: [String] { ["전체"] + Product.categories }
+    func familiesPage(category: String, offset: Int) async -> [ProductFamily]? {
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
+        var request = URLRequest(url: ProductFamily.pageURL(category: category, offset: offset), timeoutInterval: 15)
+        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
+        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        return try? JSONDecoder().decode([ProductFamily].self, from: data)
+    }
+    func family(_ key: String) async -> [VariantChoice]? {
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
+        var c = URLComponents(url: URL(string: "/rest/v1/catalog_items", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
+        c.queryItems = [URLQueryItem(name: "select", value: CatalogItem.fields + ",size_label,option_label,unit,unit_price_minor"),
+                        URLQueryItem(name: "active", value: "eq.true"), URLQueryItem(name: "family_key", value: "eq." + key),
+                        URLQueryItem(name: "limit", value: "60")]
+        var request = URLRequest(url: c.url!, timeoutInterval: 15)
+        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
+        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200,
+              let rows = try? JSONDecoder().decode([CatalogItem].self, from: data) else { return nil }
+        return CatalogItem.collapse(rows)
+    }
     func catalogPage(category: String, offset: Int) async -> [CatalogItem]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
         var request = URLRequest(url: CatalogItem.pageURL(category: category, offset: offset), timeoutInterval: 15)
