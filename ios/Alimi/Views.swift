@@ -2,47 +2,48 @@ import SwiftUI
 import Charts
 
 struct RootView: View {
+    @EnvironmentObject var store: AlimiStore
     var body: some View {
         TabView {
             BrowseView().tabItem { Label("홈", systemImage: "house.fill") }
             BrowseView(favoritesOnly: true).tabItem { Label("관심 상품", systemImage: "heart.fill") }
             AlertsView().tabItem { Label("알림", systemImage: "bell.fill") }
-        }
+        }.task { await store.refresh() }
     }
 }
-struct DemoBanner: View {
+private let dayFormat: Date.FormatStyle = .dateTime.month().day().locale(Locale(identifier: "ko_KR"))
+
+struct SourceBanner: View {
+    @EnvironmentObject var store: AlimiStore
+    private var text: String {
+        switch store.source {
+        case .live:
+            let latest = store.products.map(\.checkedAt).max()
+            return "Stylevana US 공식 피드 · 실제 상품 \(store.products.count)개" + (latest.map { " · \($0.formatted(dayFormat)) 확인" } ?? "")
+        case .snapshot(let at):
+            return "오프라인 데이터" + (ISODate.parse(at).map { " · \($0.formatted(dayFormat)) 기준" } ?? "")
+        case .none:
+            return "가격 데이터를 불러오지 못했어요"
+        }
+    }
     var body: some View {
-        Label("COSRX는 공식 미국 상품가 · 다른 상품은 데모 · 푸시 미연결", systemImage: "info.circle")
+        Label(text, systemImage: store.source == .live ? "checkmark.seal" : "wifi.slash")
             .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             .padding(12).background(Color.canvas, in: RoundedRectangle(cornerRadius: 10))
     }
 }
 struct ProductArt: View {
     let product: Product
-    private var imageURL: URL? {
-        if product.id == "2", let row = StylevanaSnapshot.bundled?.latest { return row.imageUrl }
-        switch product.id {
-        case "1": return URL(string: "https://ie.beautyofjoseon.com/cdn/shop/files/02_0330___v2.jpg?v=1774857974")
-        case "2": return URL(string: "https://www.cosrx.com/cdn/shop/files/james_800x1067_1_1_4e9750cc-2cd6-4817-ace5-be2305a85806_1200x1200.jpg?v=1763111577")
-        default: return nil
-        }
-    }
     var body: some View {
-        VStack(spacing: 4) {
-            if let imageURL {
-                AsyncImage(url: imageURL) { phase in
-                    if let image = phase.image { image.resizable().scaledToFit() }
-                    else { placeholder }
-                }
-                if product.id == "1" { Text("브랜드 연출 이미지 · 가격은 50ml 1개 기준").font(.system(size: 8)).foregroundStyle(.secondary) }
-            } else { placeholder }
-        }.frame(maxWidth: .infinity).accessibilityLabel(product.name)
-    }
-    private var placeholder: some View {
-        VStack(spacing: 10) {
-            Text(product.brand).font(.caption)
-            Text("상품 사진 준비 중").font(.caption2)
-        }.foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.canvas)
+        AsyncImage(url: product.imageUrl) { phase in
+            if let image = phase.image { image.resizable().scaledToFit() }
+            else {
+                VStack(spacing: 10) {
+                    Text(product.brand).font(.caption)
+                    if phase.error != nil { Text("사진을 불러오지 못했어요").font(.caption2) } else { ProgressView() }
+                }.foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.canvas)
+            }
+        }.frame(maxWidth: .infinity).accessibilityLabel("\(product.brand) \(product.name)")
     }
 }
 struct BrowseView: View {
@@ -55,7 +56,7 @@ struct BrowseView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    DemoBanner()
+                    SourceBanner()
                     if !favoritesOnly {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("매일 쓰는 뷰티,").font(.system(size: 28, weight: .bold))
@@ -65,7 +66,7 @@ struct BrowseView: View {
                     }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
-                            ForEach(["전체", "선케어", "토너", "에센스", "크림", "립케어"], id: \.self) { item in
+                            ForEach(store.categories, id: \.self) { item in
                                 Button { category = item } label: {
                                     Text(item).font(.subheadline.weight(.medium)).padding(.horizontal, 16).padding(.vertical, 9)
                                         .background(category == item ? Color.alimi : Color.canvas, in: Capsule())
@@ -79,27 +80,19 @@ struct BrowseView: View {
                         Spacer()
                         Text("\(results.count)개").font(.subheadline).foregroundStyle(.secondary)
                     }
-                    if let error = store.loadError { Text(error).foregroundStyle(.red) }
                     if results.isEmpty {
                         ContentUnavailableView("표시할 상품이 없어요", systemImage: favoritesOnly ? "heart" : "magnifyingglass", description: Text("검색어를 바꾸거나 상품의 하트를 눌러보세요."))
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 16)], spacing: 24) {
                         ForEach(results) { product in
                             VStack(alignment: .leading, spacing: 8) {
-                                NavigationLink { ProductDestination(product: product) } label: {
+                                NavigationLink { ProductDetail(product: product) } label: {
                                     VStack(alignment: .leading, spacing: 8) {
                                         ProductArt(product: product).frame(height: 180)
                                         Text(product.brand).font(.caption).foregroundStyle(.secondary)
                                         Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
-                                        if product.id == "2" {
-                                            if let row = StylevanaSnapshot.bundled?.latest {
-                                                Text(row.formattedAmount).font(.system(size: 23, weight: .bold, design: .rounded))
-                                                Text("미국 공식 피드 · 배송비·세금 별도").font(.caption2).foregroundStyle(.secondary)
-                                            } else { Text("가격 확인 대기").font(.caption) }
-                                        } else {
-                                            Text(won(store.price(product))).font(.system(size: 23, weight: .bold, design: .rounded))
-                                            Text("배송비 포함 · 가상 판매처 3곳").font(.caption2).foregroundStyle(.secondary)
-                                        }
+                                        Text(usd(product.price)).font(.system(size: 23, weight: .bold, design: .rounded))
+                                        Text("\(product.size) · \(product.stockLabel)").font(.caption2).foregroundStyle(.secondary)
                                     }.foregroundStyle(.primary)
                                 }.buttonStyle(.plain)
                                 Button { store.toggle(product.id) } label: {
@@ -113,6 +106,7 @@ struct BrowseView: View {
             }.navigationTitle(favoritesOnly ? "관심 상품" : "Alimi")
                 .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: "브랜드 또는 상품명 검색")
+                .refreshable { await store.refresh() }
         }
     }
 }
@@ -120,74 +114,67 @@ struct ProductDetail: View {
     @EnvironmentObject var store: AlimiStore
     let product: Product
     @State private var showTarget = false
-    @State private var simulationText = "14000"
-    @State private var inputError: String?
     @State private var days = 30
+    private var series: [PricePoint] { PriceHistory.daily(product.history, days: days) }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                DemoBanner()
                 ProductArt(product: product).frame(height: 240)
-                Text("제품 대체 일러스트 · 실제 포장 아님").font(.caption2).foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("\(product.brand) · \(product.size)").font(.subheadline).foregroundStyle(.secondary)
+                    Text("\(product.retailer) · 미국 상품가").font(.caption).foregroundStyle(.secondary)
+                    Text(usd(product.price)).font(.largeTitle.bold())
+                    Text("\(product.checkedAt.formatted(dayFormat)) 확인 · 가격 변경 \(product.changedAt.formatted(dayFormat))").font(.caption).foregroundStyle(.secondary)
                     Text(product.name).font(.title2.bold())
-                    Text(won(store.price(product))).font(.largeTitle.bold())
-                    Text("배송비 포함 최저가").font(.caption).foregroundStyle(.secondary)
+                    Text("\(product.brand) · \(product.size)").font(.subheadline).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading, spacing: 16) {
-                    HStack { Text("가격 변동 그래프").font(.headline); Spacer(); Text("단위: 원").font(.caption).foregroundStyle(.secondary) }
+                    HStack { Text("가격 흐름").font(.headline); Spacer(); Text("USD").font(.caption).foregroundStyle(.secondary) }
                     Picker("기간", selection: $days) { Text("7일").tag(7); Text("14일").tag(14); Text("30일").tag(30) }.pickerStyle(.segmented)
-                    Chart {
-                        ForEach(Array(store.history(product).suffix(days).enumerated()), id: \.offset) { item in
-                            LineMark(x: .value("일", item.offset - days + 1), y: .value("원", item.element)).foregroundStyle(Color.red)
-                        }
-                        if let target = store.saved.targets[product.id] {
-                            RuleMark(y: .value("목표가", target)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [4]))
-                        }
-                    }.frame(height: 190).chartXAxisLabel("오늘 기준 경과일")
-                        .accessibilityLabel("\(product.name), 최근 \(days)일 가상 가격 이력")
+                    if Set(series.map(\.price)).count >= 2 {
+                        Chart {
+                            ForEach(series) { point in
+                                LineMark(x: .value("날짜", point.date, unit: .day), y: .value("USD", point.price)).foregroundStyle(Color.red)
+                            }
+                            if let target = store.saved.targets[product.id] {
+                                RuleMark(y: .value("목표가", target)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [4]))
+                            }
+                        }.frame(height: 190).accessibilityLabel("\(product.name), 최근 \(days)일 상품가")
+                    } else {
+                        VStack(spacing: 6) {
+                            Text("가격 기록 중").font(.subheadline.bold())
+                            Text("\(PriceHistory.trackedDays(product.history))일째 수집 중 · 가격이 바뀌면 그래프가 그려져요").font(.caption).foregroundStyle(.secondary)
+                        }.frame(maxWidth: .infinity, minHeight: 120).background(Color.canvas, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    let prices = series.map(\.price)
                     HStack {
-                        metric("기간 최저", store.history(product).suffix(days).min() ?? 0)
+                        metric("기간 최저", prices.min())
                         Spacer()
-                        metric("기간 평균", Int(Double(store.history(product).suffix(days).reduce(0, +)) / Double(store.history(product).suffix(days).count)))
+                        metric("기간 평균", prices.isEmpty ? nil : prices.reduce(0, +) / Double(prices.count))
                         Spacer()
-                        metric("기간 최고", store.history(product).suffix(days).max() ?? 0)
+                        metric("기간 최고", prices.max())
                     }
-                }.padding(.vertical, 16)
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("어디서 살까?").font(.title3.bold())
-                        Text("\(store.offers(product).count)").font(.title3.bold()).foregroundStyle(Color.alimi)
-                        Spacer()
-                        Text("배송비 포함 낮은순").font(.caption).foregroundStyle(.secondary)
-                    }
-                    Text("\(product.size) · 동일 상품 기준 · 가상 판매처").font(.caption).foregroundStyle(.secondary)
-                    ForEach(store.offers(product)) { offer in
-                        OfferComparisonCard(offer: offer, lowest: store.price(product))
-                    }
-                    Text("테스트 가격이에요. 실제 판매처 연결 전입니다.").font(.caption).foregroundStyle(.secondary)
+                    Text("수집 시작 \(product.history.first.map { $0.date.formatted(dayFormat) } ?? "—") · 그 이전 가격은 표시하지 않아요").font(.caption2).foregroundStyle(.secondary)
                 }
-
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("판매처").font(.title3.bold())
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(product.retailer).font(.subheadline.bold())
+                            Text("피드 배송비 \(product.delivery.map(usd) ?? "미확인") · \(product.stockLabel)").font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(usd(product.price)).font(.headline)
+                    }
+                    Link("Stylevana에서 보기 ↗", destination: product.buyURL).buttonStyle(.bordered)
+                    Text("표시 가격은 결제 가격과 다를 수 있어요. 제휴 링크로 구매하면 Alimi가 수수료를 받을 수 있어요.").font(.caption2).foregroundStyle(.secondary)
+                }
+                VStack(alignment: .leading, spacing: 10) {
                     Text(store.status(product)).font(.headline).foregroundStyle(Color.alimi)
                     if let target = store.saved.targets[product.id] {
-                        Text("목표 가격 \(won(target)) · 배송비 포함").font(.subheadline)
+                        Text("목표 상품가 \(usd(target)) · 배송비·세금 제외").font(.subheadline)
                         Button("목표가 삭제", role: .destructive) { store.saved.targets.removeValue(forKey: product.id) }
                     }
-                    DisclosureGroup("가격 하락 시뮬레이션") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("브랜드몰 B 가격 · 배송비 0원").font(.caption)
-                            TextField("가상 가격", text: $simulationText).keyboardType(.numberPad).textFieldStyle(.roundedBorder)
-                            Button("가상 가격 적용") {
-                                guard let value = PriceRule.valid(simulationText) else { inputError = "1~10,000,000원의 정수를 입력하세요."; return }
-                                store.simulations[product.id] = value; inputError = nil
-                            }.buttonStyle(.bordered)
-                            Button("원래 가격 복원") { store.simulations.removeValue(forKey: product.id) }
-                            if let inputError { Text(inputError).font(.caption).foregroundStyle(.red) }
-                            Text("실제 가격 변경이나 푸시 발송이 아닙니다.").font(.caption).foregroundStyle(.secondary)
-                        }.padding(.top, 12)
-                    }
+                    Text("목표가는 이 기기에 저장돼요. 푸시 알림은 준비 중이에요.").font(.caption).foregroundStyle(.secondary)
                 }
             }.padding(20)
         }.navigationTitle("상품 상세").navigationBarTitleDisplayMode(.inline)
@@ -197,41 +184,14 @@ struct ProductDetail: View {
                         Image(systemName: store.saved.favorites.contains(product.id) ? "heart.fill" : "heart").font(.title2).frame(width: 50, height: 48)
                     }.accessibilityLabel("관심 상품 등록 또는 해제")
                     Button { showTarget = true } label: {
-                        Label("목표가 알림 설정", systemImage: "bell").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
+                        Label("목표가 설정", systemImage: "bell").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
                     }.buttonStyle(.borderedProminent)
                 }.padding(.horizontal, 20).padding(.vertical, 10).background(.bar)
             }
             .sheet(isPresented: $showTarget) { TargetSheet(product: product).environmentObject(store) }
     }
-    private func metric(_ title: String, _ value: Int) -> some View {
-        VStack(alignment: .leading, spacing: 6) { Text(title).font(.caption).foregroundStyle(.secondary); Text(won(value)).font(.subheadline.bold()) }
-    }
-}
-struct OfferComparisonCard: View {
-    let offer: Offer
-    let lowest: Int
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 7) {
-                    HStack {
-                        Text(offer.name).font(.subheadline.bold())
-                        if offer.total == lowest { Text("최저가").font(.caption2).foregroundStyle(.red) }
-                    }
-                    Text("\(offer.shipping == 0 ? "무료배송" : "배송비 " + won(offer.shipping)) · 예상 \(offer.days)")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 7) {
-                    Text(won(offer.total)).font(.headline).foregroundStyle(offer.total == lowest ? Color.red : Color.primary)
-                    Text(offer.total == lowest ? "배송비 포함" : "최저가 +" + won(offer.total - lowest)).font(.caption2).foregroundStyle(.secondary)
-                }
-            }
-            DisclosureGroup("가격 구성 보기") {
-                Text("상품 " + won(offer.price) + " + 배송 " + won(offer.shipping)).font(.caption)
-            }.font(.caption2).foregroundStyle(.secondary)
-            Divider()
-        }.padding(.vertical, 8)
+    private func metric(_ title: String, _ value: Double?) -> some View {
+        VStack(alignment: .leading, spacing: 6) { Text(title).font(.caption).foregroundStyle(.secondary); Text(value.map(usd) ?? "—").font(.subheadline.bold()) }
     }
 }
 struct TargetSheet: View {
@@ -245,9 +205,10 @@ struct TargetSheet: View {
             Form {
                 Section {
                     Text(product.name)
-                    TextField("목표 가격 (원)", text: $text).keyboardType(.numberPad)
-                    if error { Text("1~10,000,000원의 정수를 입력하세요.").foregroundStyle(.red) }
-                } footer: { Text("배송비 포함 가격이 목표가 이하가 되면 앱 내 상태가 변경됩니다. 푸시 알림은 아직 발송하지 않습니다.") }
+                    Text("현재 \(usd(product.price))").foregroundStyle(.secondary)
+                    TextField("목표 상품가 (USD)", text: $text).keyboardType(.decimalPad)
+                    if error { Text("USD 0.01~10,000, 소수 둘째 자리까지 입력하세요.").foregroundStyle(.red) }
+                } footer: { Text("미국 달러 상품가 기준 · 배송비와 세금 제외. 푸시 알림은 아직 발송하지 않습니다.") }
                 Button("목표가 저장") {
                     guard let value = PriceRule.valid(text) else { error = true; return }
                     store.saved.targets[product.id] = value
@@ -255,7 +216,7 @@ struct TargetSheet: View {
                 }
             }.navigationTitle("목표 가격 설정").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("취소") { dismiss() } } }
-                .onAppear { text = store.saved.targets[product.id].map(String.init) ?? "" }
+                .onAppear { text = store.saved.targets[product.id].map { String(format: "%.2f", $0) } ?? "" }
         }.presentationDetents([.medium, .large])
     }
 }
@@ -264,25 +225,21 @@ struct AlertsView: View {
     var body: some View {
         NavigationStack {
             List {
-                DemoBanner().listRowSeparator(.hidden)
-                let products = store.products.filter { store.saved.targets[$0.id] != nil && $0.id != "2" }
-                if let row = StylevanaSnapshot.bundled?.latest {
-                    Text("COSRX 미국 상품가 \(row.formattedAmount) · USD 목표가는 상품 상세에서 확인 · 푸시 미연결").font(.caption)
-                }
+                SourceBanner().listRowSeparator(.hidden)
+                let products = store.products.filter { store.saved.targets[$0.id] != nil }
                 if products.isEmpty {
                     ContentUnavailableView("설정한 알림이 없어요", systemImage: "bell", description: Text("상품 상세에서 목표 가격을 설정하세요."))
                 }
                 ForEach(products) { product in
-                    NavigationLink { ProductDestination(product: product) } label: {
+                    NavigationLink { ProductDetail(product: product) } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(product.name).font(.headline)
                             Text(store.status(product)).foregroundStyle(Color.alimi)
-                            Text("현재 \(won(store.price(product))) · 목표 \(won(store.saved.targets[product.id] ?? 0))").font(.caption).foregroundStyle(.secondary)
+                            Text("현재 \(usd(product.price)) · 목표 \(usd(store.saved.targets[product.id] ?? 0))").font(.caption).foregroundStyle(.secondary)
                         }.padding(.vertical, 8)
                     }
                 }
-            }.listStyle(.plain).navigationTitle("알림")
+            }.listStyle(.plain).navigationTitle("알림").refreshable { await store.refresh() }
         }
     }
 }
-

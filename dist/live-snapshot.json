@@ -1,0 +1,286 @@
+{
+ "schemaVersion": 1,
+ "exportedAt": "2026-10-18T03:16:41.220Z",
+ "rows": [
+  {
+   "external_id": "10759",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/cosrx-advanced-snail-96-mucin-power-essence-100ml10777.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018980482&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/c/o/cosrx-advanced-snail-96-mucin-power-essence-100ml-684.png",
+   "products": {
+    "name": "Advanced Snail 96 Mucin Power Essence",
+    "size": "100ml",
+    "slug": "cosrx-snail-96-100ml",
+    "brand": "COSRX"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-16T22:22:07.851+00:00",
+    "amount_minor": 1750,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-16T22:22:07.851+00:00",
+     "amount_minor": 1750,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "12926",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/medicube-zero-pore-pad-2-0-70pcs12940.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018980783&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/m/e/medicube-zero-pore-pad-2-0-70pcs-617.jpg",
+   "products": {
+    "name": "Zero Pore Pad 2.0",
+    "size": "70pcs",
+    "slug": "medicube-zero-pore-pad-2-70pcs",
+    "brand": "medicube"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 2190,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 2190,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "14621",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-ex-20g.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018981050&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-ex-20g-berry-549.jpg",
+   "products": {
+    "name": "Lip Sleeping Mask EX Berry",
+    "size": "20g",
+    "slug": "laneige-lip-sleeping-mask-ex-berry",
+    "brand": "LANEIGE"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 1230,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 1230,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "25026",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/medicube-pdrn-pink-peptide-serum-30ml25046.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43036497859&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/m/e/medicube-pdrn-pink-peptide-serum-30ml-816.jpg",
+   "products": {
+    "name": "PDRN Pink Peptide Serum",
+    "size": "30ml",
+    "slug": "medicube-pdrn-pink-peptide-serum-30ml",
+    "brand": "medicube"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 2290,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 2290,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "3967",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/anua-heartleaf-pore-control-cleansing-oil-200ml3988.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018979345&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/a/n/anua-heartleaf-pore-control-cleansing-oil-200ml-186.jpg",
+   "products": {
+    "name": "Heartleaf Pore Control Cleansing Oil",
+    "size": "200ml",
+    "slug": "anua-heartleaf-cleansing-oil-200ml",
+    "brand": "ANUA"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 1700,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 1700,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "62672",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/tirtir-mask-fit-red-cushion-18g.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018994007&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/t/i/tirtir-mask-fit-red-cushion-spf40-pa-18g-21c-cool-ivory-470.jpg",
+   "products": {
+    "name": "Mask Fit Red Cushion 21C Cool Ivory",
+    "size": "18g",
+    "slug": "tirtir-mask-fit-red-cushion-18g-21c",
+    "brand": "TIRTIR"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 2000,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 2000,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "64584",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/fwee-lip-cheek-blurry-pudding-pot-5g.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018994756&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/f/w/fwee-lip-cheek-blurry-pudding-pot-5g-pk01-baby-341.jpg",
+   "products": {
+    "name": "Lip & Cheek Blurry Pudding Pot PK01 Baby",
+    "size": "5g",
+    "slug": "fwee-blurry-pudding-pot-pk01",
+    "brand": "fwee"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 1600,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 1600,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "64960",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018994936&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/f/w/fwee-3d-voluming-gloss-5-3g-b03-candy-70--414.jpg",
+   "products": {
+    "name": "3D Voluming Gloss B03 Candy 70%",
+    "size": "5.3g",
+    "slug": "fwee-3d-voluming-gloss-b03",
+    "brand": "fwee"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 1445,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 1445,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "66606",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=43018995618&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/r/o/romand-the-juicy-lasting-tint-3-5g-07-cherry-bomb-809.jpg",
+   "products": {
+    "name": "The Juicy Lasting Tint 07 Cherry Bomb",
+    "size": "3.5g",
+    "slug": "romand-the-juicy-lasting-tint-07",
+    "brand": "rom&nd"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 1350,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 1350,
+     "availability": "in_stock"
+    }
+   ]
+  },
+  {
+   "external_id": "66688",
+   "retailer": "Stylevana US",
+   "currency": "USD",
+   "url": "https://www.stylevana.com/en_US/tirtir-waterism-glow-mini-tint-1-8g.html",
+   "affiliate_url": "https://www.awin1.com/pclick.php?p=44030608466&a=3125007&m=90791",
+   "image_url": "https://sv9-cdn.stylevana.com/media/catalog/product/t/i/tirtir-waterism-glow-mini-tint-1-8g-03-sand-mond-459.jpg",
+   "products": {
+    "name": "Waterism Glow Mini Tint 03 Sand Mond",
+    "size": "1.8g",
+    "slug": "tirtir-waterism-glow-mini-tint-03",
+    "brand": "TIRTIR"
+   },
+   "offer_current": {
+    "changed_at": "2026-10-18T03:06:35.038+00:00",
+    "amount_minor": 640,
+    "availability": "in_stock",
+    "delivery_minor": 399,
+    "last_success_at": "2026-10-18T03:06:35.038+00:00"
+   },
+   "price_observations": [
+    {
+     "observed_at": "2026-10-18T03:06:35.038+00:00",
+     "amount_minor": 640,
+     "availability": "in_stock"
+    }
+   ]
+  }
+ ]
+}

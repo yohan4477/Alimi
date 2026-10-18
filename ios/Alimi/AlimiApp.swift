@@ -12,4 +12,4 @@ extension Color {
     static let alimi = Color(red: 0.03, green: 0.53, blue: 1.0)
     static let canvas = Color(uiColor: .systemGroupedBackground)
 }
-func won(_ n: Int) -> String { n.formatted(.number.locale(Locale(identifier: "ko_KR"))) + "원" }
+func usd(_ n: Double) -> String { n.formatted(.currency(code: "USD").locale(Locale(identifier: "en_US"))) }

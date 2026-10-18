@@ -1,7 +1,48 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {catalog,search,offersFor,alertState,validPrice,readState,toggleFavorite} from '../dist/model.js';
-test('F1 검색: 조선미녀 → 1개 / 영문 / 공백 / 없는 상품',()=>{assert.equal(search('조선미녀').length,1);assert.equal(search('  anua ')[0].id,'3');assert.equal(search('없는제품').length,0);assert.equal(search('').length,10)});
-test('F2 선택 모델별 이력: 30개이며 제품 간 상이',()=>{assert.equal(catalog[0].history.length,30);assert.notDeepEqual(catalog[0].history,catalog[1].history)});
-test('F3 배송비 포함: 14000+3000보다 15700+0이 최저',()=>{const o=offersFor(catalog[0]);assert.equal(o[0].name,'브랜드몰 B');assert.equal(o[0].total,15700);assert.ok(o.every(x=>x.total>=o[0].total))});
-test('F4 관심 추가/삭제/재로딩',()=>{let s={favorites:[],targets:{}};toggleFavorite(s,'1');assert.deepEqual(s.favorites,['1']);const loaded=readState({getItem:()=>JSON.stringify(s)});assert.deepEqual(loaded,s);toggleFavorite(s,'1');assert.deepEqual(s.favorites,[])});
-test('F5 목표 15000 → 현재 15700 대기 → 14000 도달 / 경계 / 복원',()=>{const p=catalog[0];assert.equal(alertState(15000,offersFor(p)[0].total),'기다리는 중');assert.equal(alertState(15000,offersFor(p,14000)[0].total),'목표가 도달');assert.equal(alertState(15000,15000),'목표가 도달');assert.equal(alertState(null,14000),'미설정');assert.equal(alertState(15000,offersFor(p)[0].total),'기다리는 중')});
-test('입력 오류와 저장 데이터 손상',()=>{for(const n of [-1,0,1.2,'NaN','<script>',10000001])assert.equal(validPrice(n),false);assert.equal(validPrice(15000),true);assert.deepEqual(readState({getItem:()=>'{broken'}),{favorites:[],targets:{}})});
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {toProducts,search,dailySeries,stats,trackedDays,alertState,parseTarget,readState,toggleFavorite,categoryOf,loadProducts} from '../dist/live.js';
+
+const snapshot=JSON.parse(readFileSync(new URL('../dist/live-snapshot.json',import.meta.url)));
+const products=toProducts(snapshot.rows);
+const p=(history)=>({history:history.map(([at,price])=>({at,price}))});
+
+test('snapshot has the ten real catalog products with USD prices and official links',()=>{
+  assert.equal(products.length,10);
+  for(const x of products){assert.equal(x.currency,'USD');assert.ok(x.price>0);assert.match(x.affiliateUrl,/^https:\/\/www\.awin1\.com\/pclick\.php/);assert.match(x.imageUrl,/^https:\/\/[^/]+\.stylevana\.com\//);assert.ok(x.history.length>=1)}
+});
+test('search by brand / name / category, case and whitespace insensitive',()=>{
+  assert.equal(search(products,'  cosrx ').length,1);
+  assert.equal(search(products,'medicube').length,2);
+  assert.equal(search(products,'없는상품').length,0);
+  assert.equal(search(products,'').length,10);
+  assert.ok(search(products,'','메이크업').every(x=>x.category==='메이크업'));
+  assert.equal(categoryOf('Heartleaf Pore Control Cleansing Oil'),'클렌징');
+});
+test('daily series carries change-only history forward and leaves pre-tracking days empty (KST days)',()=>{
+  const now=new Date('2026-10-20T03:00:00Z'); // 10/20 12:00 KST
+  const s=dailySeries(p([['2026-10-17T22:30:00Z',20],['2026-10-19T22:30:00Z',18]]),5,now);
+  assert.deepEqual(s.map(d=>d.day),['2026-10-16','2026-10-17','2026-10-18','2026-10-19','2026-10-20']);
+  assert.deepEqual(s.map(d=>d.price),[null,null,20,20,18]);
+  assert.deepEqual(stats(s),{min:18,max:20,avg:58/3,days:3});
+  assert.equal(stats(dailySeries(p([]),7,now)),null);
+  assert.equal(trackedDays(p([['2026-10-17T22:30:00Z',20]]),now),3);
+});
+test('USD target validation, alert state and boundary',()=>{
+  for(const bad of ['','0','-1','1.234','abc','10000.01','<script>'])assert.equal(parseTarget(bad),null);
+  assert.equal(parseTarget('12.5'),12.5);
+  assert.equal(alertState(null,10),'미설정');assert.equal(alertState(12,13),'기다리는 중');assert.equal(alertState(12,12),'목표가 도달');
+});
+test('favorites persist; corrupted or invalid storage is ignored',()=>{
+  const s={favorites:[],targets:{a:12.5,b:'bad'}};toggleFavorite(s,'a');
+  assert.deepEqual(readState({getItem:()=>JSON.stringify(s)}),{favorites:['a'],targets:{a:12.5}});
+  toggleFavorite(s,'a');assert.deepEqual(s.favorites,[]);
+  assert.deepEqual(readState({getItem:()=>'{broken'}),{favorites:[],targets:{}});
+});
+test('falls back to the bundled snapshot when the live API fails',async()=>{
+  const fetchImpl=async u=>{if(String(u).includes('supabase'))throw Error('offline');return {ok:true,json:async()=>snapshot}};
+  const r=await loadProducts(fetchImpl);
+  assert.equal(r.source,'snapshot');assert.equal(r.products.length,10);
+  const live=await loadProducts(async()=>({ok:true,json:async()=>snapshot.rows}));
+  assert.equal(live.source,'live');
+});
