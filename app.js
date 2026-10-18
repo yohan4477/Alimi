@@ -1,7 +1,7 @@
 import {track} from './events.js';
 import {openChat,leaveChat} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
-import {loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,fetchFamily,unitName,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
+import {loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let storage;try{storage=localStorage}catch{}
@@ -75,7 +75,7 @@ function show(n){
 let brands=[];
 const brandBadge=b=>b.logo_url?`<img src="${esc(b.logo_url)}" alt="" loading="lazy">`:`<span style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}</span>`;
 function renderBrands(){const box=$('#brands');if(!brands.length){box.hidden=true;return}box.hidden=false;
-  box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><div class="brand-grid">${brands.map(b=>`<button class="brand-item" data-brand="${esc(b.brand)}"><i>${brandBadge(b)}</i><small>${esc(brandLabel(b))}</small></button>`).join('')}</div>`}
+  box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><div class="brand-grid">${twoRowOrder(brands).map(b=>`<button class="brand-item" data-brand="${esc(b.brand)}"><i>${brandBadge(b)}</i><small>${esc(brandLabel(b))}</small></button>`).join('')}</div>`}
 const brandPage={brand:null,items:[],done:false,loading:false,seq:0};let brandObserver;
 function openBrand(name){Object.assign(brandPage,{brand:name,items:[],done:false,seq:brandPage.seq+1});show('brand');renderBrandPage();track('search',null,{brand:name})}
 function renderBrandPage(){
