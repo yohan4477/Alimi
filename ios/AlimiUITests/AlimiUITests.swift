@@ -94,18 +94,31 @@ final class AlimiUITests: XCTestCase {
         attach("category-essence")
     }
 
-    func testBrandStripFiltersBrowsing() {
+    func testTappingBrandOpensItsPage() {
         let cosrx = app.buttons["brand-COSRX"]
         XCTAssertTrue(cosrx.waitForExistence(timeout: 10), "popular-brand badges on home")
         attach("brand-strip")
         reveal(cosrx).tap()
-        XCTAssertTrue(cosrx.isSelected, "tapped badge is marked selected")
-        // The filtered list title sits below the tracked products; scroll until the lazy list creates it.
-        let title = app.staticTexts["코스알엑스 상품"]
-        XCTAssertTrue(reveal(title, swipes: 10).exists, "catalog below is filtered to the brand")
-        attach("brand-filtered")
-        reveal(app.buttons["전체 보기"].firstMatch).tap()
-        XCTAssertTrue(reveal(app.staticTexts["전체 상품"], swipes: 4).waitForExistence(timeout: 5))
+        // Offline mode returns no families, so the page shows its header (and the empty message).
+        XCTAssertTrue(app.staticTexts["brand-header-title"].waitForExistence(timeout: 10), "brand page opens with its header")
+        XCTAssertTrue(app.navigationBars["코스알엑스"].exists)
+        attach("brand-page")
+    }
+    func testSavedTabHasAddSlotsAndSettings() {
+        app.tabBars.buttons["관심 상품"].tap()
+        XCTAssertTrue(app.staticTexts["관심상품"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["saved-add-slot"].firstMatch.exists)
+        app.buttons["saved-add-slot"].firstMatch.tap()
+        XCTAssertTrue(app.textFields["search-field"].waitForExistence(timeout: 5), "slot switches to the search tab")
+    }
+    func testSettingsOpensFromSaved() {
+        app.tabBars.buttons["관심 상품"].tap()
+        let gear = app.buttons["settings-button"]
+        XCTAssertTrue(gear.waitForExistence(timeout: 5))
+        gear.tap()
+        XCTAssertTrue(app.navigationBars["설정"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["settings-clear-saved"].exists || app.staticTexts["관심상품 정리하기"].exists)
+        attach("settings")
     }
     func testChatJoinSendAndBlock() {
         app.tabBars.buttons["채팅"].tap()

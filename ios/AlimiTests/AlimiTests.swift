@@ -158,4 +158,14 @@ final class AlimiTests: XCTestCase {
         XCTAssertTrue(second.saved.favorites.contains("cosrx"))
         XCTAssertEqual(second.saved.targets["cosrx"], 15)
     }
+    func testSavedLayoutHeadlineAndSlots() {
+        XCTAssertEqual(SavedLayout.emptySlots(0), 3)
+        XCTAssertEqual(SavedLayout.emptySlots(2), 1)
+        XCTAssertEqual(SavedLayout.emptySlots(5), 0)
+        XCTAssertEqual(SavedLayout.headline(0).key, "saved.hint")
+        XCTAssertEqual(SavedLayout.headline(1).key, "saved.hintMore")
+        XCTAssertEqual(SavedLayout.headline(1).vars["n"], 2)
+        XCTAssertEqual(SavedLayout.headline(3).key, "saved.count")
+        XCTAssertEqual(SavedLayout.headline(7).vars["n"], 7)
+    }
 }

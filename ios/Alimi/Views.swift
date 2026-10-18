@@ -4,13 +4,16 @@ import Charts
 
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
+    @State private var tab = MainTab.home
+    @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
-        TabView {
-            BrowseView().tabItem { Label(L("tab.home"), systemImage: "house.fill") }
-            BrowseView(favoritesOnly: true).tabItem { Label(L("favorites"), systemImage: "heart.fill") }
-            AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell.fill") }
-            ChatTab().tabItem { Label(L("nav.chat"), systemImage: "bubble.left.and.bubble.right.fill") }
-        }.task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
+        TabView(selection: $tab) {
+            BrowseView().tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
+            SavedView(tab: $tab).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
+            SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
+            ChatTab().tabItem { Label(L("nav.chat"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
+            AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell") }.tag(MainTab.alerts)
+        }.id(lang).task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }
 private let dayFormat: Date.FormatStyle = .dateTime.month().day().locale(L10n.locale)
@@ -41,6 +44,7 @@ struct SourceBanner: View {
     static let shared = ImageCache()
     private let cache = NSCache<NSURL, UIImage>()
     func image(for url: URL) -> UIImage? { cache.object(forKey: url as NSURL) }
+    func clear() { cache.removeAllObjects() }
     func load(_ url: URL) async -> UIImage? {
         if let hit = image(for: url) { return hit }
         for attempt in 0..<2 {
@@ -90,85 +94,63 @@ struct ProductArt: View {
 }
 struct BrowseView: View {
     @EnvironmentObject var store: AlimiStore
-    var favoritesOnly = false
-    @State private var query = ""
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
     @State private var browse: [ProductFamily] = []
     @State private var openFamily: ProductFamily?
     @State private var browseDone = false
     @State private var browseLoading = false
-    @State private var tracking: String?
-    @State private var brand: String?
     @State private var brands: [CatalogBrand] = []
-    private var results: [Product] { store.search(query, category: category, favoritesOnly: favoritesOnly) }
-    private var searching: Bool { CatalogItem.query(query).count >= 2 }
+    private var results: [Product] { store.search("", category: category) }
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     SourceBanner()
-                    if !favoritesOnly {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(L("hero.line1")).font(.system(size: 28, weight: .bold))
-                            Text(L("hero.line2")).font(.system(size: 28, weight: .bold))
-                            Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
-                        }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    if !favoritesOnly && !brands.isEmpty { BrandStrip(brands: brands, selection: $brand) }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(L("hero.line1")).font(.system(size: 28, weight: .bold))
+                        Text(L("hero.line2")).font(.system(size: 28, weight: .bold))
+                        Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
+                    }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
+                    if !brands.isEmpty { BrandStrip(brands: brands) }
                     CategoryTabs(categories: store.categories, selection: $category)
                     HStack {
-                        Text(L(favoritesOnly ? "section.saved" : "section.watching")).font(.headline)
+                        Text(L("section.watching")).font(.headline)
                         Spacer()
                         Text(L("count", ["n": results.count])).font(.subheadline).foregroundStyle(.secondary)
                     }
                     if results.isEmpty {
-                        Text(L(favoritesOnly ? "empty.saved" : "empty.watchingCategory"))
+                        Text(L("empty.watchingCategory"))
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 16)], spacing: 24) {
                         ForEach(results) { product in TrackedCard(product: product) }
                     }
-                    if !favoritesOnly {
-                        if searching { catalogSection } else { browseSection }
-                    }
+                    browseSection
                 }.padding(20)
-            }.navigationTitle(favoritesOnly ? L("favorites") : "SeoulBeauty")
-                .task(id: query) {
-                    guard !favoritesOnly, searching else { catalog = []; return }
-                    try? await Task.sleep(for: .milliseconds(400))
-                    guard !Task.isCancelled else { return }
-                    catalog = await store.searchCatalog(query)
-                }
-                .task(id: category + "|" + (brand ?? "")) {
-                    guard !favoritesOnly else { return }
+            }.navigationTitle("SeoulBeauty")
+                .task(id: category) {
                     browse = []; browseDone = false
                     await loadMore()
                 }
-                .task { if !favoritesOnly && brands.isEmpty { brands = await store.brands() } }
+                .task { if brands.isEmpty { brands = await store.brands() } }
                 .navigationBarTitleDisplayMode(.inline)
-                .searchable(text: $query, prompt: L("search.prompt"))
-                .onSubmit(of: .search) {
-                    let q = query.trimmingCharacters(in: .whitespaces)
-                    if !q.isEmpty { EventLogger.shared.log(.search, props: ["length": String(q.count), "results": String(results.count)]) }
-                }
+                .navigationDestination(for: CatalogBrand.self) { BrandView(brand: $0) }
                 .refreshable { await store.refresh() }
                 .sheet(item: $openFamily) { family in FamilySheet(family: family).environmentObject(store) }
         }
     }
 }
-// Round brand badges, five per row, like a delivery app's popular-brand grid. Tap again to clear.
+// Round brand badges, five per row, like a delivery app's popular-brand grid. Tapping one opens the brand page.
 struct BrandStrip: View {
     let brands: [CatalogBrand]
-    @Binding var selection: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L("brands.title")).font(.title3.bold())
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5), spacing: 14) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6, alignment: .top), count: 5), spacing: 14) {
                 ForEach(brands) { b in
-                    Button { selection = selection == b.brand ? nil : b.brand } label: { BrandBadge(brand: b, selected: selection == b.brand) }
+                    NavigationLink(value: b) { BrandBadge(brand: b) }
                         .buttonStyle(.plain).accessibilityIdentifier("brand-\(b.brand)")
-                        .accessibilityAddTraits(selection == b.brand ? .isSelected : [])
                 }
             }
         }
@@ -176,17 +158,21 @@ struct BrandStrip: View {
 }
 struct BrandBadge: View {
     let brand: CatalogBrand
-    let selected: Bool
+    var size: CGFloat = 60
+    var showLabel = true
     var body: some View {
         VStack(spacing: 6) {
             ZStack {
                 Circle().fill(Color(rgb: brand.color))
-                Text(brand.initials).font(.system(size: 18, weight: .heavy)).foregroundStyle(.white)
+                Text(brand.initials).font(.system(size: size * 0.3, weight: .heavy)).foregroundStyle(.white)
                 if let url = brand.logoUrl { RemoteImage(url: url, label: brand.label).background(Color.white).clipShape(Circle()) }
             }
-            .frame(width: 60, height: 60)
-            .overlay(Circle().stroke(selected ? Color.primary : Color(.separator), lineWidth: selected ? 2 : 0.5))
-            Text(brand.label).font(.caption2).lineLimit(1)
+            .frame(width: size, height: size)
+            .overlay(Circle().stroke(Color(.separator), lineWidth: 0.5))
+            if showLabel {
+                Text(brand.label).font(.caption2).multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.85)
+                    .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
+            }
         }
     }
 }
@@ -232,34 +218,10 @@ struct TrackedCard: View {
     }
 }
 extension BrowseView {
-    // Whole-catalog search results: the heart saves the item and moves that exact SKU into the tracking layer.
-    var catalogSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L("section.more")).font(.headline)
-            Text(L("section.moreHint")).font(.caption).foregroundStyle(.secondary)
-            catalogRows
-        }.padding(.top, 12)
-    }
-    @ViewBuilder private var catalogRows: some View {
-        if let items = catalog {
-            if items.isEmpty {
-                Text(L("empty.catalogSearch")).font(.caption).foregroundStyle(.secondary)
-            }
-            ForEach(items) { item in
-                CatalogRow(item: item, busy: tracking == item.id, disabled: tracking != nil) { start(item) }
-            }
-        } else {
-            Text(L("catalogFailed")).font(.caption).foregroundStyle(.secondary)
-        }
-    }
     // Home browsing: one row per product family (sizes / shades grouped), one page at a time.
     var browseSection: some View {
         LazyVStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(browseTitle).font(.headline)
-                Spacer()
-                if brand != nil { Button(L("brands.clear")) { brand = nil }.font(.caption).buttonStyle(.bordered) }
-            }
+            Text(L("section.all")).font(.headline)
             Text(L("family.pick")).font(.caption).foregroundStyle(.secondary)
             ForEach(browse) { family in
                 FamilyRow(family: family) { openFamily = family }
@@ -269,27 +231,16 @@ extension BrowseView {
             else if browseDone && browse.isEmpty { Text(L("empty.products")).font(.caption).foregroundStyle(.secondary) }
         }.padding(.top, 12)
     }
-    private var browseTitle: String {
-        guard let brand else { return L("section.all") }
-        return L("brands.products", ["brand": brands.first { $0.brand == brand }?.label ?? brand])
-    }
     func loadMore() async {
         guard !browseLoading, !browseDone else { return }
         browseLoading = true
-        let requested = category, requestedBrand = brand
-        let page = await store.familiesPage(category: requested, offset: browse.count, brand: requestedBrand)
+        let requested = category
+        let page = await store.familiesPage(category: requested, offset: browse.count)
         browseLoading = false
-        guard requested == category, requestedBrand == brand else { return }
+        guard requested == category else { return }
         guard let page else { browseDone = true; return }
         browse.append(contentsOf: page)
         if page.count < 24 { browseDone = true }
-    }
-    private func start(_ item: CatalogItem) {
-        tracking = item.id
-        Task {
-            if await store.startTracking(item) { catalog?.removeAll { $0.id == item.id } }
-            tracking = nil
-        }
     }
 }
 struct FamilyRow: View {
