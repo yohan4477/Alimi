@@ -1,4 +1,5 @@
 import {track} from './events.js';
+import {openChat} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
 import {loadProducts,searchCatalog,fetchFamiliesPage,fetchFamily,unitName,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
@@ -110,7 +111,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.category){category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.classList.toggle('active',x.dataset.category===category));renderList()}
   if(b.dataset.view){view=b.dataset.view;document.querySelectorAll('nav [data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===view));renderList();window.scrollTo(0,0)}});
 $('#target-form').onsubmit=e=>{e.preventDefault();const v=parseTarget($('#target').value);if(v===null){toast(t('target.invalid'));return}state.targets[selected]=v;save();track('target_price_set',selected);$('#target-dialog').close();renderDetail();toast(t('target.saved'))};
-let searchTimer;$('#search').oninput=()=>{renderList();clearTimeout(searchTimer);searchTimer=setTimeout(()=>{const q=$('#search').value.trim();if(q)track('search',null,{length:q.length,results:search(products,q,category).length})},1200)};$('#clear').onclick=()=>{$('#search').value='';renderList()};$('#search-tab').onclick=()=>{$('#search').focus();window.scrollTo(0,0)};
+let searchTimer;$('#search').oninput=()=>{renderList();clearTimeout(searchTimer);searchTimer=setTimeout(()=>{const q=$('#search').value.trim();if(q)track('search',null,{length:q.length,results:search(products,q,category).length})},1200)};$('#clear').onclick=()=>{$('#search').value='';renderList()};$('#search-tab').onclick=()=>{$('#search').focus();window.scrollTo(0,0)};$('#chat-tab').onclick=()=>openChat({toast,onClose:renderList});
 $('#browse-now').onclick=()=>$('.results').scrollIntoView({behavior:'smooth'});
 $('#reset').onclick=()=>{if(confirm(t('reset.confirm'))){state={favorites:[],targets:{}};save();renderList()}};
 document.addEventListener('click',e=>{const a=e.target.closest('a.observed-buy');if(a&&selected)track('merchant_click',selected,{retailer:product(selected)?.retailer})});

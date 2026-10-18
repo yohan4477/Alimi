@@ -9,6 +9,7 @@ struct RootView: View {
             BrowseView().tabItem { Label(L("tab.home"), systemImage: "house.fill") }
             BrowseView(favoritesOnly: true).tabItem { Label(L("favorites"), systemImage: "heart.fill") }
             AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell.fill") }
+            ChatTab().tabItem { Label(L("nav.chat"), systemImage: "bubble.left.and.bubble.right.fill") }
         }.task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }

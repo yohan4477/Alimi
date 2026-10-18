@@ -94,6 +94,31 @@ final class AlimiUITests: XCTestCase {
         attach("category-essence")
     }
 
+    func testChatJoinSendAndBlock() {
+        app.tabBars.buttons["채팅"].tap()
+        let room = app.buttons["chat-room-acne"]
+        XCTAssertTrue(room.waitForExistence(timeout: 10))
+        room.tap()
+        let join = app.buttons["chat-join"]
+        XCTAssertTrue(join.waitForExistence(timeout: 5), "rules are shown before the first join")
+        attach("chat-rules")
+        join.tap()
+        let other = app.otherElements["chat-message-1"].firstMatch
+        XCTAssertTrue(app.staticTexts["추천 좀 해주세요"].waitForExistence(timeout: 10))
+        let field = app.textFields["chat-text"].firstMatch.exists ? app.textFields["chat-text"].firstMatch : app.textViews["chat-text"].firstMatch
+        field.tap()
+        field.typeText("이거 좋아요")
+        app.buttons["chat-send"].tap()
+        XCTAssertTrue(app.staticTexts["이거 좋아요"].waitForExistence(timeout: 5))
+        attach("chat-room")
+        (other.exists ? other : app.staticTexts["추천 좀 해주세요"]).press(forDuration: 1.2)
+        let block = app.buttons["차단"]
+        XCTAssertTrue(block.waitForExistence(timeout: 5), "long press offers report / block")
+        XCTAssertTrue(app.buttons["신고"].exists)
+        block.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["추천 좀 해주세요"])
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "blocked author's messages are hidden")
+    }
     func testEnglishForUSUsers() {
         app.terminate()
         app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
