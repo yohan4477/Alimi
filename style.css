@@ -9,3 +9,4 @@
 
 .history-pending{min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#92979e}.history-pending strong{font-size:16px;font-weight:500;color:#747a82}.history-pending p{font-size:12px;line-height:1.6;margin:10px 0}.history-pending small{font-size:11px}
 .catalog-results{grid-column:1/-1;margin-top:36px}.catalog-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px 18px}@media(max-width:760px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 14px}}
+nav i{font-style:normal}
