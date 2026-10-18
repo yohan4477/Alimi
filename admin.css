@@ -1,0 +1,26 @@
+/* Admin-only page content is server-rendered. This file contains presentation only. */
+:root{color-scheme:light dark;--background:light-dark(#fafaf9,#141715);--foreground:light-dark(#202622,#edf1ed);--muted-foreground:light-dark(#5e6860,#b1bcb3);--border:light-dark(#dce2dc,#38433b);--primary:light-dark(#263e2d,#dce8df);--primary-foreground:light-dark(#fff,#18221b);--card:light-dark(#eef3ed,#202b23);--accent:light-dark(#e8ede7,#29352c);font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--background);color:var(--foreground)}
+*{box-sizing:border-box}body{margin:0}h1,h2,h3{font-weight:500;letter-spacing:-.025em;line-height:1.35}h1{font-size:1.5rem;margin:8px 0}h2{font-size:1.4rem}h3{font-size:1.12rem;margin:14px 0}a{color:inherit;text-underline-offset:4px}button,input{font:inherit}button,summary{cursor:pointer}button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid light-dark(#537b5a,#a4cda9);outline-offset:3px}[hidden]{display:none!important}.admin-shell{max-width:900px;margin:0 auto;padding:32px 28px 64px}.wordmark{font-weight:500;letter-spacing:-.03em;text-decoration:none}.text-small{font-size:.84rem}.text-muted{color:var(--muted-foreground)}.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px}.viz-badge{display:inline-block;border-radius:6px;background:var(--accent);color:var(--foreground);font-size:.79rem;font-weight:500;padding:3px 8px;white-space:nowrap}.nav{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:12px}.nav-link,.btn{border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--foreground);padding:10px 14px;min-height:44px}.nav-link{border-color:transparent}.nav-link[aria-selected="true"],.btn-primary{background:var(--primary);color:var(--primary-foreground);border-color:transparent}.login-shell{max-width:420px;margin:8vh auto;padding:28px}.login-shell form{display:grid;gap:18px;margin:26px 0}.login-shell label{display:grid;gap:6px}.login-shell input{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--background);color:var(--foreground);min-height:44px}.sb-header form{margin:0}@media(max-width:480px){.admin-shell{padding:22px 18px 42px}.card{padding:18px}.nav-link{padding:10px 11px}.login-shell{margin:4vh auto;padding:24px}}
+
+    #sb-management .sb-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    #sb-management .sb-panel{padding-top:20px}
+    #sb-management .sb-section{margin:22px 0 10px}
+    #sb-management .sb-line{display:grid;grid-template-columns:100px minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+    #sb-management .sb-label{font-weight:500}
+    #sb-management .sb-value{display:flex;flex-direction:column;gap:6px;min-width:0}
+    #sb-management .sb-flow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0}
+    #sb-management .sb-flow span{padding:6px 0}
+    #sb-management .sb-step{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;padding:15px 0;border-bottom:1px solid var(--border)}
+    #sb-management .sb-step p{margin:5px 0 0}
+    #sb-management details{padding:14px 0;border-bottom:1px solid var(--border)}
+    #sb-management summary{font-weight:500}
+    #sb-management details ul{margin:12px 0 0;padding-left:22px}
+    #sb-management li{margin:8px 0}
+    #sb-management .sb-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+    #sb-management .sb-metric{padding:16px 0;border-bottom:1px solid var(--border)}
+    #sb-management .sb-metric strong{display:block;font-weight:500;margin:7px 0}
+    #sb-management .sb-flag{display:flex;align-items:flex-start;gap:10px;padding:12px 0}
+    #sb-management .sb-links{display:flex;flex-wrap:wrap;gap:18px;margin-top:22px}
+    #sb-management .sb-space{margin-top:12px}
+    @media(max-width:460px){#sb-management .sb-line{grid-template-columns:1fr;gap:6px}#sb-management .sb-metrics{grid-template-columns:1fr}}
+  
