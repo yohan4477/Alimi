@@ -123,7 +123,7 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(body["platform"] as? String, "ios")
         XCTAssertEqual(body["name"] as? String, "product_view")
         XCTAssertLessThanOrEqual((body["app_version"] as? String)?.count ?? 99, 20)
-        XCTAssertEqual(Set(AppEvent.allCases.map(\.rawValue)), ["home_view", "search", "product_view", "wishlist_add", "wishlist_remove", "target_price_set", "merchant_click", "notification_opt_in"])
+        XCTAssertEqual(Set(AppEvent.allCases.map(\.rawValue)), ["home_view", "search", "product_view", "wishlist_add", "wishlist_remove", "target_price_set", "merchant_click", "notification_opt_in", "chat_open", "chat_join", "chat_send"])
     }
     func testCatalogQueryIsSanitized() {
         XCTAssertNil(CatalogItem.searchURL("a"))
