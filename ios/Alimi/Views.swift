@@ -279,6 +279,7 @@ struct VariantList: View {
     @EnvironmentObject var store: AlimiStore
     let variants: [VariantChoice]
     @State private var busy: String?
+    @Environment(\.openURL) private var openURL
     var body: some View {
         ForEach(variants) { v in
             let trackedID = store.products.first { $0.sku == v.item.sku }?.id
@@ -295,6 +296,12 @@ struct VariantList: View {
                 }
                 Spacer()
                 Text(usd(v.item.price)).font(.headline)
+                if let link = v.item.buyLink {
+                    Button(L("variant.buy")) {
+                        EventLogger.shared.log(.merchantClick, props: ["from": "options", "sku": v.item.sku])
+                        openURL(link)
+                    }.buttonStyle(.borderedProminent).controlSize(.small).accessibilityIdentifier("variant-buy-\(v.item.sku)")
+                }
                 Button {
                     if let id = trackedID { store.toggle(id) }
                     else { busy = v.item.id; Task { _ = await store.startTracking(v.item); busy = nil } }
@@ -319,7 +326,7 @@ struct FamilySheet: View {
                     RemoteImage(url: family.imageUrl, label: family.brandLabel).frame(height: 180)
                     Text(family.brandLabel).font(.caption).foregroundStyle(.secondary)
                     Text(family.baseName).font(.title3.bold())
-                    Text(L("family.pick")).font(.caption).foregroundStyle(.secondary)
+                    Text(L("family.buyHint")).font(.caption).foregroundStyle(.secondary)
                     if let variants { VariantList(variants: variants) } else { ProgressView().frame(maxWidth: .infinity) }
                 }.padding(20)
             }
@@ -382,81 +389,109 @@ struct ProductDetail: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                ProductArt(product: product).frame(height: 240)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(L("detail.usPrice", ["retailer": product.retailer])).font(.caption).foregroundStyle(.secondary)
-                    Text(usd(product.price)).font(.largeTitle.bold())
-                    Text(L("detail.checked", ["checked": product.checkedAt.formatted(dayFormat), "changed": product.changedAt.formatted(dayFormat)])).font(.caption).foregroundStyle(.secondary)
-                    Text(product.name).font(.title2.bold())
-                    Text("\(product.brandLabel) · \(L10n.category(product.category))" + (product.size.isEmpty ? "" : " · \(product.size)")).font(.subheadline).foregroundStyle(.secondary)
-                }
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack { Text(L("detail.priceHistory")).font(.headline); Spacer(); Text("USD").font(.caption).foregroundStyle(.secondary) }
-                    Picker(L("period"), selection: $days) { Text(L("days", ["n": 7])).tag(7); Text(L("days", ["n": 14])).tag(14); Text(L("days", ["n": 30])).tag(30) }.pickerStyle(.segmented)
-                    if Set(series.map(\.price)).count >= 2 {
-                        Chart {
-                            ForEach(series) { point in
-                                LineMark(x: .value(L("date"), point.date, unit: .day), y: .value("USD", point.price)).foregroundStyle(Color.red)
-                            }
-                            if let target = store.saved.targets[product.id] {
-                                RuleMark(y: .value(L("target.rule"), target)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [4]))
-                            }
-                        }.frame(height: 190).accessibilityLabel(L("chart.a11y", ["name": product.name, "days": days]))
-                    } else {
-                        VStack(spacing: 6) {
-                            Text(PriceHistory.summary(product.history, current: product.price)).font(.subheadline.bold())
-                            Text(L("chart.pendingHint")).font(.caption).foregroundStyle(.secondary)
-                        }.frame(maxWidth: .infinity, minHeight: 120).background(Color.canvas, in: RoundedRectangle(cornerRadius: 12))
-                    }
-                    let prices = series.map(\.price)
-                    HStack {
-                        metric(L("period.low"), prices.min())
-                        Spacer()
-                        metric(L("period.avg"), prices.isEmpty ? nil : prices.reduce(0, +) / Double(prices.count))
-                        Spacer()
-                        metric(L("period.high"), prices.max())
-                    }
-                    Text(L("chart.note", ["date": product.history.first.map { $0.date.formatted(dayFormat) } ?? "—"])).font(.caption2).foregroundStyle(.secondary)
-                }
+                header
                 OtherSizes(product: product)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(L("detail.retailer")).font(.title3.bold())
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(product.retailer).font(.subheadline.bold())
-                            Text(L("detail.feedShipping", ["v": product.delivery.map(usd) ?? L("unknown")]) + " · \(product.stockLabel)").font(.caption).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Text(usd(product.price)).font(.headline)
-                    }
-                    Button(L("detail.buy")) {
-                        EventLogger.shared.log(.merchantClick, productID: product.id, props: ["retailer": product.retailer])
-                        openURL(product.buyURL)
-                    }.buttonStyle(.bordered)
-                    Text(L("detail.disclaimer")).font(.caption2).foregroundStyle(.secondary)
-                }
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(store.status(product)).font(.headline).foregroundStyle(Color.alimi)
-                    if let target = store.saved.targets[product.id] {
-                        Text(L("target.current", ["v": usd(target)])).font(.subheadline)
-                        Button(L("target.remove"), role: .destructive) { store.saved.targets.removeValue(forKey: product.id) }
-                    }
-                    Text(L("target.deviceNote")).font(.caption).foregroundStyle(.secondary)
-                }
+                retailerSection
+                historySection
+                alertSection
             }.padding(20)
         }.navigationTitle(L("detail.title")).navigationBarTitleDisplayMode(.inline)
             .onAppear { EventLogger.shared.log(.productView, productID: product.id) }
-            .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 16) {
-                    Button { store.toggle(product.id) } label: {
-                        Image(systemName: store.saved.favorites.contains(product.id) ? "heart.fill" : "heart").font(.title2).frame(width: 50, height: 48)
-                    }.accessibilityLabel(L("favorite.toggle"))
-                    Button { showTarget = true } label: {
-                        Label(L("target.set"), systemImage: "bell").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
-                    }.buttonStyle(.borderedProminent)
-                }.padding(.horizontal, 20).padding(.vertical, 10).background(.bar)
-            }
+            .safeAreaInset(edge: .bottom) { bottomBar }
             .sheet(isPresented: $showTarget) { TargetSheet(product: product).environmentObject(store) }
+    }
+    private func buy() {
+        EventLogger.shared.log(.merchantClick, productID: product.id, props: ["from": "detail_cta", "retailer": product.retailer])
+        if let link = Purchase.buyURL((product.affiliateUrl ?? product.url).absoluteString) { openURL(link) }
+    }
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            ProductArt(product: product).frame(height: 240)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(L("detail.usPrice", ["retailer": product.retailer])).font(.caption).foregroundStyle(.secondary)
+                Text(usd(product.price)).font(.largeTitle.bold())
+                Text(L("detail.checked", ["checked": product.checkedAt.formatted(dayFormat), "changed": product.changedAt.formatted(dayFormat)])).font(.caption).foregroundStyle(.secondary)
+                Text(product.name).font(.title2.bold())
+                Text("\(product.brandLabel) · \(L10n.category(product.category))" + (product.size.isEmpty ? "" : " · \(product.size)")).font(.subheadline).foregroundStyle(.secondary)
+            }
+        }
+    }
+    private var retailerSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L("detail.retailer")).font(.title3.bold())
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(product.retailer).font(.subheadline.bold())
+                    Text(L("detail.feedShipping", ["v": product.delivery.map(usd) ?? L("unknown")]) + " · \(product.stockLabel)").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(usd(product.price)).font(.headline)
+            }
+            Button(L("detail.buy")) { buy() }.buttonStyle(.bordered)
+            Text(L("detail.disclaimer")).font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+    private var historySection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack { Text(L("detail.priceHistory")).font(.headline); Spacer(); Text("USD").font(.caption).foregroundStyle(.secondary) }
+            Picker(L("period"), selection: $days) { Text(L("days", ["n": 7])).tag(7); Text(L("days", ["n": 14])).tag(14); Text(L("days", ["n": 30])).tag(30) }.pickerStyle(.segmented)
+            if Set(series.map(\.price)).count >= 2 {
+                priceChart
+            } else {
+                VStack(spacing: 6) {
+                    Text(PriceHistory.summary(product.history, current: product.price)).font(.subheadline.bold())
+                    Text(L("chart.pendingHint")).font(.caption).foregroundStyle(.secondary)
+                }.frame(maxWidth: .infinity, minHeight: 120).background(Color.canvas, in: RoundedRectangle(cornerRadius: 12))
+            }
+            let prices = series.map(\.price)
+            HStack {
+                metric(L("period.low"), prices.min())
+                Spacer()
+                metric(L("period.avg"), prices.isEmpty ? nil : prices.reduce(0, +) / Double(prices.count))
+                Spacer()
+                metric(L("period.high"), prices.max())
+            }
+            Text(L("chart.note", ["date": product.history.first.map { $0.date.formatted(dayFormat) } ?? "—"])).font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+    private var priceChart: some View {
+        Chart {
+            ForEach(series) { point in
+                LineMark(x: .value(L("date"), point.date, unit: .day), y: .value("USD", point.price)).foregroundStyle(Color.red)
+            }
+            if let target = store.saved.targets[product.id] {
+                RuleMark(y: .value(L("target.rule"), target)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [4]))
+            }
+        }.frame(height: 190).accessibilityLabel(L("chart.a11y", ["name": product.name, "days": days]))
+    }
+    private var alertSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L("detail.alertsTitle")).font(.title3.bold())
+            Text(store.status(product)).font(.headline).foregroundStyle(Color.alimi)
+            if let target = store.saved.targets[product.id] {
+                Text(L("target.current", ["v": usd(target)])).font(.subheadline)
+            }
+            HStack {
+                Button { showTarget = true } label: {
+                    Label(L(store.saved.targets[product.id] == nil ? "target.secondary" : "target.set"), systemImage: "bell")
+                }.buttonStyle(.bordered).accessibilityIdentifier("target-button")
+                if store.saved.targets[product.id] != nil {
+                    Button(L("target.remove"), role: .destructive) { store.saved.targets.removeValue(forKey: product.id) }.buttonStyle(.bordered)
+                }
+            }
+            Text(L("target.deviceNote")).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+    private var bottomBar: some View {
+        HStack(spacing: 12) {
+            Button { store.toggle(product.id) } label: {
+                Label(L("save.short"), systemImage: store.saved.favorites.contains(product.id) ? "heart.fill" : "heart").font(.subheadline)
+                    .frame(minHeight: 48)
+            }.accessibilityIdentifier("detail-save")
+            Button { buy() } label: {
+                Text(L("buy.at", ["retailer": product.retailer])).font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
+            }.buttonStyle(.borderedProminent).accessibilityIdentifier("detail-buy")
+        }.padding(.horizontal, 20).padding(.vertical, 10).background(.bar)
     }
     private func metric(_ title: String, _ value: Double?) -> some View {
         VStack(alignment: .leading, spacing: 6) { Text(title).font(.caption).foregroundStyle(.secondary); Text(value.map(usd) ?? "—").font(.subheadline.bold()) }
