@@ -5,6 +5,7 @@ import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseCsv} from './stylevana-feed.mjs';
 import {registerOffer, sinkObservation, upsertCatalog, listOffers} from './supabase-sink.mjs';
+import {categoryOf, makeBrandInfo} from './catalog-taxonomy.mjs';
 
 const money = /^\d+(\.\d{1,2})?$/;
 
@@ -37,13 +38,16 @@ export function matchCatalog(rows, catalog, observedAt = new Date().toISOString(
   });
 }
 
-// Catalog layer rows: every valid feed row, current price only. [Deal] relistings are dropped when a
-// regular listing with the same EAN exists, so search shows one entry per product option.
-export function buildCatalogItems(rows, catalog, seenAt) {
+// Catalog layer rows: every valid feed row of a Korean brand, current price only. Non-Korean brands and
+// retailer bundles are skipped entirely. [Deal] relistings are dropped when a regular listing with the same
+// EAN exists, so search shows one entry per product option.
+export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({origin: 'KR', brandKo: null})) {
   const valid = [];
   for (const r of rows) {
     if (r.data_feed_id !== catalog.feedId || r.merchant_id !== catalog.merchantId || r.currency !== catalog.currency) continue;
     if (!/^[A-Za-z0-9-]{1,40}$/.test(r.merchant_product_id) || !r.brand_name || !r.product_name) continue;
+    const brand = brandInfo(r.brand_name);
+    if (brand.origin !== 'KR') continue;
     if (!money.test(r.search_price) || Number(r.search_price) <= 0 || Number(r.search_price) > 10000) continue;
     let page, tracking, image = null;
     try { page = new URL(r.merchant_deep_link); tracking = new URL(r.aw_deep_link); if (r.merchant_image_url) image = new URL(r.merchant_image_url); } catch { continue; }
@@ -55,7 +59,7 @@ export function buildCatalogItems(rows, catalog, seenAt) {
     if (name.toLowerCase().startsWith(prefix)) name = name.slice(prefix.length).replace(/^\s*-\s*/, '').trim() || name;
     valid.push({deal, item: {
       retailer: catalog.retailer, market: catalog.market, sku: r.merchant_product_id, currency: r.currency, ean: r.ean || null,
-      brand: r.brand_name.trim(), name, price_minor: Math.round(Number(r.search_price) * 100),
+      brand: r.brand_name.trim(), brand_ko: brand.brandKo, name, category: categoryOf(name), price_minor: Math.round(Number(r.search_price) * 100),
       delivery_minor: money.test(r.delivery_cost) ? Math.round(Number(r.delivery_cost) * 100) : null,
       availability: r.in_stock === '1' ? 'in_stock' : r.in_stock === '0' ? 'out_of_stock' : 'unknown',
       url: page.origin + page.pathname, affiliate_url: tracking.href, image_url: image?.href ?? null, seen_at: seenAt, active: true
@@ -71,6 +75,8 @@ export async function runCatalog(inputPath, root, options = {}) {
   const bytes = await readFile(inputPath);
   const rows = parseCsv((bytes[0] === 31 && bytes[1] === 139 ? gunzipSync(bytes) : bytes).toString('utf8'));
   const catalog = JSON.parse(await readFile(resolve(root, 'data/catalog.json'), 'utf8'));
+  const brandInfo = makeBrandInfo(JSON.parse(await readFile(resolve(root, 'data/brands.json'), 'utf8')));
+  catalog.products = catalog.products.map(p => ({...p, category: categoryOf(p.name), brandKo: brandInfo(p.feedBrand).brandKo}));
   const observedAt = options.observedAt ?? new Date().toISOString();
   // Tracking layer = curated catalog.json + offers users asked to track (request_tracking).
   const curated = new Set(catalog.products.map(p => p.sku));
@@ -88,7 +94,7 @@ export async function runCatalog(inputPath, root, options = {}) {
       summary.push({slug: r.slug, status: 'ok', amount: r.observation.amount, db: changed ? 'changed' : 'unchanged'});
     } catch (e) { summary.push({slug: r.slug, status: 'db_error', error: e.message}); }
   }
-  const items = buildCatalogItems(rows, catalog, observedAt);
+  const items = buildCatalogItems(rows, catalog, observedAt, brandInfo);
   let catalogLayer;
   try { const c = await upsertCatalog(items, observedAt, options); catalogLayer = {items: items.length, db: c.skipped ? 'skipped' : 'upserted'}; }
   catch (e) { catalogLayer = {items: items.length, db: 'db_error', error: e.message}; }
