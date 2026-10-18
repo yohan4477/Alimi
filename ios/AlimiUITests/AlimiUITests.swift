@@ -55,19 +55,19 @@ final class AlimiUITests: XCTestCase {
         XCTAssertTrue(waitForPhoto(app.buttons["product-\(product)"].firstMatch), "photo should survive list re-render")
     }
 
-    // Category tabs sit in a horizontal scroll view; swipe it until the wanted tab can be tapped.
+    // Category tabs sit in a horizontal scroll view. Off-screen tabs have no valid hit point (isHittable
+    // itself throws), so compare frames with the window and drag the strip until the tab is fully visible.
     private func tapCategory(_ name: String) {
         let tab = app.buttons["category-\(name)"].firstMatch
         XCTAssertTrue(tab.waitForExistence(timeout: 5), "missing tab \(name)")
-        for direction in [true, false] {
-            var n = 0
-            while !tab.isHittable && n < 6 {
-                let strip = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'category-'")).allElementsBoundByIndex.first { $0.isHittable }
-                guard let strip else { break }
-                if direction { strip.swipeLeft() } else { strip.swipeRight() }
-                n += 1
-            }
-            if tab.isHittable { break }
+        let screen = app.windows.firstMatch.frame
+        var n = 0
+        while !screen.contains(tab.frame) && n < 8 {
+            let y = (tab.frame.midY - screen.minY) / screen.height
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.minX > screen.maxX ? 0.8 : 0.2, dy: y))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.minX > screen.maxX ? 0.2 : 0.8, dy: y))
+            start.press(forDuration: 0.05, thenDragTo: end)
+            n += 1
         }
         tab.tap()
     }
