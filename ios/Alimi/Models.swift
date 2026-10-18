@@ -64,7 +64,10 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     var optionLabel: String? = nil
     var unit: String? = nil
     var unitPriceMinor: Int? = nil
+    var url: String? = nil
+    var affiliateUrl: String? = nil
     var id: String { "\(retailer)|\(market)|\(sku)" }
+    var buyLink: URL? { Purchase.buyURL(affiliateUrl ?? url) }
     var variantLabel: String { [sizeLabel, optionLabel].compactMap { $0 }.joined(separator: " · ") }
     var unitPrice: Double? { unitPriceMinor.map { Double($0) / 100 } }
     var price: Double { Double(priceMinor) / 100 }
@@ -73,6 +76,7 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     enum CodingKeys: String, CodingKey {
         case retailer, market, sku, brand, brandKo = "brand_ko", name, category, priceMinor = "price_minor", currency, availability, imageUrl = "image_url"
         case sizeLabel = "size_label", optionLabel = "option_label", unit, unitPriceMinor = "unit_price_minor"
+        case url, affiliateUrl = "affiliate_url"
     }
     static func unitName(_ unit: String?) -> String { unit == "ml" || unit == "g" ? "10" + (unit ?? "") : unit == "pcs" ? "1pc" : (unit ?? "") }
     // Duplicate listings of the same size/option collapse to the cheapest; best unit price first.
@@ -376,7 +380,7 @@ final class AlimiStore: ObservableObject {
     func family(_ key: String) async -> [VariantChoice]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
         var c = URLComponents(url: URL(string: "/rest/v1/catalog_items", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
-        c.queryItems = [URLQueryItem(name: "select", value: CatalogItem.fields + ",size_label,option_label,unit,unit_price_minor"),
+        c.queryItems = [URLQueryItem(name: "select", value: CatalogItem.fields + ",size_label,option_label,unit,unit_price_minor,url,affiliate_url"),
                         URLQueryItem(name: "active", value: "eq.true"), URLQueryItem(name: "family_key", value: "eq." + key),
                         URLQueryItem(name: "limit", value: "60")]
         var request = URLRequest(url: c.url!, timeoutInterval: 15)
@@ -394,4 +398,22 @@ final class AlimiStore: ObservableObject {
     }
     func status(_ p: Product) -> String { PriceRule.status(target: saved.targets[p.id], current: p.price) }
     func reset() { saved = SavedState() }
+}
+
+// Retailer links. Awin affiliate links carry a click reference so sales can be traced to a post or chat.
+enum Purchase {
+    static func buyURL(_ raw: String?, ref: String? = nil) -> URL? {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              var c = URLComponents(string: raw) else { return nil }
+        if c.host == "www.awin1.com", let ref {
+            let allowed = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-")
+            let clean = String(ref.filter { allowed.contains($0) }.prefix(50))
+            if !clean.isEmpty {
+                var items = (c.queryItems ?? []).filter { $0.name != "clickref" }
+                items.append(URLQueryItem(name: "clickref", value: clean))
+                c.queryItems = items
+            }
+        }
+        return c.url
+    }
 }

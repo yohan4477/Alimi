@@ -94,6 +94,18 @@ final class AlimiUITests: XCTestCase {
         attach("category-essence")
     }
 
+    // Purchase path works without saving: the detail page leads with the retailer button, the price alert comes last.
+    func testDetailOffersRetailerButtonBeforePriceAlert() {
+        let card = app.buttons["product-cosrx-snail-96-100ml"].firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: 15))
+        reveal(card).tap()
+        let buy = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Stylevana'")).firstMatch
+        XCTAssertTrue(buy.waitForExistence(timeout: 10), "detail offers a view-at-retailer button")
+        let alerts = app.staticTexts["가격이 내려가면 알려드릴까요?"]
+        reveal(alerts, swipes: 10)
+        XCTAssertTrue(alerts.exists, "price alert section comes after the retailer section")
+        attach("detail-purchase-flow")
+    }
     func testTappingBrandOpensItsPage() {
         let cosrx = app.buttons["brand-COSRX"]
         XCTAssertTrue(cosrx.waitForExistence(timeout: 10), "popular-brand badges on home")

@@ -83,6 +83,20 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(q.first { $0.name == "category" }?.value, "eq.립")
         XCTAssertEqual(q.first { $0.name == "order" }?.value, "sort_key.desc")
     }
+    func testBuyURLAddsClickrefOnlyToAwin() {
+        let awin = "https://www.awin1.com/pclick.php?p=1&a=2&m=3"
+        func clickref(_ url: URL?) -> String? {
+            URLComponents(url: url!, resolvingAgainstBaseURL: true)!.queryItems?.first { $0.name == "clickref" }?.value
+        }
+        XCTAssertEqual(clickref(Purchase.buyURL(awin, ref: "post-12")), "post-12")
+        XCTAssertEqual(clickref(Purchase.buyURL(awin, ref: "chat\"<x>")), "chatx")
+        XCTAssertEqual(clickref(Purchase.buyURL(awin, ref: String(repeating: "a", count: 80))), String(repeating: "a", count: 50))
+        XCTAssertEqual(Purchase.buyURL(awin)?.absoluteString, awin)
+        XCTAssertNil(clickref(Purchase.buyURL("https://www.stylevana.com/a.html", ref: "post-12")))
+        XCTAssertEqual(Purchase.buyURL("https://www.stylevana.com/a.html", ref: "post-12")?.absoluteString, "https://www.stylevana.com/a.html")
+        XCTAssertNil(Purchase.buyURL(nil))
+        XCTAssertNil(Purchase.buyURL(""))
+    }
     func testChatTagMatchesServerAndErrorsAreFriendly() {
         // Same SHA-256 prefix the post_chat RPC stores, so "mine" and Block line up with the server.
         XCTAssertEqual(ChatAPI.tag("11111111-1111-4111-8111-111111111111"), "bd7662a5eeb41614e720d477")
