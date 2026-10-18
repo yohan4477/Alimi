@@ -4,9 +4,12 @@ on:
   pull_request:
     paths:
       - 'ios/**'
+      - 'dist/strings.json'
       - '.github/workflows/ios.yml'
   push:
     paths:
+      - 'ios/**'
+      - 'dist/strings.json'
       - '.github/workflows/ios.yml'
 permissions:
   contents: read
