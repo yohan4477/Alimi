@@ -74,6 +74,7 @@ export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({ori
 export async function runCatalog(inputPath, root, options = {}) {
   const bytes = await readFile(inputPath);
   const rows = parseCsv((bytes[0] === 31 && bytes[1] === 139 ? gunzipSync(bytes) : bytes).toString('utf8'));
+  console.log('feed columns: ' + Object.keys(rows[0] ?? {}).join(', ')); // names only, never values
   const catalog = JSON.parse(await readFile(resolve(root, 'data/catalog.json'), 'utf8'));
   const brandInfo = makeBrandInfo(JSON.parse(await readFile(resolve(root, 'data/brands.json'), 'utf8')));
   catalog.products = catalog.products.map(p => ({...p, category: categoryOf(p.name), brandKo: brandInfo(p.feedBrand).brandKo}));
