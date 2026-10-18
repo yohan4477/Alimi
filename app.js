@@ -54,7 +54,7 @@ async function startTracking(b){b.disabled=true;try{const slug=await requestTrac
 
 function chart(p){
   const series=dailySeries(p,days),s=stats(series),tracked=trackedDays(p);
-  let graph=`<div class="chart-wrap history-pending"><strong>가격 기록 중</strong><p>${tracked}일째 수집 중 · 가격이 바뀌면 그래프가 그려져요</p><small>매일 07:30 공식 피드 확인</small></div>`;
+  let graph=`<div class="chart-wrap history-pending"><strong>가격 기록 중</strong><p>${tracked}일째 수집 중 · 가격이 바뀌면 그래프가 그려져요</p><small>공식 피드가 갱신되면 1시간 안에 반영</small></div>`;
   const pts=series.map((d,i)=>({...d,i})).filter(d=>d.price!=null);
   if(s&&pts.length>=2){
     const pad=Math.max(.5,(s.max-s.min)*.25),lo=s.min-pad,hi=s.max+pad,y=v=>190-(v-lo)/(hi-lo)*150,x=i=>12+i*326/(days-1);
