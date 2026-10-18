@@ -53,6 +53,11 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(PriceHistory.trackedDays(history, now: now), 3)
         XCTAssertTrue(PriceHistory.daily([], days: 7, now: now).isEmpty)
     }
+    func testWatchSummary() {
+        let now = ISODate.parse("2026-10-20T03:00:00Z")!
+        XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20)], current: 20, now: now), "지켜본 지 3일 · 아직 가격 변동 없음")
+        XCTAssertEqual(PriceHistory.summary([point("2026-10-17T22:30:00Z", 20), point("2026-10-19T22:30:00Z", 18)], current: 18, now: now), "지켜본 3일 중 지금이 최저가")
+    }
     func testFavorites() {
         let store = makeStore()
         store.toggle("cosrx")

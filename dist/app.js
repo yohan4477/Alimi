@@ -1,5 +1,5 @@
 import {track} from './events.js';
-import {loadProducts,searchCatalog,fetchCatalogPage,requestTracking,CATEGORIES,brandLabel,search,dailySeries,stats,trackedDays,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
+import {loadProducts,searchCatalog,fetchCatalogPage,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,trackedDays,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let storage;try{storage=localStorage}catch{}
@@ -12,15 +12,15 @@ function save(){try{writeState(storage,state)}catch{toast('현재 화면에서�
 const art=p=>`<img src="${esc(p.imageUrl)}" alt="${esc(brandLabel(p)+' '+p.name)}" loading="lazy">`;
 
 function change(p){const s=stats(dailySeries(p,30));if(!s||s.days<2||s.max===s.min)return null;return Math.round((p.price/s.avg-1)*100)}
-const card=p=>{const c=change(p);return `<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><div class="price-line">${c===null?'':`<span class="${c<=0?'down':'up'}">${c<=0?'▼':'▲'} ${Math.abs(c)}%</span> `}<strong>${usd(p.price)}</strong></div><small class="meta">${p.size?esc(p.size)+' · ':''}가격 추적 중</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="관심 상품" aria-pressed="${state.favorites.includes(p.id)}">${state.favorites.includes(p.id)?'♥':'♡'}</button></article>`};
-const catalogCard=c=>`<article class="card"><div class="visual">${c.image_url?`<img src="${esc(c.image_url)}" alt="${esc(brandLabel(c)+' '+c.name)}" loading="lazy">`:'<div class="no-photo">사진 없음</div>'}</div><div class="brand">${esc(brandLabel(c))}</div><div class="product-name">${esc(c.name)}</div><div class="price-line"><strong>${usd(c.price)}</strong></div><small class="meta">${esc(c.category??'')} · 현재가</small><button class="heart" data-track="${esc(c.sku)}" data-retailer="${esc(c.retailer)}" data-market="${esc(c.market)}" aria-label="가격 추적 시작">♡</button></article>`;
+const card=p=>{const c=change(p);return `<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><div class="price-line">${c===null?'':`<span class="${c<=0?'down':'up'}">${c<=0?'▼':'▲'} ${Math.abs(c)}%</span> `}<strong>${usd(p.price)}</strong></div><small class="meta">${esc(watchSummary(p).text)}</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="관심 상품" aria-pressed="${state.favorites.includes(p.id)}">${state.favorites.includes(p.id)?'♥':'♡'}</button></article>`};
+const catalogCard=c=>`<article class="card"><div class="visual">${c.image_url?`<img src="${esc(c.image_url)}" alt="${esc(brandLabel(c)+' '+c.name)}" loading="lazy">`:'<div class="no-photo">사진 없음</div>'}</div><div class="brand">${esc(brandLabel(c))}</div><div class="product-name">${esc(c.name)}</div><div class="price-line"><strong>${usd(c.price)}</strong></div><small class="meta">${esc(c.category??'')} · 오늘 가격</small><button class="heart" data-track="${esc(c.sku)}" data-retailer="${esc(c.retailer)}" data-market="${esc(c.market)}" aria-label="관심에 담기">♡</button></article>`;
 function renderList(){
   const q=$('#search').value.trim();
   const items=search(products,q,category).filter(p=>view==='all'||state.favorites.includes(p.id));
   $('#count').textContent=state.favorites.length;
-  $('#list-title').textContent=view==='all'?'가격 추적 중':'내가 기다리는 뷰티';
+  $('#list-title').textContent=view==='all'?'가격을 지켜보는 상품':'내 관심 상품';
   $('#result-count').textContent=items.length+'개';
-  $('#products').innerHTML=(items.length?items.map(card).join(''):`<p class="empty">${view==='all'?'이 카테고리에는 아직 추적 중인 상품이 없어요.':'관심 상품이 없어요. 하트를 눌러 추가해 보세요.'}</p>`)+'<div id="catalog-results" class="catalog-results"></div>';
+  $('#products').innerHTML=(items.length?items.map(card).join(''):`<p class="empty">${view==='all'?'이 카테고리에서 지켜보는 상품이 아직 없어요. 아래에서 하트를 눌러 보세요.':'관심 상품이 없어요. 하트를 눌러 추가해 보세요.'}</p>`)+'<div id="catalog-results" class="catalog-results"></div>';
   if(view!=='all')return;
   if(q.length>=2)renderCatalogSearch(q);else renderCatalogBrowse(true);
 }
@@ -28,7 +28,7 @@ function renderList(){
 let catalogTimer,catalogSeq=0;
 function renderCatalogSearch(q){clearTimeout(catalogTimer);const seq=++catalogSeq;
   catalogTimer=setTimeout(async()=>{let list;try{list=await searchCatalog(q)}catch{list=null}if(seq!==catalogSeq||!$('#catalog-results'))return;const tracked=new Set(products.map(p=>p.sku));list=(list||[]).filter(c=>!tracked.has(c.sku));
-    $('#catalog-results').innerHTML=list===null?'':`<div class="heading"><div><h2>Stylevana 전체에서 찾기</h2><p>하트를 누르면 오늘부터 가격을 기록해요</p></div><span>${list.length}개</span></div>`+(list.length?`<div class="catalog-grid">${list.map(catalogCard).join('')}</div>`:'<p class="empty">전체 카탈로그에서도 찾지 못했어요.</p>');
+    $('#catalog-results').innerHTML=list===null?'':`<div class="heading"><div><h2>더 많은 상품</h2><p>하트를 누르면 관심에 담고 오늘부터 가격을 지켜봐요</p></div><span>${list.length}개</span></div>`+(list.length?`<div class="catalog-grid">${list.map(catalogCard).join('')}</div>`:'<p class="empty">전체 카탈로그에서도 찾지 못했어요.</p>');
   },350)}
 // Home browsing of the Korean-brand catalog by category, loaded page by page as the user scrolls.
 const browse={category:null,items:[],done:false,loading:false};let observer;
@@ -36,7 +36,7 @@ function renderCatalogBrowse(reset){
   const box=$('#catalog-results');if(!box)return;
   if(reset&&browse.category!==category){Object.assign(browse,{category,items:[],done:false});catalogSeq++}
   const tracked=new Set(products.map(p=>p.sku));
-  box.innerHTML=`<div class="heading"><div><h2>전체 상품</h2><p>한국 브랜드 · 하트를 누르면 오늘부터 가격을 기록해요</p></div></div><div class="catalog-grid">${browse.items.filter(c=>!tracked.has(c.sku)).map(catalogCard).join('')}</div>${browse.done?(browse.items.length?'':'<p class="empty">상품이 없어요.</p>'):'<p class="empty" id="catalog-more">불러오는 중…</p>'}`;
+  box.innerHTML=`<div class="heading"><div><h2>전체 상품</h2><p>한국 브랜드 · 하트를 누르면 관심에 담고 오늘부터 가격을 지켜봐요</p></div></div><div class="catalog-grid">${browse.items.filter(c=>!tracked.has(c.sku)).map(catalogCard).join('')}</div>${browse.done?(browse.items.length?'':'<p class="empty">상품이 없어요.</p>'):'<p class="empty" id="catalog-more">불러오는 중…</p>'}`;
   observer?.disconnect();
   const more=$('#catalog-more');if(!more)return;
   // First page loads right away; later pages load when the sentinel comes near the viewport.
@@ -50,11 +50,11 @@ async function loadMoreCatalog(){
   finally{browse.loading=false}
   if(seq===catalogSeq&&!$('#search').value.trim()&&view==='all')renderCatalogBrowse(false);
 }
-async function startTracking(b){b.disabled=true;try{const slug=await requestTracking({retailer:b.dataset.retailer,market:b.dataset.market,sku:b.dataset.track});const r=await loadProducts();products=r.products;if(!state.favorites.includes(slug))toggleFavorite(state,slug);save();track('wishlist_add',slug,{from:'catalog'});renderList();toast('가격 추적을 시작했어요 · 관심 상품에 추가')}catch{b.disabled=false;toast('추적을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.')}}
+async function startTracking(b){b.disabled=true;try{const slug=await requestTracking({retailer:b.dataset.retailer,market:b.dataset.market,sku:b.dataset.track});const r=await loadProducts();products=r.products;if(!state.favorites.includes(slug))toggleFavorite(state,slug);save();track('wishlist_add',slug,{from:'catalog'});renderList();toast('관심에 담았어요 · 오늘부터 가격을 지켜볼게요')}catch{b.disabled=false;toast('관심에 담지 못했어요. 잠시 후 다시 시도해 주세요.')}}
 
 function chart(p){
   const series=dailySeries(p,days),s=stats(series),tracked=trackedDays(p);
-  let graph=`<div class="chart-wrap history-pending"><strong>가격 기록 중</strong><p>${tracked}일째 수집 중 · 가격이 바뀌면 그래프가 그려져요</p><small>공식 피드가 갱신되면 1시간 안에 반영</small></div>`;
+  let graph=`<div class="chart-wrap history-pending"><strong>${esc(watchSummary(p).text)}</strong><p>가격이 바뀌면 여기에 그래프로 보여드려요</p><small>공식 피드가 갱신되면 1시간 안에 반영</small></div>`;
   const pts=series.map((d,i)=>({...d,i})).filter(d=>d.price!=null);
   if(s&&pts.length>=2){
     const pad=Math.max(.5,(s.max-s.min)*.25),lo=s.min-pad,hi=s.max+pad,y=v=>190-(v-lo)/(hi-lo)*150,x=i=>12+i*326/(days-1);
@@ -93,7 +93,7 @@ loadProducts().then(({products:list,source,exportedAt})=>{
   $('#categories').innerHTML=['전체',...CATEGORIES].map(c=>`<button class="chip ${c==='전체'?'active':''}" data-category="${c}">${c}</button>`).join('');
   if(products[0])$('#hero-art').innerHTML=art(products.find(p=>p.sku==='10759')??products[0]);
   const latest=products.map(p=>p.checkedAt).sort().at(-1);
-  $('.notice').textContent=source==='live'?`Stylevana US 공식 피드 · 한국 브랜드 · 가격 추적 ${products.length}개 · ${latest?kstDate(latest):''} 확인`:`오프라인 데이터 · ${exportedAt?kstDate(exportedAt):''} 기준`;
+  $('.notice').textContent=source==='live'?`Stylevana US 공식 가격 · 한국 브랜드 · ${latest?kstDate(latest):''} 확인`:`오프라인 데이터 · ${exportedAt?kstDate(exportedAt):''} 기준`;
   renderList();
   track('home_view',null,{source});
 }).catch(()=>{$('#products').innerHTML='<p class="empty">가격을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>'});

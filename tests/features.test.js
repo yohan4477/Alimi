@@ -66,3 +66,11 @@ test('catalog browse pages are filtered by category and ordered stably',()=>{
   assert.equal(all.searchParams.get('category'),null);assert.equal(all.searchParams.get('offset'),'48');assert.equal(all.searchParams.get('order'),'sku.desc');
   assert.equal(new URL(catalogPageUrl('선케어',0)).searchParams.get('category'),'eq.선케어');
 });
+test('watch summary replaces the empty chart with a plain sentence',async()=>{
+  const {watchSummary}=await import('../dist/live.js');
+  const now=new Date('2026-10-20T03:00:00Z');
+  const h=(...ps)=>ps.map(([at,price])=>({at,price}));
+  assert.equal(watchSummary({price:20,history:h(['2026-10-17T22:30:00Z',20])},now).text,'지켜본 지 3일 · 아직 가격 변동 없음');
+  assert.equal(watchSummary({price:18,history:h(['2026-10-17T22:30:00Z',20],['2026-10-19T22:30:00Z',18])},now).text,'지켜본 3일 중 지금이 최저가');
+  assert.equal(watchSummary({price:21,history:h(['2026-10-17T22:30:00Z',20],['2026-10-18T22:30:00Z',18],['2026-10-19T22:30:00Z',21])},now).text,'지켜본 3일 동안 가격 2번 변동');
+});
