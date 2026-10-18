@@ -124,10 +124,6 @@
     "ko": "오프라인 데이터",
     "en": "Offline data"
   },
-  "days": {
-    "ko": "{n}일",
-    "en": "{n}d"
-  },
   "date": {
     "ko": "날짜",
     "en": "Date"
