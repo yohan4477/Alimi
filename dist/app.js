@@ -4,8 +4,7 @@ import {track} from './events.js';
 import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
 import {buyUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+import {$,esc} from './util.js';
 let storage;try{storage=localStorage}catch{}
 let state=readState(storage),products=[],selected=null,category='전체',timer,detailOpen=false;
 const product=id=>products.find(p=>p.id===id);
