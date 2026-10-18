@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Charts
 
 struct RootView: View {
@@ -19,7 +20,7 @@ struct SourceBanner: View {
         switch store.source {
         case .live:
             let latest = store.products.map(\.checkedAt).max()
-            return "Stylevana US 공식 피드 · 실제 상품 \(store.products.count)개" + (latest.map { " · \($0.formatted(dayFormat)) 확인" } ?? "")
+            return "Stylevana US 공식 피드 · 한국 브랜드 · 가격 추적 \(store.products.count)개" + (latest.map { " · \($0.formatted(dayFormat)) 확인" } ?? "")
         case .snapshot(let at):
             return "오프라인 데이터" + (ISODate.parse(at).map { " · \($0.formatted(dayFormat)) 기준" } ?? "")
         case .none:
@@ -32,18 +33,58 @@ struct SourceBanner: View {
             .padding(12).background(Color.canvas, in: RoundedRectangle(cornerRadius: 10))
     }
 }
-struct ProductArt: View {
-    let product: Product
+// Product photo loader. AsyncImage restarts (and reports a cancellation error) whenever a list cell is
+// re-rendered, e.g. after tapping the heart, which left "사진을 불러오지 못했어요" in the favorites tab.
+// This keeps the loaded image in memory, ignores cancellations and retries a failed load once.
+@MainActor final class ImageCache {
+    static let shared = ImageCache()
+    private let cache = NSCache<NSURL, UIImage>()
+    func image(for url: URL) -> UIImage? { cache.object(forKey: url as NSURL) }
+    func load(_ url: URL) async -> UIImage? {
+        if let hit = image(for: url) { return hit }
+        for attempt in 0..<2 {
+            if Task.isCancelled { return nil }
+            if let (data, response) = try? await URLSession.shared.data(from: url),
+               (response as? HTTPURLResponse)?.statusCode == 200, let image = UIImage(data: data) {
+                cache.setObject(image, forKey: url as NSURL)
+                return image
+            }
+            if attempt == 0 { try? await Task.sleep(for: .milliseconds(500)) }
+        }
+        return nil
+    }
+}
+struct RemoteImage: View {
+    let url: URL?
+    let label: String
+    var onLoad: (Bool) -> Void = { _ in }
+    @State private var image: UIImage?
+    @State private var failed = false
     var body: some View {
-        AsyncImage(url: product.imageUrl) { phase in
-            if let image = phase.image { image.resizable().scaledToFit() }
-            else {
-                VStack(spacing: 10) {
-                    Text(product.brand).font(.caption)
-                    if phase.error != nil { Text("사진을 불러오지 못했어요").font(.caption2) } else { ProgressView() }
+        ZStack {
+            if let image {
+                Image(uiImage: image).resizable().scaledToFit().accessibilityIdentifier("product-image")
+            } else {
+                VStack(spacing: 8) {
+                    Text(label).font(.caption).lineLimit(1)
+                    if failed || url == nil { Text("사진 없음").font(.caption2) } else { ProgressView() }
                 }.foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.canvas)
             }
-        }.frame(maxWidth: .infinity).accessibilityLabel("\(product.brand) \(product.name)")
+        }
+        .frame(maxWidth: .infinity)
+        .task(id: url) {
+            guard let url else { return }
+            if let hit = ImageCache.shared.image(for: url) { image = hit; onLoad(true); return }
+            let loaded = await ImageCache.shared.load(url)
+            if let loaded { image = loaded; failed = false; onLoad(true) } else if !Task.isCancelled { failed = true; onLoad(false) }
+        }
+    }
+}
+struct ProductArt: View {
+    let product: Product
+    var onLoad: (Bool) -> Void = { _ in }
+    var body: some View {
+        RemoteImage(url: product.imageUrl, label: product.brandLabel, onLoad: onLoad).accessibilityLabel("\(product.brandLabel) \(product.name)")
     }
 }
 struct BrowseView: View {
@@ -52,8 +93,12 @@ struct BrowseView: View {
     @State private var query = ""
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
+    @State private var browse: [CatalogItem] = []
+    @State private var browseDone = false
+    @State private var browseLoading = false
     @State private var tracking: String?
     private var results: [Product] { store.search(query, category: category, favoritesOnly: favoritesOnly) }
+    private var searching: Bool { CatalogItem.query(query).count >= 2 }
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -66,52 +111,34 @@ struct BrowseView: View {
                             Text("눈여겨본 K-뷰티, 지금은 어떤 가격일까요?").font(.subheadline).foregroundStyle(.secondary)
                         }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(store.categories, id: \.self) { item in
-                                Button { category = item } label: {
-                                    Text(item).font(.subheadline.weight(.medium)).padding(.horizontal, 16).padding(.vertical, 9)
-                                        .background(category == item ? Color.alimi : Color.canvas, in: Capsule())
-                                        .foregroundStyle(category == item ? .white : .primary)
-                                }.accessibilityAddTraits(category == item ? .isSelected : [])
-                            }
-                        }
-                    }
+                    CategoryTabs(categories: store.categories, selection: $category)
                     HStack {
-                        Text(favoritesOnly ? "내가 기다리는 상품" : "오늘의 뷰티 리스트").font(.headline)
+                        Text(favoritesOnly ? "내가 기다리는 상품" : "가격 추적 중").font(.headline)
                         Spacer()
                         Text("\(results.count)개").font(.subheadline).foregroundStyle(.secondary)
                     }
                     if results.isEmpty {
-                        ContentUnavailableView("표시할 상품이 없어요", systemImage: favoritesOnly ? "heart" : "magnifyingglass", description: Text("검색어를 바꾸거나 상품의 하트를 눌러보세요."))
+                        Text(favoritesOnly ? "관심 상품이 없어요. 하트를 눌러 추가해 보세요." : "이 카테고리에는 아직 추적 중인 상품이 없어요.")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 16)], spacing: 24) {
-                        ForEach(results) { product in
-                            VStack(alignment: .leading, spacing: 8) {
-                                NavigationLink { ProductDetail(product: product) } label: {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        ProductArt(product: product).frame(height: 180)
-                                        Text(product.brand).font(.caption).foregroundStyle(.secondary)
-                                        Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
-                                        Text(usd(product.price)).font(.system(size: 23, weight: .bold, design: .rounded))
-                                        Text("\(product.size) · \(product.stockLabel)").font(.caption2).foregroundStyle(.secondary)
-                                    }.foregroundStyle(.primary)
-                                }.buttonStyle(.plain)
-                                Button { store.toggle(product.id) } label: {
-                                    Label(store.saved.favorites.contains(product.id) ? "관심 등록됨" : "관심 등록", systemImage: store.saved.favorites.contains(product.id) ? "heart.fill" : "heart")
-                                        .font(.caption).frame(minHeight: 44)
-                                }.accessibilityIdentifier("favorite-\(product.id)")
-                            }
-                        }
+                        ForEach(results) { product in TrackedCard(product: product) }
                     }
-                    if !favoritesOnly, CatalogItem.query(query).count >= 2 { catalogSection }
+                    if !favoritesOnly {
+                        if searching { catalogSection } else { browseSection }
+                    }
                 }.padding(20)
             }.navigationTitle(favoritesOnly ? "관심 상품" : "Alimi")
                 .task(id: query) {
-                    guard !favoritesOnly, CatalogItem.query(query).count >= 2 else { catalog = []; return }
+                    guard !favoritesOnly, searching else { catalog = []; return }
                     try? await Task.sleep(for: .milliseconds(400))
                     guard !Task.isCancelled else { return }
                     catalog = await store.searchCatalog(query)
+                }
+                .task(id: category) {
+                    guard !favoritesOnly else { return }
+                    browse = []; browseDone = false
+                    await loadMore()
                 }
                 .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: "브랜드 또는 상품명 검색")
@@ -123,8 +150,49 @@ struct BrowseView: View {
         }
     }
 }
+struct CategoryTabs: View {
+    let categories: [String]
+    @Binding var selection: String
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack {
+                ForEach(categories, id: \.self) { item in
+                    Button { selection = item } label: {
+                        Text(item).font(.subheadline.weight(.medium)).padding(.horizontal, 16).padding(.vertical, 9)
+                            .background(selection == item ? Color.alimi : Color.canvas, in: Capsule())
+                            .foregroundStyle(selection == item ? .white : .primary)
+                    }
+                    .accessibilityIdentifier("category-\(item)")
+                    .accessibilityAddTraits(selection == item ? .isSelected : [])
+                }
+            }
+        }
+    }
+}
+struct TrackedCard: View {
+    @EnvironmentObject var store: AlimiStore
+    let product: Product
+    @State private var photoLoaded = false
+    var body: some View {
+        let saved = store.saved.favorites.contains(product.id)
+        VStack(alignment: .leading, spacing: 8) {
+            NavigationLink { ProductDetail(product: product) } label: {
+                VStack(alignment: .leading, spacing: 8) {
+                    ProductArt(product: product) { photoLoaded = $0 }.frame(height: 180)
+                    Text(product.brandLabel).font(.caption).foregroundStyle(.secondary)
+                    Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
+                    Text(usd(product.price)).font(.system(size: 23, weight: .bold, design: .rounded))
+                    Text("\(product.category) · \(product.stockLabel)").font(.caption2).foregroundStyle(.secondary)
+                }.foregroundStyle(.primary)
+            }.buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)").accessibilityValue(photoLoaded ? "사진 있음" : "사진 없음")
+            Button { store.toggle(product.id) } label: {
+                Label(saved ? "관심 등록됨" : "관심 등록", systemImage: saved ? "heart.fill" : "heart").font(.caption).frame(minHeight: 44)
+            }.accessibilityIdentifier("favorite-\(product.id)")
+        }
+    }
+}
 extension BrowseView {
-    // Whole-catalog results: tapping 추적 시작 moves that exact SKU into the tracking layer.
+    // Whole-catalog search results: tapping 추적 시작 moves that exact SKU into the tracking layer.
     var catalogSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Stylevana 전체에서 찾기").font(.headline)
@@ -144,6 +212,31 @@ extension BrowseView {
             Text("카탈로그를 불러오지 못했어요.").font(.caption).foregroundStyle(.secondary)
         }
     }
+    // Home browsing of the Korean-brand catalog, one page at a time as the user scrolls.
+    var browseSection: some View {
+        let tracked = Set(store.products.map(\.sku))
+        return LazyVStack(alignment: .leading, spacing: 12) {
+            Text("전체 상품").font(.headline)
+            Text("한국 브랜드 · 추적을 시작하면 오늘부터 가격을 기록해요").font(.caption).foregroundStyle(.secondary)
+            ForEach(browse.filter { !tracked.contains($0.sku) }) { item in
+                CatalogRow(item: item, busy: tracking == item.id, disabled: tracking != nil) { start(item) }
+                    .onAppear { if item.id == browse.last?.id { Task { await loadMore() } } }
+            }
+            if browseLoading { ProgressView().frame(maxWidth: .infinity) }
+            else if browseDone && browse.isEmpty { Text("상품이 없어요.").font(.caption).foregroundStyle(.secondary) }
+        }.padding(.top, 12)
+    }
+    func loadMore() async {
+        guard !browseLoading, !browseDone else { return }
+        browseLoading = true
+        let requested = category
+        let page = await store.catalogPage(category: requested, offset: browse.count)
+        browseLoading = false
+        guard requested == category else { return }
+        guard let page else { browseDone = true; return }
+        browse.append(contentsOf: page)
+        if page.count < 24 { browseDone = true }
+    }
     private func start(_ item: CatalogItem) {
         tracking = item.id
         Task {
@@ -159,14 +252,9 @@ struct CatalogRow: View {
     let action: () -> Void
     var body: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: item.imageUrl) { image in
-                image.resizable().scaledToFit()
-            } placeholder: {
-                Color.canvas
-            }
-            .frame(width: 64, height: 64)
+            RemoteImage(url: item.imageUrl, label: item.brandLabel).frame(width: 64, height: 64)
             VStack(alignment: .leading, spacing: 4) {
-                Text(item.brand).font(.caption).foregroundStyle(.secondary)
+                Text(item.brandLabel).font(.caption).foregroundStyle(.secondary)
                 Text(item.name).font(.subheadline).lineLimit(2)
                 Text(usd(item.price)).font(.subheadline.bold())
             }
@@ -191,7 +279,7 @@ struct ProductDetail: View {
                     Text(usd(product.price)).font(.largeTitle.bold())
                     Text("\(product.checkedAt.formatted(dayFormat)) 확인 · 가격 변경 \(product.changedAt.formatted(dayFormat))").font(.caption).foregroundStyle(.secondary)
                     Text(product.name).font(.title2.bold())
-                    Text("\(product.brand) · \(product.size)").font(.subheadline).foregroundStyle(.secondary)
+                    Text("\(product.brandLabel) · \(product.category)" + (product.size.isEmpty ? "" : " · \(product.size)")).font(.subheadline).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading, spacing: 16) {
                     HStack { Text("가격 흐름").font(.headline); Spacer(); Text("USD").font(.caption).foregroundStyle(.secondary) }

@@ -37,6 +37,17 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+  AlimiUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: AlimiUITests
+    dependencies:
+      - target: Alimi
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Alimi
 schemes:
   Alimi:
     build:
@@ -45,3 +56,4 @@ schemes:
     test:
       targets:
         - AlimiTests
+        - AlimiUITests
