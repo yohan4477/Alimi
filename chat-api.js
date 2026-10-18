@@ -32,7 +32,7 @@ export const visible = (messages, blocked) => messages.filter(m => !blocked.incl
 // Server errors are "chat:<code>"; anything else is a network / unknown failure.
 export const errorKey = message => {
   const code = /chat:(\w+)/.exec(String(message ?? ''))?.[1];
-  return ['slow', 'link', 'blocked', 'banned', 'long'].includes(code) ? 'chat.err.' + code : 'chat.err.other';
+  return ['slow', 'link', 'blocked', 'banned', 'long', 'item', 'photo'].includes(code) ? 'chat.err.' + code : 'chat.err.other';
 };
 
 export const roomsUrl = () => SUPABASE_URL + '/rest/v1/chat_room_list?' + new URLSearchParams({select: '*', order: 'sort'});
