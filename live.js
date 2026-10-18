@@ -56,7 +56,7 @@ export async function loadProducts(fetchImpl = fetch, snapshotUrl = './live-snap
 
 // Catalog layer search (whole official feed, current price only). Query is reduced to safe characters
 // before it is placed in the PostgREST filter.
-const CATALOG_FIELDS = 'retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url';
+const CATALOG_FIELDS = 'retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url,url,affiliate_url,family_key';
 const toCatalog = c => ({...c, brandKo: c.brand_ko ?? null, price: c.price_minor / 100});
 export const catalogQuery = q => q.replace(/[^\p{L}\p{N} &'-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
 export function catalogSearchUrl(q, limit = 30) {
@@ -154,15 +154,6 @@ export async function fetchCatalogPage(category, offset, limit = 24, fetchImpl =
   if (!res.ok) throw Error('HTTP ' + res.status);
   return (await res.json()).map(toCatalog);
 }
-// Moves a catalog item into the tracking layer; returns the tracked product id (slug).
-export async function requestTracking(item, fetchImpl = fetch) {
-  const res = await fetchImpl(SUPABASE_URL + '/rest/v1/rpc/request_tracking', {method: 'POST',
-    headers: {apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json'},
-    body: JSON.stringify({p_retailer: item.retailer, p_market: item.market, p_sku: item.sku})});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return res.json();
-}
-
 export const search = (products, q, category = '전체') => {
   const needle = q.trim().toLowerCase();
   return products.filter(p => (category === '전체' || p.category === category) && `${p.brand} ${p.brandKo ?? ''} ${p.name}`.toLowerCase().includes(needle));
