@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {matchCatalog} from '../scripts/stylevana-catalog.mjs';
-import {registerOffer} from '../scripts/supabase-sink.mjs';
+import {matchCatalog, buildCatalogItems} from '../scripts/stylevana-catalog.mjs';
+import {registerOffer, upsertCatalog} from '../scripts/supabase-sink.mjs';
 
 const catalog = JSON.parse(readFileSync(new URL('../data/catalog.json', import.meta.url)));
 const item = catalog.products.find(p => p.sku === '66606');
@@ -53,7 +53,7 @@ test('rejects missing, duplicate, wrong identity, bad price and foreign links pe
 
 test('registerOffer upserts product then offer on their natural keys', async () => {
   const calls = [];
-  const fetchImpl = async (u, init) => { calls.push([String(u), init]); return {ok: true, status: 200, json: async () => [{id: calls.length === 1 ? 'p1' : 'o1'}]}; };
+  const fetchImpl = async (u, init) => { calls.push([String(u), init]); return {ok: true, status: 200, text: async () => JSON.stringify([{id: calls.length === 1 ? 'p1' : 'o1'}])}; };
   const r = await registerOffer(catalog, item, {url: 'https://www.stylevana.com/a.html', affiliateUrl: 'https://www.awin1.com/pclick.php', imageUrl: 'https://sv9-cdn.stylevana.com/x.png', ean: item.ean},
     {url: 'https://demo.supabase.co', key: 'k', fetchImpl});
   assert.deepEqual(r, {skipped: false, offerId: 'o1'});
@@ -63,4 +63,35 @@ test('registerOffer upserts product then offer on their natural keys', async () 
   assert.equal(JSON.parse(calls[0][1].body).name, 'The Juicy Lasting Tint 07 Cherry Bomb');
   assert.equal(JSON.parse(calls[1][1].body).product_id, 'p1');
   assert.deepEqual(await registerOffer(catalog, item, {}, {url: '', key: ''}), {skipped: true});
+});
+
+test('catalog layer keeps valid rows, cleans names, drops [Deal] relistings of the same EAN', () => {
+  const items = buildCatalogItems([
+    row(),
+    row({merchant_product_id: '77777', product_name: '[DEAL]Romand - The Juicy Lasting Tint - 3.5g - 07 Cherry Bomb'}),
+    row({merchant_product_id: '77778', ean: '9990001', product_name: '[Deal] Romand - Only Deal Item'}),
+    row({merchant_product_id: '77779', currency: 'KRW'}),
+    row({merchant_product_id: '77780', search_price: '0'}),
+    row({merchant_product_id: '77781', merchant_deep_link: 'https://evil.example/x'}),
+    row({merchant_product_id: '77782', ean: '', merchant_image_url: 'http://insecure.example/x.png'})
+  ], catalog, at);
+  assert.deepEqual(items.map(i => i.sku), ['66606', '77778', '77782']);
+  assert.equal(items[0].name, 'The Juicy Lasting Tint - 3.5g - 07 Cherry Bomb');
+  assert.equal(items[1].name, 'Only Deal Item');
+  assert.deepEqual({p: items[0].price_minor, d: items[0].delivery_minor, s: items[0].availability, u: items[0].url, seen: items[0].seen_at},
+    {p: 1350, d: 399, s: 'in_stock', u: 'https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html', seen: at});
+  assert.equal(items[2].ean, null);
+  assert.equal(items[2].image_url, null);
+});
+
+test('upsertCatalog batches rows then deactivates items missing from this feed', async () => {
+  const calls = [];
+  const fetchImpl = async (u, init) => { calls.push([String(u), init]); return {ok: true, status: 201, text: async () => ''}; };
+  const items = Array.from({length: 1201}, (_, i) => ({retailer: 'Stylevana US', market: 'US', sku: String(i)}));
+  assert.deepEqual(await upsertCatalog(items, at, {url: 'https://demo.supabase.co', key: 'k', fetchImpl}), {skipped: false, upserted: 1201});
+  assert.equal(calls.length, 4);
+  assert.deepEqual(calls.slice(0, 3).map(c => JSON.parse(c[1].body).length), [500, 500, 201]);
+  assert.match(calls[3][0], /seen_at=lt\.2026-10-18T03%3A00%3A00\.000Z/);
+  assert.equal(calls[3][1].method, 'PATCH');
+  await assert.rejects(upsertCatalog([], at, {url: 'https://demo.supabase.co', key: 'k', fetchImpl}), /Empty catalog/);
 });

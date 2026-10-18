@@ -51,6 +51,8 @@ struct BrowseView: View {
     var favoritesOnly = false
     @State private var query = ""
     @State private var category = "전체"
+    @State private var catalog: [CatalogItem]? = []
+    @State private var tracking: String?
     private var results: [Product] { store.search(query, category: category, favoritesOnly: favoritesOnly) }
     var body: some View {
         NavigationStack {
@@ -102,8 +104,15 @@ struct BrowseView: View {
                             }
                         }
                     }
+                    if !favoritesOnly, CatalogItem.query(query).count >= 2 { catalogSection }
                 }.padding(20)
             }.navigationTitle(favoritesOnly ? "관심 상품" : "Alimi")
+                .task(id: query) {
+                    guard !favoritesOnly, CatalogItem.query(query).count >= 2 else { catalog = []; return }
+                    try? await Task.sleep(for: .milliseconds(400))
+                    guard !Task.isCancelled else { return }
+                    catalog = await store.searchCatalog(query)
+                }
                 .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: "브랜드 또는 상품명 검색")
                 .onSubmit(of: .search) {
@@ -112,6 +121,38 @@ struct BrowseView: View {
                 }
                 .refreshable { await store.refresh() }
         }
+    }
+}
+extension BrowseView {
+    // Whole-catalog results: tapping 추적 시작 moves that exact SKU into the tracking layer.
+    @ViewBuilder var catalogSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Stylevana 전체에서 찾기").font(.headline)
+            Text("추적을 시작하면 오늘부터 가격을 기록해요").font(.caption).foregroundStyle(.secondary)
+            if let catalog {
+                if catalog.isEmpty { Text("전체 카탈로그에서도 찾지 못했어요.").font(.caption).foregroundStyle(.secondary) }
+                ForEach(catalog) { item in
+                    HStack(spacing: 12) {
+                        AsyncImage(url: item.imageUrl) { $0.resizable().scaledToFit() } placeholder: { Color.canvas }.frame(width: 64, height: 64)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.brand).font(.caption).foregroundStyle(.secondary)
+                            Text(item.name).font(.subheadline).lineLimit(2)
+                            Text(usd(item.price)).font(.subheadline.bold())
+                        }
+                        Spacer()
+                        Button(tracking == item.id ? "추가 중" : "추적 시작") {
+                            tracking = item.id
+                            Task {
+                                if await store.startTracking(item) { catalog?.removeAll { $0.id == item.id } }
+                                tracking = nil
+                            }
+                        }.buttonStyle(.bordered).disabled(tracking != nil)
+                    }
+                }
+            } else {
+                Text("카탈로그를 불러오지 못했어요.").font(.caption).foregroundStyle(.secondary)
+            }
+        }.padding(.top, 12)
     }
 }
 struct ProductDetail: View {

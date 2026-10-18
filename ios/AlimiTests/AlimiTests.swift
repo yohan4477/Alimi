@@ -83,6 +83,15 @@ final class AlimiTests: XCTestCase {
         XCTAssertLessThanOrEqual((body["app_version"] as? String)?.count ?? 99, 20)
         XCTAssertEqual(Set(AppEvent.allCases.map(\.rawValue)), ["home_view", "search", "product_view", "wishlist_add", "wishlist_remove", "target_price_set", "merchant_click", "notification_opt_in"])
     }
+    func testCatalogQueryIsSanitized() {
+        XCTAssertNil(CatalogItem.searchURL("a"))
+        XCTAssertEqual(CatalogItem.query("rom&nd),name.eq.x"), "rom&nd name eq x")
+        XCTAssertEqual(CatalogItem.query("조선미녀  선크림"), "조선미녀 선크림")
+        let url = CatalogItem.searchURL("juicy tint")!
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: true)!.queryItems!
+        XCTAssertEqual(items.first { $0.name == "or" }?.value, "(brand.ilike.\"*juicy tint*\",name.ilike.\"*juicy tint*\")")
+        XCTAssertEqual(items.first { $0.name == "active" }?.value, "eq.true")
+    }
     func testPersistence() {
         let defaults = UserDefaults(suiteName: "AlimiTests.\(UUID().uuidString)")!
         let first = AlimiStore(defaults: defaults, products: [])

@@ -1,5 +1,5 @@
 import {track} from './events.js';
-import {loadProducts,search,dailySeries,stats,trackedDays,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
+import {loadProducts,searchCatalog,requestTracking,search,dailySeries,stats,trackedDays,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let storage;try{storage=localStorage}catch{}
@@ -17,8 +17,16 @@ function renderList(){
   $('#count').textContent=state.favorites.length;
   $('#list-title').textContent=view==='all'?'지금 눈여겨볼 뷰티':'내가 기다리는 뷰티';
   $('#result-count').textContent=items.length+'개';
-  $('#products').innerHTML=items.length?items.map(p=>{const c=change(p);return `<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(p.brand)}</div><div class="product-name">${esc(p.name)}</div><div class="price-line">${c===null?'':`<span class="${c<=0?'down':'up'}">${c<=0?'▼':'▲'} ${Math.abs(c)}%</span> `}<strong>${usd(p.price)}</strong></div><small class="meta">${esc(p.size)} · ${kstDate(p.checkedAt)} 확인</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="관심 상품" aria-pressed="${state.favorites.includes(p.id)}">${state.favorites.includes(p.id)?'♥':'♡'}</button></article>`}).join(''):'<p class="empty">표시할 상품이 없어요. 검색어나 카테고리를 바꿔보세요.</p>';
+  $('#products').innerHTML=(items.length?items.map(p=>{const c=change(p);return `<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(p.brand)}</div><div class="product-name">${esc(p.name)}</div><div class="price-line">${c===null?'':`<span class="${c<=0?'down':'up'}">${c<=0?'▼':'▲'} ${Math.abs(c)}%</span> `}<strong>${usd(p.price)}</strong></div><small class="meta">${esc(p.size)} · ${kstDate(p.checkedAt)} 확인</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="관심 상품" aria-pressed="${state.favorites.includes(p.id)}">${state.favorites.includes(p.id)?'♥':'♡'}</button></article>`}).join(''):'<p class="empty">추적 중인 상품 중에는 없어요.</p>')+'<div id="catalog-results" class="catalog-results"></div>';
+  renderCatalog();
 }
+// Whole-catalog search: tapping the heart starts tracking that exact SKU.
+let catalogTimer,catalogSeq=0;
+function renderCatalog(){clearTimeout(catalogTimer);const q=$('#search').value.trim(),box=$('#catalog-results');if(!box||view!=='all'||q.length<2)return;const seq=++catalogSeq;
+  catalogTimer=setTimeout(async()=>{let list;try{list=await searchCatalog(q)}catch{list=null}if(seq!==catalogSeq||!$('#catalog-results'))return;const tracked=new Set(products.map(p=>p.sku));list=(list||[]).filter(c=>!tracked.has(c.sku));
+    $('#catalog-results').innerHTML=list===null?'':`<div class="heading"><div><h2>Stylevana 전체에서 찾기</h2><p>하트를 누르면 오늘부터 가격을 기록해요</p></div><span>${list.length}개</span></div>`+(list.length?`<div class="catalog-grid">${list.map(c=>`<article class="card"><div class="visual">${c.image_url?`<img src="${esc(c.image_url)}" alt="${esc(c.brand+' '+c.name)}" loading="lazy">`:'<div class="no-photo">사진 없음</div>'}</div><div class="brand">${esc(c.brand)}</div><div class="product-name">${esc(c.name)}</div><div class="price-line"><strong>${usd(c.price)}</strong></div><small class="meta">현재가 · 아직 추적 전</small><button class="heart" data-track="${esc(c.sku)}" data-retailer="${esc(c.retailer)}" data-market="${esc(c.market)}" aria-label="가격 추적 시작">♡</button></article>`).join('')}</div>`:'<p class="empty">전체 카탈로그에서도 찾지 못했어요.</p>');
+  },350)}
+async function startTracking(b){b.disabled=true;try{const slug=await requestTracking({retailer:b.dataset.retailer,market:b.dataset.market,sku:b.dataset.track});const r=await loadProducts();products=r.products;if(!state.favorites.includes(slug))toggleFavorite(state,slug);save();track('wishlist_add',slug,{from:'catalog'});renderList();toast('가격 추적을 시작했어요 · 관심 상품에 추가')}catch{b.disabled=false;toast('추적을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.')}}
 
 function chart(p){
   const series=dailySeries(p,days),s=stats(series),tracked=trackedDays(p);
@@ -42,6 +50,7 @@ function closeDetail(){detailOpen=false;$('#detail').hidden=true;$('#browse').hi
 function openDetail(id){selected=id;track('product_view',id);detailOpen=true;renderDetail();$('#browse').hidden=true;$('#detail').hidden=false;window.scrollTo(0,0)}
 
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.track){startTracking(b);return}
   if(b.dataset.product)openDetail(b.dataset.product);
   if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);track(state.favorites.includes(b.dataset.favorite)?'wishlist_add':'wishlist_remove',b.dataset.favorite);save();renderList();if(detailOpen)renderDetail()}
   if(b.dataset.days){days=+b.dataset.days;const y=window.scrollY;renderDetail();window.scrollTo(0,y)}

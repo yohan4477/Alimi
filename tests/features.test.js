@@ -46,3 +46,17 @@ test('falls back to the bundled snapshot when the live API fails',async()=>{
   const live=await loadProducts(async()=>({ok:true,json:async()=>snapshot.rows}));
   assert.equal(live.source,'live');
 });
+test('catalog search query is sanitized before reaching the PostgREST filter',async()=>{
+  const {catalogSearchUrl,catalogQuery,searchCatalog,requestTracking}=await import('../dist/live.js');
+  assert.equal(catalogSearchUrl('a'),null);
+  assert.equal(catalogQuery('rom&nd),name.eq.x'),'rom&nd name eq x');
+  const u=new URL(catalogSearchUrl('  Juicy   tint '));
+  assert.equal(u.searchParams.get('or'),'(brand.ilike."*Juicy tint*",name.ilike."*Juicy tint*")');
+  assert.equal(u.searchParams.get('active'),'eq.true');
+  assert.equal(catalogQuery('조선미녀 선크림'),'조선미녀 선크림');
+  const rows=await searchCatalog('cosrx',async()=>({ok:true,json:async()=>[{sku:'1',price_minor:1750}]}));
+  assert.equal(rows[0].price,17.5);
+  let sent;const slug=await requestTracking({retailer:'Stylevana US',market:'US',sku:'66606'},async(url,init)=>{sent=[url,init];return {ok:true,json:async()=>'sv-us-66606'}});
+  assert.equal(slug,'sv-us-66606');assert.match(sent[0],/rpc\/request_tracking$/);
+  assert.deepEqual(JSON.parse(sent[1].body),{p_retailer:'Stylevana US',p_market:'US',p_sku:'66606'});
+});

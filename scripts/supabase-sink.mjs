@@ -12,7 +12,8 @@ function client({url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERV
     try { res = await fetchImpl(new URL(path, base), {...init, headers: {...headers, ...init.headers}, redirect: 'error', signal: AbortSignal.timeout(30000)}); }
     catch { throw Error('Supabase request failed'); }
     if (!res.ok) throw Error('Supabase HTTP ' + res.status);
-    return res.json();
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
   };
 }
 
@@ -29,6 +30,28 @@ export async function registerOffer(catalog, product, offer, options) {
     ean: offer.ean, url: offer.url, affiliate_url: offer.affiliateUrl, image_url: offer.imageUrl, active: true
   })});
   return {skipped: false, offerId: o.id};
+}
+
+// Catalog layer: upsert the whole feed in batches, then hide items that were not in this feed.
+export async function upsertCatalog(items, seenAt, options, batch = 500) {
+  const call = client(options);
+  if (!call) return {skipped: true};
+  if (!items.length) throw Error('Empty catalog; refusing to deactivate everything');
+  for (let i = 0; i < items.length; i += batch) {
+    await call('/rest/v1/catalog_items?on_conflict=retailer,market,sku', {method: 'POST',
+      headers: {Prefer: 'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify(items.slice(i, i + batch))});
+  }
+  const stale = new URLSearchParams({retailer: 'eq.' + items[0].retailer, market: 'eq.' + items[0].market, seen_at: 'lt.' + seenAt, active: 'eq.true'});
+  await call('/rest/v1/catalog_items?' + stale, {method: 'PATCH', headers: {Prefer: 'return=minimal'}, body: JSON.stringify({active: false})});
+  return {skipped: false, upserted: items.length};
+}
+
+// Offers in the tracking layer (curated + user-requested) for one retailer/market.
+export async function listOffers(retailer, market, options) {
+  const call = client(options);
+  if (!call) return null;
+  const q = new URLSearchParams({select: 'external_id,ean', retailer: 'eq.' + retailer, market: 'eq.' + market, active: 'eq.true'});
+  return call('/rest/v1/offers?' + q, {method: 'GET'});
 }
 
 export async function sinkObservation(row, options) {
