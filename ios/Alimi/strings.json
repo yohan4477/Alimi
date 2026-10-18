@@ -913,7 +913,7 @@
     "en": "Community"
   },
   "community.title": {
-    "ko": "서울뷰티",
+    "ko": "SeoulBeauty",
     "en": "SeoulBeauty"
   },
   "community.sub": {
@@ -1369,7 +1369,7 @@
     "en": "It’s quiet here. Pick a topic and start a conversation."
   },
   "home.mentioned": {
-    "ko": "대화에 나온 제품",
+    "ko": "대화에 많이 나온 제품",
     "en": "Products in the conversation"
   },
   "home.scope": {
@@ -1409,8 +1409,8 @@
     "en": "{n} messages in 24h"
   },
   "home.ask": {
-    "ko": "이야기 시작하기",
-    "en": "Start a conversation"
+    "ko": "질문하기",
+    "en": "Ask a question"
   },
   "home.askHint": {
     "ko": "이야기를 나눌 주제를 선택해 주세요.",
@@ -1451,5 +1451,41 @@
   "catalog.savedSnapshot": {
     "ko": "저장 당시 상품 정보예요. 최신 가격·재고는 판매처에서 확인하세요.",
     "en": "Saved product snapshot. Check the retailer for the latest price and stock."
+  },
+  "home.brand": {
+    "ko": "SeoulBeauty",
+    "en": "SeoulBeauty"
+  },
+  "home.more": {
+    "ko": "더보기",
+    "en": "See all"
+  },
+  "home.shortMessages": {
+    "ko": "메시지 {n}개",
+    "en": "{n} messages"
+  },
+  "home.shareExperience": {
+    "ko": "경험을 나눠보세요",
+    "en": "Share your experience"
+  },
+  "home.backConversation": {
+    "ko": "대화로 돌아가기",
+    "en": "Back to conversation"
+  },
+  "home.retailers": {
+    "ko": "현재 판매처",
+    "en": "Current retailers"
+  },
+  "home.retailerHint": {
+    "ko": "배송비 · 세금은 판매처에서 확인",
+    "en": "Check shipping and taxes at the retailer"
+  },
+  "home.viewRetailer": {
+    "ko": "구매처 보기",
+    "en": "View retailer"
+  },
+  "home.productTitle": {
+    "ko": "상품 정보",
+    "en": "Product info"
   }
 }

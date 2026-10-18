@@ -2,6 +2,7 @@
 // and Live chat, kept in separate views. Product cards are the shared link: the same card in a post,
 // comment or chat message opens the same product sheet and carries the source as Awin clickref.
 // Live chat polls every few seconds while open.
+import {avatar, bookmark} from './community-visuals.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
 import {track} from './events.js';
 import {t, locale} from './i18n.js';
@@ -24,8 +25,9 @@ async function tagOf(s) {
 }
 const time = iso => new Intl.DateTimeFormat(locale(), {hour: '2-digit', minute: '2-digit'}).format(new Date(iso));
 // ref = where the card was seen ("post-12", "comment-4", "chat-88"); passed on to the product sheet / Awin.
-const itemCard = (it, ref = '') => `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}"` : `data-track="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
+const itemCard = (it, ref = '') => `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}"` : `data-track="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('home.productInfo'))}</em></span></button>`;
 const shell = inner => { $('#chat').innerHTML = inner; };
+const liveLayout = live => { $('#chat').classList.toggle('live-room', live); document.body.classList.toggle('in-live-room', live); };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
 export async function openChat(opts = {}) {
@@ -37,7 +39,7 @@ export async function openChat(opts = {}) {
   renderHome();
 }
 // Called when the user switches to another tab: stop polling until the community screen is opened again.
-export function leaveChat() { stopPolling(); chat.room = null; }
+export function leaveChat() { stopPolling(); liveLayout(false); chat.room = null; }
 
 const icon = {
   people: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M15 5.2a3.2 3.2 0 0 1 0 6M17 14a5 5 0 0 1 3.5 5"/></svg>',
@@ -74,8 +76,8 @@ export const postRow = p => `<button class="post-row" data-post="${p.id}"><span 
 let homeVersion = 0;
 async function renderHome() {
   const version = ++homeVersion;
-  stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="page-head community-head"><div><h1>${esc(t('community.title'))}</h1><p>${esc(t('community.sub'))}</p></div><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="chat-rooms" id="community-home"><p class="empty">${esc(t('loading'))}</p></div>`);
+  stopPolling(); liveLayout(false); chat.room = null; view.post = null;
+  shell(`<div class="page-head community-head"><h1>${esc(t('home.brand'))}</h1><div class="home-tools"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-chat-action="resume" aria-label="${esc(t('activity.chats'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V10a6 6 0 0 1 12 0v6l2 2H4zM10 21h4"/></svg></button></div></div><div class="chat-rooms" id="community-home"><p class="empty">${esc(t('loading'))}</p></div>`);
   let posts = [], joined = [], postsFailed = false;
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
@@ -84,15 +86,17 @@ async function renderHome() {
   const entries = recent.map(p => ({...p,source:'post'}));
   let partial = postsFailed;
   const previews = new Map();
-  await Promise.all(hot.map(async r => { try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, list.at(-1)?.body ?? ''); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
+  await Promise.all(hot.map(async r => { try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, {text:list.at(-1)?.body ?? '', people:[...new Map(list.map(m=>[m.author_tag,m])).values()].slice(-3)}); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
   if (version !== homeVersion || !$('#community-home')) return;
   const products = mentionedProducts(entries, readBlocked(storage));
-  $('#community-home').innerHTML = `${joined.length ? `<button class="resume-conversation" data-chat-action="resume">${esc(t('home.resume'))}<span>›</span></button>` : ''}<h2 class="chat-section">${esc(t('home.active'))}</h2>${hot.length ? hot.map(r => `<button class="conversation-row" data-chat-room="${esc(r.id)}" data-live="1">${roomIcon(r)}<span><b>${esc(roomTitle(r))}</b><p>${esc(previews.get(r.id) || roomIntro(r))}</p><small>${esc(t('chat.members',{n:r.members}))} · ${esc(t('home.messages',{n:r.messages_24h}))}</small></span><i>›</i></button>`).join('') : `<p class="empty">${esc(t('home.quiet'))}</p>`}<h2 class="chat-section">${esc(t('home.mentioned'))}</h2><p class="home-note">${esc(t('home.scope'))}</p>${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>${!products.length ? `<p class="empty">${esc(t('home.noProducts'))}</p>` : ''}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}<h2 class="chat-section" id="home-topics">${esc(t('home.topics'))}</h2><p class="home-note">${esc(t('home.askHint'))}</p>${topics.map(roomRow).join('')}<button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`;
+  const sectionHead = (title, target) => `<div class="home-section-heading"><h2>${esc(title)}</h2><button data-home-more="${target}" aria-expanded="false">${esc(t('home.more'))} <span>›</span></button></div>`;
+  $('#community-home').innerHTML = `${joined.length ? `<button class="resume-conversation" data-chat-action="resume"><i>${icon.comment}</i><b>${esc(t('home.resume'))}</b><span>›</span></button>` : ''}${sectionHead(t('home.active'),'conversations')}<div class="home-conversations">${hot.length ? hot.map((r,i) => { const preview=previews.get(r.id);return `<button class="conversation-row${i>2?' home-extra':''}" data-chat-room="${esc(r.id)}" data-live="1">${avatar(r.id,'conversation-avatar')}<span><b>${esc(roomTitle(r))}</b><p>${esc(preview?.text || roomIntro(r))}</p><span class="conversation-meta"><span class="avatar-stack">${(preview?.people??[]).map(m=>avatar(m.author_tag)).join('')}</span><small>${esc(t('chat.members',{n:r.members}))} · ${esc(t('home.shortMessages',{n:r.messages_24h}))}</small></span></span><i>›</i></button>`; }).join('') : `<p class="empty">${esc(t('home.quiet'))}</p>`}</div>${sectionHead(t('home.mentioned'),'products')}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}<div class="mentioned-products">${products.map((g,i) => `<article class="${i>1?'home-extra':''}">${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))} ›</button></article>`).join('')}</div>${!products.length ? `<p class="empty">${esc(t('home.noProducts'))}</p>` : `<p class="home-note home-scope">${esc(t('home.scope'))}</p>`}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}<h2 class="chat-section" id="home-topics">${esc(t('home.topics'))}</h2><p class="home-note">${esc(t('home.askHint'))}</p>${topics.map(roomRow).join('')}<button class="start-conversation" data-chat-action="find-topic"><span>＋</span> ${esc(t('home.ask'))}</button>`;
   homeJoined = joined;
 }
 let homeJoined = [];
 function renderJoined() {
-  shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('activity.chats'))}</h1></div><div class="chat-rooms">${homeJoined.map(j => { const r=chat.rooms.find(r=>r.id===j.room_id);return r ? `<button class="conversation-row" data-chat-room="${esc(r.id)}" data-live="1"><span><b>${esc(roomTitle(r))}</b><p>${esc(j.last?.body || roomIntro(r))}</p></span></button>` : ''; }).join('')}</div>`);
+  liveLayout(false); stopPolling(); chat.room=null;
+  shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('activity.chats'))}</h1></div><div class="chat-rooms">${homeJoined.length ? homeJoined.map(j => { const r=chat.rooms.find(r=>r.id===j.room_id);return r ? `<button class="conversation-row" data-chat-room="${esc(r.id)}" data-live="1"><span><b>${esc(roomTitle(r))}</b><p>${esc(j.last?.body || roomIntro(r))}</p></span></button>` : ''; }).join('') : `<p class="empty">${esc(t('chat.mineEmpty'))}</p>`}</div>`);
 }
 
 export async function renderMyConversations(box) {
@@ -115,8 +119,8 @@ let joinThen = () => {};
 
 // Topic: header + Posts / Live chat switch. The two never share one stream.
 function openTopic(room, mode = view.mode) {
-  stopPolling(); chat.room = room; view.mode = mode; view.post = null;
-  shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(roomTitle(room))}</h1></div><div class="topic-head"><p>${esc(roomIntro(room))}</p><div class="seg topic-seg"><button data-topic-mode="posts" class="${mode === 'posts' ? 'on' : ''}">${esc(t('community.posts'))}</button><button data-topic-mode="live" class="${mode === 'live' ? 'on' : ''}">${esc(t('community.live'))}</button></div></div><div id="topic-body"></div>`);
+  stopPolling(); liveLayout(mode === 'live'); chat.room = room; view.mode = mode; view.post = null;
+  shell(`<div class="page-bar room-header"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div><h1>${esc(roomTitle(room))}</h1><p>${esc(roomIntro(room))}</p></div><button class="icon-btn room-overflow" data-chat-action="room-menu" aria-label="${esc(t('chat.more'))}">⋯</button></div>${mode === 'posts' ? `<div class="topic-head"><div class="seg topic-seg"><button data-topic-mode="posts" class="on">${esc(t('community.posts'))}</button><button data-topic-mode="live">${esc(t('community.live'))}</button></div></div>` : ''}<div id="topic-body"></div>`);
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
@@ -129,7 +133,7 @@ async function renderTopicPosts(room) {
 
 // Post detail with comments; each comment may carry a product card.
 async function openPost(id) {
-  stopPolling();
+  stopPolling(); liveLayout(false);
   shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="${chat.room ? 'topic' : 'rooms'}" aria-label="${esc(t('back'))}">${icon.back}</button></div><div id="post-view" class="post-view"><p class="empty">${esc(t('loading'))}</p></div>`);
   let post, comments; try { [post, comments] = await Promise.all([fetchPost(id), fetchComments(id)]); } catch { post = null; }
   if (!$('#post-view')) return;
@@ -205,13 +209,13 @@ async function submitPost() {
 // Live chat inside a topic.
 async function startLive(room) {
   chat.messages = []; chat.item = null; chat.replyTo = null;
-  body(`<div id="chat-log" class="chat-log" aria-live="polite"><p class="empty">${esc(t('loading'))}</p></div><form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
+  body(`<div id="chat-log" class="chat-log" aria-live="polite"><p class="empty">${esc(t('loading'))}</p></div><form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 3-7 18-4-8-8-3zM10 13 21 3"/></svg></button></div></form>`);
   $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
   $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
   try {
     chat.nickname = await joinRoom(secret, room.id);
     track('chat_join', null, {room: room.id});
-    $('#chat-text').placeholder = t('chat.placeholder', {name: chat.nickname});
+    $('#chat-text').placeholder = t('home.shareExperience');
     chat.messages = await fetchMessages(room.id);
   } catch { $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
   renderLog(true);
@@ -224,7 +228,7 @@ function renderLog(scroll) {
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
   log.innerHTML = list.length ? list.map(m => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
-    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine ? '' : `<small class="chat-nick">${esc(m.nickname)}</small>`}<div class="chat-bubble-row"><div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><span class="chat-side"><time>${esc(time(m.created_at))}</time><button class="chat-like" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♡ ${m.likes || ''}</button><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></span></div></article>`;
+    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}" tabindex="0">${avatar(m.author_tag,'message-avatar')}<div class="message-content"><small class="chat-nick">${esc(m.nickname)}</small><div class="chat-bubble-row"><div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div><span class="chat-side"><time>${esc(time(m.created_at))}</time><span class="message-tools"><button class="chat-like" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♡ ${m.likes || ''}</button><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></span></span></div>${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   if (scroll || near) log.scrollTop = log.scrollHeight;
 }
@@ -307,16 +311,17 @@ export async function renderProductTalk(box, familyKey) {
   if (!box || !familyKey) return;
   box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))}</h3><p class="empty">${esc(t('loading'))}</p>`;
   let talk; try { talk = await fetchProductTalk(familyKey); } catch { box.innerHTML = ''; return; }
-  talkState = {box, talk}; talkFilter = {}; drawTalk();
+  talkState = {box, talk, familyKey}; talkFilter = {}; drawTalk();
 }
 // Filter reviews by the conditions writers chose to show (skin type / tone); a reference, not a promise.
 let talkState = null, talkFilter = {};
 function drawTalk() {
-  if (!talkState) return; const {box, talk} = talkState;
+  if (!talkState) return; const {box, talk, familyKey} = talkState;
   const all = visiblePosts(talk.reviews), reviews = filterReviews(all, talkFilter), posts = visiblePosts(talk.posts);
   const chips = (key, prefix) => [...new Set(all.map(r => r[key]).filter(Boolean))].map(v => `<button data-review-filter="${key}:${v}" class="${talkFilter[key] === v ? 'on' : ''}">${esc(t(prefix + '.' + v))}</button>`).join('');
   const filters = chips('skin_type', 'skin') + chips('skin_tone', 'tone');
-  box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))} ${all.length ? `<em>${all.length}</em>` : ''}</h3>${filters ? `<div class="chat-chips review-filter">${filters}</div><p class="similar-note">${esc(t('product.similarNote'))}</p>` : ''}${reviews.length ? reviews.map(postRow).join('') : `<p class="empty talk-empty">${esc(t('product.reviewsEmpty'))}</p>`}<h3 class="chat-section">${esc(t('product.related'))}</h3>${posts.map(postRow).join('')}${talk.chatMentions ? `<p class="talk-chat">${esc(t('product.inChat'))} · ${talk.chatMentions}</p>` : ''}${!posts.length && !talk.chatMentions ? `<p class="empty talk-empty">${esc(t('product.talkEmpty'))}</p>` : ''}`;
+  const contextRoom = chat.room && chat.messages.some(m=>m.item?.family_key===familyKey) ? chat.room : null;
+  box.innerHTML = `<h3 class="chat-section">${esc(t('product.related'))}</h3>${contextRoom ? `<button class="product-context-room" data-return-to-chat>${avatar(contextRoom.id)}<span>${esc(roomTitle(contextRoom))}<small>${esc(t('home.viewConversation'))}</small></span><span>›</span></button>` : ''}${posts.map(postRow).join('')}${!contextRoom&&!posts.length?`<p class="empty talk-empty">${esc(t('product.talkEmpty'))}</p>`:''}<h3 class="chat-section">${esc(t('product.reviews'))} ${all.length ? `<em>${all.length}</em>` : ''}</h3>${filters ? `<div class="chat-chips review-filter">${filters}</div><p class="similar-note">${esc(t('product.similarNote'))}</p>` : ''}${reviews.length ? reviews.map(postRow).join('') : `<p class="empty talk-empty">${esc(t('product.reviewsEmpty'))}</p>`}`;
 }
 // A post tapped outside the community (product sheet, detail page) opens there next time the screen opens.
 let pendingPost = null;
@@ -327,11 +332,13 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
-  if (a === 'rooms') renderHome();
+  if (b.dataset.homeMore) { const selector=b.dataset.homeMore==='products'?'.mentioned-products':'.home-conversations'; const box=$(selector); const expanded=box.classList.toggle('expanded');b.setAttribute('aria-expanded',String(expanded)); }
+  else if (a === 'room-menu') { $('#chat-menu').innerHTML=`<div class="chat-menu-list"><button data-topic-mode="posts">${esc(t('community.posts'))}</button><button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;$('#chat-menu').showModal(); }
+  else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (a === 'find-topic') $('#home-topics')?.scrollIntoView({behavior:'smooth'});
   else if (a === 'topic') openTopic(chat.room, 'posts');
-  else if (b.dataset.topicMode) openTopic(chat.room, b.dataset.topicMode);
+  else if (b.dataset.topicMode) { $('#chat-menu').close(); openTopic(chat.room, b.dataset.topicMode); }
   else if (a === 'join-cancel') $('#chat-join').close();
   else if (a === 'join-ok') { agree(storage); $('#chat-join').close(); joinThen(); }
   else if (a === 'write') askJoin(chat.room, () => openWrite());

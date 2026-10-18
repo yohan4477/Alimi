@@ -5,7 +5,8 @@ const browser=await chromium.launch(process.env.CHROME_PATH ? {executablePath:pr
 const base=process.argv[2]??'http://localhost:3000/';
 try {
  for(const lang of ['en','ko']) {
-  const page=await browser.newPage({viewport:{width:390,height:844}}), errors=[];
+  const page=await browser.newPage({viewport:{width:390,height:844}}), errors=[], trackingRequests=[];
+  page.on('request',r=>{if(r.url().includes('request_tracking'))trackingRequests.push(r.url())});
   page.on('pageerror',e=>errors.push(e.message));
   const item={family_key:'tint03',retailer:'Shop',market:'US',sku:'03',brand:'TEST',brand_ko:'테스트',name:'Soft tint 03',price_minor:1200,image_url:null,currency:'USD',size_label:'4g',option_label:'03',url:'https://example.com/tint',affiliate_url:null};
   const room={id:'tint',title_en:'Tint talk',title_ko:'틴트 이야기',intro_en:'Shades and experiences',intro_ko:'발색 경험을 나눠요',kind:'topic',sort:1,members:2,messages_24h:2,last_message_at:new Date().toISOString()};
@@ -25,7 +26,7 @@ try {
   assert.equal(await page.locator('#chat').isVisible(),true);
   assert.equal(await page.locator('#browse').isVisible(),false);
   assert.equal(await page.locator('.mentioned-products article').count(),1);
-  assert.match(await page.locator('#community-home').innerText(),lang==='en'?/Products in the conversation/:/대화에 나온 제품/);
+  assert.match(await page.locator('#community-home').innerText(),lang==='en'?/Products in the conversation/:/대화에 많이 나온 제품/);
   // User-authored conversation stays verbatim in either UI language.
   assert.equal(await page.locator('.conversation-row p').first().innerText(),messages[0].body);
   await page.locator('.conversation-row[data-live]').first().click();
@@ -33,14 +34,19 @@ try {
   await page.locator('#chat-log .chat-item').waitFor();
   await page.locator('#chat-log .chat-item').click();
   await page.locator('#family-dialog[open] .variant-row').waitFor();
+  await page.locator('#family-dialog [data-family-save]').first().click();
+  assert.equal(await page.locator('#family-dialog [data-family-save]').first().getAttribute('aria-pressed'),'true');
+  assert.deepEqual(trackingRequests,[]);
   assert.equal(await page.locator('.analysis-section').count(),0);
   assert.equal(await page.locator('.target-section').count(),0);
   await page.locator('#family-dialog .close-dialog').click();
   assert.equal(await page.locator('#chat-log').isVisible(),true);
   assert.equal(await page.locator('#chat-log .chat-msg').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+  await page.locator('[data-chat-action="rooms"]').click();
   await page.locator('#tabbar [data-screen="saved"]').click();
   await page.locator('#activity-conversations h2').waitFor();
+  assert.equal(await page.locator('#saved .saved-card').count(),1);
   assert.match(await page.locator('#saved h1').innerText(),lang==='en'?/My activity/:/내 활동/);
   assert.deepEqual(errors,[]);
   console.log('ok - '+lang+' community home, product mentions, original conversation, product sheet return, activity and mobile width');

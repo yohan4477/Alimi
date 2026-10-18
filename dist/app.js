@@ -1,3 +1,4 @@
+import {bookmark} from './community-visuals.js';
 import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
@@ -34,11 +35,31 @@ function variantRows(list,ref=null){
   const tracked=new Map(products.map(p=>[p.sku,p.id]));
   return list.map(v=>{const id=tracked.get(v.sku),href=buyUrl(v,ref);return `<article class="variant-row"><div><strong>${esc([v.size_label,v.option_label].filter(Boolean).join(' · ')||t('family.default'))}</strong>${v.bestValue?`<span class="best-tag">${esc(t('badge.bestValue'))}</span>`:''}<small>${v.unitPrice!=null?esc(t('unit.price',{v:usd(v.unitPrice),u:unitName(v.unit)})):''}</small></div><b>${usd(v.price)}</b>${href?`<a class="variant-buy observed-buy" href="${esc(href)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(v.sku)}" data-ref="${esc(ref??'')}">${esc(t('variant.buy'))}</a>`:''}${id?`<button class="variant-heart" data-favorite="${esc(id)}" aria-pressed="${state.favorites.includes(id)}" aria-label="${esc(t('favorites'))}">${state.favorites.includes(id)?'♥':'♡'}</button>`:`<button class="variant-heart" data-catalog-save="${esc(remember(v))}" data-retailer="${esc(v.retailer)}" data-market="${esc(v.market)}" aria-label="${esc(t('save.action'))}">♡</button>`}</article>`}).join('');
 }
+let familySelection=null;
 async function openFamily(key,ref=null){
-  const dlg=$('#family-dialog');$('#family-body').innerHTML=`<p class="empty">${esc(t('loading'))}</p>`;$('#family-talk').innerHTML='';dlg.showModal();
-  try{const list=await fetchFamily(key);const head=list[0];$('#family-title').textContent=head?brandLabel(head):'';
-    $('#family-name').textContent=head?.name?.split(' - ')[0]??'';$('#family-body').innerHTML='<div id="family-description"></div>'+variantRows(list,ref);if(head)renderProductInfo($('#family-description'),head);track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});renderProductTalk($('#family-talk'),key)}
-  catch{$('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`}
+  const dlg=$('#family-dialog');
+  dlg.innerHTML=`<div class="product-sheet-header"><button class="family-back close-dialog" data-family-close aria-label="${esc(t('close'))}">${icon.back}<span>${esc(t(screen==='chat'?'home.backConversation':'back'))}</span></button><strong>${esc(t('home.productTitle'))}</strong><span></span></div><div id="family-body"><p class="empty">${esc(t('loading'))}</p></div>`;
+  dlg.showModal();
+  try {
+    const list=await fetchFamily(key),head=list[0]; if(!head)throw Error('empty');
+    if(!dlg.open)return;
+    familySelection=head;
+    const href=buyUrl(head,ref),id=products.find(p=>p.sku===head.sku&&p.retailer===head.retailer)?.id;
+    dlg.innerHTML=`<div class="product-sheet-header"><button class="family-back close-dialog" data-family-close aria-label="${esc(t('close'))}">${icon.back}<span>${esc(t(screen==='chat'?'home.backConversation':'back'))}</span></button><strong>${esc(t('home.productTitle'))}</strong><button class="icon-btn family-save" data-family-save aria-label="${esc(t('save.action'))}" aria-pressed="${id?state.favorites.includes(id):false}">${bookmark}</button></div><div class="product-sheet-content">${head.image_url?`<div class="family-image"><img src="${esc(head.image_url)}" alt="${esc(head.name)}"></div>`:''}<div class="family-identity"><small id="family-title">${esc(brandLabel(head))}</small><h2 id="family-name">${esc(head.name.split(' - ')[0])}</h2><p>${esc([head.size_label,head.option_label].filter(Boolean).join(' · '))}</p></div><div id="family-body"><div id="family-description"></div><section class="family-retailers" id="family-retailers"><h2>${esc(t('home.retailers'))}</h2><div class="retailer-options">${list.map(v=>{const url=buyUrl(v,ref);return `<article class="variant-row"><div><strong>${esc(v.retailer)}</strong>${list.length>1?`<small>${esc([v.size_label,v.option_label].filter(Boolean).join(' · '))}</small>`:''}</div><b>${usd(v.price)}</b>${url?`<a class="variant-buy observed-buy" href="${esc(url)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(v.sku)}" data-ref="${esc(ref??'')}"><span>${esc(t('variant.buy'))}</span>${icon.chevron}</a>`:''}</article>`}).join('')}</div><p>${esc(t('home.retailerHint'))}</p></section></div><div id="family-talk" class="product-talk"></div></div><div class="family-actions">${href?`<a class="primary observed-buy" href="${esc(href)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(head.sku)}" data-ref="${esc(ref??'')}">${esc(t('home.viewRetailer'))}</a>`:`<button class="primary" data-family-retailers>${esc(t('home.retailers'))}</button>`}<button class="icon-btn family-save" data-family-save aria-label="${esc(t('save.action'))}" aria-pressed="${id?state.favorites.includes(id):false}">${bookmark}</button></div>`;
+    renderProductInfo($('#family-description'),head);renderProductTalk($('#family-talk'),key);
+    track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});
+  } catch { $('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`; }
+}
+function saveFamily(){
+  if(!familySelection)return;
+  try {
+    const p=familySelection;
+    let found=products.find(x=>x.sku===p.sku&&x.retailer===p.retailer);
+    if(!found){found=saveCatalogSnapshot(p,storage);products=mergeCatalogSaves(products,readCatalogSaves(storage));}
+    toggleFavorite(state,found.id);save();renderList();
+    track(state.favorites.includes(found.id)?'wishlist_add':'wishlist_remove',found.id,{from:'product_info'});
+    document.querySelectorAll('[data-family-save]').forEach(b=>b.setAttribute('aria-pressed',String(state.favorites.includes(found.id))));
+  }catch{toast(t('toast.saveFailed'));}
 }
 async function loadOtherSizes(p){
   const box=$('#other-sizes');if(!box||!p.familyKey)return;
@@ -192,6 +213,10 @@ function openDetail(id){selected=id;track('product_view',id);detailOpen=true;det
 localizePage();
 show('chat');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.hasAttribute('data-return-to-chat')){$('#family-dialog').close();return}
+  if(b.hasAttribute('data-family-close')){$('#family-dialog').close();return}
+  if(b.hasAttribute('data-family-save')){saveFamily(b);return}
+  if(b.hasAttribute('data-family-retailers')){$('#family-retailers')?.scrollIntoView({behavior:'smooth'});return}
   if(b.dataset.openRoom){openRoomNext(b.dataset.openRoom);show('chat');return}
   if(b.dataset.catalogSave){saveCatalogSelection(b);return}
   if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null);return}
