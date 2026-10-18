@@ -39,10 +39,24 @@ export function matchCatalog(rows, catalog, observedAt = new Date().toISOString(
   });
 }
 
+// Retailer description as plain text: scripts/styles dropped, tags removed, common entities decoded.
+export function descriptionText(value) {
+  return String(value ?? '').replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<\/(p|div|li)>|<br\s*\/?\s*>/gi, '\n').replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"').replace(/&#39;/g, "'").replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim().slice(0, 6000);
+}
+const describe = (permission, raw) => {
+  const text = permission ? descriptionText(raw).slice(0, 2000).trim() : '';
+  return text.length >= 20 ? {description: text, description_permission: permission} : {description: null, description_permission: null};
+};
+
 // Catalog layer rows: every valid feed row of a Korean brand, current price only. Non-Korean brands and
 // retailer bundles are skipped entirely. [Deal] relistings are dropped when a regular listing with the same
 // EAN exists, so search shows one entry per product option.
 export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({origin: 'KR', brandKo: null})) {
+  // Descriptions are published only when catalog.json records the permission basis for them.
+  const permission = catalog.descriptionPermission?.trim() || null;
   const valid = [];
   for (const r of rows) {
     if (r.data_feed_id !== catalog.feedId || r.merchant_id !== catalog.merchantId || r.currency !== catalog.currency) continue;
@@ -66,7 +80,8 @@ export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({ori
       unit: variant.unit, quantity: variant.quantity, unit_price_minor: unitPriceMinor(priceMinor, variant),
       delivery_minor: money.test(r.delivery_cost) ? Math.round(Number(r.delivery_cost) * 100) : null,
       availability: r.in_stock === '1' ? 'in_stock' : r.in_stock === '0' ? 'out_of_stock' : 'unknown',
-      url: page.origin + page.pathname, affiliate_url: tracking.href, image_url: image?.href ?? null, seen_at: seenAt, active: true
+      url: page.origin + page.pathname, affiliate_url: tracking.href, image_url: image?.href ?? null, seen_at: seenAt, active: true,
+      ...describe(permission, r.description)
     }});
   }
   const regularEans = new Set(valid.filter(v => !v.deal && v.item.ean).map(v => v.item.ean));

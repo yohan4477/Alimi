@@ -7,12 +7,8 @@ import {fileURLToPath} from 'node:url';
 import {parseCsv} from './stylevana-feed.mjs';
 import {buildCatalogItems} from './stylevana-catalog.mjs';
 import {makeBrandInfo} from './catalog-taxonomy.mjs';
-export function descriptionText(value) {
-  return String(value ?? '').replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
-    .replace(/<\/(p|div|li)>|<br\s*\/?\s*>/gi, '\n').replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"').replace(/&#39;/g, "'").replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim().slice(0, 6000);
-}
+import {descriptionText} from './stylevana-catalog.mjs';
+export {descriptionText};
 export function licensedDescriptions(rows, items, permissionReference, checkedAt) {
   if (!permissionReference?.trim()) throw Error('Advertiser permission reference is required; no descriptions published');
   const index = new Map(rows.filter(r => r.description).map(r => [r.merchant_product_id, r]));

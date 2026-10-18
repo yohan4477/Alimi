@@ -16,16 +16,43 @@ enum ProductInformation {
             Purchase.buyURL($0.sourceUrl) != nil }
     }
 }
+// Retailer description stored with the catalog row; shown only when its permission basis is recorded.
+struct CatalogCopyRow: Decodable {
+    let url: String?
+    let description: String?
+    let descriptionPermission: String?
+    enum CodingKeys: String, CodingKey { case url, description, descriptionPermission = "description_permission" }
+    func copy(retailer: String, sku: String) -> LicensedProductCopy? {
+        guard let text = description?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty,
+              let permission = descriptionPermission?.trimmingCharacters(in: .whitespacesAndNewlines), !permission.isEmpty,
+              let url, Purchase.buyURL(url) != nil else { return nil }
+        return LicensedProductCopy(retailer: retailer, market: "US", sku: sku, description: text, sourceUrl: url, permissionReference: permission)
+    }
+}
+extension ProductInformation {
+    static func fetchCatalogCopy(retailer: String, sku: String) async -> LicensedProductCopy? {
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") || sku.isEmpty { return nil }
+        var c = URLComponents(url: URL(string: "/rest/v1/catalog_items", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
+        c.queryItems = [URLQueryItem(name: "select", value: "url,description,description_permission"), URLQueryItem(name: "sku", value: "eq." + sku),
+                        URLQueryItem(name: "retailer", value: "eq." + retailer), URLQueryItem(name: "limit", value: "1")]
+        var request = URLRequest(url: c.url!, timeoutInterval: 15)
+        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
+        guard let (data, response) = try? await URLSession.shared.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200,
+              let row = (try? JSONDecoder().decode([CatalogCopyRow].self, from: data))?.first else { return nil }
+        return row.copy(retailer: retailer, sku: sku)
+    }
+}
 struct ProductInformationView: View {
     let category: String
     var retailer = ""
     var sku = ""
     var source: URL? = nil
+    @State private var fetched: LicensedProductCopy?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(L("about.title")).font(.title3.bold())
             Text(L("about.type." + (Product.categories.contains(category) ? category : "기타"))).font(.subheadline)
-            if let copy = ProductInformation.copy(retailer: retailer, sku: sku) {
+            if let copy = ProductInformation.copy(retailer: retailer, sku: sku) ?? fetched {
                 Text(L("about.official")).font(.caption.bold())
                 Text(copy.description).font(.subheadline)
                 if let url = Purchase.buyURL(copy.sourceUrl) { Link(L("about.source"), destination: url).font(.caption) }
@@ -36,5 +63,6 @@ struct ProductInformationView: View {
         }.frame(maxWidth: .infinity, alignment: .leading).padding(16)
             .background(Color.canvas, in: RoundedRectangle(cornerRadius: 14))
             .accessibilityIdentifier("product-description")
+            .task(id: sku) { if ProductInformation.copy(retailer: retailer, sku: sku) == nil { fetched = await ProductInformation.fetchCatalogCopy(retailer: retailer, sku: sku) } }
     }
 }

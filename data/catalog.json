@@ -5,6 +5,7 @@
   "currency": "USD",
   "merchantId": "90791",
   "feedId": "111294",
+  "descriptionPermission": "Awin product feed 111294 supplied by Stylevana US for publisher promotion; published as unmodified retailer text with source link. Program-specific app reuse terms not yet reviewed; owner decision 2026-10-19.",
   "note": "One representative option per product, selected 2026-10-18 from the official feed: non-[Deal] listing, in stock, EAN present, standard size. Identity is locked by merchant SKU + EAN + brand; shades share one product URL.",
   "products": [
     {"slug": "tirtir-mask-fit-red-cushion-18g-21c", "brand": "TIRTIR", "name": "Mask Fit Red Cushion", "size": "18g", "option": "21C Cool Ivory", "sku": "62672", "ean": "8809928134888", "feedBrand": "TIRTIR"},
