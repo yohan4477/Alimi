@@ -92,6 +92,7 @@ struct BrowseView: View {
     var favoritesOnly = false
     @State private var query = ""
     @State private var category = "전체"
+    @State private var selectedBrand: String?
     @State private var catalog: [CatalogItem]? = []
     @State private var browse: [ProductFamily] = []
     @State private var openFamily: ProductFamily?
@@ -113,6 +114,7 @@ struct BrowseView: View {
                         }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
                     }
                     CategoryTabs(categories: store.categories, selection: $category)
+                    if !favoritesOnly && !searching { BrandExplorer(families: browse, selection: $selectedBrand) }
                     HStack {
                         Text(L(favoritesOnly ? "section.saved" : "section.watching")).font(.headline)
                         Spacer()
@@ -138,7 +140,7 @@ struct BrowseView: View {
                 }
                 .task(id: category) {
                     guard !favoritesOnly else { return }
-                    browse = []; browseDone = false
+                    browse = []; browseDone = false; selectedBrand = nil
                     await loadMore()
                 }
                 .navigationBarTitleDisplayMode(.inline)
@@ -150,6 +152,43 @@ struct BrowseView: View {
                 .refreshable { await store.refresh() }
                 .sheet(item: $openFamily) { family in FamilySheet(family: family).environmentObject(store) }
         }
+    }
+}
+struct BrandExplorer: View {
+    let families: [ProductFamily]
+    @Binding var selection: String?
+    private var brands: [(name: String, count: Int)] {
+        let counts = Dictionary(grouping: families, by: \.brandLabel).mapValues(\.count)
+        return counts.map { (name: $0.key, count: $0.value) }.sorted {
+            $0.count == $1.count ? $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending : $0.count > $1.count
+        }
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("브랜드").font(.headline)
+                Spacer()
+                Text("브랜드를 눌러 상품 보기").font(.caption).foregroundStyle(.secondary)
+            }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 16) {
+                    ForEach(brands, id: \.name) { brand in
+                        Button { selection = selection == brand.name ? nil : brand.name } label: {
+                            VStack(spacing: 7) {
+                                ZStack {
+                                    Circle().fill(selection == brand.name ? Color.primary.opacity(0.08) : Color.canvas)
+                                    Circle().strokeBorder(selection == brand.name ? Color.primary : Color.primary.opacity(0.08), lineWidth: selection == brand.name ? 2 : 1)
+                                    Text(String(brand.name.prefix(2))).font(.system(size: 18, weight: .semibold, design: .rounded))
+                                        .foregroundStyle(.primary).lineLimit(1).minimumScaleFactor(0.6).padding(5)
+                                }.frame(width: 66, height: 66)
+                                Text(brand.name).font(.caption).lineLimit(1).frame(width: 78)
+                            }.foregroundStyle(.primary)
+                        }.buttonStyle(.plain).accessibilityIdentifier("brand-\(brand.name)")
+                            .accessibilityAddTraits(selection == brand.name ? .isSelected : [])
+                    }
+                }.padding(.horizontal, 2)
+            }
+        }.padding(.vertical, 4)
     }
 }
 struct CategoryTabs: View {
@@ -216,10 +255,18 @@ extension BrowseView {
     }
     // Home browsing: one row per product family (sizes / shades grouped), one page at a time.
     var browseSection: some View {
+        let visibleFamilies = browse.filter { selectedBrand == nil || $0.brandLabel == selectedBrand }
         LazyVStack(alignment: .leading, spacing: 12) {
-            Text(L("section.all")).font(.headline)
-            Text(L("family.pick")).font(.caption).foregroundStyle(.secondary)
-            ForEach(browse) { family in
+            HStack {
+                Text(selectedBrand ?? L("section.all")).font(.headline)
+                Spacer()
+                if selectedBrand != nil {
+                    Button("전체 브랜드") { selectedBrand = nil }.font(.caption)
+                }
+            }
+            Text(selectedBrand == nil ? L("family.pick") : "선택한 브랜드의 상품 · 현재 확인된 카탈로그")
+                .font(.caption).foregroundStyle(.secondary)
+            ForEach(visibleFamilies) { family in
                 FamilyRow(family: family) { openFamily = family }
                     .onAppear { if family.id == browse.last?.id { Task { await loadMore() } } }
             }
