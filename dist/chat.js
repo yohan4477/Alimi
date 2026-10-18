@@ -16,6 +16,8 @@ const secret = chatSecret(storage);
 const chat = {rooms: [], room: null, messages: [], nickname: '', myTag: '', item: null, replyTo: null, menuFor: null, poll: null, sending: false};
 const view = {mode: 'posts', post: null, comments: [], commentItem: null, draft: null};
 let onClose = () => {}, toast = () => {}, pickFor = 'chat';
+let pendingProductShare = '';
+export function queueProductShare(query) { pendingProductShare = query; }
 
 async function tagOf(s) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -86,7 +88,7 @@ async function renderHome() {
   await Promise.all(hot.map(async r => { try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, list.at(-1)?.body ?? ''); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
   if (version !== homeVersion || !$('#community-home')) return;
   const products = mentionedProducts(entries, readBlocked(storage));
-  $('#community-home').innerHTML = `${joined.length ? `<button class="resume-conversation" data-chat-action="resume">${esc(t('home.resume'))}<span>›</span></button>` : ''}<h2 class="chat-section">${esc(t('home.active'))}</h2>${hot.length ? hot.map(r => `<button class="conversation-row" data-chat-room="${esc(r.id)}" data-live="1">${roomIcon(r)}<span><b>${esc(roomTitle(r))}</b><p>${esc(previews.get(r.id) || roomIntro(r))}</p><small>${esc(t('chat.members',{n:r.members}))} · ${esc(t('home.messages',{n:r.messages_24h}))}</small></span><i>›</i></button>`).join('') : `<p class="empty">${esc(t('home.quiet'))}</p>`}<h2 class="chat-section">${esc(t('home.mentioned'))}</h2><p class="home-note">${esc(t('home.scope'))}</p>${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>${!products.length ? `<p class="empty">${esc(t('home.noProducts'))}</p>` : ''}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}<h2 class="chat-section" id="home-topics">${esc(t('home.topics'))}</h2><p class="home-note">${esc(t('home.askHint'))}</p>${topics.map(roomRow).join('')}<button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`;
+  $('#community-home').innerHTML = `${pendingProductShare ? `<p class="share-queue" role="status">${esc(t('chat.sharePickRoom',{product:pendingProductShare}))}</p>` : ''}${joined.length ? `<button class="resume-conversation" data-chat-action="resume">${esc(t('home.resume'))}<span>›</span></button>` : ''}<h2 class="chat-section">${esc(t('home.active'))}</h2>${hot.length ? hot.map(r => `<button class="conversation-row" data-chat-room="${esc(r.id)}" data-live="1">${roomIcon(r)}<span><b>${esc(roomTitle(r))}</b><p>${esc(previews.get(r.id) || roomIntro(r))}</p><small>${esc(t('chat.members',{n:r.members}))} · ${esc(t('home.messages',{n:r.messages_24h}))}</small></span><i>›</i></button>`).join('') : `<p class="empty">${esc(t('home.quiet'))}</p>`}<h2 class="chat-section">${esc(t('home.mentioned'))}</h2><p class="home-note">${esc(t('home.scope'))}</p>${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>${!products.length ? `<p class="empty">${esc(t('home.noProducts'))}</p>` : ''}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}<h2 class="chat-section" id="home-topics">${esc(t('home.topics'))}</h2><p class="home-note">${esc(t('home.askHint'))}</p>${topics.map(roomRow).join('')}<button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`;
   homeJoined = joined;
 }
 let homeJoined = [];
@@ -215,6 +217,7 @@ async function startLive(room) {
   } catch { $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
   renderLog(true);
   startPolling();
+  if (pendingProductShare) { const query = pendingProductShare; pendingProductShare = ''; openPicker('chat', query); }
 }
 function renderLog(scroll) {
   const log = $('#chat-log'); if (!log) return;
@@ -260,7 +263,7 @@ function stopPolling() { clearInterval(chat.poll); chat.poll = null; }
 
 // Item picker shared by chat messages, comments and new posts.
 let pickTimer, pickSeq = 0, picked = [];
-function openPicker(target) {
+function openPicker(target, initialQuery = '') {
   pickFor = target;
   const dlg = $('#chat-pick');
   dlg.innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('chat.attach'))}</h2><p>${esc(t('chat.attachHint'))}</p><input id="chat-pick-q" type="search" placeholder="${esc(t('chat.attachSearch'))}" aria-label="${esc(t('chat.attachSearch'))}"><div id="chat-pick-list"></div>`;
@@ -273,6 +276,7 @@ function openPicker(target) {
       $('#chat-pick-list').innerHTML = picked.slice(0, 20).map((c, i) => `<button class="chat-pick-row" data-chat-pick="${i}">${c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel(c))}</small><b>${esc(c.name)}</b></span><strong>${usd(c.price)}</strong></button>`).join('') || (q.trim().length >= 2 ? `<p class="empty">${esc(t('empty.catalogSearch'))}</p>` : '');
     }, 300);
   };
+  if (initialQuery) { $('#chat-pick-q').value = initialQuery; $('#chat-pick-q').dispatchEvent(new Event('input')); }
   $('#chat-pick-q').focus();
 }
 function picked1(i) {
@@ -365,7 +369,7 @@ document.addEventListener('click', async e => {
       toast(t('chat.reported'));
     } catch { toast(t('chat.err.other')); }
   }
-  else if (b.dataset.chatRoom) { const r = chat.rooms.find(x => x.id === b.dataset.chatRoom); if (r) askJoin(r, () => openTopic(r, b.dataset.live ? 'live' : 'posts')); }
+  else if (b.dataset.chatRoom) { const r = chat.rooms.find(x => x.id === b.dataset.chatRoom); if (r) askJoin(r, () => openTopic(r, pendingProductShare || b.dataset.live ? 'live' : 'posts')); }
   else if (b.dataset.post && $('#chat') && !$('#chat').hidden) openPost(+b.dataset.post);
   else if (b.dataset.chatPick) picked1(+b.dataset.chatPick);
   else if (b.dataset.chatMenu) openMenu(+b.dataset.chatMenu);
