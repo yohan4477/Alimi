@@ -27,6 +27,12 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UIRequiresFullScreen: YES
         CODE_SIGN_STYLE: Automatic
+    info:
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: com.yohan4477.alimi.auth
+            CFBundleURLSchemes:
+              - alimi
   AlimiTests:
     type: bundle.unit-test
     platform: iOS

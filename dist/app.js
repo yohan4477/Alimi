@@ -1,4 +1,5 @@
 import {track} from './events.js';
+import {GoogleAuth} from './auth.js';
 import {openChat,leaveChat} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
 import {loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,requestTracking,CATEGORIES,brandLabel,watchSummary,search,dailySeries,stats,usd,alertState,parseTarget,readState,writeState,toggleFavorite} from './live.js';
@@ -6,6 +7,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let storage;try{storage=localStorage}catch{}
 let state=readState(storage),products=[],selected=null,category='전체',days=30,timer,detailOpen=false;
+const auth=new GoogleAuth();
 const product=id=>products.find(p=>p.id===id);
 const kstDate=iso=>new Intl.DateTimeFormat(locale(),{timeZone:'Asia/Seoul',month:lang==='ko'?'long':'short',day:'numeric'}).format(new Date(iso));
 const stock=p=>t(p.availability==='in_stock'?'stock.in':p.availability==='out_of_stock'?'stock.out':'stock.unknown');
@@ -103,6 +105,7 @@ function renderSaved(){
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
 function renderSettings(){
   $('#settings').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="saved" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('settings.title'))}</h1></div>
+<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span class="account-avatar">${esc((auth.user.email||'?').slice(0,1).toUpperCase())}</span><span><b>${esc(auth.user.email||'')}</b><em>${esc(t('account.signedIn'))}</em></span></div><button class="auth-button secondary" data-auth="signout">${esc(t('account.signout'))}</button>`:`<button class="auth-button" data-auth="google"><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
 <section class="set-group"><h3>${esc(t('settings.service'))}</h3>${row(icon.bell,t('settings.alerts'),'data-set="soon"')}<p class="set-hint">${esc(t('settings.alertsHint'))}</p>
 <div class="set-row static"><span class="set-ico">${icon.globe}</span><span class="set-label">${esc(t('settings.language'))}</span><span class="seg"><button data-lang="ko" class="${lang==='ko'?'on':''}">한국어</button><button data-lang="en" class="${lang==='en'?'on':''}">English</button></span></div><p class="set-hint">${esc(t('settings.languageHint'))}</p></section>
 <section class="set-group"><h3>${esc(t('settings.data'))}</h3>${row(icon.tray,t('settings.clearSaved'),'data-set="clear-saved"')}${row(icon.trash,t('settings.clearCache'),'data-set="clear-cache"')}</section>
@@ -112,6 +115,12 @@ async function settingsAction(a){
   if(a==='soon'){toast(t('settings.soon'));return}
   if(a==='clear-saved'){if(!confirm(t('settings.clearSavedConfirm')))return;state={favorites:[],targets:{}};save();renderList();toast(t('settings.cleared'));return}
   if(a==='clear-cache'){try{for(const k of await caches.keys())await caches.delete(k)}catch{}try{sessionStorage.clear()}catch{}toast(t('settings.cacheCleared'));setTimeout(()=>location.reload(),700)}
+}
+async function authAction(a){
+  try{
+    if(a==='google'){await auth.startGoogleLogin();return}
+    await auth.signOut();renderSettings();toast(t('account.signedOut'));
+  }catch(error){toast(error?.message||t('account.failed'))}
 }
 // Search has its own screen: watched products that match, then the whole catalog.
 function renderSearch(){
@@ -188,7 +197,9 @@ function closeDetail(){detailOpen=false;show(detailReturn)}
 function openDetail(id){selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
 
 localizePage();
+auth.handleCallback().catch(error=>{const clean=new URL(location.href);for(const key of ['code','state','error','error_description'])clean.searchParams.delete(key);history.replaceState({},'',clean.toString());toast(error?.message||t('account.failed'))}).finally(()=>auth.restore().then(()=>{if(screen==='settings')renderSettings()}));
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.auth){authAction(b.dataset.auth);return}
   if(b.dataset.track){startTracking(b);return}
   if(b.dataset.family){openFamily(b.dataset.family);return}
   if(b.dataset.brand){openBrand(b.dataset.brand);return}

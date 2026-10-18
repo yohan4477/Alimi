@@ -4,13 +4,15 @@ import Charts
 
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
+    @StateObject private var auth = AuthSession.shared
     var body: some View {
         TabView {
             BrowseView().tabItem { Label(L("tab.home"), systemImage: "house.fill") }
             BrowseView(favoritesOnly: true).tabItem { Label(L("favorites"), systemImage: "heart.fill") }
             AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell.fill") }
             ChatTab().tabItem { Label(L("nav.chat"), systemImage: "bubble.left.and.bubble.right.fill") }
-        }.task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
+            AccountView().tabItem { Label(L("account.title"), systemImage: "person.crop.circle") }
+        }.task { await store.refresh(); await auth.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }
 private let dayFormat: Date.FormatStyle = .dateTime.month().day().locale(L10n.locale)
