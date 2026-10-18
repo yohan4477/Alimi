@@ -23,3 +23,13 @@ test('two-row brand strip keeps rank order on each row', () => {
   assert.deepEqual(order.filter((_, i) => i % 2 === 0), [0, 1, 2, 3, 4, 5, 6, 7], 'top row');
   assert.deepEqual(order.filter((_, i) => i % 2 === 1), [8, 9, 10, 11, 12, 13, 14], 'bottom row');
 });
+
+test('purchase link carries the post / chat reference to Awin as clickref', async () => {
+  const {buyUrl} = await import('../dist/live.js');
+  const aff = 'https://www.awin1.com/pclick.php?p=1&a=2&m=111294';
+  assert.equal(new URL(buyUrl({affiliate_url: aff}, 'post-12')).searchParams.get('clickref'), 'post-12');
+  assert.equal(new URL(buyUrl({affiliateUrl: aff}, 'chat"<x>')).searchParams.get('clickref'), 'chatx');
+  assert.equal(buyUrl({affiliate_url: aff}), aff);
+  assert.equal(buyUrl({url: 'https://www.stylevana.com/a.html'}, 'post-1'), 'https://www.stylevana.com/a.html', 'no clickref on non-affiliate links');
+  assert.equal(buyUrl({}), null);
+});

@@ -887,5 +887,25 @@
   "chat.noMessages": {
     "ko": "아직 대화가 없어요",
     "en": "No messages yet"
+  },
+  "buy.at": {
+    "ko": "{retailer}에서 보기",
+    "en": "View at {retailer}"
+  },
+  "variant.buy": {
+    "ko": "보기",
+    "en": "View"
+  },
+  "target.secondary": {
+    "ko": "가격 알림 받기",
+    "en": "Get a price alert"
+  },
+  "family.buyHint": {
+    "ko": "옵션을 고르고 판매처에서 확인하세요",
+    "en": "Pick an option and check it at the retailer"
+  },
+  "detail.alertsTitle": {
+    "ko": "가격이 내려가면 알려드릴까요?",
+    "en": "Wait for a better price?"
   }
 }
