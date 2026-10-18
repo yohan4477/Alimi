@@ -5,5 +5,22 @@
       "*": false,
       "**": false
     }
-  }
+  },
+  "outputDirectory": "dist",
+  "functions": {
+    "api/admin.js": {
+      "includeFiles": "server/admin-page.html",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/api/admin"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/api/admin"
+    }
+  ]
 }

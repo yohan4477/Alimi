@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'dist/**'
+      - 'api/**'
+      - 'server/**'
+      - 'vercel.json'
       - 'tests/**'
       - 'scripts/**'
       - 'e2e/**'
@@ -19,10 +22,13 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
+      - name: Admin access and mobile flow (mocked auth)
+        run: |
+          npm install --no-save playwright-core@1.49.1
+          CHROME_PATH="$(command -v google-chrome)" node e2e/admin.e2e.mjs
       - name: Browser smoke test against the live public API
         run: |
           set -euo pipefail
-          npm install --no-save playwright-core@1.49.1
           python3 -m http.server 3000 --directory dist >/dev/null 2>&1 &
           sleep 1
           CHROME_PATH="$(command -v google-chrome)" node e2e/no-tracking.e2e.mjs http://localhost:3000/
