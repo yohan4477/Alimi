@@ -97,7 +97,7 @@ try {
     await page.click('#tabbar [data-screen="chat"]');
     await page.route('**/rest/v1/community_posts*', r => r.fulfill({json: []}));
     assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
-    await page.click('[data-chat-room="acne"]');
+    await page.click('.room-row[data-chat-room="acne"]');
     await page.waitForSelector('#chat-join[open] .chat-rules');
     await page.click('[data-chat-action="join-ok"]');
     await page.waitForSelector('#post-list >> text=아직 글이 없어요');

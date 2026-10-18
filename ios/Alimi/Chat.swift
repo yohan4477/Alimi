@@ -192,7 +192,7 @@ struct ChatTab: View {
         if tag == "all" { return topics.sorted { ($0.lastMessageAt ?? "") > ($1.lastMessageAt ?? "") } }
         return topics.filter { $0.tag == tag }
     }
-    private func choose(_ room: ChatRoom) { if ChatAPI.agreed { open = room } else { asking = room } }
+    private func choose(_ room: ChatRoom) { open = room }
 
     var body: some View {
         NavigationStack {
