@@ -132,3 +132,6 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
 .family-chat-action{display:block;width:100%;margin:16px 0 4px;padding:13px 16px;border-radius:12px;background:var(--blue);color:#fff;font-weight:700}
 .chat-share-cta{border:1px solid var(--blue);border-radius:12px;padding:10px 12px;color:var(--blue);font-weight:700;background:#fff}
 .share-queue{padding:14px 16px;margin:12px 0;background:#edf2ff;color:#1f4fc2;border-radius:12px;font-weight:650;line-height:1.5}
+
+.detail-actions{gap:8px}
+.chat-share-cta{white-space:nowrap;padding:10px 8px;font-size:13px}
