@@ -104,7 +104,7 @@ export function collapseVariants(rows) {
     bestValue: bestUnit != null && v.unit_price_minor === bestUnit}));
 }
 export async function fetchFamily(familyKey, fetchImpl = fetch) {
-  const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor', active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
+  const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor,url,affiliate_url', active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
   const res = await fetchImpl(SUPABASE_URL + '/rest/v1/catalog_items?' + params, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
   if (!res.ok) throw Error('HTTP ' + res.status);
   return collapseVariants(await res.json());
@@ -130,6 +130,17 @@ export const brandInitials = brand => {
 };
 const BRAND_COLORS = ['#f35e56', '#ff8a3d', '#f5b82e', '#3cba7a', '#1fa2a8', '#3d7bf5', '#7a5af5', '#d94f9b', '#5b6472', '#2f4858'];
 export const brandColor = brand => BRAND_COLORS[[...brand].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7) % BRAND_COLORS.length];
+// Affiliate link for a purchase click. `ref` (e.g. "post-12") is passed to Awin as clickref so confirmed
+// sales in the Awin report can be traced back to the post / chat that led to them.
+export function buyUrl(item, ref = null) {
+  const raw = item.affiliateUrl ?? item.affiliate_url ?? item.url;
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if (ref && u.hostname === 'www.awin1.com') u.searchParams.set('clickref', String(ref).replace(/[^\w-]/g, '').slice(0, 50));
+    return u.href;
+  } catch { return null; }
+}
 export const unitName = unit => (unit === 'ml' || unit === 'g' ? '10' + unit : unit === 'pcs' ? '1pc' : unit);
 
 // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
