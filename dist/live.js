@@ -1,9 +1,7 @@
-// Live price data from Supabase (public read-only API). The publishable key is designed to ship in clients;
-// row-level security limits it to SELECT on public price tables.
+// Catalog and product data from Supabase (public read-only API; see supabase.js).
 import {t, lang} from './i18n.js';
-
-export const SUPABASE_URL = 'https://mqsnshnlfwsgabrsmqsz.supabase.co';
-export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CJjQ-l5ev-D4OH0Na0gFoQ_szunygff';
+import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet} from './supabase.js';
+export {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY};
 export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,currency,url,affiliate_url,image_url,' +
   'products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),' +
   'price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id';
@@ -72,9 +70,8 @@ export function catalogSearchUrl(q, limit = 30) {
 export async function searchCatalog(q, fetchImpl = fetch) {
   const url = catalogSearchUrl(q);
   if (!url) return [];
-  const res = await fetchImpl(url, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return (await res.json()).map(toCatalog);
+  const rows = await restGet(url, fetchImpl);
+  return rows.map(toCatalog);
 }
 // Product families (sizes / shades of one product grouped) for home browsing.
 const FAMILY_FIELDS = 'family_key,brand,brand_ko,base_name,category,image_url,min_price_minor,max_price_minor,variants,best_unit_price_minor';
@@ -85,9 +82,8 @@ export function familiesPageUrl(category, offset, limit = 24, brand = null) {
   return SUPABASE_URL + '/rest/v1/catalog_families?' + params;
 }
 export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
-  const res = await fetchImpl(familiesPageUrl(category, offset, limit, brand), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return (await res.json()).map(f => ({...f, brandKo: f.brand_ko ?? null, minPrice: f.min_price_minor / 100, maxPrice: f.max_price_minor / 100}));
+  const rows = await restGet(familiesPageUrl(category, offset, limit, brand), fetchImpl);
+  return rows.map(f => ({...f, brandKo: f.brand_ko ?? null, minPrice: f.min_price_minor / 100, maxPrice: f.max_price_minor / 100}));
 }
 // All variants of one family. Duplicate listings of the same size/option (e.g. [Deal] relistings without EAN)
 // collapse to the cheapest; sorted by unit price so the best value comes first.
@@ -105,18 +101,16 @@ export function collapseVariants(rows) {
 }
 export async function fetchFamily(familyKey, fetchImpl = fetch) {
   const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor,url,affiliate_url', active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
-  const res = await fetchImpl(SUPABASE_URL + '/rest/v1/catalog_items?' + params, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return collapseVariants(await res.json());
+  const rows = await restGet(SUPABASE_URL + '/rest/v1/catalog_items?' + params, fetchImpl);
+  return collapseVariants(rows);
 }
 // Popular brands for the home strip, most product families first. logo_url is optional (filled by whoever
 // owns brand images); until then the client draws an initials badge in a stable per-brand color.
 export const brandsUrl = (limit = 15) => SUPABASE_URL + '/rest/v1/catalog_brands?' +
   new URLSearchParams({select: 'brand,brand_ko,families,logo_url', order: 'families.desc', limit: String(limit)});
 export async function fetchBrands(fetchImpl = fetch) {
-  const res = await fetchImpl(brandsUrl(), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return (await res.json()).map(b => ({...b, brandKo: b.brand_ko ?? null}));
+  const rows = await restGet(brandsUrl(), fetchImpl);
+  return rows.map(b => ({...b, brandKo: b.brand_ko ?? null}));
 }
 // The strip shows two rows and scrolls sideways; the grid fills column by column, so interleave the list
 // to keep rank order reading left to right on each row (top: 1..8, bottom: 9..15).

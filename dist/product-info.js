@@ -1,6 +1,6 @@
 import {t} from './i18n.js';
-import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY} from './live.js';
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+import {SUPABASE_URL, restGet} from './supabase.js';
+import {esc} from './util.js';
 let contents;
 export const safeSource = raw => { try {const u = new URL(raw); return u.protocol === 'https:' && !u.username && !u.password ? u.href : null;} catch {return null;} };
 // Only explicitly licensed affiliate descriptions are published. Category guidance is our own text.
@@ -24,8 +24,7 @@ export async function renderProductInfo(box, item, fetchImpl = fetch) {
     let copy = approvedCopy((await contents).items ?? [], item);
     if (!copy && item.sku) {
       const params = new URLSearchParams({select: 'url,description,description_permission', sku: 'eq.' + item.sku, retailer: 'eq.' + item.retailer, limit: '1'});
-      const res = await fetchImpl(SUPABASE_URL + '/rest/v1/catalog_items?' + params, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}});
-      if (res.ok) copy = catalogCopy((await res.json())[0], item);
+      copy = catalogCopy((await restGet(SUPABASE_URL + '/rest/v1/catalog_items?' + params, fetchImpl))[0], item);
     }
     if (box.isConnected) box.innerHTML = productInfoHTML(item, copy);
   } catch { /* category guidance remains useful without licensed copy */ }

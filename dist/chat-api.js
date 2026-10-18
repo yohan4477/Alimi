@@ -1,9 +1,8 @@
 // Topic chat (#68) data layer. Anonymous: a random per-device secret proves authorship to the RPCs;
 // the server only keeps its hash ("author_tag"), which is also what Block hides locally.
-import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY} from './live.js';
+import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet, rpc} from './supabase.js';
 import {lang} from './i18n.js';
 
-const headers = {apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json'};
 const SECRET_KEY = 'alimi-chat-secret', BLOCK_KEY = 'alimi-chat-blocked', AGREED_KEY = 'alimi-chat-agreed';
 export const MESSAGE_FIELDS = 'id,room_id,author_tag,nickname,body,item,reply_to,likes,created_at';
 
@@ -43,16 +42,7 @@ export function messagesUrl(room, afterId = 0, limit = 60) {
   return SUPABASE_URL + '/rest/v1/chat_messages?' + params;
 }
 
-async function get(url, fetchImpl) {
-  const res = await fetchImpl(url, {headers, signal: AbortSignal.timeout(10000)});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return res.json();
-}
-async function rpc(name, body, fetchImpl) {
-  const res = await fetchImpl(SUPABASE_URL + '/rest/v1/rpc/' + name, {method: 'POST', headers, body: JSON.stringify(body), signal: AbortSignal.timeout(10000)});
-  if (!res.ok) { let msg = 'HTTP ' + res.status; try { msg = (await res.json()).message ?? msg; } catch {} throw Error(msg); }
-  return res.status === 204 ? null : res.json();
-}
+const get = restGet;
 
 export const fetchRooms = (fetchImpl = fetch) => get(roomsUrl(), fetchImpl);
 // Rooms this device joined ("My chats"), each with its latest message for the preview line.
