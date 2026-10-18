@@ -361,14 +361,14 @@ final class AlimiStore: ObservableObject {
         }
     }
     var categories: [String] { ["전체"] + Product.categories }
-    func brands() async -> [CatalogBrand] {
+    func brands() async -> [CatalogBrand]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") {
             return [CatalogBrand(brand: "COSRX", brandKo: "코스알엑스", families: 2, logoUrl: nil), CatalogBrand(brand: "ANUA", brandKo: "아누아", families: 1, logoUrl: nil)]
         }
         var request = URLRequest(url: CatalogBrand.listURL, timeoutInterval: 15)
         request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return [] }
-        return (try? JSONDecoder().decode([CatalogBrand].self, from: data)) ?? []
+        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        return try? JSONDecoder().decode([CatalogBrand].self, from: data)
     }
     func familiesPage(category: String, offset: Int, brand: String? = nil) async -> [ProductFamily]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }

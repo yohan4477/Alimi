@@ -114,6 +114,8 @@ final class AlimiUITests: XCTestCase {
         // Offline mode returns no families, so the page shows its header (and the empty message).
         XCTAssertTrue(app.staticTexts["brand-header-title"].waitForExistence(timeout: 10), "brand page opens with its header")
         XCTAssertTrue(app.navigationBars["코스알엑스"].exists)
+        XCTAssertTrue(app.staticTexts["brand-empty"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["brand-retry"].exists, "successful empty results are not request failures")
         attach("brand-page")
     }
     func testSavedTabHasAddSlotsAndSettings() {

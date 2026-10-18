@@ -1351,5 +1351,9 @@
   "about.type.기타": {
     "ko": "상품명과 옵션을 확인하고, 정확한 용도·구성·사용법은 판매처 설명을 참고해 주세요.",
     "en": "Check the name and options, then consult the retailer for the exact purpose, contents and directions."
+  },
+  "retry": {
+    "ko": "다시 시도",
+    "en": "Retry"
   }
 }
