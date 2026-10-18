@@ -715,5 +715,41 @@
   "brands.clear": {
     "ko": "전체 보기",
     "en": "Show all"
+  },
+  "saved.title": {
+    "ko": "관심상품",
+    "en": "Saved"
+  },
+  "saved.hint": {
+    "ko": "가격을 지켜볼 상품을 추가해 보세요",
+    "en": "Add products to watch their prices"
+  },
+  "saved.hintMore": {
+    "ko": "{n}개 더 추가하면 비교가 쉬워요",
+    "en": "Add {n} more to compare easily"
+  },
+  "saved.add": {
+    "ko": "추가",
+    "en": "Add"
+  },
+  "saved.count": {
+    "ko": "{n}개 지켜보는 중",
+    "en": "Watching {n}"
+  },
+  "search.title": {
+    "ko": "검색",
+    "en": "Search"
+  },
+  "search.recentEmpty": {
+    "ko": "브랜드나 제품명을 입력해 보세요",
+    "en": "Type a brand or product name"
+  },
+  "brand.back": {
+    "ko": "브랜드",
+    "en": "Brands"
+  },
+  "brand.empty": {
+    "ko": "이 브랜드 상품을 불러오지 못했어요",
+    "en": "Couldn't load this brand's products"
   }
 }
