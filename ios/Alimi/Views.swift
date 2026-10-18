@@ -159,17 +159,17 @@ struct BrowseView: View {
     }
 
 }
-// Round brand badges, five per row, like a delivery app's popular-brand grid. Tapping one opens the brand page.
+// Two rows of brand badges with space between logos and labels. Tapping one opens the brand page.
 struct BrandStrip: View {
     let brands: [CatalogBrand]
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L("brands.title")).font(.title3.bold())
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHGrid(rows: [GridItem(.fixed(88), spacing: 12), GridItem(.fixed(88))], spacing: 4) {
+                LazyHGrid(rows: [GridItem(.fixed(96), spacing: 20), GridItem(.fixed(96))], spacing: 12) {
                     ForEach(BrandStrip.twoRowOrder(brands)) { b in
                         NavigationLink(value: b) { BrandBadge(brand: b) }
-                            .buttonStyle(.plain).frame(width: 64).accessibilityIdentifier("brand-\(b.brand)")
+                            .buttonStyle(.plain).frame(width: 72).accessibilityIdentifier("brand-\(b.brand)")
                     }
                 }
             }
@@ -192,7 +192,7 @@ struct BrandBadge: View {
     var showLabel = true
     @State private var logoImage: UIImage?
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             ZStack {
                 Circle().fill(Color(rgb: brand.color))
                 Text(brand.initials).font(.system(size: size * 0.3, weight: .heavy)).foregroundStyle(.white)
