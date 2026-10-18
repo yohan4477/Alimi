@@ -749,8 +749,8 @@
     "en": "Brands"
   },
   "brand.empty": {
-    "ko": "이 브랜드 상품을 불러오지 못했어요",
-    "en": "Couldn't load this brand's products"
+    "ko": "이 브랜드에 등록된 상품이 없어요",
+    "en": "No products available for this brand"
   },
   "settings.title": {
     "ko": "설정",
