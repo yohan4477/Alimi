@@ -17,3 +17,6 @@ Trademarks belong to their owners.
 | the-saem.png | [Thesaem-Logo-240503.png](https://commons.wikimedia.org/wiki/File:Thesaem-Logo-240503.png), Wikimedia Commons, CC BY 4.0 |
 | pyunkang-yul.png | pyunkangyul.com header logo |
 | prettyskin.png | prettyskin.co.kr header logo |
+| abib.png | abib.com header logo |
+| anillo.png | anillo.co.kr header logo |
+| round-lab.png | roundlab.co.kr header logo |
