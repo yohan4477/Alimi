@@ -36,6 +36,7 @@ final class AlimiUITests: XCTestCase {
 
     private func browse() {
         app.tabBars.buttons["검색"].tap()
+        if app.buttons["category-전체"].firstMatch.exists { return }
         let explore = app.buttons["상품 둘러보기"].firstMatch
         XCTAssertTrue(explore.waitForExistence(timeout: 10))
         explore.tap()
