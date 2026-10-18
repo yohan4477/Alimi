@@ -26,6 +26,8 @@ Deno.serve(async () => {
     headers: {Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'alimi-feed-tick'},
     body: JSON.stringify({ref: 'main', inputs: {force: 'false'}})
   });
+  // GitHub's error message (never contains the token) makes permission problems diagnosable.
+  const detail = res.status === 204 ? null : ((await res.json().catch(() => null))?.message ?? null);
   await db('feed_ticks', {method: 'POST', headers: {Prefer: 'return=minimal'}, body: JSON.stringify({github_status: res.status})});
-  return Response.json({dispatched: res.status === 204, github_status: res.status}, {status: res.status === 204 ? 200 : 502});
+  return Response.json({dispatched: res.status === 204, github_status: res.status, detail}, {status: res.status === 204 ? 200 : 502});
 });
