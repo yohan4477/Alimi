@@ -55,20 +55,37 @@ final class AlimiUITests: XCTestCase {
         XCTAssertTrue(waitForPhoto(app.buttons["product-\(product)"].firstMatch), "photo should survive list re-render")
     }
 
+    // Category tabs sit in a horizontal scroll view; swipe it until the wanted tab can be tapped.
+    private func tapCategory(_ name: String) {
+        let tab = app.buttons["category-\(name)"].firstMatch
+        XCTAssertTrue(tab.waitForExistence(timeout: 5), "missing tab \(name)")
+        for direction in [true, false] {
+            var n = 0
+            while !tab.isHittable && n < 6 {
+                let strip = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'category-'")).allElementsBoundByIndex.first { $0.isHittable }
+                guard let strip else { break }
+                if direction { strip.swipeLeft() } else { strip.swipeRight() }
+                n += 1
+            }
+            if tab.isHittable { break }
+        }
+        tab.tap()
+    }
+
     func testCategoryTabsFilterTrackedProducts() {
         XCTAssertTrue(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.waitForExistence(timeout: 15))
 
-        app.buttons["category-립"].firstMatch.tap()
+        tapCategory("립")
         XCTAssertTrue(app.buttons["product-laneige-lip-sleeping-mask-ex-berry"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["product-romand-the-juicy-lasting-tint-07"].firstMatch.exists)
         XCTAssertFalse(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.exists, "essence must not be listed under 립")
         attach("category-lip")
 
-        app.buttons["category-베이스메이크업"].firstMatch.tap()
+        tapCategory("베이스메이크업")
         XCTAssertTrue(app.buttons["product-tirtir-mask-fit-red-cushion-18g-21c"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["product-laneige-lip-sleeping-mask-ex-berry"].firstMatch.exists)
 
-        app.buttons["category-에센스·세럼"].firstMatch.tap()
+        tapCategory("에센스·세럼")
         XCTAssertTrue(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.waitForExistence(timeout: 5))
         attach("category-essence")
     }
