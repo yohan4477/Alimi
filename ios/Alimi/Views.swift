@@ -101,6 +101,8 @@ struct BrowseView: View {
     @State private var browseDone = false
     @State private var browseLoading = false
     @State private var brands: [CatalogBrand] = []
+    @State private var brandsLoading = false
+    @State private var brandsFailed = false
     private var results: [Product] { store.search("", category: category) }
     var body: some View {
         NavigationStack {
@@ -112,7 +114,14 @@ struct BrowseView: View {
                         Text(L("hero.line2")).font(.system(size: 28, weight: .bold))
                         Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
                     }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
-                    if !brands.isEmpty { BrandStrip(brands: brands) }
+                    if brandsLoading { ProgressView(L("loading")).frame(maxWidth: .infinity) }
+                    else if brandsFailed {
+                        VStack(alignment: .leading) {
+                            Text(L("brands.title")).font(.title3.bold())
+                            Text(L("loadFailed")).font(.caption)
+                            Button(L("retry")) { Task { await loadBrands() } }
+                        }
+                    } else if !brands.isEmpty { BrandStrip(brands: brands) }
                     CategoryTabs(categories: store.categories, selection: $category)
                     HStack {
                         Text(L("section.watching")).font(.headline)
@@ -133,13 +142,22 @@ struct BrowseView: View {
                     browse = []; browseDone = false
                     await loadMore()
                 }
-                .task { if brands.isEmpty { brands = await store.brands() } }
+                .task { if brands.isEmpty { await loadBrands() } }
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: CatalogBrand.self) { BrandView(brand: $0) }
                 .refreshable { await store.refresh() }
                 .sheet(item: $openFamily) { family in FamilySheet(family: family).environmentObject(store) }
         }
     }
+    private func loadBrands() async {
+        guard !brandsLoading else { return }
+        brandsLoading = true
+        let list = await store.brands()
+        brandsLoading = false
+        brandsFailed = list == nil
+        if let list { brands = list }
+    }
+
 }
 // Round brand badges, five per row, like a delivery app's popular-brand grid. Tapping one opens the brand page.
 struct BrandStrip: View {
@@ -172,15 +190,25 @@ struct BrandBadge: View {
     let brand: CatalogBrand
     var size: CGFloat = 60
     var showLabel = true
+    @State private var logoImage: UIImage?
     var body: some View {
         VStack(spacing: 6) {
             ZStack {
                 Circle().fill(Color(rgb: brand.color))
                 Text(brand.initials).font(.system(size: size * 0.3, weight: .heavy)).foregroundStyle(.white)
-                if let url = brand.logoUrl { RemoteImage(url: url, label: brand.label).background(Color.white).clipShape(Circle()) }
+                if let logoImage {
+                    Image(uiImage: logoImage).resizable().scaledToFit().background(Color.white).clipShape(Circle())
+                }
             }
             .frame(width: size, height: size)
             .overlay(Circle().stroke(Color(.separator), lineWidth: 0.5))
+            .task(id: brand.logoUrl) {
+                logoImage = nil
+                guard let url = brand.logoUrl else { return }
+                let image = await ImageCache.shared.load(url)
+                guard !Task.isCancelled else { return }
+                logoImage = image
+            }
             if showLabel {
                 Text(brand.label).font(.caption2).multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.85)
                     .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)

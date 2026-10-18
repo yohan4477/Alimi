@@ -749,8 +749,8 @@
     "en": "Brands"
   },
   "brand.empty": {
-    "ko": "이 브랜드 상품을 불러오지 못했어요",
-    "en": "Couldn't load this brand's products"
+    "ko": "이 브랜드에 등록된 상품이 없어요",
+    "en": "No products available for this brand"
   },
   "settings.title": {
     "ko": "설정",
@@ -1239,5 +1239,9 @@
   "product.similarNote": {
     "ko": "비슷한 조건의 사람이 써본 경험이에요. 같은 결과를 보장하지는 않아요.",
     "en": "Experiences from people with similar conditions. Your results may differ."
+  },
+  "retry": {
+    "ko": "다시 시도",
+    "en": "Retry"
   }
 }

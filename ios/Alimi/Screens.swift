@@ -104,7 +104,13 @@ struct BrandView: View {
                 header
                 list
                 if loading { ProgressView().frame(maxWidth: .infinity) }
-                else if families.isEmpty && (done || failed) {
+                else if failed {
+                    VStack(spacing: 8) {
+                        Text(L("loadFailed")).font(.caption).foregroundStyle(.secondary)
+                        Button(L("retry")) { Task { await loadMore() } }.accessibilityIdentifier("brand-retry")
+                    }.frame(maxWidth: .infinity)
+                }
+                else if families.isEmpty && done {
                     Text(L("brand.empty")).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("brand-empty")
                 }
             }.padding(20)
@@ -132,9 +138,10 @@ struct BrandView: View {
     private func loadMore() async {
         guard !loading, !done else { return }
         loading = true
+        failed = false
         let page = await store.familiesPage(category: "전체", offset: families.count, brand: brand.brand)
         loading = false
-        guard let page else { failed = true; done = true; return }
+        guard let page else { failed = true; return }
         families.append(contentsOf: page)
         if page.count < 24 { done = true }
     }

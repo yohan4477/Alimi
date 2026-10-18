@@ -73,24 +73,27 @@ function show(n){
 }
 // Popular-brand strip: round badges like a delivery app's brand grid; tapping one opens that brand's page.
 let brands=[];
-const brandBadge=b=>b.logo_url?`<img src="${esc(b.logo_url)}" alt="" loading="lazy">`:`<span style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}</span>`;
+const brandBadge=b=>`<span style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}</span>${b.logo_url?`<img src="${esc(b.logo_url)}" alt="" loading="lazy">`:''}`;
+// Keep initials visible under a logo while loading and after an image/network failure.
+document.addEventListener('error',e=>{if(e.target.matches?.('.brand-item img,.brand-badge-lg img'))e.target.remove()},true);
 function renderBrands(){const box=$('#brands');if(!brands.length){box.hidden=true;return}box.hidden=false;
   box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><div class="brand-grid">${twoRowOrder(brands).map(b=>`<button class="brand-item" data-brand="${esc(b.brand)}"><i>${brandBadge(b)}</i><small>${esc(brandLabel(b))}</small></button>`).join('')}</div>`}
-const brandPage={brand:null,items:[],done:false,loading:false,seq:0};let brandObserver;
-function openBrand(name){Object.assign(brandPage,{brand:name,items:[],done:false,seq:brandPage.seq+1});show('brand');renderBrandPage();track('search',null,{brand:name})}
+const brandPage={brand:null,items:[],done:false,loading:false,failed:false,seq:0};let brandObserver;
+function openBrand(name){Object.assign(brandPage,{brand:name,items:[],done:false,failed:false,seq:brandPage.seq+1});show('brand');renderBrandPage();track('search',null,{brand:name})}
 function renderBrandPage(){
   const b=brands.find(x=>x.brand===brandPage.brand)??{brand:brandPage.brand,brand_ko:null};
-  $('#brand').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="home" aria-label="${esc(t('back'))}">${icon.back}</button></div><div class="brand-hero"><i class="brand-badge-lg">${brandBadge(b)}</i><div><h1>${esc(brandLabel(b))}</h1>${b.families?`<p>${esc(t('count',{n:b.families}))}</p>`:''}</div></div><div class="catalog-grid">${brandPage.items.map(familyCard).join('')}</div>${brandPage.done?(brandPage.items.length?'':`<p class="empty">${esc(t('brand.empty'))}</p>`):`<p class="empty" id="brand-more">${esc(t('loading'))}</p>`}`;
+  $('#brand').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="home" aria-label="${esc(t('back'))}">${icon.back}</button></div><div class="brand-hero"><i class="brand-badge-lg">${brandBadge(b)}</i><div><h1>${esc(brandLabel(b))}</h1>${b.families?`<p>${esc(t('count',{n:b.families}))}</p>`:''}</div></div><div class="catalog-grid">${brandPage.items.map(familyCard).join('')}</div>${brandPage.failed?`<p class="empty" role="status">${esc(t('loadFailed'))} <button data-brand-retry>${esc(t('retry'))}</button></p>`:brandPage.done?(brandPage.items.length?'':`<p class="empty">${esc(t('brand.empty'))}</p>`):`<p class="empty" id="brand-more">${esc(t('loading'))}</p>`}`;
   brandObserver?.disconnect();const more=$('#brand-more');if(!more)return;
   if(!brandPage.items.length){loadBrandPage();return}
   brandObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))loadBrandPage()},{rootMargin:'600px'});brandObserver.observe(more);
 }
 async function loadBrandPage(){
   if(brandPage.loading||brandPage.done)return;brandPage.loading=true;const seq=brandPage.seq;
-  try{const page=await fetchFamiliesPage('전체',brandPage.items.length,24,fetch,brandPage.brand);if(seq!==brandPage.seq)return;brandPage.items.push(...page);if(page.length<24)brandPage.done=true}
-  catch{if(seq===brandPage.seq)brandPage.done=true}
+  try{const page=await fetchFamiliesPage('전체',brandPage.items.length,24,fetch,brandPage.brand);if(seq===brandPage.seq){brandPage.items.push(...page);if(page.length<24)brandPage.done=true}}
+  catch{if(seq===brandPage.seq)brandPage.failed=true}
   finally{brandPage.loading=false}
-  if(seq===brandPage.seq&&screen==='brand')renderBrandPage();
+  if(seq!==brandPage.seq){if(screen==='brand')loadBrandPage();return}
+  if(screen==='brand')renderBrandPage();
 }
 // Saved (관심상품): favorites in a 3-column grid, padded with "+ Add" slots until there are three.
 const savedCard=p=>`<article class="saved-card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><strong>${usd(p.price)}</strong></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="true">♥</button></article>`;
@@ -193,6 +196,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null);return}
   if(b.dataset.post&&screen!=='chat'){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);show('chat');return}
   if(b.dataset.brand){openBrand(b.dataset.brand);return}
+  if('brandsRetry' in b.dataset){loadBrandStrip();return}
+  if('brandRetry' in b.dataset){brandPage.failed=false;renderBrandPage();return}
   if(b.dataset.screen){show(b.dataset.screen);return}
   if(b.dataset.set){settingsAction(b.dataset.set);return}
   if(b.dataset.lang){try{localStorage.setItem('alimi-lang',b.dataset.lang)}catch{}location.href='?lang='+b.dataset.lang;return}
@@ -205,8 +210,16 @@ let searchTimer;$('#search').oninput=()=>{renderSearch();clearTimeout(searchTime
 $('#browse-now').onclick=()=>$('.results').scrollIntoView({behavior:'smooth'});
 $('#reset').onclick=()=>{if(confirm(t('reset.confirm'))){state={favorites:[],targets:{}};save();renderList()}};
 document.addEventListener('click',e=>{const a=e.target.closest('a.observed-buy');if(!a)return;if(a.dataset.sku)track('merchant_click',null,{sku:a.dataset.sku,from:a.dataset.ref||'options'});else if(selected)track('merchant_click',selected,{retailer:product(selected)?.retailer,from:a.classList.contains('buy-cta')?'detail_cta':'detail_retailer'})});
-document.addEventListener('error',e=>{if(e.target.tagName==='IMG'){const box=document.createElement('div');box.className='no-photo';box.textContent=t('photoFailed');e.target.replaceWith(box)}},true);
+document.addEventListener('error',e=>{if(e.target.tagName==='IMG'&&!e.target.matches('.brand-item img,.brand-badge-lg img')){const box=document.createElement('div');box.className='no-photo';box.textContent=t('photoFailed');e.target.replaceWith(box)}},true);
 
+async function loadBrandStrip(){
+  const box=$('#brands');box.hidden=false;box.setAttribute('aria-busy','true');
+  box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><p role="status">${esc(t('loading'))}</p>`;
+  try{brands=await fetchBrands();renderBrands()}
+  catch{box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><p role="status">${esc(t('loadFailed'))} <button data-brands-retry>${esc(t('retry'))}</button></p>`}
+  finally{box.setAttribute('aria-busy','false')}
+}
+loadBrandStrip();
 $('#products').innerHTML=`<p class="empty">${esc(t('loadingPrices'))}</p>`;
 loadProducts().then(({products:list,source,exportedAt})=>{
   products=list;
@@ -216,5 +229,5 @@ loadProducts().then(({products:list,source,exportedAt})=>{
   $('.notice').textContent=source==='live'?t('notice.live',{date:latest?kstDate(latest):''}):t('notice.offline',{date:exportedAt?kstDate(exportedAt):''});
   renderList();
   track('home_view',null,{source,lang});
-  fetchBrands().then(list=>{brands=list;renderBrands()}).catch(()=>{});
+
 }).catch(()=>{$('#products').innerHTML=`<p class="empty">${esc(t('loadFailed'))}</p>`});
