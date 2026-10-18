@@ -22,6 +22,23 @@ create table public.community_posts (
   item jsonb,
   reasons text[] not null default '{}' check (reasons <@ array['price', 'texture', 'color', 'ingredients', 'shipping', 'skin_type', 'scent']::text[]),
   from_message_id bigint references public.chat_messages (id),
+  -- Review details (kind = 'review'; all optional except the product). Product experience lives in body;
+  -- the writer's own purchase / shipping facts are kept apart so shipping problems don't read as product
+  -- problems, and so they are never confused with the app's current affiliate price.
+  used_for text check (used_for in ('first', 'weeks', 'months', 'long')),
+  skin_type text check (skin_type in ('dry', 'oily', 'combination', 'sensitive', 'normal')),
+  -- Chosen by the writer per post (never inferred from photos or text): helps "people like me" filtering.
+  skin_tone text check (skin_tone in ('fair', 'light', 'medium', 'tan', 'deep')),
+  undertone text check (undertone in ('cool', 'warm', 'neutral')),
+  climate text check (climate in ('humid', 'dry', 'mixed')),
+  goal text check (char_length(goal) <= 60),
+  photos text[] not null default '{}' check (cardinality(photos) <= 4),
+  bought_where text check (char_length(bought_where) <= 60),
+  bought_price_minor int check (bought_price_minor between 1 and 10000000),
+  bought_currency char(3),
+  ship_country char(2),
+  ship_days smallint check (ship_days between 0 and 120),
+  sponsored boolean not null default false,
   comments int not null default 0,
   likes int not null default 0,
   reports int not null default 0,
@@ -81,7 +98,8 @@ alter table public.community_reports enable row level security;
 alter table public.community_profiles enable row level security;
 revoke all on public.community_posts, public.community_comments, public.community_likes, public.community_reports,
   public.community_profiles from anon, authenticated;
-grant select (id, room_id, author_tag, nickname, kind, title, body, item, reasons, comments, likes, created_at, last_activity_at)
+grant select (id, room_id, author_tag, nickname, kind, title, body, item, reasons, comments, likes, created_at, last_activity_at,
+  used_for, skin_type, skin_tone, undertone, climate, goal, photos, bought_where, bought_price_minor, bought_currency, ship_country, ship_days, sponsored)
   on public.community_posts to anon, authenticated;
 grant select (id, post_id, author_tag, nickname, body, item, likes, created_at) on public.community_comments to anon, authenticated;
 create policy "public read" on public.community_posts for select using (not hidden);
@@ -89,8 +107,9 @@ create policy "public read" on public.community_comments for select using (not h
 
 -- Every product card anywhere, for "people talking about this product" and mention analytics.
 create view public.product_mentions with (security_invoker = true) as
-  select 'post'::text as source, p.id as source_id, p.id as post_id, null::text as room_id, p.item->>'family_key' as family_key,
-         p.item->>'sku' as sku, p.created_at from public.community_posts p where p.item is not null
+  select case when p.kind = 'review' then 'review' else 'post' end::text as source, p.id as source_id, p.id as post_id,
+         null::text as room_id, p.item->>'family_key' as family_key, p.item->>'sku' as sku, p.created_at
+    from public.community_posts p where p.item is not null
   union all
   select 'comment', c.id, c.post_id, null, c.item->>'family_key', c.item->>'sku', c.created_at
     from public.community_comments c where c.item is not null
@@ -120,6 +139,20 @@ begin
 end;
 $$;
 
+create function public.community_guard_text(p_text text)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if p_text ~* '(https?://|www\.|[a-z0-9-]+\.(com|net|org|io|ly|me|gg)\M)' then raise exception 'chat:link'; end if;
+  if exists (select 1 from public.chat_blocked_terms t where strpos(lower(p_text), t.term) > 0) then raise exception 'chat:blocked'; end if;
+  return true;
+end;
+$$;
+
 create function public.community_item(p_retailer text, p_market text, p_sku text)
 returns jsonb
 language plpgsql
@@ -140,7 +173,7 @@ $$;
 
 create function public.create_post(p_secret text, p_room text, p_kind text, p_title text, p_body text default '',
   p_retailer text default null, p_market text default null, p_sku text default null, p_reasons text[] default '{}',
-  p_from_message bigint default null)
+  p_from_message bigint default null, p_review jsonb default '{}')
 returns jsonb
 language plpgsql
 security definer
@@ -155,13 +188,25 @@ begin
   if char_length(v_title) < 2 then raise exception 'chat:empty'; end if;
   if char_length(v_title) > 120 or char_length(v_body) > 2000 then raise exception 'chat:long'; end if;
   -- Only the author of a chat message can turn it into a post.
+  -- A review must name the exact product (option) it is about.
+  if p_kind = 'review' and p_sku is null then raise exception 'chat:item'; end if;
+  if p_kind <> 'review' and coalesce(p_review, '{}') <> '{}' then raise exception 'chat:review'; end if;
+  if exists (select 1 from jsonb_array_elements_text(coalesce(p_review->'photos', '[]')) ph where ph !~ '^v1/[0-9a-f-]{36}\.(jpg|webp)$') then
+    raise exception 'chat:photo';
+  end if;
+  if public.community_guard_text(coalesce(p_review->>'goal', '') || ' ' || coalesce(p_review->>'bought_where', '')) then null; end if;
   if p_from_message is not null and not exists (select 1 from public.chat_messages where id = p_from_message and author_tag = v_tag) then
     raise exception 'chat:message';
   end if;
   insert into public.chat_members (room_id, author_tag) values (p_room, v_tag) on conflict do nothing;
-  insert into public.community_posts (room_id, author_tag, nickname, kind, title, body, item, reasons, from_message_id)
+  insert into public.community_posts (room_id, author_tag, nickname, kind, title, body, item, reasons, from_message_id,
+      used_for, skin_type, skin_tone, undertone, climate, goal, photos, bought_where, bought_price_minor, bought_currency, ship_country, ship_days, sponsored)
     values (p_room, v_tag, public.chat_nickname(v_tag), p_kind, v_title, v_body, public.community_item(p_retailer, p_market, p_sku),
-            coalesce(p_reasons, '{}'), p_from_message)
+            coalesce(p_reasons, '{}'), p_from_message,
+            p_review->>'used_for', p_review->>'skin_type', p_review->>'skin_tone', p_review->>'undertone', p_review->>'climate', nullif(btrim(p_review->>'goal'), ''),
+            coalesce(array(select jsonb_array_elements_text(p_review->'photos')), '{}'),
+            nullif(btrim(p_review->>'bought_where'), ''), (p_review->>'bought_price_minor')::int, upper(p_review->>'bought_currency'),
+            upper(p_review->>'ship_country'), (p_review->>'ship_days')::smallint, coalesce((p_review->>'sponsored')::boolean, false))
     returning * into p;
   return to_jsonb(p) - 'reports' - 'hidden' - 'from_message_id';
 end;
@@ -222,11 +267,11 @@ begin
 end;
 $$;
 
-revoke all on function public.community_guard(text, text), public.community_item(text, text, text),
-  public.create_post(text, text, text, text, text, text, text, text, text[], bigint),
+revoke all on function public.community_guard(text, text), public.community_guard_text(text), public.community_item(text, text, text),
+  public.create_post(text, text, text, text, text, text, text, text, text[], bigint, jsonb),
   public.add_comment(text, bigint, text, text, text, text), public.like_community(text, text, bigint),
   public.report_community(text, text, bigint, text) from public;
-grant execute on function public.create_post(text, text, text, text, text, text, text, text, text[], bigint),
+grant execute on function public.create_post(text, text, text, text, text, text, text, text, text[], bigint, jsonb),
   public.add_comment(text, bigint, text, text, text, text), public.like_community(text, text, bigint),
   public.report_community(text, text, bigint, text) to anon, authenticated;
 
@@ -245,7 +290,23 @@ from public.community_reports r group by r.target, r.target_id order by max(r.cr
 
 create view analytics.product_mentions_30d as
 select m.family_key, count(*) as mentions, count(*) filter (where m.source = 'chat') as in_chat,
-  count(*) filter (where m.source <> 'chat') as in_posts, min(m.created_at) as first_seen, max(m.created_at) as last_seen
+  count(*) filter (where m.source in ('post', 'comment')) as in_posts,
+  count(*) filter (where m.source = 'review') as reviews, min(m.created_at) as first_seen, max(m.created_at) as last_seen
 from public.product_mentions m
 where m.created_at > now() - interval '30 days' and m.family_key is not null
 group by m.family_key order by mentions desc;
+
+-- Review photos: public-read bucket, anonymous upload of small JPEG/WebP files under v1/<uuid>.<ext> only.
+-- Clients re-encode photos before upload (drops EXIF / location). No update or delete for anon; the
+-- operator removes reported photos.
+do $$
+begin
+  if to_regclass('storage.buckets') is not null then
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+      values ('review-photos', 'review-photos', true, 1048576, array['image/jpeg', 'image/webp'])
+      on conflict (id) do nothing;
+    execute $p$create policy "review photo upload" on storage.objects for insert to anon, authenticated
+      with check (bucket_id = 'review-photos' and name ~ '^v1/[0-9a-f-]{36}\.(jpg|webp)$')$p$;
+  end if;
+end;
+$$;

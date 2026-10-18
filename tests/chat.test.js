@@ -56,7 +56,30 @@ test('posting sends the item reference only; the server fills in name and price'
   await assert.rejects(postMessage('s', 'deals', 'x.com', null, null, failing), /chat:link/);
 });
 
-test('chat events are allowed by the database whitelist', () => {
-  const sql = readFileSync(new URL('../supabase/migrations/20261018090000_chat.sql', import.meta.url), 'utf8');
+test('web events are allowed by the latest database whitelist', () => {
+  const sql = readFileSync(new URL('../supabase/migrations/20261019010000_community.sql', import.meta.url), 'utf8');
   for (const name of EVENT_NAMES) assert.ok(sql.includes(`'${name}'`), name);
+});
+
+test('community urls: topic posts by activity, product talk by family key', async () => {
+  const {postsUrl, mentionsUrl, ago, createPost} = await import('../dist/community-api.js');
+  const u = new URL(postsUrl('sunscreen'));
+  assert.equal(u.searchParams.get('room_id'), 'eq.sunscreen');
+  assert.equal(u.searchParams.get('order'), 'last_activity_at.desc');
+  assert.equal(u.searchParams.get('select').includes('hidden'), false);
+  assert.equal(new URL(postsUrl()).searchParams.get('order'), 'created_at.desc');
+  assert.equal(new URL(mentionsUrl('anua|oil')).searchParams.get('family_key'), 'eq.anua|oil');
+  assert.equal(ago('2026-10-19T00:00:00Z', Date.parse('2026-10-19T02:30:00Z')), '2h');
+  let sent;
+  await createPost('s', 'sunscreen', {kind: 'question', title: 'Hi', item: {retailer: 'R', market: 'US', sku: '9', name: 'forged'}, reasons: ['texture'], fromMessage: 5},
+    async (url, o) => { sent = JSON.parse(o.body); return {ok: true, status: 200, json: async () => ({id: 1})}; });
+  assert.deepEqual(sent, {p_secret: 's', p_room: 'sunscreen', p_kind: 'question', p_title: 'Hi', p_body: '', p_retailer: 'R', p_market: 'US', p_sku: '9', p_reasons: ['texture'], p_from_message: 5, p_review: {}});
+});
+
+test('review payload keeps only valid optional facts', async () => {
+  const {reviewPayload, photoUrl} = await import('../dist/community-api.js');
+  assert.deepEqual(reviewPayload({usedFor: 'weeks', skinType: 'dry', goal: ' hydration ', photos: ['v1/a.jpg'], where: 'Stylevana', price: '16.5', shipCountry: 'us', shipDays: '9', sponsored: true}),
+    {used_for: 'weeks', skin_type: 'dry', goal: 'hydration', photos: ['v1/a.jpg'], bought_where: 'Stylevana', bought_price_minor: 1650, bought_currency: 'USD', ship_country: 'US', ship_days: 9, sponsored: true});
+  assert.deepEqual(reviewPayload({usedFor: 'forever', skinType: 'alien', price: 'abc', shipCountry: 'USA', shipDays: '-1'}), {});
+  assert.match(photoUrl('v1/a.jpg'), /\/storage\/v1\/object\/public\/review-photos\/v1\/a\.jpg$/);
 });
