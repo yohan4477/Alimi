@@ -61,8 +61,8 @@
     "en": "Save or unsave"
   },
   "section.watching": {
-    "ko": "가격을 지켜보는 상품",
-    "en": "Watching prices"
+    "ko": "둘러볼 K뷰티",
+    "en": "Explore K-beauty"
   },
   "section.saved": {
     "ko": "내 관심 상품",
@@ -405,8 +405,8 @@
     "en": "Saved"
   },
   "html.title": {
-    "ko": "SeoulBeauty · 뷰티 가격 알림",
-    "en": "SeoulBeauty · K-beauty price alerts"
+    "ko": "SeoulBeauty · K뷰티 발견과 이야기",
+    "en": "SeoulBeauty · Discover and discuss K-beauty"
   },
   "search.label": {
     "ko": "상품 검색",
@@ -425,20 +425,20 @@
     "en": "THE DAILY BEAUTY EDIT"
   },
   "hero.line1": {
-    "ko": "매일 쓰는 뷰티,",
-    "en": "Your everyday K-beauty,"
+    "ko": "궁금했던 K뷰티,",
+    "en": "Curious about K-beauty?"
   },
   "hero.line2": {
-    "ko": "가격은 가볍게.",
-    "en": "at a lighter price."
+    "ko": "함께 이야기해요.",
+    "en": "Find your next favorite together."
   },
   "hero.sub": {
-    "ko": "눈여겨본 제품의 가격 흐름을 확인하세요",
-    "en": "See how prices move on the products you love"
+    "ko": "제품을 발견하고, 경험을 나누고, 구매처까지 확인하세요.",
+    "en": "Discover products, explore experiences and find where to buy."
   },
   "hero.subApp": {
-    "ko": "눈여겨본 K-뷰티, 지금은 어떤 가격일까요?",
-    "en": "What's the price on the K-beauty you've been eyeing?"
+    "ko": "제품과 경험을 살펴보고 나에게 맞는 선택을 찾아요.",
+    "en": "Explore products and experiences to make your own choice."
   },
   "hero.cta": {
     "ko": "제품 둘러보기 ↗",
@@ -705,8 +705,8 @@
     "en": "Couldn't load chat."
   },
   "brands.title": {
-    "ko": "인기 브랜드",
-    "en": "Popular brands"
+    "ko": "브랜드 둘러보기",
+    "en": "Explore brands"
   },
   "brands.products": {
     "ko": "{brand} 상품",
@@ -721,20 +721,20 @@
     "en": "Saved"
   },
   "saved.hint": {
-    "ko": "가격을 지켜볼 상품을 추가해 보세요",
-    "en": "Add products to watch their prices"
+    "ko": "마음에 드는 제품을 모아 보세요",
+    "en": "Keep the products you’re considering"
   },
   "saved.hintMore": {
-    "ko": "{n}개 더 추가하면 비교가 쉬워요",
-    "en": "Add {n} more to compare easily"
+    "ko": "다른 관심 제품도 모아 보세요",
+    "en": "Save other products you’re considering"
   },
   "saved.add": {
     "ko": "추가",
     "en": "Add"
   },
   "saved.count": {
-    "ko": "{n}개 지켜보는 중",
-    "en": "Watching {n}"
+    "ko": "관심 제품 {n}개",
+    "en": "{n} saved products"
   },
   "search.title": {
     "ko": "검색",
@@ -1239,5 +1239,117 @@
   "product.similarNote": {
     "ko": "비슷한 조건의 사람이 써본 경험이에요. 같은 결과를 보장하지는 않아요.",
     "en": "Experiences from people with similar conditions. Your results may differ."
+  },
+  "about.title": {
+    "ko": "어떤 제품인가요?",
+    "en": "About this product"
+  },
+  "about.category": {
+    "ko": "제품 종류",
+    "en": "Product type"
+  },
+  "about.options": {
+    "ko": "용량·색상·옵션",
+    "en": "Size, shade & options"
+  },
+  "about.general": {
+    "ko": "제품 분류에 대한 안내예요. 정확한 성분·사용법은 판매처 정보를 확인하세요.",
+    "en": "This is a guide to the product category. Check the retailer for exact ingredients and directions."
+  },
+  "about.official": {
+    "ko": "제휴 제공 상품 설명",
+    "en": "Affiliate-provided product description"
+  },
+  "about.source": {
+    "ko": "상품 정보 출처에서 확인 ↗",
+    "en": "View product information at source ↗"
+  },
+  "about.unverified": {
+    "ko": "피부 적합성·발색은 제품과 사용 조건에 따라 달라요. 관련 후기에서 경험을 확인해 보세요.",
+    "en": "Suitability and appearance vary by product and use. Explore relevant reviews for personal experiences."
+  },
+  "community.loadError": {
+    "ko": "글을 불러오지 못했어요. 다시 시도해 주세요.",
+    "en": "Could not load posts. Please try again."
+  },
+  "community.retry": {
+    "ko": "다시 시도",
+    "en": "Try again"
+  },
+  "community.agree": {
+    "ko": "이용 규칙에 동의합니다",
+    "en": "I agree to the community rules"
+  },
+  "community.delete": {
+    "ko": "내 글 삭제",
+    "en": "Delete my post"
+  },
+  "community.photosError": {
+    "ko": "사진을 준비하지 못했어요. 작은 사진으로 다시 시도해 주세요.",
+    "en": "Could not prepare the photo. Please try a smaller image."
+  },
+  "community.titleNeeded": {
+    "ko": "제목을 2~120자로 작성해 주세요.",
+    "en": "Enter a title between 2 and 120 characters."
+  },
+  "community.purchaseDate": {
+    "ko": "구매 시점 (선택)",
+    "en": "Purchase date (optional)"
+  },
+  "community.savedPosts": {
+    "ko": "저장한 글",
+    "en": "Saved posts"
+  },
+  "community.sourceCount": {
+    "ko": "관련 채팅 언급 {n}건",
+    "en": "{n} related chat mentions"
+  },
+  "about.type.선케어": {
+    "ko": "선크림·선스틱 등 자외선 차단 제품을 모았어요. 제품별 SPF·PA, 제형과 사용법을 확인해 보세요.",
+    "en": "Explore sunscreens and sun sticks. Check each product’s SPF, UVA rating, texture and directions."
+  },
+  "about.type.클렌징": {
+    "ko": "클렌징 오일·밤·폼 등 세안 제품이에요. 제형과 사용 단계가 다를 수 있어요.",
+    "en": "Cleansing oils, balms and foams come in different textures and fit different steps in a routine."
+  },
+  "about.type.토너·패드": {
+    "ko": "토너와 스킨케어 패드 제품이에요. 패드 수량, 제형과 제품별 사용법을 확인해 보세요.",
+    "en": "Toners and skincare pads. Check the texture, pad count and product-specific directions."
+  },
+  "about.type.에센스·세럼": {
+    "ko": "에센스·세럼·앰플 등 스킨케어 제품이에요. 성분과 사용 순서는 제품별로 확인해 보세요.",
+    "en": "Essences, serums and ampoules. Ingredients and application steps vary by product."
+  },
+  "about.type.크림·로션": {
+    "ko": "크림·로션 등 보습 단계에 사용하는 제품이에요. 제형과 사용감에 대한 후기도 함께 살펴보세요.",
+    "en": "Creams and lotions for the moisturizing step. Explore texture information and personal experiences."
+  },
+  "about.type.마스크팩": {
+    "ko": "시트 마스크·워시오프 팩 등 마스크 제품이에요. 구성 수량과 권장 사용 시간을 확인해 보세요.",
+    "en": "Sheet masks and other mask formats. Check the pack count and recommended application time."
+  },
+  "about.type.립": {
+    "ko": "틴트·립스틱·립밤 등 입술에 사용하는 제품이에요. 정확한 색상·마무리와 발색 후기를 확인해 보세요.",
+    "en": "Lip tints, lipsticks and balms. Check the exact shade, finish and swatch experiences."
+  },
+  "about.type.베이스메이크업": {
+    "ko": "쿠션·파운데이션·컨실러 등 베이스 제품이에요. 호수·언더톤·리필 포함 여부를 확인해 보세요.",
+    "en": "Cushions, foundations and concealers. Check the shade, undertone and whether a refill is included."
+  },
+  "about.type.아이메이크업": {
+    "ko": "섀도·마스카라·아이라이너 등 눈가 메이크업 제품이에요. 색상과 제품별 사용법을 확인해 보세요.",
+    "en": "Eye shadows, mascaras and liners. Check the shade and product-specific application directions."
+  },
+  "about.type.헤어·바디": {
+    "ko": "헤어·바디용 제품이에요. 사용 부위·향·용량과 씻어내는 제품인지 확인해 보세요.",
+    "en": "Hair and body products. Check the intended area, scent, size and whether the product is rinse-off."
+  },
+  "about.type.세트": {
+    "ko": "여러 제품 또는 여러 개가 포함된 구성이에요. 본품·미니·증정품과 각 용량을 확인해 보세요.",
+    "en": "A multi-item or multi-unit set. Check full sizes, minis, gifts and the size of every included item."
+  },
+  "about.type.기타": {
+    "ko": "상품명과 옵션을 확인하고, 정확한 용도·구성·사용법은 판매처 설명을 참고해 주세요.",
+    "en": "Check the name and options, then consult the retailer for the exact purpose, contents and directions."
   }
 }

@@ -25,6 +25,7 @@ struct SavedView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     Text(L("saved.title")).font(.largeTitle.bold())
+                    SavedCommunityPosts()
                     headline
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(items) { SavedCard(product: $0) }

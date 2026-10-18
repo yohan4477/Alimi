@@ -133,10 +133,11 @@ final class AlimiUITests: XCTestCase {
         attach("settings")
     }
     func testChatJoinSendAndBlock() {
-        app.tabBars.buttons["채팅"].tap()
+        app.tabBars.buttons["커뮤니티"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
+        app.segmentedControls.buttons["실시간 채팅"].tap()
         let join = app.buttons["chat-join"]
         XCTAssertTrue(join.waitForExistence(timeout: 5), "rules are shown before the first join")
         attach("chat-rules")
@@ -164,7 +165,7 @@ final class AlimiUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Saved"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.tabBars.buttons["Home"].exists)
-        XCTAssertTrue(app.staticTexts["Watching prices"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Explore K-beauty"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["가격을 지켜보는 상품"].firstMatch.exists)
         attach("english-home")
     }

@@ -1,4 +1,4 @@
-﻿import SwiftUI
+import SwiftUI
 import CryptoKit
 
 // Topic chat (#68), same backend as the web app. Anonymous: a random per-device secret proves authorship to
@@ -85,7 +85,7 @@ enum ChatAPI {
     }
 
     struct Failure: Error { let message: String }
-    private static func send(_ request: URLRequest) async throws -> Data {
+    static func send(_ request: URLRequest) async throws -> Data {
         var request = request
         request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -97,7 +97,7 @@ enum ChatAPI {
         }
         return data
     }
-    private static func rpc(_ name: String, _ body: [String: Any?]) async throws -> Data {
+    static func rpc(_ name: String, _ body: [String: Any?]) async throws -> Data {
         var request = URLRequest(url: URL(string: "/rest/v1/rpc/" + name, relativeTo: LiveAPI.baseURL)!)
         request.httpMethod = "POST"
         request.httpBody = try JSONSerialization.data(withJSONObject: body.mapValues { $0 ?? NSNull() })
@@ -390,6 +390,8 @@ struct ChatRoomView: View {
     @State private var blocked = ChatAPI.blocked
     @State private var picking = false
     @State private var openFamily: ProductFamily?
+    @State private var savingMessage: ChatMessage?
+    @State private var purchaseRef: String?
     @State private var reporting: ChatMessage?
     @State private var notice: String?
     @State private var sending = false
@@ -402,8 +404,8 @@ struct ChatRoomView: View {
                     if shown.isEmpty { Text(L("chat.empty")).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.top, 40) }
                     ForEach(shown) { m in
                         MessageRow(message: m, parent: m.replyTo.flatMap { id in shown.first { $0.id == id } }, mine: m.authorTag == ChatAPI.myTag,
-                                   open: { openFamily = $0 }, like: { like(m) }, reply: { replyTo = m },
-                                   report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") })
+                                   open: { purchaseRef = "chat-\(m.id)"; openFamily = $0 }, like: { like(m) }, reply: { replyTo = m },
+                                   report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") }, savePost: { savingMessage = m })
                             .id(m.id)
                     }
                 }.padding(16)
@@ -413,7 +415,8 @@ struct ChatRoomView: View {
         .safeAreaInset(edge: .bottom) { composer }
         .navigationTitle(room.title).navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
-        .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
+        .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef).environmentObject(store) }
+        .sheet(item: $savingMessage) { CommunityComposer(room: room, fromMessage: $0).environmentObject(store) }
         .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reporting != nil }, set: { if !$0 { reporting = nil } }), titleVisibility: .visible) {
             ForEach(["spam", "abuse", "sexual", "other"], id: \.self) { reason in
                 Button(L("chat.reason." + reason)) { report(reason) }
@@ -494,6 +497,7 @@ struct MessageRow: View {
     let reply: () -> Void
     let report: () -> Void
     let block: () -> Void
+    var savePost: (() -> Void)? = nil
     var body: some View {
         VStack(alignment: mine ? .trailing : .leading, spacing: 4) {
             if !mine { Text(message.nickname).font(.caption).foregroundStyle(.orange) }
@@ -527,6 +531,7 @@ struct MessageRow: View {
     @ViewBuilder private var menu: some View {
         Button(L("chat.reply"), systemImage: "arrowshape.turn.up.left", action: reply)
         Button(L("chat.like"), systemImage: "heart", action: like)
+        if mine, let savePost { Button(L("community.saveAsPost"), systemImage: "square.and.pencil", action: savePost) }
         if !mine {
             Button(L("chat.report"), systemImage: "exclamationmark.bubble", role: .destructive, action: report)
             Button(L("chat.block"), systemImage: "hand.raised", role: .destructive, action: block)
