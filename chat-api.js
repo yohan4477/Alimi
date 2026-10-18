@@ -66,10 +66,6 @@ export async function fetchMyRooms(tag, fetchImpl = fetch) {
   }));
 }
 // Rooms tab: busiest topic rooms first (messages in 24h, then members); Topics tab: latest activity first.
-export const hotRooms = (rooms, n = 6) => rooms.filter(r => r.kind !== 'brand')
-  .sort((a, b) => b.messages_24h - a.messages_24h || b.members - a.members || a.sort - b.sort).slice(0, n);
-export const topicRooms = (rooms, tag = 'all') => rooms.filter(r => r.kind !== 'brand' && (tag === 'all' || r.tag === tag))
-  .sort((a, b) => (b.last_message_at ?? '').localeCompare(a.last_message_at ?? '') || a.sort - b.sort);
 export async function fetchMessages(room, afterId = 0, fetchImpl = fetch) {
   const rows = await get(messagesUrl(room, afterId), fetchImpl);
   return afterId ? rows : rows.reverse();
