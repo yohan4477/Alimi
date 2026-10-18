@@ -1195,5 +1195,17 @@
   "catalog.savedSnapshot": {
     "ko": "저장 당시 상품 정보예요. 최신 가격·재고는 판매처에서 확인하세요.",
     "en": "Saved product snapshot. Check the retailer for the latest price and stock."
+  },
+  "family.brandStory": {
+    "ko": "브랜드 이야기",
+    "en": "Brand story"
+  },
+  "family.addToChat": {
+    "ko": "대화에 상품 첨부",
+    "en": "Add to chat"
+  },
+  "chat.sharePickRoom": {
+    "ko": "“{product}”을(를) 첨부할 대화방을 선택하세요.",
+    "en": "Choose a room to attach “{product}” to."
   }
 }
