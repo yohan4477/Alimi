@@ -63,10 +63,12 @@ final class AlimiUITests: XCTestCase {
         let screen = app.windows.firstMatch.frame
         let tabs = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'category-'"))
         var n = 0
-        while !screen.contains(tab.frame) && n < 8 {
+        while !screen.contains(tab.frame) && n < 12 {
             // Swipe on a tab that is fully on screen; swiping the strip itself scrolls it horizontally.
             guard let visible = tabs.allElementsBoundByIndex.first(where: { screen.contains($0.frame) }) else { break }
-            if tab.frame.midX > screen.midX { visible.swipeLeft() } else { visible.swipeRight() }
+            // Slow, short drag: swipeLeft/Right fling past the target and can oscillate.
+            let from = visible.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            from.press(forDuration: 0.2, thenDragTo: from.withOffset(CGVector(dx: tab.frame.midX > screen.midX ? -140 : 140, dy: 0)))
             n += 1
         }
         XCTAssertTrue(screen.contains(tab.frame), "tab \(name) never scrolled into view")

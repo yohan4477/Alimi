@@ -230,6 +230,7 @@ final class AlimiStore: ObservableObject {
         if !fresh.isEmpty { products = fresh; source = .live }
     }
     func searchCatalog(_ q: String) async -> [CatalogItem]? {
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
         guard let url = CatalogItem.searchURL(q) else { return [] }
         var request = URLRequest(url: url, timeoutInterval: 15)
         request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
@@ -268,6 +269,7 @@ final class AlimiStore: ObservableObject {
     }
     var categories: [String] { ["전체"] + Product.categories }
     func catalogPage(category: String, offset: Int) async -> [CatalogItem]? {
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
         var request = URLRequest(url: CatalogItem.pageURL(category: category, offset: offset), timeoutInterval: 15)
         request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
         guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
