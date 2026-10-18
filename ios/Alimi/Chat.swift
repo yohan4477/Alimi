@@ -85,7 +85,7 @@ enum ChatAPI {
     }
 
     struct Failure: Error { let message: String }
-    private static func send(_ request: URLRequest) async throws -> Data {
+    static func send(_ request: URLRequest) async throws -> Data {
         var request = request
         request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -97,7 +97,7 @@ enum ChatAPI {
         }
         return data
     }
-    private static func rpc(_ name: String, _ body: [String: Any?]) async throws -> Data {
+    static func rpc(_ name: String, _ body: [String: Any?]) async throws -> Data {
         var request = URLRequest(url: URL(string: "/rest/v1/rpc/" + name, relativeTo: LiveAPI.baseURL)!)
         request.httpMethod = "POST"
         request.httpBody = try JSONSerialization.data(withJSONObject: body.mapValues { $0 ?? NSNull() })
@@ -382,6 +382,8 @@ struct JoinSheet: View {
 struct ChatRoomView: View {
     @EnvironmentObject var store: AlimiStore
     let room: ChatRoom
+    var embedded = false
+    @State private var savingPost: ChatMessage?
     @State private var messages: [ChatMessage] = []
     @State private var nickname = ""
     @State private var text = ""
@@ -403,7 +405,8 @@ struct ChatRoomView: View {
                     ForEach(shown) { m in
                         MessageRow(message: m, parent: m.replyTo.flatMap { id in shown.first { $0.id == id } }, mine: m.authorTag == ChatAPI.myTag,
                                    open: { openFamily = $0 }, like: { like(m) }, reply: { replyTo = m },
-                                   report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") })
+                                   report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") },
+                                   save: { savingPost = m })
                             .id(m.id)
                     }
                 }.padding(16)
@@ -411,7 +414,10 @@ struct ChatRoomView: View {
             .onChange(of: messages.count) { if let last = shown.last { withAnimation { proxy.scrollTo(last.id, anchor: .bottom) } } }
         }
         .safeAreaInset(edge: .bottom) { composer }
-        .navigationTitle(room.title).navigationBarTitleDisplayMode(.inline)
+        .modifier(TitleIf(show: !embedded, title: room.title))
+        .sheet(item: $savingPost) { m in
+            WritePostSheet(room: room, prefill: PostPrefill(message: m)) { _ in notice = L("community.savedAsPost") }.environmentObject(store)
+        }
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
         .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
         .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reporting != nil }, set: { if !$0 { reporting = nil } }), titleVisibility: .visible) {
@@ -494,6 +500,7 @@ struct MessageRow: View {
     let reply: () -> Void
     let report: () -> Void
     let block: () -> Void
+    var save: (() -> Void)? = nil
     var body: some View {
         VStack(alignment: mine ? .trailing : .leading, spacing: 4) {
             if !mine { Text(message.nickname).font(.caption).foregroundStyle(.orange) }
@@ -527,6 +534,7 @@ struct MessageRow: View {
     @ViewBuilder private var menu: some View {
         Button(L("chat.reply"), systemImage: "arrowshape.turn.up.left", action: reply)
         Button(L("chat.like"), systemImage: "heart", action: like)
+        if mine, let save { Button(L("community.saveAsPost"), systemImage: "square.and.pencil", action: save) }
         if !mine {
             Button(L("chat.report"), systemImage: "exclamationmark.bubble", role: .destructive, action: report)
             Button(L("chat.block"), systemImage: "hand.raised", role: .destructive, action: block)

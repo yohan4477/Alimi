@@ -121,7 +121,7 @@ final class AlimiUITests: XCTestCase {
         attach("settings")
     }
     func testChatJoinSendAndBlock() {
-        app.tabBars.buttons["채팅"].tap()
+        app.tabBars.buttons["커뮤니티"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
@@ -129,6 +129,9 @@ final class AlimiUITests: XCTestCase {
         XCTAssertTrue(join.waitForExistence(timeout: 5), "rules are shown before the first join")
         attach("chat-rules")
         join.tap()
+        let live = app.buttons["실시간 채팅"]
+        XCTAssertTrue(live.waitForExistence(timeout: 5))
+        live.tap()
         let other = app.otherElements["chat-message-1"].firstMatch
         XCTAssertTrue(app.staticTexts["추천 좀 해주세요"].waitForExistence(timeout: 10))
         let field = app.textFields["chat-text"].firstMatch.exists ? app.textFields["chat-text"].firstMatch : app.textViews["chat-text"].firstMatch
@@ -144,6 +147,25 @@ final class AlimiUITests: XCTestCase {
         block.tap()
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["추천 좀 해주세요"])
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "blocked author's messages are hidden")
+    }
+    func testCommunityPostAndComment() {
+        app.tabBars.buttons["커뮤니티"].tap()
+        let room = app.buttons["chat-room-acne"].firstMatch
+        XCTAssertTrue(room.waitForExistence(timeout: 10))
+        room.tap()
+        let join = app.buttons["chat-join"]
+        if join.waitForExistence(timeout: 5) { join.tap() }
+        let post = app.buttons["post-1"].firstMatch
+        XCTAssertTrue(post.waitForExistence(timeout: 10), "fixture post is listed")
+        post.tap()
+        XCTAssertTrue(app.staticTexts["수분 선젤이 가볍더라고요"].waitForExistence(timeout: 10))
+        let field = app.textFields["comment-text"].firstMatch.exists ? app.textFields["comment-text"].firstMatch : app.textViews["comment-text"].firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("저도 궁금해요")
+        app.buttons["comment-send"].tap()
+        XCTAssertTrue(app.staticTexts["저도 궁금해요"].waitForExistence(timeout: 5))
+        attach("community-post")
     }
     func testEnglishForUSUsers() {
         app.terminate()

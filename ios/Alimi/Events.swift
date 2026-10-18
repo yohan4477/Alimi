@@ -5,6 +5,8 @@ enum AppEvent: String, CaseIterable {
     case homeView = "home_view", search, productView = "product_view", wishlistAdd = "wishlist_add"
     case wishlistRemove = "wishlist_remove", targetPriceSet = "target_price_set", merchantClick = "merchant_click"
     case notificationOptIn = "notification_opt_in", chatOpen = "chat_open", chatJoin = "chat_join", chatSend = "chat_send"
+    case communityOpen = "community_open", postView = "post_view", postCreate = "post_create", commentCreate = "comment_create"
+    case productCardClick = "product_card_click", postSave = "post_save"
 }
 
 struct EventLogger {

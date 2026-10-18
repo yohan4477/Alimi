@@ -11,7 +11,7 @@ struct RootView: View {
             BrowseView().tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
             SavedView(tab: $tab).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
-            ChatTab().tabItem { Label(L("nav.chat"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
+            CommunityHome().tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
             AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell") }.tag(MainTab.alerts)
         }.id(lang).task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
@@ -321,6 +321,7 @@ struct FamilySheet: View {
                     Text(family.baseName).font(.title3.bold())
                     Text(L("family.pick")).font(.caption).foregroundStyle(.secondary)
                     if let variants { VariantList(variants: variants) } else { ProgressView().frame(maxWidth: .infinity) }
+                    ProductTalk(familyKey: family.familyKey)
                 }.padding(20)
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
@@ -435,6 +436,7 @@ struct ProductDetail: View {
                     }.buttonStyle(.bordered)
                     Text(L("detail.disclaimer")).font(.caption2).foregroundStyle(.secondary)
                 }
+                ProductTalk(familyKey: product.familyKey)
                 VStack(alignment: .leading, spacing: 10) {
                     Text(store.status(product)).font(.headline).foregroundStyle(Color.alimi)
                     if let target = store.saved.targets[product.id] {
