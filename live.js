@@ -3,12 +3,14 @@
 export const SUPABASE_URL = 'https://mqsnshnlfwsgabrsmqsz.supabase.co';
 export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CJjQ-l5ev-D4OH0Na0gFoQ_szunygff';
 export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,currency,url,affiliate_url,image_url,' +
-  'products(slug,brand,name,size),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),' +
+  'products(slug,brand,brand_ko,name,size,category),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),' +
   'price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id';
 
 const DAY = 86400000;
 const minor = n => n == null ? null : n / 100;
-export const categoryOf = name => /cushion|tint|gloss|pudding/i.test(name) ? '메이크업' : /oil|cleans/i.test(name) ? '클렌징' : '스킨케어';
+// Same order as scripts/catalog-taxonomy.mjs. Category itself is computed by the collector and stored in the DB.
+export const CATEGORIES = ['선케어', '클렌징', '토너·패드', '에센스·세럼', '크림·로션', '마스크팩', '립', '베이스메이크업', '아이메이크업', '헤어·바디', '세트', '기타'];
+export const brandLabel = p => p.brandKo || p.brand;
 
 // Converts API rows (or the bundled snapshot, which stores the same rows) into view models.
 export function toProducts(rows) {
@@ -16,9 +18,10 @@ export function toProducts(rows) {
     id: r.products.slug,
     sku: r.external_id,
     brand: r.products.brand,
+    brandKo: r.products.brand_ko ?? null,
     name: r.products.name,
     size: r.products.size ?? '',
-    category: categoryOf(r.products.name),
+    category: r.products.category ?? '기타',
     retailer: r.retailer,
     currency: r.currency,
     url: r.url,
@@ -49,14 +52,16 @@ export async function loadProducts(fetchImpl = fetch, snapshotUrl = './live-snap
 
 // Catalog layer search (whole official feed, current price only). Query is reduced to safe characters
 // before it is placed in the PostgREST filter.
+const CATALOG_FIELDS = 'retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url';
+const toCatalog = c => ({...c, brandKo: c.brand_ko ?? null, price: c.price_minor / 100});
 export const catalogQuery = q => q.replace(/[^\p{L}\p{N} &'-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
 export function catalogSearchUrl(q, limit = 30) {
   const term = catalogQuery(q);
   if (term.length < 2) return null;
   const like = `"*${term.replace(/"/g, '')}*"`;
   const params = new URLSearchParams({
-    select: 'retailer,market,sku,brand,name,price_minor,currency,availability,image_url',
-    active: 'eq.true', or: `(brand.ilike.${like},name.ilike.${like})`, order: 'brand,name', limit: String(limit)
+    select: CATALOG_FIELDS,
+    active: 'eq.true', or: `(brand.ilike.${like},brand_ko.ilike.${like},name.ilike.${like})`, order: 'brand,name', limit: String(limit)
   });
   return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
 }
@@ -65,7 +70,18 @@ export async function searchCatalog(q, fetchImpl = fetch) {
   if (!url) return [];
   const res = await fetchImpl(url, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
   if (!res.ok) throw Error('HTTP ' + res.status);
-  return (await res.json()).map(c => ({...c, price: c.price_minor / 100}));
+  return (await res.json()).map(toCatalog);
+}
+// One page of the Korean-brand catalog for home browsing, optionally limited to a category.
+export function catalogPageUrl(category, offset, limit = 24) {
+  const params = new URLSearchParams({select: CATALOG_FIELDS, active: 'eq.true', order: 'sku.desc', offset: String(offset), limit: String(limit)});
+  if (category && category !== '전체') params.set('category', 'eq.' + category);
+  return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
+}
+export async function fetchCatalogPage(category, offset, limit = 24, fetchImpl = fetch) {
+  const res = await fetchImpl(catalogPageUrl(category, offset, limit), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
+  if (!res.ok) throw Error('HTTP ' + res.status);
+  return (await res.json()).map(toCatalog);
 }
 // Moves a catalog item into the tracking layer; returns the tracked product id (slug).
 export async function requestTracking(item, fetchImpl = fetch) {
@@ -78,7 +94,7 @@ export async function requestTracking(item, fetchImpl = fetch) {
 
 export const search = (products, q, category = '전체') => {
   const needle = q.trim().toLowerCase();
-  return products.filter(p => (category === '전체' || p.category === category) && `${p.brand} ${p.name}`.toLowerCase().includes(needle));
+  return products.filter(p => (category === '전체' || p.category === category) && `${p.brand} ${p.brandKo ?? ''} ${p.name}`.toLowerCase().includes(needle));
 };
 
 // Price in effect on each day = last observation at or before that day. History is change-only,
