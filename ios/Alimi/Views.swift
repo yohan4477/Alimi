@@ -133,7 +133,7 @@ struct BrowseView: View {
                         if searching { catalogSection } else { browseSection }
                     }
                 }.padding(20)
-            }.navigationTitle(favoritesOnly ? L("favorites") : "Alimi")
+            }.navigationTitle(favoritesOnly ? L("favorites") : "SeoulBeauty")
                 .task(id: query) {
                     guard !favoritesOnly, searching else { catalog = []; return }
                     try? await Task.sleep(for: .milliseconds(400))
