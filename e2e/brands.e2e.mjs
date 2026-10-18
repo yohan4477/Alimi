@@ -21,6 +21,7 @@ try {
  });
  await page.route('https://logos.invalid/**',r=>r.abort());
  await page.goto((process.argv[2]??'http://localhost:3000/')+'?lang=en');
+ await page.click('#tabbar [data-screen="search"]');await page.click('.explore-link');
  await page.locator('[data-brands-retry]').waitFor();stripFails=false;await page.click('[data-brands-retry]');
  await page.locator('[data-brand="A"]').waitFor();
  await page.waitForFunction(()=>!document.querySelector('[data-brand="A"] img'));
