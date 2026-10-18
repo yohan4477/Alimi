@@ -1,8 +1,9 @@
 name: Stylevana official feed refresh
 on:
   workflow_dispatch:
+  # Hourly check of the Awin feed list; the feed is only downloaded when Awin imported a new version.
   schedule:
-    - cron: '30 22 * * *'
+    - cron: '5 * * * *'
 permissions:
   contents: write
 concurrency:
@@ -17,7 +18,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check whether Awin imported a new feed
+        id: status
+        env:
+          AWIN_FEED_URL: ${{ secrets.AWIN_STYLEVANA_US_FEED_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FORCE_DOWNLOAD: ${{ github.event_name == 'workflow_dispatch' }}
+        run: node scripts/awin-feed-status.mjs
       - name: Restore previously collected history
+        if: steps.status.outputs.changed == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -28,11 +38,14 @@ jobs:
             git restore --source=FETCH_HEAD -- data/stylevana-us.json dist/stylevana-data.js ios/Alimi/stylevana-us.json
           fi
       - name: Import official US feed
+        if: steps.status.outputs.changed == 'true'
         env:
           AWIN_FEED_URL: ${{ secrets.AWIN_STYLEVANA_US_FEED_URL }}
         run: node scripts/stylevana-feed.mjs
       - run: npm test
+        if: steps.status.outputs.changed == 'true'
       - name: Preserve collected snapshots
+        if: steps.status.outputs.changed == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -46,11 +59,13 @@ jobs:
           echo "Official feed collected, validated and saved to [data/stylevana-us](https://github.com/yohan4477/Alimi/tree/data/stylevana-us)." >> "$GITHUB_STEP_SUMMARY"
           echo "Review [the snapshot comparison](https://github.com/yohan4477/Alimi/compare/main...data/stylevana-us) before updating the bundled app data. No automatic deployment." >> "$GITHUB_STEP_SUMMARY"
       - name: Record observation in Supabase
+        if: steps.status.outputs.changed == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/supabase-sink.mjs data/stylevana-us.json
       - name: Record ten-product catalog in Supabase
+        if: steps.status.outputs.changed == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
