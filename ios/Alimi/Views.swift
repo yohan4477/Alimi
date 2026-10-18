@@ -1,4 +1,4 @@
-﻿import SwiftUI
+import SwiftUI
 import UIKit
 import Charts
 
@@ -8,10 +8,10 @@ struct RootView: View {
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            BrowseView().tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
+            BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
             SavedView(tab: $tab).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
-            ChatTab().tabItem { Label(L("nav.chat"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
+            CommunityTab().tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
             AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell") }.tag(MainTab.alerts)
         }.id(lang).task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
@@ -93,6 +93,7 @@ struct ProductArt: View {
     }
 }
 struct BrowseView: View {
+    var onCommunity: () -> Void = {}
     @EnvironmentObject var store: AlimiStore
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
@@ -113,6 +114,7 @@ struct BrowseView: View {
                         Text(L("hero.line1")).font(.system(size: 28, weight: .bold))
                         Text(L("hero.line2")).font(.system(size: 28, weight: .bold))
                         Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
+                        Button(L("community.homeCTA"), action: onCommunity).buttonStyle(.borderedProminent)
                     }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
                     if brandsLoading { ProgressView(L("loading")).frame(maxWidth: .infinity) }
                     else if brandsFailed {
@@ -248,7 +250,7 @@ struct TrackedCard: View {
                     Text(product.brandLabel).font(.caption).foregroundStyle(.secondary)
                     Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
                     Text(usd(product.price)).font(.system(size: 23, weight: .bold, design: .rounded))
-                    Text(PriceHistory.summary(product.history, current: product.price)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                    Text(L10n.category(product.category) + (product.size.isEmpty ? "" : " · " + product.size)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                 }.foregroundStyle(.primary)
             }.buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)").accessibilityValue(photoLoaded ? "photo-loaded" : "photo-missing")
             Button { store.toggle(product.id) } label: {
@@ -306,6 +308,7 @@ struct FamilyRow: View {
 struct VariantList: View {
     @EnvironmentObject var store: AlimiStore
     let variants: [VariantChoice]
+    var ref: String? = nil
     @State private var busy: String?
     @Environment(\.openURL) private var openURL
     var body: some View {
@@ -324,9 +327,9 @@ struct VariantList: View {
                 }
                 Spacer()
                 Text(usd(v.item.price)).font(.headline)
-                if let link = v.item.buyLink {
+                if let link = Purchase.buyURL(v.item.affiliateUrl ?? v.item.url, ref: ref) {
                     Button(L("variant.buy")) {
-                        EventLogger.shared.log(.merchantClick, props: ["from": "options", "sku": v.item.sku])
+                        EventLogger.shared.log(.merchantClick, props: ["from": ref ?? "options", "sku": v.item.sku])
                         openURL(link)
                     }.buttonStyle(.borderedProminent).controlSize(.small).accessibilityIdentifier("variant-buy-\(v.item.sku)")
                 }
@@ -346,6 +349,7 @@ struct FamilySheet: View {
     @EnvironmentObject var store: AlimiStore
     @Environment(\.dismiss) private var dismiss
     let family: ProductFamily
+    var ref: String? = nil
     @State private var variants: [VariantChoice]?
     var body: some View {
         NavigationStack {
@@ -355,7 +359,7 @@ struct FamilySheet: View {
                     Text(family.brandLabel).font(.caption).foregroundStyle(.secondary)
                     Text(family.baseName).font(.title3.bold())
                     Text(L("family.buyHint")).font(.caption).foregroundStyle(.secondary)
-                    if let variants { VariantList(variants: variants) } else { ProgressView().frame(maxWidth: .infinity) }
+                    if let variants { VariantList(variants: variants, ref: ref) } else { ProgressView().frame(maxWidth: .infinity) }
                 }.padding(20)
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
@@ -418,8 +422,10 @@ struct ProductDetail: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 header
+                ProductInformationView(category: product.category, retailer: product.retailer, sku: product.sku, source: product.url)
                 OtherSizes(product: product)
                 retailerSection
+                if let key = product.familyKey { ProductDiscussion(familyKey: key) }
                 historySection
                 alertSection
             }.padding(20)

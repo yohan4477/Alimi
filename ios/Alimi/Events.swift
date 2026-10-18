@@ -2,6 +2,7 @@ import Foundation
 
 // P0 funnel events (#49). Anonymous random device ID; never sends search text or personal data.
 enum AppEvent: String, CaseIterable {
+    case communityOpen = "community_open", postView = "post_view", postCreate = "post_create", commentCreate = "comment_create", productCardClick = "product_card_click", postSave = "post_save"
     case homeView = "home_view", search, productView = "product_view", wishlistAdd = "wishlist_add"
     case wishlistRemove = "wishlist_remove", targetPriceSet = "target_price_set", merchantClick = "merchant_click"
     case notificationOptIn = "notification_opt_in", chatOpen = "chat_open", chatJoin = "chat_join", chatSend = "chat_send"
