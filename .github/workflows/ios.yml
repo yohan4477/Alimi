@@ -4,14 +4,17 @@ on:
   pull_request:
     paths:
       - 'ios/**'
+      - 'dist/strings.json'
       - '.github/workflows/ios.yml'
   push:
     paths:
+      - 'ios/**'
+      - 'dist/strings.json'
       - '.github/workflows/ios.yml'
 permissions:
   contents: read
 concurrency:
-  group: alimi-ios-validation
+  group: alimi-ios-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   simulator:
