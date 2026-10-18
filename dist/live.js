@@ -149,11 +149,6 @@ export function catalogPageUrl(category, offset, limit = 24) {
   if (category && category !== '전체') params.set('category', 'eq.' + category);
   return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
 }
-export async function fetchCatalogPage(category, offset, limit = 24, fetchImpl = fetch) {
-  const res = await fetchImpl(catalogPageUrl(category, offset, limit), {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
-  if (!res.ok) throw Error('HTTP ' + res.status);
-  return (await res.json()).map(toCatalog);
-}
 export const search = (products, q, category = '전체') => {
   const needle = q.trim().toLowerCase();
   return products.filter(p => (category === '전체' || p.category === category) && `${p.brand} ${p.brandKo ?? ''} ${p.name}`.toLowerCase().includes(needle));
