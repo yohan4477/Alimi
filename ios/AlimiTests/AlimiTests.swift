@@ -70,6 +70,19 @@ final class AlimiTests: XCTestCase {
         for invalid in ["", "0", "-1", "1.234", "10000.01", "abc"] { XCTAssertNil(PriceRule.valid(invalid)) }
         XCTAssertEqual(PriceRule.valid("12.5"), 12.5)
     }
+    func testEventPayloadIsAnonymousAndWhitelisted() {
+        var logger = EventLogger()
+        logger.defaults = UserDefaults(suiteName: "AlimiTests.\(UUID().uuidString)")!
+        let id = logger.deviceID
+        XCTAssertNotNil(UUID(uuidString: id))
+        XCTAssertEqual(logger.deviceID, id)
+        let body = logger.payload(.productView, productID: "cosrx", props: ["k": "v"])
+        XCTAssertEqual(Set(body.keys), ["device_id", "platform", "app_version", "name", "props", "product_id"])
+        XCTAssertEqual(body["platform"] as? String, "ios")
+        XCTAssertEqual(body["name"] as? String, "product_view")
+        XCTAssertLessThanOrEqual((body["app_version"] as? String)?.count ?? 99, 20)
+        XCTAssertEqual(Set(AppEvent.allCases.map(\.rawValue)), ["home_view", "search", "product_view", "wishlist_add", "wishlist_remove", "target_price_set", "merchant_click", "notification_opt_in"])
+    }
     func testPersistence() {
         let defaults = UserDefaults(suiteName: "AlimiTests.\(UUID().uuidString)")!
         let first = AlimiStore(defaults: defaults, products: [])

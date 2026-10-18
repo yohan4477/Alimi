@@ -83,7 +83,7 @@ struct NotificationOnboarding: View {
                 _ = try await UNUserNotificationCenter.current()
                     .requestAuthorization(options: [.alert, .sound, .badge])
                 await refresh()
-                if action == .enabled { showIntroduction = false }
+                if action == .enabled { EventLogger.shared.log(.notificationOptIn); showIntroduction = false }
             } catch {
                 errorMessage = "알림 권한을 확인하지 못했어요. 다시 시도해 주세요."
             }

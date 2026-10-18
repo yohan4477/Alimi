@@ -8,7 +8,7 @@ struct RootView: View {
             BrowseView().tabItem { Label("홈", systemImage: "house.fill") }
             BrowseView(favoritesOnly: true).tabItem { Label("관심 상품", systemImage: "heart.fill") }
             AlertsView().tabItem { Label("알림", systemImage: "bell.fill") }
-        }.task { await store.refresh() }
+        }.task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }
 private let dayFormat: Date.FormatStyle = .dateTime.month().day().locale(Locale(identifier: "ko_KR"))
@@ -106,6 +106,10 @@ struct BrowseView: View {
             }.navigationTitle(favoritesOnly ? "관심 상품" : "Alimi")
                 .navigationBarTitleDisplayMode(.inline)
                 .searchable(text: $query, prompt: "브랜드 또는 상품명 검색")
+                .onSubmit(of: .search) {
+                    let q = query.trimmingCharacters(in: .whitespaces)
+                    if !q.isEmpty { EventLogger.shared.log(.search, props: ["length": String(q.count), "results": String(results.count)]) }
+                }
                 .refreshable { await store.refresh() }
         }
     }
@@ -115,6 +119,7 @@ struct ProductDetail: View {
     let product: Product
     @State private var showTarget = false
     @State private var days = 30
+    @Environment(\.openURL) private var openURL
     private var series: [PricePoint] { PriceHistory.daily(product.history, days: days) }
     var body: some View {
         ScrollView {
@@ -165,7 +170,10 @@ struct ProductDetail: View {
                         Spacer()
                         Text(usd(product.price)).font(.headline)
                     }
-                    Link("Stylevana에서 보기 ↗", destination: product.buyURL).buttonStyle(.bordered)
+                    Button("Stylevana에서 보기 ↗") {
+                        EventLogger.shared.log(.merchantClick, productID: product.id, props: ["retailer": product.retailer])
+                        openURL(product.buyURL)
+                    }.buttonStyle(.bordered)
                     Text("표시 가격은 결제 가격과 다를 수 있어요. 제휴 링크로 구매하면 Alimi가 수수료를 받을 수 있어요.").font(.caption2).foregroundStyle(.secondary)
                 }
                 VStack(alignment: .leading, spacing: 10) {
@@ -178,6 +186,7 @@ struct ProductDetail: View {
                 }
             }.padding(20)
         }.navigationTitle("상품 상세").navigationBarTitleDisplayMode(.inline)
+            .onAppear { EventLogger.shared.log(.productView, productID: product.id) }
             .safeAreaInset(edge: .bottom) {
                 HStack(spacing: 16) {
                     Button { store.toggle(product.id) } label: {
@@ -212,6 +221,7 @@ struct TargetSheet: View {
                 Button("목표가 저장") {
                     guard let value = PriceRule.valid(text) else { error = true; return }
                     store.saved.targets[product.id] = value
+                    EventLogger.shared.log(.targetPriceSet, productID: product.id)
                     dismiss()
                 }
             }.navigationTitle("목표 가격 설정").navigationBarTitleDisplayMode(.inline)
