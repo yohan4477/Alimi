@@ -99,9 +99,13 @@ final class AlimiUITests: XCTestCase {
         XCTAssertTrue(cosrx.waitForExistence(timeout: 10), "popular-brand badges on home")
         attach("brand-strip")
         reveal(cosrx).tap()
-        XCTAssertTrue(app.staticTexts["코스알엑스 상품"].waitForExistence(timeout: 5))
-        app.buttons["전체 보기"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["전체 상품"].waitForExistence(timeout: 5) || !app.staticTexts["코스알엑스 상품"].exists)
+        XCTAssertTrue(cosrx.isSelected, "tapped badge is marked selected")
+        // The filtered list title sits below the tracked products; scroll until the lazy list creates it.
+        let title = app.staticTexts["코스알엑스 상품"]
+        XCTAssertTrue(reveal(title, swipes: 10).exists, "catalog below is filtered to the brand")
+        attach("brand-filtered")
+        reveal(app.buttons["전체 보기"].firstMatch).tap()
+        XCTAssertTrue(reveal(app.staticTexts["전체 상품"], swipes: 4).waitForExistence(timeout: 5))
     }
     func testChatJoinSendAndBlock() {
         app.tabBars.buttons["채팅"].tap()
