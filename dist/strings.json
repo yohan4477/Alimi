@@ -715,5 +715,177 @@
   "brands.clear": {
     "ko": "전체 보기",
     "en": "Show all"
+  },
+  "saved.title": {
+    "ko": "관심상품",
+    "en": "Saved"
+  },
+  "saved.hint": {
+    "ko": "가격을 지켜볼 상품을 추가해 보세요",
+    "en": "Add products to watch their prices"
+  },
+  "saved.hintMore": {
+    "ko": "{n}개 더 추가하면 비교가 쉬워요",
+    "en": "Add {n} more to compare easily"
+  },
+  "saved.add": {
+    "ko": "추가",
+    "en": "Add"
+  },
+  "saved.count": {
+    "ko": "{n}개 지켜보는 중",
+    "en": "Watching {n}"
+  },
+  "search.title": {
+    "ko": "검색",
+    "en": "Search"
+  },
+  "search.recentEmpty": {
+    "ko": "브랜드나 제품명을 입력해 보세요",
+    "en": "Type a brand or product name"
+  },
+  "brand.back": {
+    "ko": "브랜드",
+    "en": "Brands"
+  },
+  "brand.empty": {
+    "ko": "이 브랜드 상품을 불러오지 못했어요",
+    "en": "Couldn't load this brand's products"
+  },
+  "settings.title": {
+    "ko": "설정",
+    "en": "Settings"
+  },
+  "settings.service": {
+    "ko": "서비스 설정",
+    "en": "Preferences"
+  },
+  "settings.alerts": {
+    "ko": "알림 설정",
+    "en": "Notifications"
+  },
+  "settings.alertsHint": {
+    "ko": "목표가에 도달하면 알려드려요. 푸시 알림은 준비 중이에요.",
+    "en": "We'll let you know when a price hits your target. Push alerts are coming soon."
+  },
+  "settings.language": {
+    "ko": "언어",
+    "en": "Language"
+  },
+  "settings.languageHint": {
+    "ko": "앱 화면 언어를 바꿔요.",
+    "en": "Change the app language."
+  },
+  "settings.data": {
+    "ko": "내 데이터",
+    "en": "My data"
+  },
+  "settings.clearSaved": {
+    "ko": "관심상품 정리하기",
+    "en": "Clear saved products"
+  },
+  "settings.clearSavedConfirm": {
+    "ko": "관심상품과 목표가를 모두 지울까요?",
+    "en": "Remove all saved products and target prices?"
+  },
+  "settings.cleared": {
+    "ko": "정리했어요",
+    "en": "Cleared"
+  },
+  "settings.clearCache": {
+    "ko": "앱 캐시 삭제",
+    "en": "Clear app cache"
+  },
+  "settings.cacheCleared": {
+    "ko": "캐시를 지웠어요",
+    "en": "Cache cleared"
+  },
+  "settings.support": {
+    "ko": "고객센터",
+    "en": "Support"
+  },
+  "settings.feedback": {
+    "ko": "불편한 점을 알려주세요",
+    "en": "Tell us what's not working"
+  },
+  "settings.feedbackSub": {
+    "ko": "SeoulBeauty가 빠르게 개선해 볼게요!",
+    "en": "We'll fix it fast!"
+  },
+  "settings.terms": {
+    "ko": "이용약관",
+    "en": "Terms of use"
+  },
+  "settings.privacy": {
+    "ko": "개인정보 처리방침",
+    "en": "Privacy policy"
+  },
+  "settings.version": {
+    "ko": "현재 버전 {v}",
+    "en": "Version {v}"
+  },
+  "settings.soon": {
+    "ko": "준비 중이에요",
+    "en": "Coming soon"
+  },
+  "settings.open": {
+    "ko": "설정 열기",
+    "en": "Open settings"
+  },
+  "chat.tab.rooms": {
+    "ko": "채팅",
+    "en": "Rooms"
+  },
+  "chat.tab.topics": {
+    "ko": "토픽",
+    "en": "Topics"
+  },
+  "chat.tab.mine": {
+    "ko": "내 채팅",
+    "en": "My chats"
+  },
+  "chat.hot": {
+    "ko": "최근 대화가 활발한 채팅방",
+    "en": "Active right now"
+  },
+  "chat.brandRooms": {
+    "ko": "브랜드별 채팅방",
+    "en": "Brand rooms"
+  },
+  "chat.mineEmpty": {
+    "ko": "참여한 채팅방이 없어요",
+    "en": "You haven't joined any rooms yet"
+  },
+  "chat.tag.all": {
+    "ko": "최신",
+    "en": "Latest"
+  },
+  "chat.tag.talk": {
+    "ko": "대화",
+    "en": "General"
+  },
+  "chat.tag.skin": {
+    "ko": "피부 고민",
+    "en": "Skin concerns"
+  },
+  "chat.tag.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "chat.tag.deals": {
+    "ko": "세일·정보",
+    "en": "Deals"
+  },
+  "chat.count": {
+    "ko": "({n}명)",
+    "en": "({n})"
+  },
+  "chat.searchRooms": {
+    "ko": "채팅방 검색",
+    "en": "Search rooms"
+  },
+  "chat.noMessages": {
+    "ko": "아직 대화가 없어요",
+    "en": "No messages yet"
   }
 }

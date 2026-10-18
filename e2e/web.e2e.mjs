@@ -43,28 +43,41 @@ try {
     assert.ok(rows.every(r => /\$\d/.test(r)), 'every variant shows a price');
     await page.click('#family-dialog .close-dialog');
   });
-  await step('favorite shows up in the favorites view with a loaded photo', async () => {
+  await step('saved tab: add slots when empty, favorite shows up with a loaded photo', async () => {
+    await page.click('#tabbar [data-screen="saved"]');
+    assert.equal(await page.locator('#saved .add-slot').count(), 3, 'three add slots when nothing is saved');
+    await page.click('#tabbar [data-screen="home"]');
     await page.click('[data-category="전체"]');
-    const heart = page.locator('#products > .card .heart').first();
-    await heart.click();
-    await page.click('nav [data-view="saved"]');
-    await page.waitForSelector('#products > .card img', {timeout: 10000});
-    await page.waitForFunction(() => [...document.querySelectorAll('#products > .card img')].every(i => i.complete && i.naturalWidth > 0), null, {timeout: 20000});
+    await page.locator('#products > .card .heart').first().click();
+    await page.click('#tabbar [data-screen="saved"]');
+    await page.waitForSelector('#saved .saved-card img', {timeout: 10000});
+    assert.equal(await page.locator('#saved .add-slot').count(), 2);
+    await page.waitForFunction(() => [...document.querySelectorAll('#saved .saved-card img')].every(i => i.complete && i.naturalWidth > 0), null, {timeout: 20000});
+    await page.click('#saved [data-screen="settings"]');
+    await page.waitForSelector('#settings .set-row >> text=관심상품 정리하기');
+    assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on settings');
   });
-  await step('popular-brand badge filters the catalog to that brand', async () => {
+  await step('search opens its own screen', async () => {
+    await page.click('#tabbar [data-screen="search"]');
+    assert.ok(await page.isHidden('#browse'), 'home is replaced by the search screen');
+    await page.fill('#search', 'cosrx');
+    await page.waitForSelector('#search-catalog .catalog-grid .card', {timeout: 15000});
+  });
+  await step('popular-brand badge opens the brand page with its products', async () => {
     await page.route('**/rest/v1/catalog_brands*', r => r.fulfill({json: [{brand: 'COSRX', brand_ko: '코스알엑스', families: 300, logo_url: null}, {brand: 'MISSHA', brand_ko: '미샤', families: 900, logo_url: null}]}));
     await page.goto(withLang('ko'));
     await page.click('[data-brand="COSRX"]');
-    await page.waitForFunction(() => document.querySelector('#catalog-results h2')?.textContent === '코스알엑스 상품', null, {timeout: 15000});
-    await page.waitForFunction(() => document.querySelectorAll('.catalog-grid .card').length > 0, null, {timeout: 15000});
-    const brands = await page.locator('.catalog-grid .card .brand').allTextContents();
+    await page.waitForFunction(() => document.querySelector('#brand h1')?.textContent === '코스알엑스', null, {timeout: 15000});
+    await page.waitForFunction(() => document.querySelectorAll('#brand .catalog-grid .card').length > 0, null, {timeout: 15000});
+    assert.equal(await page.evaluate(() => scrollY), 0, 'brand page starts at the top');
+    const brands = await page.locator('#brand .catalog-grid .card .brand').allTextContents();
     assert.ok(brands.every(b => b === '코스알엑스'), 'only COSRX families');
-    await page.click('[data-brand-clear]');
-    await page.waitForFunction(() => document.querySelector('#catalog-results h2')?.textContent === '전체 상품', null, {timeout: 15000});
+    await page.click('#brand [data-screen="home"]');
+    await page.waitForSelector('#browse:not([hidden])');
   });
   await step('chat: join a room, share a searched item, report and block', async () => {
     // Chat endpoints are mocked so the test never posts into real rooms. Item search uses the live catalog.
-    const room = {id: 'acne', title_en: 'Acne & breakouts', title_ko: '트러블·여드름', intro_en: 'x', intro_ko: '트러블에 효과 본 제품 이야기', sort: 1, members: 3, messages_24h: 1};
+    const room = {id: 'acne', title_en: 'Acne & breakouts', title_ko: '트러블·여드름', intro_en: 'x', intro_ko: '트러블에 효과 본 제품 이야기', sort: 1, members: 3, messages_24h: 1, kind: 'topic', tag: 'skin'};
     const other = {id: 1, room_id: 'acne', author_tag: 'other', nickname: 'Calm Otter', body: '추천 좀 해주세요', item: null, reply_to: null, likes: 2, created_at: new Date().toISOString()};
     let posted;
     await page.route('**/rest/v1/chat_room_list*', r => r.fulfill({json: [room]}));
@@ -74,7 +87,9 @@ try {
     await page.route('**/rest/v1/rpc/post_chat', r => { posted = r.request().postDataJSON();
       r.fulfill({json: {id: 2, room_id: 'acne', author_tag: 'me', nickname: 'Dewy Panda', body: posted.p_body, reply_to: posted.p_reply_to, likes: 0, created_at: new Date().toISOString(),
         item: {retailer: posted.p_retailer, market: posted.p_market, sku: posted.p_sku, brand: 'ANUA', name: 'Heartleaf Oil', price_minor: 1700, image_url: null, family_key: 'anua|oil'}}}); });
-    await page.click('#chat-tab');
+    await page.click('#tabbar [data-screen="chat"]');
+    await page.click('[data-chat-tab="topics"]');
+    assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
     await page.click('[data-chat-room="acne"]');
     await page.waitForSelector('#chat-join[open] .chat-rules');
     await page.click('[data-chat-action="join-ok"]');
@@ -97,7 +112,7 @@ try {
     await page.click('[data-chat-action="block"]');
     assert.equal(await page.locator('.chat-msg >> text=추천 좀 해주세요').count(), 0, 'blocked author is hidden');
     await page.click('[data-chat-action="rooms"]');
-    await page.click('[data-chat-action="home"]');
+    await page.click('#tabbar [data-screen="home"]');
     await page.waitForSelector('#browse:not([hidden])');
   });
   await step('English UI for US users', async () => {

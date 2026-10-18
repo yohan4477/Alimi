@@ -2,8 +2,8 @@
 // New messages arrive by polling every few seconds while a room is open.
 import {track} from './events.js';
 import {t, locale} from './i18n.js';
-import {searchCatalog, brandLabel, usd} from './live.js';
-import {chatSecret, readBlocked, block, hasAgreed, agree, roomTitle, roomIntro, visible, errorKey,
+import {searchCatalog, brandLabel, usd, brandInitials} from './live.js';
+import {chatSecret, readBlocked, block, hasAgreed, agree, roomTitle, roomIntro, visible, errorKey, hotRooms, topicRooms, fetchMyRooms,
   fetchRooms, fetchMessages, joinRoom, postMessage, likeMessage, reportMessage} from './chat-api.js';
 
 const $ = s => document.querySelector(s);
@@ -23,18 +23,46 @@ const itemCard = it => `<button class="chat-item" ${it.family_key ? `data-family
 const shell = inner => { $('#chat').innerHTML = inner; };
 export async function openChat(opts = {}) {
   onClose = opts.onClose ?? onClose; toast = opts.toast ?? toast;
-  $('#browse').hidden = true; $('#chat').hidden = false; window.scrollTo(0, 0);
   chat.myTag ||= await tagOf(secret);
   track('chat_open', null);
   renderRooms();
 }
-function closeChat() { stopPolling(); chat.room = null; $('#chat').hidden = true; $('#browse').hidden = false; onClose(); }
+function closeChat() { leaveChat(); onClose(); }
+// Called when the user switches to another tab: stop polling until the chat screen is opened again.
+export function leaveChat() { stopPolling(); chat.room = null; }
 
+// Room list in three tabs like the reference app: Rooms (busy cards + brand rooms), Topics (tag chips), My chats.
+const people = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M15 5.2a3.2 3.2 0 0 1 0 6M17 14a5 5 0 0 1 3.5 5"/></svg>';
+const searchIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+const roomIcon = r => r.kind === 'brand'
+  ? `<i class="room-ico brand">${r.logo_url ? `<img src="${esc(r.logo_url)}" alt="" loading="lazy">` : `<span>${esc(brandInitials(r.brand ?? r.title_en))}</span>`}</i>`
+  : `<i class="room-ico">${people}</i>`;
+const roomRow = (r, sub, time = '') => `<button class="room-row" data-chat-room="${esc(r.id)}">${roomIcon(r)}<span class="room-text"><b>${esc(roomTitle(r))} <em>${esc(t('chat.count', {n: r.members}))}</em></b><small>${esc(sub)}</small></span>${time ? `<time>${esc(time)}</time>` : ''}</button>`;
+const roomCard = r => `<button class="room-card" data-chat-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b><small>${esc(t('chat.members', {n: r.members}))}</small>${r.messages_24h > 0 ? `<i class="chat-dot" aria-label="${esc(t('chat.active'))}"></i>` : ''}<span class="room-card-ico">${r.kind === 'brand' ? roomIcon(r) : people}</span></button>`;
+let roomTab = 'rooms', topicTag = 'all', roomQuery = '', searching = false;
 async function renderRooms() {
   stopPolling(); chat.room = null;
-  shell(`<div class="detail-nav"><button data-chat-action="home" aria-label="${esc(t('back'))}">←</button><strong>${esc(t('chat.title'))}</strong><span></span></div><div class="chat-rooms"><p class="chat-sub">${esc(t('chat.sub'))}</p><div id="chat-room-list"><p class="empty">${esc(t('loading'))}</p></div></div>`);
+  shell(`<div class="chat-top"><div class="chat-tabs">${['rooms', 'topics', 'mine'].map(k => `<button data-chat-tab="${k}" class="${roomTab === k ? 'on' : ''}">${esc(t('chat.tab.' + k))}</button>`).join('')}</div><button class="icon-btn" data-chat-action="search" aria-label="${esc(t('chat.searchRooms'))}">${searchIcon}</button></div>${searching ? `<div class="searchbar chat-search"><input id="chat-room-q" type="search" value="${esc(roomQuery)}" placeholder="${esc(t('chat.searchRooms'))}"></div>` : ''}<div id="chat-room-list" class="chat-rooms"><p class="empty">${esc(t('loading'))}</p></div>`);
+  if (searching) { const q = $('#chat-room-q'); q.oninput = () => { roomQuery = q.value; renderRoomList(); }; q.focus(); }
   try { chat.rooms = await fetchRooms(); } catch { $('#chat-room-list').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
-  $('#chat-room-list').innerHTML = chat.rooms.map(r => `<button class="chat-room" data-chat-room="${esc(r.id)}"><span><b>${esc(roomTitle(r))}</b><small>${esc(roomIntro(r))}</small></span><span class="chat-room-meta">${r.messages_24h > 0 ? `<i class="chat-dot" aria-label="${esc(t('chat.active'))}"></i>` : ''}${esc(t('chat.members', {n: r.members}))}</span></button>`).join('');
+  renderRoomList();
+}
+async function renderRoomList() {
+  const box = $('#chat-room-list'); if (!box) return;
+  const q = roomQuery.trim().toLowerCase();
+  const rooms = q ? chat.rooms.filter(r => (r.title_en + ' ' + r.title_ko).toLowerCase().includes(q)) : chat.rooms;
+  if (roomTab === 'rooms') {
+    const brandRooms = rooms.filter(r => r.kind === 'brand');
+    box.innerHTML = `<h3 class="chat-hot">${esc(t('chat.hot'))}</h3><div class="room-cards">${hotRooms(rooms).map(roomCard).join('')}</div>${brandRooms.length ? `<h3 class="chat-section">${esc(t('chat.brandRooms'))}</h3>${brandRooms.map(r => roomRow(r, roomIntro(r))).join('')}` : ''}`;
+  } else if (roomTab === 'topics') {
+    box.innerHTML = `<div class="chat-chips">${['all', 'talk', 'skin', 'makeup', 'deals'].map(k => `<button data-chat-tag="${k}" class="${topicTag === k ? 'on' : ''}">${esc(t('chat.tag.' + k))}</button>`).join('')}</div>${topicRooms(rooms, topicTag).map(r => roomRow(r, roomIntro(r))).join('')}`;
+  } else {
+    box.innerHTML = `<p class="empty">${esc(t('loading'))}</p>`;
+    let mine; try { mine = await fetchMyRooms(chat.myTag); } catch { box.innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
+    if (roomTab !== 'mine') return;
+    const rows = mine.map(m => ({room: rooms.find(r => r.id === m.room_id), last: m.last})).filter(x => x.room);
+    box.innerHTML = rows.length ? rows.map(({room, last}) => roomRow(room, last ? (last.body || last.item?.name || '') : t('chat.noMessages'), last ? time(last.created_at) : '')).join('') : `<p class="empty">${esc(t('chat.mineEmpty'))}</p>`;
+  }
 }
 
 function askJoin(room) {
@@ -136,6 +164,9 @@ document.addEventListener('click', async e => {
   const a = b.dataset.chatAction;
   if (a === 'home') closeChat();
   else if (a === 'rooms') renderRooms();
+  else if (a === 'search') { searching = !searching; if (!searching) roomQuery = ''; renderRooms(); }
+  else if (b.dataset.chatTab) { roomTab = b.dataset.chatTab; document.querySelectorAll('[data-chat-tab]').forEach(x => x.classList.toggle('on', x === b)); renderRoomList(); }
+  else if (b.dataset.chatTag) { topicTag = b.dataset.chatTag; renderRoomList(); }
   else if (a === 'join-cancel') $('#chat-join').close();
   else if (a === 'join-ok') { agree(storage); $('#chat-join').close(); enterRoom(chat.rooms.find(r => r.id === b.dataset.room)); }
   else if (a === 'attach') openPicker();
