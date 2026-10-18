@@ -61,14 +61,15 @@ final class AlimiUITests: XCTestCase {
         let tab = app.buttons["category-\(name)"].firstMatch
         XCTAssertTrue(tab.waitForExistence(timeout: 5), "missing tab \(name)")
         let screen = app.windows.firstMatch.frame
+        let tabs = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'category-'"))
         var n = 0
         while !screen.contains(tab.frame) && n < 8 {
-            let y = (tab.frame.midY - screen.minY) / screen.height
-            let start = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.midX > screen.midX ? 0.8 : 0.2, dy: y))
-            let end = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.midX > screen.midX ? 0.2 : 0.8, dy: y))
-            start.press(forDuration: 0.05, thenDragTo: end)
+            // Swipe on a tab that is fully on screen; swiping the strip itself scrolls it horizontally.
+            guard let visible = tabs.allElementsBoundByIndex.first(where: { screen.contains($0.frame) }) else { break }
+            if tab.frame.midX > screen.midX { visible.swipeLeft() } else { visible.swipeRight() }
             n += 1
         }
+        XCTAssertTrue(screen.contains(tab.frame), "tab \(name) never scrolled into view")
         tab.tap()
     }
 
