@@ -94,7 +94,7 @@ struct NotificationOnboarding: View {
         case .settings:
             guard let url = URL(string: UIApplication.openNotificationSettingsURLString) else { return }
             if !(await UIApplication.shared.open(url)) {
-                errorMessage = "아이폰 설정에서 Alimi의 알림을 허용해 주세요."
+                errorMessage = "아이폰 설정에서 SeoulBeauty의 알림을 허용해 주세요."
             }
         case .enabled:
             showIntroduction = false

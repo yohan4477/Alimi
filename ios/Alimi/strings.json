@@ -281,8 +281,8 @@
     "en": "View on Stylevana ↗"
   },
   "detail.disclaimer": {
-    "ko": "표시 가격은 결제 가격과 다를 수 있어요. 제휴 링크로 구매하면 Alimi가 수수료를 받을 수 있어요.",
-    "en": "Prices may differ at checkout. Alimi may earn a commission when you buy through affiliate links."
+    "ko": "표시 가격은 결제 가격과 다를 수 있어요. 제휴 링크로 구매하면 SeoulBeauty가 수수료를 받을 수 있어요.",
+    "en": "Prices may differ at checkout. SeoulBeauty may earn a commission when you buy through affiliate links."
   },
   "target.title": {
     "ko": "나의 목표가",
@@ -405,8 +405,8 @@
     "en": "Saved"
   },
   "html.title": {
-    "ko": "Alimi · 뷰티 가격 알림",
-    "en": "Alimi · K-beauty price alerts"
+    "ko": "SeoulBeauty · 뷰티 가격 알림",
+    "en": "SeoulBeauty · K-beauty price alerts"
   },
   "search.label": {
     "ko": "상품 검색",
@@ -449,8 +449,8 @@
     "en": "Products you love, at prices you like"
   },
   "footer": {
-    "ko": "Alimi · Stylevana US 공식 제휴 피드 · 피드 갱신 시 1시간 안에 반영",
-    "en": "Alimi · Official Stylevana US affiliate feed · updated within an hour of each refresh"
+    "ko": "SeoulBeauty · Stylevana US 공식 제휴 피드 · 피드 갱신 시 1시간 안에 반영",
+    "en": "SeoulBeauty · Official Stylevana US affiliate feed · updated within an hour of each refresh"
   },
   "dialog.title": {
     "ko": "원하는 가격을 저장하세요",
