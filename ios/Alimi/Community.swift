@@ -51,17 +51,20 @@ enum CommunityAPI {
         ["p_retailer": item?.retailer, "p_market": item?.market, "p_sku": item?.sku]
     }
     static func create(room: String, kind: String, title: String, body: String, item: CatalogItem?, review: [String: Any], fromMessage: Int? = nil) async throws -> CommunityPost {
+        guard !ChatAPI.offline else { throw ChatAPI.Failure(message: "offline") }
         var q = itemArgs(item)
         q.merge(["p_secret": ChatAPI.secret, "p_room": room, "p_kind": kind, "p_title": title, "p_body": body,
                  "p_reasons": [String](), "p_from_message": fromMessage, "p_review": review]) { _, v in v }
         return try JSONDecoder().decode(CommunityPost.self, from: try await ChatAPI.rpc("create_post", q))
     }
     static func comment(post: Int, body: String, item: CatalogItem?) async throws {
+        guard !ChatAPI.offline else { throw ChatAPI.Failure(message: "offline") }
         var q = itemArgs(item)
         q.merge(["p_secret": ChatAPI.secret, "p_post": post, "p_body": body]) { _, v in v }
         _ = try await ChatAPI.rpc("add_comment", q)
     }
     static func report(target: String, id: Int, reason: String) async throws {
+        guard !ChatAPI.offline else { throw ChatAPI.Failure(message: "offline") }
         _ = try await ChatAPI.rpc("report_community", ["p_secret": ChatAPI.secret, "p_target": target, "p_id": id, "p_reason": reason])
     }
     static func photoURL(_ path: String) -> URL? {
@@ -69,6 +72,7 @@ enum CommunityAPI {
         return LiveAPI.baseURL.appendingPathComponent("storage/v1/object/public/review-photos/" + path)
     }
     static func upload(_ selection: PhotosPickerItem) async throws -> String {
+        guard !ChatAPI.offline else { throw ChatAPI.Failure(message: "offline") }
         guard let bytes = try await selection.loadTransferable(type: Data.self), bytes.count <= 20_000_000,
               let image = UIImage(data: bytes), image.size.width > 0, image.size.height > 0 else { throw ChatAPI.Failure(message: "chat:photo") }
         let scale = min(1, 1280 / max(image.size.width, image.size.height))
@@ -276,8 +280,16 @@ struct CommunityComposer: View {
     @State private var text = ""
     @State private var item: CatalogItem?
     @State private var picking = false
-    @State private var usedFor = "", skinType = "", tone = "", undertone = "", climate = "", goal = ""
-    @State private var whereBought = "", price = "", country = "", shipDays = ""
+    @State private var usedFor = ""
+    @State private var skinType = ""
+    @State private var tone = ""
+    @State private var undertone = ""
+    @State private var climate = ""
+    @State private var goal = ""
+    @State private var whereBought = ""
+    @State private var price = ""
+    @State private var country = ""
+    @State private var shipDays = ""
     @State private var sponsored = false
     @State private var photos: [PhotosPickerItem] = []
     @State private var agreed = ChatAPI.agreed
@@ -384,7 +396,8 @@ struct ProductDiscussion: View {
     let familyKey: String
     @State private var posts: [CommunityPost] = []
     @State private var failed = false
-    @State private var skin = "", tone = ""
+    @State private var skin = ""
+    @State private var tone = ""
     private var reviews: [CommunityPost] {
         posts.filter { $0.kind == "review" && (skin.isEmpty || $0.skin_type == skin) && (tone.isEmpty || $0.skin_tone == tone) }
     }
