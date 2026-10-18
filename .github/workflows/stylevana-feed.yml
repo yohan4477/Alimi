@@ -45,3 +45,8 @@ jobs:
           git push --force-with-lease="refs/heads/data/stylevana-us:${DATA_BRANCH_SHA}" origin HEAD:refs/heads/data/stylevana-us
           echo "Official feed collected, validated and saved to [data/stylevana-us](https://github.com/yohan4477/Alimi/tree/data/stylevana-us)." >> "$GITHUB_STEP_SUMMARY"
           echo "Review [the snapshot comparison](https://github.com/yohan4477/Alimi/compare/main...data/stylevana-us) before updating the bundled app data. No automatic deployment." >> "$GITHUB_STEP_SUMMARY"
+      - name: Record observation in Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/supabase-sink.mjs data/stylevana-us.json
