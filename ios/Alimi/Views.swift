@@ -154,21 +154,62 @@ struct BrowseView: View {
         }
     }
 }
+struct BrandLogo: View {
+    let brand: String
+    @State private var image: UIImage?
+    static func url(for brand: String) -> URL? {
+        // Direct image assets discovered on each brand owner's official website.
+        let key = brand.lowercased().filter { $0.isLetter || $0.isNumber }
+        let source: String
+        switch key {
+        case "cosrx": source = "https://cosrxinc.jpg3.kr/cosrximg/cosrx/downloads/COSRX_LOGO_Final.png"
+        case "drmelaxin": source = "https://melaxin.com/img/logo_melaxin_black.png"
+        case "peripera": source = "https://cliocosmetic.com/public/images/logo/peripera.png"
+        case "clio": source = "https://cliocosmetic.com/public/images/logo/clio.png"
+        case "goodal": source = "https://cliocosmetic.com/public/images/logo/goodal.png"
+        case "jungsaemmool": source = "https://www.jsmbeauty.com/design/jsmbeauty/img/logo_bk.png"
+        case "rejuran": source = "https://rejuran.co.kr/HTML/rejuran/img/logo_header_v2.png"
+        case "centellian24": source = "https://centellian24.com/cdn/shop/files/logo-transparent-crop.png?v=1729224346&width=300"
+        case "somebymi": source = "https://somebymi.com/web/upload/category/editor/2025/08/19/35279b3e93f1e77a767fe2d5850a75e0.png"
+        case "unleashia": source = "https://unleashiacosmetics.com/web/upload/category/editor/2021/11/02/24de4a1e629d7502a66f266f480e3493.png"
+        default: return nil
+        }
+        return URL(string: source)
+    }
+    private var logoURL: URL? { Self.url(for: brand) }
+    var body: some View {
+        ZStack {
+            Circle().fill(Color.white)
+            if let image {
+                Image(uiImage: image).resizable().scaledToFit()
+            } else {
+                ProgressView().controlSize(.small)
+            }
+        }
+        .task(id: logoURL) {
+            guard let logoURL else { return }
+            image = await ImageCache.shared.load(logoURL)
+        }
+        .accessibilityLabel("\(brand) logo")
+    }
+}
 struct BrandExplorer: View {
     let families: [ProductFamily]
     @Binding var selection: String?
     private var brands: [(name: String, count: Int)] {
         let counts = Dictionary(grouping: families, by: \.brandLabel).mapValues(\.count)
-        return counts.map { (name: $0.key, count: $0.value) }.sorted {
-            $0.count == $1.count ? $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending : $0.count > $1.count
-        }
+        return counts.map { (name: $0.key, count: $0.value) }
+            .filter { BrandLogo.url(for: $0.name) != nil }
+            .sorted {
+                $0.count == $1.count ? $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending : $0.count > $1.count
+            }
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("브랜드").font(.headline)
+                Text("브랜드 로고").font(.headline)
                 Spacer()
-                Text("브랜드를 눌러 상품 보기").font(.caption).foregroundStyle(.secondary)
+                Text("로고를 눌러 상품 보기").font(.caption).foregroundStyle(.secondary)
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 16) {
@@ -178,8 +219,7 @@ struct BrandExplorer: View {
                                 ZStack {
                                     Circle().fill(selection == brand.name ? Color.primary.opacity(0.08) : Color.canvas)
                                     Circle().strokeBorder(selection == brand.name ? Color.primary : Color.primary.opacity(0.08), lineWidth: selection == brand.name ? 2 : 1)
-                                    Text(String(brand.name.prefix(2))).font(.system(size: 18, weight: .semibold, design: .rounded))
-                                        .foregroundStyle(.primary).lineLimit(1).minimumScaleFactor(0.6).padding(5)
+                                    BrandLogo(brand: brand.name).padding(11)
                                 }.frame(width: 66, height: 66)
                                 Text(brand.name).font(.caption).lineLimit(1).frame(width: 78)
                             }.foregroundStyle(.primary)
