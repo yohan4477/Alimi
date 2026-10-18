@@ -1,7 +1,7 @@
 import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
-import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts} from './chat.js';
+import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
 import {buyUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
 const $=s=>document.querySelector(s);
@@ -60,8 +60,8 @@ const icon={
 };
 // Screens: home / saved / search / brand / settings / detail / chat. The bottom tab bar stays on every
 // screen except product detail (which has its own bottom action bar).
-const TABS=['home','saved','search','chat'];
-let screen='home',lastTab='home',detailReturn='home';
+const TABS=['saved','search','chat'];
+let screen='chat',lastTab='chat',detailReturn='chat';
 const screenEl=n=>n==='home'?$('#browse'):n==='search'?$('#search-screen'):$('#'+n);
 function show(n){
   if(screen==='chat'&&n!=='chat')leaveChat();
@@ -73,7 +73,7 @@ function show(n){
   if(n==='saved')renderSaved();
   if(n==='settings')renderSettings();
   if(n==='search'){renderSearch();setTimeout(()=>$('#search').focus(),0)}
-  if(n==='chat')openChat({toast,onClose:()=>show('home')});
+  if(n==='chat')openChat({toast,onClose:()=>show('chat')});
 }
 // Popular-brand strip: round badges like a delivery app's brand grid; tapping one opens that brand's page.
 let brands=[];
@@ -104,7 +104,8 @@ const savedCard=p=>`<article class="saved-card"><button class="product-open" dat
 function renderSaved(){
   const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
   const hint=n===0?t('saved.hint'):n<3?t('saved.hintMore',{n:3-n}):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('saved.title'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`;
+  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('nav.activity'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div><section id="activity-conversations"></section><h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`;
+  renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
@@ -123,7 +124,7 @@ async function settingsAction(a){
 // Search has its own screen: available products that match, then the whole catalog.
 function renderSearch(){
   const q=$('#search').value.trim(),box=$('#search-results');
-  if(!q){box.innerHTML=`<p class="empty search-empty">${esc(t('search.recentEmpty'))}</p>`;return}
+  if(!q){box.innerHTML=`<button class="explore-link" data-screen="home">${esc(t('section.products'))} ${icon.chevron}</button><p class="empty search-empty">${esc(t('search.recentEmpty'))}</p>`;return}
   const items=search(products,q,'전체');
   box.innerHTML=(items.length?`<div class="heading"><div><h2>${esc(t('section.products'))}</h2></div><span>${esc(t('count',{n:items.length}))}</span></div><div class="product-grid">${items.map(card).join('')}</div>`:'')+'<div id="search-catalog" class="catalog-results"></div>';
   if(q.length>=2)renderCatalogSearch(q);
@@ -189,7 +190,9 @@ function closeDetail(){detailOpen=false;show(detailReturn)}
 function openDetail(id){selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
 
 localizePage();
+show('chat');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.openRoom){openRoomNext(b.dataset.openRoom);show('chat');return}
   if(b.dataset.catalogSave){saveCatalogSelection(b);return}
   if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null);return}
   if(b.dataset.post&&screen!=='chat'){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);show('chat');return}
@@ -206,7 +209,7 @@ let searchTimer;$('#search').oninput=()=>{renderSearch();clearTimeout(searchTime
 $('#browse-now').onclick=()=>$('.results').scrollIntoView({behavior:'smooth'});
 $('#reset').onclick=()=>{if(confirm(t('reset.confirm'))){state={favorites:[],targets:{}};save();renderList()}};
 document.addEventListener('click',e=>{const a=e.target.closest('a.observed-buy');if(!a)return;if(a.dataset.sku)track('merchant_click',null,{sku:a.dataset.sku,from:a.dataset.ref||'options'});else if(selected)track('merchant_click',selected,{retailer:product(selected)?.retailer,from:a.classList.contains('buy-cta')?'detail_cta':'detail_retailer'})});
-document.addEventListener('error',e=>{if(e.target.tagName==='IMG'&&!e.target.matches('.brand-item img,.brand-badge-lg img')){const box=document.createElement('div');box.className='no-photo';box.textContent=t('photoFailed');e.target.replaceWith(box)}},true);
+document.addEventListener('error',e=>{if(e.target.matches?.('.room-ico img')){e.target.remove();return}if(e.target.tagName==='IMG'&&!e.target.matches('.brand-item img,.brand-badge-lg img')){const box=document.createElement('div');box.className='no-photo';box.textContent=t('photoFailed');e.target.replaceWith(box)}},true);
 
 async function loadBrandStrip(){
   const box=$('#brands');box.hidden=false;box.setAttribute('aria-busy','true');

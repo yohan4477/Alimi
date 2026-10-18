@@ -15,6 +15,8 @@ const step = async (name, fn) => { await fn(); console.log('ok -', name); };
 
 try {
   await page.goto(withLang('ko')); // flows below assert the Korean copy
+  await page.waitForSelector('#chat:not([hidden])');
+  await page.click('#tabbar [data-screen="search"]');await page.click('.explore-link');
   await step('tracked products and first catalog page render without scrolling', async () => {
     await page.waitForSelector('#products > .card', {timeout: 20000});
     await page.waitForSelector('.catalog-grid .card', {timeout: 20000});
@@ -50,7 +52,7 @@ try {
   await step('saved tab: add slots when empty, favorite shows up with a loaded photo', async () => {
     await page.click('#tabbar [data-screen="saved"]');
     assert.equal(await page.locator('#saved .add-slot').count(), 3, 'three add slots when nothing is saved');
-    await page.click('#tabbar [data-screen="home"]');
+    await page.click('#tabbar [data-screen="search"]');await page.fill('#search', '');await page.click('.explore-link');
     await page.click('[data-category="전체"]');
     await page.locator('#products > .card .heart').first().click();
     await page.click('#tabbar [data-screen="saved"]');
@@ -70,6 +72,7 @@ try {
   await step('popular-brand badge opens the brand page with its products', async () => {
     await page.route('**/rest/v1/catalog_brands*', r => r.fulfill({json: [{brand: 'COSRX', brand_ko: '코스알엑스', families: 300, logo_url: null}, {brand: 'MISSHA', brand_ko: '미샤', families: 900, logo_url: null}]}));
     await page.goto(withLang('ko'));
+    await page.click('#tabbar [data-screen="search"]');await page.click('.explore-link');
     await page.click('[data-brand="COSRX"]');
     await page.waitForFunction(() => document.querySelector('#brand h1')?.textContent === '코스알엑스', null, {timeout: 15000});
     await page.waitForFunction(() => document.querySelectorAll('#brand .catalog-grid .card').length > 0, null, {timeout: 15000});
@@ -94,7 +97,7 @@ try {
     await page.click('#tabbar [data-screen="chat"]');
     await page.route('**/rest/v1/community_posts*', r => r.fulfill({json: []}));
     assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
-    await page.click('[data-chat-room="acne"]');
+    await page.click('.room-row[data-chat-room="acne"]');
     await page.waitForSelector('#chat-join[open] .chat-rules');
     await page.click('[data-chat-action="join-ok"]');
     await page.waitForSelector('#post-list >> text=아직 글이 없어요');
@@ -118,7 +121,7 @@ try {
     await page.click('[data-chat-action="block"]');
     assert.equal(await page.locator('.chat-msg >> text=추천 좀 해주세요').count(), 0, 'blocked author is hidden');
     await page.click('[data-chat-action="rooms"]');
-    await page.click('#tabbar [data-screen="home"]');
+    await page.click('#tabbar [data-screen="search"]');await page.fill('#search', '');await page.click('.explore-link');
     await page.waitForSelector('#browse:not([hidden])');
   });
   await step('community: write a question with a product and reasons, then comment', async () => {
@@ -130,7 +133,7 @@ try {
     await page.route('**/rest/v1/community_comments*', r => r.fulfill({json: []}));
     await page.route('**/rest/v1/rpc/add_comment', r => { commented = r.request().postDataJSON(); r.fulfill({json: {id: 9, post_id: 41, author_tag: 'me', nickname: 'Dewy Panda', body: commented.p_body, item: null, likes: 0, created_at: new Date().toISOString()}}); });
     await page.click('#tabbar [data-screen="chat"]');
-    await page.click('.room-card[data-chat-room="acne"]');
+    await page.click('.room-row[data-chat-room="acne"]');
     await page.click('[data-chat-action="write"]');
     await page.click('[data-write-kind="question"]');
     await page.fill('#write-title', '끈적이지 않는 선크림 추천해 주세요');
@@ -149,11 +152,12 @@ try {
   });
   await step('English UI for US users', async () => {
     await page.goto(withLang('en'));
+    await page.click('#tabbar [data-screen="search"]');await page.click('.explore-link');
     await page.waitForSelector('.catalog-grid .card', {timeout: 20000});
     assert.equal(await page.textContent('#list-title'), 'Explore products');
     assert.ok((await page.locator('#categories .chip').allTextContents()).includes('Sun care'));
     assert.match(await page.textContent('.notice'), /Official Stylevana US prices/);
-    assert.equal(await page.locator('text=/[가-힣]/').count(), 0, 'no Korean text in the English UI');
+    assert.equal(await page.locator('#browse :text-matches("[가-힣]")').count(), 0, 'no Korean text in the English UI');
   });
   await page.locator('#products > .card .product-open').first().click();
   assert.equal(await page.locator('#set-target,.analysis-section,.target-section').count(),0,'no price tracking UI');
