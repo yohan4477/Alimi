@@ -18,3 +18,11 @@ create view public.catalog_brands with (security_invoker = true) as
   left join public.brand_logos l on l.brand = f.brand
   group by f.brand, l.logo_url;
 grant select on public.catalog_brands to anon, authenticated;
+
+-- Round badges made from logos on each brand's own site (THE SAEM: Wikimedia Commons, CC BY 4.0), served
+-- from the web app. Sources: dist/brand-logos/CREDITS.md.
+insert into public.brand_logos (brand, logo_url)
+select v.brand, 'https://alimi-omega.vercel.app/brand-logos/' || v.slug || '.png'
+from (values ('MISSHA', 'missha'), ('ETUDE', 'etude'), ('medicube', 'medicube'), ('APLB', 'aplb'), ('SKIN1004', 'skin1004'),
+  ('COSRX', 'cosrx'), ('LANEIGE', 'laneige'), ('Purito SEOUL', 'purito-seoul'), ('numbuzin', 'numbuzin'),
+  ('THE SAEM', 'the-saem'), ('Pyunkang Yul', 'pyunkang-yul'), ('PRETTYSKIN', 'prettyskin')) as v (brand, slug);

@@ -182,10 +182,10 @@ struct BrandBadge: View {
             ZStack {
                 Circle().fill(Color(rgb: brand.color))
                 Text(brand.initials).font(.system(size: 18, weight: .heavy)).foregroundStyle(.white)
-                if let url = brand.logoUrl { RemoteImage(url: url, label: brand.label).clipShape(Circle()) }
+                if let url = brand.logoUrl { RemoteImage(url: url, label: brand.label).background(Color.white).clipShape(Circle()) }
             }
             .frame(width: 60, height: 60)
-            .overlay(Circle().stroke(selected ? Color.primary : .clear, lineWidth: 2))
+            .overlay(Circle().stroke(selected ? Color.primary : Color(.separator), lineWidth: selected ? 2 : 0.5))
             Text(brand.label).font(.caption2).lineLimit(1)
         }
     }
