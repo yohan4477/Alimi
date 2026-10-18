@@ -24,7 +24,8 @@ export async function registerOffer(catalog, product, offer, options) {
   const upsert = {Prefer: 'resolution=merge-duplicates,return=representation'};
   const [p] = await call('/rest/v1/products?on_conflict=slug', {method: 'POST', headers: upsert, body: JSON.stringify({
     slug: product.slug, brand: product.brand, name: product.option ? `${product.name} ${product.option}` : product.name, size: product.size,
-    category: product.category ?? null, brand_ko: product.brandKo ?? null
+    category: product.category ?? null, brand_ko: product.brandKo ?? null,
+    family_key: product.familyKey ?? null, size_label: product.sizeLabel ?? null
   })});
   const [o] = await call('/rest/v1/offers?on_conflict=retailer,market,external_id', {method: 'POST', headers: upsert, body: JSON.stringify({
     product_id: p.id, retailer: catalog.retailer, market: catalog.market, currency: catalog.currency, external_id: product.sku,
