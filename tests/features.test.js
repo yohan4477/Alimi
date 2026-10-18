@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {toProducts,search,dailySeries,stats,trackedDays,alertState,parseTarget,readState,toggleFavorite,categoryOf,loadProducts} from '../dist/live.js';
+import {toProducts,search,dailySeries,stats,trackedDays,alertState,parseTarget,readState,toggleFavorite,loadProducts,catalogPageUrl,brandLabel,CATEGORIES} from '../dist/live.js';
 
 const snapshot=JSON.parse(readFileSync(new URL('../dist/live-snapshot.json',import.meta.url)));
 const products=toProducts(snapshot.rows);
@@ -16,8 +16,9 @@ test('search by brand / name / category, case and whitespace insensitive',()=>{
   assert.equal(search(products,'medicube').length,2);
   assert.equal(search(products,'없는상품').length,0);
   assert.equal(search(products,'').length,10);
-  assert.ok(search(products,'','메이크업').every(x=>x.category==='메이크업'));
-  assert.equal(categoryOf('Heartleaf Pore Control Cleansing Oil'),'클렌징');
+  for(const c of CATEGORIES)assert.ok(search(products,'',c).every(x=>x.category===c));
+  assert.equal(search([{brand:'BEAUTY OF JOSEON',brandKo:'조선미녀',name:'Relief Sun',category:'선케어'}],'조선미녀').length,1);
+  assert.equal(brandLabel({brand:'Romand',brandKo:'롬앤'}),'롬앤');assert.equal(brandLabel({brand:'X',brandKo:null}),'X');
 });
 test('daily series carries change-only history forward and leaves pre-tracking days empty (KST days)',()=>{
   const now=new Date('2026-10-20T03:00:00Z'); // 10/20 12:00 KST
@@ -51,7 +52,7 @@ test('catalog search query is sanitized before reaching the PostgREST filter',as
   assert.equal(catalogSearchUrl('a'),null);
   assert.equal(catalogQuery('rom&nd),name.eq.x'),'rom&nd name eq x');
   const u=new URL(catalogSearchUrl('  Juicy   tint '));
-  assert.equal(u.searchParams.get('or'),'(brand.ilike."*Juicy tint*",name.ilike."*Juicy tint*")');
+  assert.equal(u.searchParams.get('or'),'(brand.ilike."*Juicy tint*",brand_ko.ilike."*Juicy tint*",name.ilike."*Juicy tint*")');
   assert.equal(u.searchParams.get('active'),'eq.true');
   assert.equal(catalogQuery('조선미녀 선크림'),'조선미녀 선크림');
   const rows=await searchCatalog('cosrx',async()=>({ok:true,json:async()=>[{sku:'1',price_minor:1750}]}));
@@ -59,4 +60,9 @@ test('catalog search query is sanitized before reaching the PostgREST filter',as
   let sent;const slug=await requestTracking({retailer:'Stylevana US',market:'US',sku:'66606'},async(url,init)=>{sent=[url,init];return {ok:true,json:async()=>'sv-us-66606'}});
   assert.equal(slug,'sv-us-66606');assert.match(sent[0],/rpc\/request_tracking$/);
   assert.deepEqual(JSON.parse(sent[1].body),{p_retailer:'Stylevana US',p_market:'US',p_sku:'66606'});
+});
+test('catalog browse pages are filtered by category and ordered stably',()=>{
+  const all=new URL(catalogPageUrl('전체',48));
+  assert.equal(all.searchParams.get('category'),null);assert.equal(all.searchParams.get('offset'),'48');assert.equal(all.searchParams.get('order'),'sku.desc');
+  assert.equal(new URL(catalogPageUrl('선케어',0)).searchParams.get('category'),'eq.선케어');
 });

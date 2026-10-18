@@ -5,16 +5,16 @@ import UserNotifications
 @MainActor
 final class AlimiTests: XCTestCase {
     private func point(_ iso: String, _ price: Double) -> PricePoint { PricePoint(date: ISODate.parse(iso)!, price: price) }
-    private func product(_ id: String, brand: String, name: String, price: Double, history: [PricePoint] = []) -> Product {
-        Product(id: id, sku: id, brand: brand, name: name, size: "50ml", category: Product.category(for: name), retailer: "Stylevana US",
+    private func product(_ id: String, brand: String, brandKo: String? = nil, name: String, category: String, price: Double, history: [PricePoint] = []) -> Product {
+        Product(id: id, sku: id, brand: brand, brandKo: brandKo, name: name, size: "50ml", category: category, retailer: "Stylevana US",
                 currency: "USD", url: URL(string: "https://www.stylevana.com/a.html")!, affiliateUrl: nil, imageUrl: nil, price: price,
                 delivery: 3.99, availability: "in_stock", changedAt: Date(), checkedAt: Date(), history: history)
     }
     private func makeStore() -> AlimiStore {
         let defaults = UserDefaults(suiteName: "AlimiTests.\(UUID().uuidString)")!
         return AlimiStore(defaults: defaults, products: [
-            product("cosrx", brand: "COSRX", name: "Advanced Snail 96 Mucin Power Essence", price: 17.5),
-            product("tirtir", brand: "TIRTIR", name: "Mask Fit Red Cushion 21C", price: 20)
+            product("cosrx", brand: "COSRX", brandKo: "코스알엑스", name: "Advanced Snail 96 Mucin Power Essence", category: "에센스·세럼", price: 17.5),
+            product("tirtir", brand: "TIRTIR", brandKo: "티르티르", name: "Mask Fit Red Cushion 21C", category: "베이스메이크업", price: 20)
         ])
     }
     func testNotificationPermissionRouting() {
@@ -38,10 +38,12 @@ final class AlimiTests: XCTestCase {
     func testSearchAndCategories() {
         let store = makeStore()
         XCTAssertEqual(store.search(" cosrx ").map(\.id), ["cosrx"])
-        XCTAssertEqual(store.search("", category: "메이크업").map(\.id), ["tirtir"])
+        XCTAssertEqual(store.search("", category: "베이스메이크업").map(\.id), ["tirtir"])
+        XCTAssertEqual(store.search("코스알엑스").map(\.id), ["cosrx"])
         XCTAssertTrue(store.search("없는상품").isEmpty)
-        XCTAssertEqual(store.categories, ["전체", "메이크업", "스킨케어"])
-        XCTAssertEqual(Product.category(for: "Heartleaf Pore Control Cleansing Oil"), "클렌징")
+        XCTAssertEqual(store.categories.first, "전체")
+        XCTAssertEqual(Array(store.categories.dropFirst()), Product.categories)
+        XCTAssertEqual(store.products[0].brandLabel, "코스알엑스")
     }
     func testDailyHistoryCarriesForwardInKoreanDays() {
         let now = ISODate.parse("2026-10-20T03:00:00Z")!
@@ -89,8 +91,15 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(CatalogItem.query("조선미녀  선크림"), "조선미녀 선크림")
         let url = CatalogItem.searchURL("juicy tint")!
         let items = URLComponents(url: url, resolvingAgainstBaseURL: true)!.queryItems!
-        XCTAssertEqual(items.first { $0.name == "or" }?.value, "(brand.ilike.\"*juicy tint*\",name.ilike.\"*juicy tint*\")")
+        XCTAssertEqual(items.first { $0.name == "or" }?.value, "(brand.ilike.\"*juicy tint*\",brand_ko.ilike.\"*juicy tint*\",name.ilike.\"*juicy tint*\")")
         XCTAssertEqual(items.first { $0.name == "active" }?.value, "eq.true")
+    }
+    func testCatalogPageURL() {
+        let all = URLComponents(url: CatalogItem.pageURL(category: "전체", offset: 48), resolvingAgainstBaseURL: true)!.queryItems!
+        XCTAssertNil(all.first { $0.name == "category" })
+        XCTAssertEqual(all.first { $0.name == "offset" }?.value, "48")
+        let sun = URLComponents(url: CatalogItem.pageURL(category: "선케어", offset: 0), resolvingAgainstBaseURL: true)!.queryItems!
+        XCTAssertEqual(sun.first { $0.name == "category" }?.value, "eq.선케어")
     }
     func testPersistence() {
         let defaults = UserDefaults(suiteName: "AlimiTests.\(UUID().uuidString)")!
