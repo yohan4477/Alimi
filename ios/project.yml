@@ -28,6 +28,7 @@ targets:
         INFOPLIST_KEY_UIRequiresFullScreen: YES
         CODE_SIGN_STYLE: Automatic
     info:
+      path: Alimi/Info.plist
       properties:
         CFBundleURLTypes:
           - CFBundleURLName: com.yohan4477.alimi.auth
