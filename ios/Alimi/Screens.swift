@@ -236,6 +236,7 @@ struct SearchView: View {
 struct SettingsView: View {
     @EnvironmentObject var store: AlimiStore
     @AppStorage("alimi.lang") private var lang = ""
+    @ObservedObject private var auth = AuthSession.shared
     @State private var confirmClear = false
     @State private var message: String?
     private var version: String {
@@ -244,6 +245,11 @@ struct SettingsView: View {
     }
     var body: some View {
         List {
+            Section(L("account.title")) {
+                NavigationLink { AccountView() } label: {
+                    Label(auth.email ?? L("account.google"), systemImage: auth.email == nil ? "person.crop.circle" : "person.crop.circle.fill")
+                }.accessibilityIdentifier("account-row")
+            }
             serviceSection
             dataSection
             supportSection
