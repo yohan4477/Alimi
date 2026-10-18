@@ -44,6 +44,41 @@ struct OfferRow: Codable {
         case products, offerCurrent = "offer_current", priceObservations = "price_observations"
     }
 }
+// Catalog layer row (whole official feed, current price only).
+struct CatalogItem: Codable, Identifiable, Hashable {
+    let retailer: String
+    let market: String
+    let sku: String
+    let brand: String
+    let name: String
+    let priceMinor: Int
+    let currency: String
+    let availability: String
+    let imageUrl: URL?
+    var id: String { "\(retailer)|\(market)|\(sku)" }
+    var price: Double { Double(priceMinor) / 100 }
+    enum CodingKeys: String, CodingKey {
+        case retailer, market, sku, brand, name, priceMinor = "price_minor", currency, availability, imageUrl = "image_url"
+    }
+    // Reduces the query to safe characters before it goes into the PostgREST filter.
+    static func query(_ q: String) -> String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: " &'-"))
+        let kept = String(q.unicodeScalars.map { allowed.contains($0) ? Character($0) : " " })
+        return String(kept.split(separator: " ").joined(separator: " ").prefix(40))
+    }
+    static func searchURL(_ q: String, limit: Int = 30) -> URL? {
+        let term = query(q)
+        guard term.count >= 2 else { return nil }
+        var c = URLComponents(url: URL(string: "/rest/v1/catalog_items", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
+        let like = "\"*\(term)*\""
+        c.queryItems = [URLQueryItem(name: "select", value: "retailer,market,sku,brand,name,price_minor,currency,availability,image_url"),
+                        URLQueryItem(name: "active", value: "eq.true"),
+                        URLQueryItem(name: "or", value: "(brand.ilike.\(like),name.ilike.\(like))"),
+                        URLQueryItem(name: "order", value: "brand,name"), URLQueryItem(name: "limit", value: String(limit))]
+        return c.url
+    }
+}
+
 struct LiveSnapshot: Codable {
     let exportedAt: String
     let rows: [OfferRow]
@@ -175,6 +210,28 @@ final class AlimiStore: ObservableObject {
               let rows = try? JSONDecoder().decode([OfferRow].self, from: data) else { return }
         let fresh = Product.from(rows)
         if !fresh.isEmpty { products = fresh; source = .live }
+    }
+    func searchCatalog(_ q: String) async -> [CatalogItem]? {
+        guard let url = CatalogItem.searchURL(q) else { return [] }
+        var request = URLRequest(url: url, timeoutInterval: 15)
+        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
+        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        let tracked = Set(products.map(\.sku))
+        return (try? JSONDecoder().decode([CatalogItem].self, from: data))?.filter { !tracked.contains($0.sku) }
+    }
+    // Moves a catalog item into the tracking layer and saves it as a favorite.
+    func startTracking(_ item: CatalogItem) async -> Bool {
+        var request = URLRequest(url: URL(string: "/rest/v1/rpc/request_tracking", relativeTo: LiveAPI.baseURL)!, timeoutInterval: 15)
+        request.httpMethod = "POST"
+        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONEncoder().encode(["p_retailer": item.retailer, "p_market": item.market, "p_sku": item.sku])
+        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200,
+              let slug = try? JSONDecoder().decode(String.self, from: data) else { return false }
+        await refresh()
+        if !saved.favorites.contains(slug) { saved.favorites.insert(slug) }
+        EventLogger.shared.log(.wishlistAdd, productID: slug, props: ["from": "catalog"])
+        return true
     }
     private func persist() {
         if let data = try? JSONEncoder().encode(saved) { defaults.set(data, forKey: "alimi.live.v1") }

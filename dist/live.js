@@ -17,7 +17,7 @@ export function toProducts(rows) {
     sku: r.external_id,
     brand: r.products.brand,
     name: r.products.name,
-    size: r.products.size,
+    size: r.products.size ?? '',
     category: categoryOf(r.products.name),
     retailer: r.retailer,
     currency: r.currency,
@@ -45,6 +45,35 @@ export async function loadProducts(fetchImpl = fetch, snapshotUrl = './live-snap
     const snap = await res.json();
     return {products: toProducts(snap.rows), source: 'snapshot', exportedAt: snap.exportedAt};
   }
+}
+
+// Catalog layer search (whole official feed, current price only). Query is reduced to safe characters
+// before it is placed in the PostgREST filter.
+export const catalogQuery = q => q.replace(/[^\p{L}\p{N} &'-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+export function catalogSearchUrl(q, limit = 30) {
+  const term = catalogQuery(q);
+  if (term.length < 2) return null;
+  const like = `"*${term.replace(/"/g, '')}*"`;
+  const params = new URLSearchParams({
+    select: 'retailer,market,sku,brand,name,price_minor,currency,availability,image_url',
+    active: 'eq.true', or: `(brand.ilike.${like},name.ilike.${like})`, order: 'brand,name', limit: String(limit)
+  });
+  return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
+}
+export async function searchCatalog(q, fetchImpl = fetch) {
+  const url = catalogSearchUrl(q);
+  if (!url) return [];
+  const res = await fetchImpl(url, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
+  if (!res.ok) throw Error('HTTP ' + res.status);
+  return (await res.json()).map(c => ({...c, price: c.price_minor / 100}));
+}
+// Moves a catalog item into the tracking layer; returns the tracked product id (slug).
+export async function requestTracking(item, fetchImpl = fetch) {
+  const res = await fetchImpl(SUPABASE_URL + '/rest/v1/rpc/request_tracking', {method: 'POST',
+    headers: {apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json'},
+    body: JSON.stringify({p_retailer: item.retailer, p_market: item.market, p_sku: item.sku})});
+  if (!res.ok) throw Error('HTTP ' + res.status);
+  return res.json();
 }
 
 export const search = (products, q, category = '전체') => {

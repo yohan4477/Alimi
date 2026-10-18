@@ -5,7 +5,7 @@ import {sinkObservation, toMinor} from '../scripts/supabase-sink.mjs';
 const row = {retailer: 'Stylevana US', market: 'US', merchantProductId: '10759', observedAt: '2026-10-18T00:00:00.000Z',
   amount: 17.5, reportedDelivery: 3.99, availability: 'in_stock', fingerprint: 'abc', method: 'awin_feed'};
 const opts = (handler) => ({url: 'https://demo.supabase.co', key: 'k', fetchImpl: async (u, init) => handler(String(u), init)});
-const ok = body => ({ok: true, status: 200, json: async () => body});
+const ok = body => ({ok: true, status: 200, text: async () => JSON.stringify(body)});
 
 test('converts amounts to minor units without float drift', () => {
   assert.equal(toMinor(17.5), 1750);

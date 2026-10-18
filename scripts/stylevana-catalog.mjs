@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseCsv} from './stylevana-feed.mjs';
-import {registerOffer, sinkObservation} from './supabase-sink.mjs';
+import {registerOffer, sinkObservation, upsertCatalog, listOffers} from './supabase-sink.mjs';
 
 const money = /^\d+(\.\d{1,2})?$/;
 
@@ -16,7 +16,7 @@ export function matchCatalog(rows, catalog, observedAt = new Date().toISOString(
     const hits = rows.filter(r => r.merchant_product_id === item.sku && r.data_feed_id === catalog.feedId && r.merchant_id === catalog.merchantId);
     if (hits.length !== 1) return {slug: item.slug, status: hits.length ? 'ambiguous' : 'missing'};
     const r = hits[0];
-    if (r.ean !== item.ean || r.brand_name !== item.feedBrand || r.currency !== catalog.currency) return {slug: item.slug, status: 'identity_mismatch'};
+    if ((item.ean && r.ean !== item.ean) || (item.feedBrand && r.brand_name !== item.feedBrand) || r.currency !== catalog.currency) return {slug: item.slug, status: 'identity_mismatch'};
     if (!money.test(r.search_price) || Number(r.search_price) <= 0 || Number(r.search_price) > 10000) return {slug: item.slug, status: 'invalid_price'};
     let page, tracking, image;
     try { page = new URL(r.merchant_deep_link); tracking = new URL(r.aw_deep_link); image = new URL(r.merchant_image_url); }
@@ -37,22 +37,62 @@ export function matchCatalog(rows, catalog, observedAt = new Date().toISOString(
   });
 }
 
+// Catalog layer rows: every valid feed row, current price only. [Deal] relistings are dropped when a
+// regular listing with the same EAN exists, so search shows one entry per product option.
+export function buildCatalogItems(rows, catalog, seenAt) {
+  const valid = [];
+  for (const r of rows) {
+    if (r.data_feed_id !== catalog.feedId || r.merchant_id !== catalog.merchantId || r.currency !== catalog.currency) continue;
+    if (!/^[A-Za-z0-9-]{1,40}$/.test(r.merchant_product_id) || !r.brand_name || !r.product_name) continue;
+    if (!money.test(r.search_price) || Number(r.search_price) <= 0 || Number(r.search_price) > 10000) continue;
+    let page, tracking, image = null;
+    try { page = new URL(r.merchant_deep_link); tracking = new URL(r.aw_deep_link); if (r.merchant_image_url) image = new URL(r.merchant_image_url); } catch { continue; }
+    if (page.origin !== 'https://www.stylevana.com' || tracking.origin !== 'https://www.awin1.com' || tracking.searchParams.get('m') !== catalog.merchantId) continue;
+    if (image && (image.protocol !== 'https:' || !image.hostname.endsWith('.stylevana.com'))) image = null;
+    const deal = /^\s*\[deal\]/i.test(r.product_name);
+    let name = r.product_name.replace(/^\s*\[deal\]\s*/i, '').trim();
+    const prefix = r.brand_name.trim().toLowerCase();
+    if (name.toLowerCase().startsWith(prefix)) name = name.slice(prefix.length).replace(/^\s*-\s*/, '').trim() || name;
+    valid.push({deal, item: {
+      retailer: catalog.retailer, market: catalog.market, sku: r.merchant_product_id, currency: r.currency, ean: r.ean || null,
+      brand: r.brand_name.trim(), name, price_minor: Math.round(Number(r.search_price) * 100),
+      delivery_minor: money.test(r.delivery_cost) ? Math.round(Number(r.delivery_cost) * 100) : null,
+      availability: r.in_stock === '1' ? 'in_stock' : r.in_stock === '0' ? 'out_of_stock' : 'unknown',
+      url: page.origin + page.pathname, affiliate_url: tracking.href, image_url: image?.href ?? null, seen_at: seenAt, active: true
+    }});
+  }
+  const regularEans = new Set(valid.filter(v => !v.deal && v.item.ean).map(v => v.item.ean));
+  const seen = new Set();
+  return valid.filter(v => !(v.deal && v.item.ean && regularEans.has(v.item.ean)))
+    .map(v => v.item).filter(i => !seen.has(i.sku) && seen.add(i.sku));
+}
+
 export async function runCatalog(inputPath, root, options = {}) {
   const bytes = await readFile(inputPath);
   const rows = parseCsv((bytes[0] === 31 && bytes[1] === 139 ? gunzipSync(bytes) : bytes).toString('utf8'));
   const catalog = JSON.parse(await readFile(resolve(root, 'data/catalog.json'), 'utf8'));
-  const results = matchCatalog(rows, catalog, options.observedAt);
+  const observedAt = options.observedAt ?? new Date().toISOString();
+  // Tracking layer = curated catalog.json + offers users asked to track (request_tracking).
+  const curated = new Set(catalog.products.map(p => p.sku));
+  const extra = ((await listOffers(catalog.retailer, catalog.market, options)) ?? [])
+    .filter(o => !curated.has(o.external_id)).map(o => ({slug: 'sku-' + o.external_id, sku: o.external_id, ean: o.ean, tracked: true}));
+  const results = matchCatalog(rows, {...catalog, products: [...catalog.products, ...extra]}, observedAt);
   const summary = [];
   for (const r of results) {
-    if (r.status !== 'ok') { summary.push({slug: r.slug, status: r.status}); continue; }
+    // User-requested offers can disappear from the feed; report them without failing the run.
+    if (r.status !== 'ok') { summary.push({slug: r.slug, status: r.status, ...(extra.some(e => e.slug === r.slug) && {tracked: true})}); continue; }
     try {
-      const reg = await registerOffer(catalog, r.product, r.offer, options);
+      const reg = r.product.tracked ? {skipped: false} : await registerOffer(catalog, r.product, r.offer, options);
       if (reg.skipped) { summary.push({slug: r.slug, status: 'ok', amount: r.observation.amount, db: 'skipped'}); continue; }
       const {changed} = await sinkObservation(r.observation, options);
       summary.push({slug: r.slug, status: 'ok', amount: r.observation.amount, db: changed ? 'changed' : 'unchanged'});
     } catch (e) { summary.push({slug: r.slug, status: 'db_error', error: e.message}); }
   }
-  return {sourceRows: rows.length, matched: results.filter(r => r.status === 'ok').length, total: results.length, items: summary};
+  const items = buildCatalogItems(rows, catalog, observedAt);
+  let catalogLayer;
+  try { const c = await upsertCatalog(items, observedAt, options); catalogLayer = {items: items.length, db: c.skipped ? 'skipped' : 'upserted'}; }
+  catch (e) { catalogLayer = {items: items.length, db: 'db_error', error: e.message}; }
+  return {sourceRows: rows.length, matched: results.filter(r => r.status === 'ok').length, total: results.length, items: summary, catalogLayer};
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -62,6 +102,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const result = await runCatalog(input, root);
     console.log(JSON.stringify(result, null, 1));
     // Surface partial failures in CI without blocking the items that did succeed.
-    if (result.items.some(i => i.status !== 'ok')) process.exitCode = 1;
+    if (result.items.some(i => i.status !== 'ok' && !i.tracked) || result.catalogLayer.db === 'db_error') process.exitCode = 1;
   } catch (e) { console.error('Catalog import failed: ' + (e.message.includes('https:') ? 'details suppressed' : e.message)); process.exitCode = 1; }
 }
