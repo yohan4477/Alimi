@@ -8,7 +8,7 @@ struct RootView: View {
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            BrowseView().tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
+            BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
             SavedView(tab: $tab).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
             CommunityTab().tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
@@ -93,6 +93,7 @@ struct ProductArt: View {
     }
 }
 struct BrowseView: View {
+    var onCommunity: () -> Void = {}
     @EnvironmentObject var store: AlimiStore
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
@@ -113,6 +114,7 @@ struct BrowseView: View {
                         Text(L("hero.line1")).font(.system(size: 28, weight: .bold))
                         Text(L("hero.line2")).font(.system(size: 28, weight: .bold))
                         Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
+                        Button(L("community.homeCTA"), action: onCommunity).buttonStyle(.borderedProminent)
                     }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
                     if brandsLoading { ProgressView(L("loading")).frame(maxWidth: .infinity) }
                     else if brandsFailed {
