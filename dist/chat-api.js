@@ -55,6 +55,21 @@ async function rpc(name, body, fetchImpl) {
 }
 
 export const fetchRooms = (fetchImpl = fetch) => get(roomsUrl(), fetchImpl);
+// Rooms this device joined ("My chats"), each with its latest message for the preview line.
+export const myRoomsUrl = tag => SUPABASE_URL + '/rest/v1/chat_members?' + new URLSearchParams({select: 'room_id,joined_at', author_tag: 'eq.' + tag, order: 'joined_at.desc'});
+export async function fetchMyRooms(tag, fetchImpl = fetch) {
+  const joined = await get(myRoomsUrl(tag), fetchImpl);
+  return Promise.all(joined.map(async j => {
+    const params = new URLSearchParams({select: 'body,item,created_at', room_id: 'eq.' + j.room_id, order: 'id.desc', limit: '1'});
+    const [last] = await get(SUPABASE_URL + '/rest/v1/chat_messages?' + params, fetchImpl).catch(() => []);
+    return {room_id: j.room_id, last: last ?? null};
+  }));
+}
+// Rooms tab: busiest topic rooms first (messages in 24h, then members); Topics tab: latest activity first.
+export const hotRooms = (rooms, n = 6) => rooms.filter(r => r.kind !== 'brand')
+  .sort((a, b) => b.messages_24h - a.messages_24h || b.members - a.members || a.sort - b.sort).slice(0, n);
+export const topicRooms = (rooms, tag = 'all') => rooms.filter(r => r.kind !== 'brand' && (tag === 'all' || r.tag === tag))
+  .sort((a, b) => (b.last_message_at ?? '').localeCompare(a.last_message_at ?? '') || a.sort - b.sort);
 export async function fetchMessages(room, afterId = 0, fetchImpl = fetch) {
   const rows = await get(messagesUrl(room, afterId), fetchImpl);
   return afterId ? rows : rows.reverse();

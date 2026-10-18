@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 import CryptoKit
 
 // Topic chat (#68), same backend as the web app. Anonymous: a random per-device secret proves authorship to
@@ -9,10 +9,16 @@ struct ChatRoom: Codable, Identifiable, Hashable {
     let titleEn, titleKo, introEn, introKo: String
     let members: Int
     let messages24h: Int
+    var kind: String? = nil
+    var tag: String? = nil
+    var brand: String? = nil
+    var logoUrl: URL? = nil
+    var lastMessageAt: String? = nil
+    var isBrand: Bool { kind == "brand" }
     var title: String { L10n.language == "ko" ? titleKo : titleEn }
     var intro: String { L10n.language == "ko" ? introKo : introEn }
     enum CodingKeys: String, CodingKey {
-        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h"
+        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h", kind, tag, brand, logoUrl = "logo_url", lastMessageAt = "last_message_at"
     }
 }
 struct ChatItem: Codable, Hashable {
@@ -100,9 +106,27 @@ enum ChatAPI {
 
     static func rooms() async throws -> [ChatRoom] {
         if offline { return [ChatRoom(id: "acne", titleEn: "Acne & breakouts", titleKo: "트러블·여드름", introEn: "What actually worked for your breakouts?",
-                                      introKo: "트러블에 효과 본 제품 이야기", members: 3, messages24h: 1)] }
+                                      introKo: "트러블에 효과 본 제품 이야기", members: 3, messages24h: 1, kind: "topic", tag: "skin"),
+                                ChatRoom(id: "brand-cosrx", titleEn: "COSRX", titleKo: "코스알엑스", introEn: "COSRX fans", introKo: "코스알엑스 팬 모임",
+                                         members: 2, messages24h: 0, kind: "brand", brand: "COSRX")] }
         let url = URL(string: "/rest/v1/chat_room_list?select=*&order=sort", relativeTo: LiveAPI.baseURL)!
         return try JSONDecoder().decode([ChatRoom].self, from: try await send(URLRequest(url: url)))
+    }
+    struct Last { let body: String; let createdAt: String? }
+    // Rooms this device joined (chat_members is publicly readable), each with its newest message for the preview.
+    static func myRooms(all: [ChatRoom]) async throws -> [(room: ChatRoom, last: Last?)] {
+        if offline { return all.filter { $0.id == "acne" }.map { ($0, nil) } }
+        let url = URL(string: "/rest/v1/chat_members?select=room_id&author_tag=eq." + myTag, relativeTo: LiveAPI.baseURL)!
+        struct M: Decodable { let room_id: String }
+        let ids = Set(try JSONDecoder().decode([M].self, from: try await send(URLRequest(url: url))).map(\.room_id))
+        var out: [(room: ChatRoom, last: Last?)] = []
+        for room in all where ids.contains(room.id) {
+            struct R: Decodable { let body: String; let created_at: String }
+            let u = URL(string: "/rest/v1/chat_messages?select=body,created_at&room_id=eq.\(room.id)&order=id.desc&limit=1", relativeTo: LiveAPI.baseURL)!
+            let row = (try? JSONDecoder().decode([R].self, from: try await send(URLRequest(url: u))))?.first
+            out.append((room, row.map { Last(body: $0.body, createdAt: $0.created_at) }))
+        }
+        return out
     }
     static func messages(room: String, after: Int = 0) async throws -> [ChatMessage] {
         if offline { return after > 0 ? [] : [ChatMessage(id: 1, authorTag: "other", nickname: "Calm Otter", body: "추천 좀 해주세요", item: nil,
@@ -132,49 +156,209 @@ enum ChatAPI {
 }
 
 struct ChatTab: View {
+    enum Pane: Int, CaseIterable { case rooms, topics, mine }
     @State private var rooms: [ChatRoom]?
+    @State private var mine: [(room: ChatRoom, last: ChatAPI.Last?)]?
     @State private var failed = false
     @State private var asking: ChatRoom?
     @State private var open: ChatRoom?
+    @State private var pane = Pane.rooms
+    @State private var tag = "all"
+    @State private var searching = false
+    @State private var query = ""
+
+    private var needle: String { query.trimmingCharacters(in: .whitespaces).lowercased() }
+    private var filtered: [ChatRoom] {
+        (rooms ?? []).filter { needle.isEmpty || $0.title.lowercased().contains(needle) }
+    }
+    private var topics: [ChatRoom] { filtered.filter { !$0.isBrand } }
+    private var hot: [ChatRoom] {
+        Array(topics.sorted { ($0.messages24h, $0.members) > ($1.messages24h, $1.members) }.prefix(6))
+    }
+    private var tagged: [ChatRoom] {
+        if tag == "all" { return topics.sorted { ($0.lastMessageAt ?? "") > ($1.lastMessageAt ?? "") } }
+        return topics.filter { $0.tag == tag }
+    }
+    private func choose(_ room: ChatRoom) { if ChatAPI.agreed { open = room } else { asking = room } }
+
     var body: some View {
         NavigationStack {
-            List {
-                Section { Text(L("chat.sub")).font(.subheadline).foregroundStyle(.secondary) }
-                if let rooms {
-                    ForEach(rooms) { room in
-                        Button { if ChatAPI.agreed { open = room } else { asking = room } } label: { RoomRow(room: room) }
-                            .accessibilityIdentifier("chat-room-\(room.id)")
+            VStack(spacing: 0) {
+                header
+                if searching {
+                    TextField(L("chat.searchRooms"), text: $query).textFieldStyle(.roundedBorder).padding(.horizontal, 16).padding(.bottom, 8)
+                }
+                ScrollView {
+                    if rooms == nil {
+                        if failed { Text(L("chat.loadFailed")).foregroundStyle(.secondary).padding(.top, 40) }
+                        else { ProgressView().frame(maxWidth: .infinity).padding(.top, 40) }
+                    } else {
+                        switch pane {
+                        case .rooms: roomsContent
+                        case .topics: topicsContent
+                        case .mine: mineContent
+                        }
                     }
-                } else if failed {
-                    Text(L("chat.loadFailed")).foregroundStyle(.secondary)
-                } else {
-                    ProgressView().frame(maxWidth: .infinity)
                 }
             }
-            .navigationTitle(L("chat.title"))
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(item: $open) { ChatRoomView(room: $0) }
             .sheet(item: $asking) { room in JoinSheet(room: room) { ChatAPI.agreed = true; asking = nil; open = room } }
             .task { await load() }
             .refreshable { await load() }
+            .onChange(of: pane) { if pane == .mine { Task { await loadMine() } } }
         }
+    }
+
+    private var header: some View {
+        HStack(alignment: .bottom, spacing: 20) {
+            ForEach(Pane.allCases, id: \.self) { p in
+                Button { pane = p } label: {
+                    VStack(spacing: 4) {
+                        Text(L(["chat.tab.rooms", "chat.tab.topics", "chat.tab.mine"][p.rawValue])).font(.title2.bold())
+                            .foregroundStyle(pane == p ? Color.black : Color.gray)
+                        Capsule().fill(pane == p ? Color.orange : Color.clear).frame(width: 22, height: 3)
+                    }
+                }.buttonStyle(.plain).accessibilityIdentifier("chat-tab-\(p.rawValue)")
+            }
+            Spacer()
+            Button { searching.toggle(); if !searching { query = "" } } label: {
+                Image(systemName: "magnifyingglass").font(.title3).foregroundStyle(.primary)
+            }.accessibilityIdentifier("chat-search").accessibilityLabel(L("chat.searchRooms"))
+        }.padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 8)
+    }
+
+    private var roomsContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(L("chat.hot")).font(.headline).padding(.horizontal, 16).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
+                .background(LinearGradient(colors: [Color.orange.opacity(0.15), Color.indigo.opacity(0.08)], startPoint: .leading, endPoint: .trailing))
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                ForEach(hot) { room in
+                    Button { choose(room) } label: { RoomCard(room: room) }.buttonStyle(.plain)
+                        .accessibilityIdentifier("chat-room-\(room.id)")
+                }
+            }.padding(16)
+            let brands = filtered.filter(\.isBrand)
+            if !brands.isEmpty {
+                Text(L("chat.brandRooms")).font(.headline).padding(.horizontal, 16).padding(.vertical, 10)
+                ForEach(brands) { room in rowButton(room) }
+            }
+        }
+    }
+    private var topicsContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(["all", "talk", "skin", "makeup", "deals"], id: \.self) { t in
+                        Button { tag = t } label: {
+                            Text(L("chat.tag." + t)).font(.subheadline).padding(.vertical, 7).padding(.horizontal, 14)
+                                .background(tag == t ? Color.indigo.opacity(0.12) : Color(.systemBackground), in: Capsule())
+                                .overlay(Capsule().stroke(tag == t ? Color.indigo : Color.gray.opacity(0.3), lineWidth: 1))
+                                .foregroundStyle(tag == t ? Color.indigo : Color.primary)
+                        }.buttonStyle(.plain).accessibilityIdentifier("chat-tag-\(t)")
+                    }
+                }.padding(.horizontal, 16).padding(.vertical, 10)
+            }
+            ForEach(tagged) { room in rowButton(room) }
+        }
+    }
+    @ViewBuilder private var mineContent: some View {
+        if let mine {
+            let shown = mine.filter { needle.isEmpty || $0.room.title.lowercased().contains(needle) }
+            if shown.isEmpty {
+                Text(L("chat.mineEmpty")).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: .infinity).padding(.top, 60)
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(shown, id: \.room.id) { item in
+                        Button { choose(item.room) } label: {
+                            RoomRow(room: item.room, subtitle: item.last?.body ?? L("chat.noMessages"), time: Self.clock(item.last?.createdAt))
+                        }.buttonStyle(.plain).accessibilityIdentifier("chat-room-\(item.room.id)")
+                    }
+                }
+            }
+        } else {
+            ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
+        }
+    }
+    private static let hhmm: DateFormatter = { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f }()
+    private static func clock(_ iso: String?) -> String? {
+        iso.flatMap { ISODate.parse($0) }.map { hhmm.string(from: $0) }
+    }
+    private func rowButton(_ room: ChatRoom) -> some View {
+        Button { choose(room) } label: { RoomRow(room: room, subtitle: room.intro, time: nil) }
+            .buttonStyle(.plain).accessibilityIdentifier("chat-room-\(room.id)")
     }
     private func load() async {
         EventLogger.shared.log(.chatOpen)
         do { rooms = try await ChatAPI.rooms(); failed = false } catch { failed = rooms == nil }
+        if pane == .mine { await loadMine() }
+    }
+    private func loadMine() async {
+        guard let rooms else { return }
+        if let result = try? await ChatAPI.myRooms(all: rooms) { mine = result } else if mine == nil { mine = [] }
     }
 }
-struct RoomRow: View {
+
+struct RoomCard: View {
     let room: ChatRoom
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(room.title).font(.headline).foregroundStyle(.primary)
-                Text(room.intro).font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top) {
+                Text(room.title).font(.subheadline.bold()).foregroundStyle(.primary).lineLimit(1)
+                Spacer(minLength: 4)
+                if room.messages24h > 0 { Circle().fill(Color.orange).frame(width: 7, height: 7).accessibilityLabel(L("chat.active")) }
             }
-            Spacer()
-            if room.messages24h > 0 { Circle().fill(.orange).frame(width: 8, height: 8).accessibilityLabel(L("chat.active")) }
-            Text(L("chat.members", ["n": room.members])).font(.caption).foregroundStyle(.secondary)
-        }.padding(.vertical, 6)
+            Text(L("chat.members", ["n": room.members])).font(.caption).foregroundStyle(.gray)
+            HStack {
+                Spacer()
+                if room.isBrand { RoomBadge(room: room, size: 22) }
+                else { Image(systemName: "person.2.fill").font(.caption).foregroundStyle(Color.indigo.opacity(0.5)) }
+            }
+        }
+        .padding(12).frame(maxWidth: .infinity, minHeight: 84, alignment: .topLeading)
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.25), lineWidth: 1))
+    }
+}
+
+struct RoomBadge: View {
+    let room: ChatRoom
+    let size: CGFloat
+    var body: some View {
+        let name = room.brand ?? room.title
+        Group {
+            if room.logoUrl != nil { RemoteImage(url: room.logoUrl, label: name).scaledToFill() }
+            else { Text(String(name.prefix(2)).uppercased()).font(.system(size: size * 0.4, weight: .bold)).foregroundStyle(Color.indigo) }
+        }
+        .frame(width: size, height: size).background(Color.indigo.opacity(0.1)).clipShape(Circle())
+    }
+}
+
+struct RoomRow: View {
+    let room: ChatRoom
+    let subtitle: String
+    let time: String?
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                if room.isBrand { RoomBadge(room: room, size: 48) }
+                else {
+                    Image(systemName: "person.2.fill").foregroundStyle(Color.indigo)
+                        .frame(width: 48, height: 48).background(Color.indigo.opacity(0.1), in: Circle())
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    titleText.lineLimit(1)
+                    Text(subtitle).font(.subheadline).foregroundStyle(.gray).lineLimit(1)
+                }
+                Spacer(minLength: 4)
+                if let time { Text(time).font(.caption).foregroundStyle(.gray) }
+            }.padding(.horizontal, 16).padding(.vertical, 10)
+            Divider().padding(.leading, 76)
+        }.contentShape(Rectangle())
+    }
+    private var titleText: Text {
+        Text(room.title).font(.body.bold()).foregroundColor(.primary)
+            + Text(" " + L("chat.count", ["n": room.members])).font(.subheadline).foregroundColor(.gray)
     }
 }
 // Room rules shown once before the first join (App Store UGC: users accept terms before posting).

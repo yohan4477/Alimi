@@ -118,6 +118,12 @@ export async function fetchBrands(fetchImpl = fetch) {
   if (!res.ok) throw Error('HTTP ' + res.status);
   return (await res.json()).map(b => ({...b, brandKo: b.brand_ko ?? null}));
 }
+// The strip shows two rows and scrolls sideways; the grid fills column by column, so interleave the list
+// to keep rank order reading left to right on each row (top: 1..8, bottom: 9..15).
+export function twoRowOrder(list) {
+  const top = list.slice(0, Math.ceil(list.length / 2)), bottom = list.slice(top.length);
+  return top.flatMap((x, i) => (i < bottom.length ? [x, bottom[i]] : [x]));
+}
 export const brandInitials = brand => {
   const words = brand.replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).filter(Boolean);
   return (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? '?').slice(0, 2)).toUpperCase();

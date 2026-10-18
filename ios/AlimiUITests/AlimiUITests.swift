@@ -122,7 +122,7 @@ final class AlimiUITests: XCTestCase {
     }
     func testChatJoinSendAndBlock() {
         app.tabBars.buttons["채팅"].tap()
-        let room = app.buttons["chat-room-acne"]
+        let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
         let join = app.buttons["chat-join"]
