@@ -11,7 +11,7 @@
 | [서비스 기획](docs/SERVICE_PLAN.md) | 어떤 화면과 행동으로 가치를 제공하는가? |
 | [실행 로드맵](docs/ROADMAP.md) | 무엇을 먼저 검증하고 추진하는가? |
 | [기획박스 #26](https://github.com/yohan4477/Alimi/issues/26) | 기존 아이디어·상세 Issue는 어디에 연결되는가? |
-| [운영 현황](docs/PRODUCT_STATUS.md) | 무엇이 실제 구현·검증·배포됐는가? |
+| [관리 대시보드](docs/PRODUCT_STATUS.md) | 현재 우선순위·구현/검증/배포·커뮤니티와 구매 성과는? |
 
 [의사결정](docs/DECISIONS.md) · [기능 ID 인덱스](docs/FEATURE_REGISTER.md) · [운영 규칙](docs/PRODUCT_OPERATIONS.md) · [커뮤니티 구현 상세](docs/COMMUNITY_COMMERCE.md)
 
