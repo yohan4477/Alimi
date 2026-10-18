@@ -64,8 +64,8 @@ final class AlimiUITests: XCTestCase {
         var n = 0
         while !screen.contains(tab.frame) && n < 8 {
             let y = (tab.frame.midY - screen.minY) / screen.height
-            let start = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.minX > screen.maxX ? 0.8 : 0.2, dy: y))
-            let end = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.minX > screen.maxX ? 0.2 : 0.8, dy: y))
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.midX > screen.midX ? 0.8 : 0.2, dy: y))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: tab.frame.midX > screen.midX ? 0.2 : 0.8, dy: y))
             start.press(forDuration: 0.05, thenDragTo: end)
             n += 1
         }
