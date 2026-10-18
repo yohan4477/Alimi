@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {parseCsv} from './stylevana-feed.mjs';
 import {registerOffer, sinkObservation, upsertCatalog, listOffers} from './supabase-sink.mjs';
 import {categoryOf, makeBrandInfo} from './catalog-taxonomy.mjs';
+import {parseVariant, familyKey, unitPriceMinor} from './catalog-variants.mjs';
 
 const money = /^\d+(\.\d{1,2})?$/;
 
@@ -57,9 +58,12 @@ export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({ori
     let name = r.product_name.replace(/^\s*\[deal\]\s*/i, '').trim();
     const prefix = r.brand_name.trim().toLowerCase();
     if (name.toLowerCase().startsWith(prefix)) name = name.slice(prefix.length).replace(/^\s*-\s*/, '').trim() || name;
+    const variant = parseVariant(name), priceMinor = Math.round(Number(r.search_price) * 100);
     valid.push({deal, item: {
       retailer: catalog.retailer, market: catalog.market, sku: r.merchant_product_id, currency: r.currency, ean: r.ean || null,
-      brand: r.brand_name.trim(), brand_ko: brand.brandKo, name, category: categoryOf(name), price_minor: Math.round(Number(r.search_price) * 100),
+      brand: r.brand_name.trim(), brand_ko: brand.brandKo, name, category: categoryOf(name), price_minor: priceMinor,
+      family_key: familyKey(r.brand_name, name), base_name: variant.base, size_label: variant.sizeLabel, option_label: variant.option,
+      unit: variant.unit, quantity: variant.quantity, unit_price_minor: unitPriceMinor(priceMinor, variant),
       delivery_minor: money.test(r.delivery_cost) ? Math.round(Number(r.delivery_cost) * 100) : null,
       availability: r.in_stock === '1' ? 'in_stock' : r.in_stock === '0' ? 'out_of_stock' : 'unknown',
       url: page.origin + page.pathname, affiliate_url: tracking.href, image_url: image?.href ?? null, seen_at: seenAt, active: true
@@ -77,7 +81,8 @@ export async function runCatalog(inputPath, root, options = {}) {
   console.log('feed columns: ' + Object.keys(rows[0] ?? {}).join(', ')); // names only, never values
   const catalog = JSON.parse(await readFile(resolve(root, 'data/catalog.json'), 'utf8'));
   const brandInfo = makeBrandInfo(JSON.parse(await readFile(resolve(root, 'data/brands.json'), 'utf8')));
-  catalog.products = catalog.products.map(p => ({...p, category: categoryOf(p.name), brandKo: brandInfo(p.feedBrand).brandKo}));
+  catalog.products = catalog.products.map(p => ({...p, category: categoryOf(p.name), brandKo: brandInfo(p.feedBrand).brandKo,
+    familyKey: familyKey(p.feedBrand, p.name), sizeLabel: p.size ?? null}));
   const observedAt = options.observedAt ?? new Date().toISOString();
   // Tracking layer = curated catalog.json + offers users asked to track (request_tracking).
   const curated = new Set(catalog.products.map(p => p.sku));
