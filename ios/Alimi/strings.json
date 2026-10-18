@@ -253,8 +253,8 @@
     "en": "{retailer} · US price"
   },
   "detail.checked": {
-    "ko": "{checked} 확인 · 가격 변경 {changed}",
-    "en": "Checked {checked} · Price changed {changed}"
+    "ko": "상품가 확인 {checked} · 최신 조건은 판매처에서 확인",
+    "en": "Price checked {checked} · confirm current terms at the retailer"
   },
   "detail.shippingChip": {
     "ko": "배송비 {v}~",
@@ -381,8 +381,8 @@
     "en": "{n} price changes in {days}d"
   },
   "reset.confirm": {
-    "ko": "관심 상품과 목표가를 초기화할까요?",
-    "en": "Clear saved items and target prices?"
+    "ko": "관심 상품을 초기화할까요?",
+    "en": "Clear saved products?"
   },
   "reset": {
     "ko": "저장 초기화",
@@ -405,8 +405,8 @@
     "en": "Saved"
   },
   "html.title": {
-    "ko": "SeoulBeauty · 뷰티 가격 알림",
-    "en": "SeoulBeauty · K-beauty price alerts"
+    "ko": "SeoulBeauty · 한국 뷰티 커뮤니티",
+    "en": "SeoulBeauty · K-beauty community"
   },
   "search.label": {
     "ko": "상품 검색",
@@ -425,28 +425,28 @@
     "en": "THE DAILY BEAUTY EDIT"
   },
   "hero.line1": {
-    "ko": "매일 쓰는 뷰티,",
-    "en": "Your everyday K-beauty,"
+    "ko": "함께 이야기하는",
+    "en": "Talk about"
   },
   "hero.line2": {
-    "ko": "가격은 가볍게.",
-    "en": "at a lighter price."
+    "ko": "한국 뷰티.",
+    "en": "K-beauty together."
   },
   "hero.sub": {
-    "ko": "눈여겨본 제품의 가격 흐름을 확인하세요",
-    "en": "See how prices move on the products you love"
+    "ko": "피부와 취향이 비슷한 사람들의 경험을 나눠보세요",
+    "en": "Share experiences with people who understand your skin and style"
   },
   "hero.subApp": {
-    "ko": "눈여겨본 K-뷰티, 지금은 어떤 가격일까요?",
-    "en": "What's the price on the K-beauty you've been eyeing?"
+    "ko": "피부와 취향이 비슷한 사람들의 경험을 나눠보세요",
+    "en": "Share experiences with people who understand your skin and style"
   },
   "hero.cta": {
     "ko": "제품 둘러보기 ↗",
     "en": "Browse products ↗"
   },
   "list.subtitle": {
-    "ko": "좋아하는 제품, 좋은 가격에",
-    "en": "Products you love, at prices you like"
+    "ko": "브랜드와 상품을 둘러보고 경험을 나눠보세요",
+    "en": "Explore brands and products, then share your experience"
   },
   "footer": {
     "ko": "SeoulBeauty · Stylevana US 공식 제휴 피드 · 피드 갱신 시 1시간 안에 반영",
@@ -545,8 +545,8 @@
     "en": "Other sizes & options"
   },
   "family.watching": {
-    "ko": "지켜보는 중",
-    "en": "Watching"
+    "ko": "상품 보기",
+    "en": "View product"
   },
   "family.default": {
     "ko": "기본",
@@ -733,8 +733,8 @@
     "en": "Add"
   },
   "saved.count": {
-    "ko": "{n}개 지켜보는 중",
-    "en": "Watching {n}"
+    "ko": "관심 상품 {n}개",
+    "en": "{n} saved products"
   },
   "search.title": {
     "ko": "검색",
@@ -785,8 +785,8 @@
     "en": "Clear saved products"
   },
   "settings.clearSavedConfirm": {
-    "ko": "관심상품과 목표가를 모두 지울까요?",
-    "en": "Remove all saved products and target prices?"
+    "ko": "관심 상품을 모두 지울까요?",
+    "en": "Clear all saved products?"
   },
   "settings.cleared": {
     "ko": "정리했어요",
@@ -1243,5 +1243,17 @@
   "retry": {
     "ko": "다시 시도",
     "en": "Retry"
+  },
+  "section.products": {
+    "ko": "상품 둘러보기",
+    "en": "Explore products"
+  },
+  "empty.category": {
+    "ko": "이 카테고리에 표시할 상품이 없어요. 아래 카탈로그를 둘러보세요.",
+    "en": "No products here yet. Explore the catalog below."
+  },
+  "catalog.savedSnapshot": {
+    "ko": "저장 당시 상품 정보예요. 최신 가격·재고는 판매처에서 확인하세요.",
+    "en": "Saved product snapshot. Check the retailer for the latest price and stock."
   }
 }

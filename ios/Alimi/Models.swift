@@ -66,17 +66,18 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     var unitPriceMinor: Int? = nil
     var url: String? = nil
     var affiliateUrl: String? = nil
+    var familyKey: String? = nil
     var id: String { "\(retailer)|\(market)|\(sku)" }
     var buyLink: URL? { Purchase.buyURL(affiliateUrl ?? url) }
     var variantLabel: String { [sizeLabel, optionLabel].compactMap { $0 }.joined(separator: " · ") }
     var unitPrice: Double? { unitPriceMinor.map { Double($0) / 100 } }
     var price: Double { Double(priceMinor) / 100 }
     var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
-    static let fields = "retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url"
+    static let fields = "retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url,url,affiliate_url,family_key"
     enum CodingKeys: String, CodingKey {
         case retailer, market, sku, brand, brandKo = "brand_ko", name, category, priceMinor = "price_minor", currency, availability, imageUrl = "image_url"
         case sizeLabel = "size_label", optionLabel = "option_label", unit, unitPriceMinor = "unit_price_minor"
-        case url, affiliateUrl = "affiliate_url"
+        case url, affiliateUrl = "affiliate_url", familyKey = "family_key"
     }
     static func unitName(_ unit: String?) -> String { unit == "ml" || unit == "g" ? "10" + (unit ?? "") : unit == "pcs" ? "1pc" : (unit ?? "") }
     // Duplicate listings of the same size/option collapse to the cheapest; best unit price first.
@@ -185,12 +186,12 @@ struct LiveSnapshot: Codable {
     let rows: [OfferRow]
 }
 
-struct PricePoint: Identifiable, Hashable {
+struct PricePoint: Codable, Identifiable, Hashable {
     let date: Date
     let price: Double
     var id: Date { date }
 }
-struct Product: Identifiable, Hashable {
+struct Product: Codable, Identifiable, Hashable {
     let id: String
     let sku: String
     let brand: String
@@ -290,12 +291,13 @@ final class AlimiStore: ObservableObject {
     @Published private(set) var loading = false
     private let defaults: UserDefaults
     private let session: URLSession
+    private var catalogSaves: [Product] = []
 
     init(defaults: UserDefaults = .standard, products: [Product]? = nil, session: URLSession = .shared) {
         self.defaults = defaults
         self.session = session
         // UI tests start from an empty device state and the bundled snapshot only (no network dependency).
-        if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") { defaults.removeObject(forKey: "alimi.live.v1") }
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") { defaults.removeObject(forKey: "alimi.live.v1"); defaults.removeObject(forKey: "seoulbeauty.catalog-saves.v1") }
         saved = defaults.data(forKey: "alimi.live.v1").flatMap { try? JSONDecoder().decode(SavedState.self, from: $0) } ?? SavedState()
         if let products {
             self.products = products; source = .none
@@ -304,6 +306,12 @@ final class AlimiStore: ObservableObject {
         } else {
             self.products = []; source = .none
         }
+        catalogSaves = defaults.data(forKey: "seoulbeauty.catalog-saves.v1").flatMap { try? JSONDecoder().decode([Product].self, from: $0) } ?? []
+        self.products = mergingCatalogSaves(self.products)
+    }
+    private func mergingCatalogSaves(_ rows: [Product]) -> [Product] {
+        let keys = Set(catalogSaves.map { $0.retailer + "|" + $0.sku })
+        return rows.filter { !keys.contains($0.retailer + "|" + $0.sku) } + catalogSaves
     }
     static func bundledSnapshot() -> LiveSnapshot? {
         guard let url = Bundle.main.url(forResource: "live-snapshot", withExtension: "json"),
@@ -320,7 +328,7 @@ final class AlimiStore: ObservableObject {
               (response as? HTTPURLResponse)?.statusCode == 200,
               let rows = try? JSONDecoder().decode([OfferRow].self, from: data) else { return }
         let fresh = Product.from(rows)
-        if !fresh.isEmpty { products = fresh; source = .live }
+        if !fresh.isEmpty { products = mergingCatalogSaves(fresh); source = .live }
     }
     func searchCatalog(_ q: String) async -> [CatalogItem]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
@@ -331,18 +339,27 @@ final class AlimiStore: ObservableObject {
         let tracked = Set(products.map(\.sku))
         return (try? JSONDecoder().decode([CatalogItem].self, from: data))?.filter { !tracked.contains($0.sku) }
     }
-    // Moves a catalog item into the tracking layer and saves it as a favorite.
-    func startTracking(_ item: CatalogItem) async -> Bool {
-        var request = URLRequest(url: URL(string: "/rest/v1/rpc/request_tracking", relativeTo: LiveAPI.baseURL)!, timeoutInterval: 15)
-        request.httpMethod = "POST"
-        request.setValue(LiveAPI.publishableKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONEncoder().encode(["p_retailer": item.retailer, "p_market": item.market, "p_sku": item.sku])
-        guard let (data, response) = try? await session.data(for: request), (response as? HTTPURLResponse)?.statusCode == 200,
-              let slug = try? JSONDecoder().decode(String.self, from: data) else { return false }
-        await refresh()
-        if !saved.favorites.contains(slug) { saved.favorites.insert(slug) }
-        EventLogger.shared.log(.wishlistAdd, productID: slug, props: ["from": "catalog"])
+    // Save a local snapshot; no RPC, history subscription or price-alert enrollment.
+    func saveCatalogItem(_ item: CatalogItem) async -> Bool {
+        if let existing = products.first(where: { $0.sku == item.sku && $0.retailer == item.retailer }) {
+            saved.favorites.insert(existing.id)
+            return true
+        }
+        guard let link = item.buyLink else { return false }
+        let id = "catalog|" + item.id
+        let p = Product(id: id, sku: item.sku, brand: item.brand, brandKo: item.brandKo, name: item.name,
+                        size: item.sizeLabel ?? "", category: item.category ?? "기타", familyKey: item.familyKey, retailer: item.retailer,
+                        currency: item.currency, url: URL(string: item.url ?? "") ?? link,
+                        affiliateUrl: item.affiliateUrl.flatMap { URL(string: $0) }, imageUrl: item.imageUrl,
+                        price: item.price, delivery: nil, availability: item.availability,
+                        changedAt: .distantPast, checkedAt: .distantPast, history: [])
+        let next = catalogSaves.filter { $0.id != id } + [p]
+        guard let data = try? JSONEncoder().encode(next) else { return false }
+        defaults.set(data, forKey: "seoulbeauty.catalog-saves.v1")
+        catalogSaves = next
+        products = mergingCatalogSaves(products)
+        saved.favorites.insert(id)
+        EventLogger.shared.log(.wishlistAdd, productID: id, props: ["from": "catalog"])
         return true
     }
     private func persist() {

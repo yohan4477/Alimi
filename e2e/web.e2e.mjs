@@ -146,11 +146,13 @@ try {
   await step('English UI for US users', async () => {
     await page.goto(withLang('en'));
     await page.waitForSelector('.catalog-grid .card', {timeout: 20000});
-    assert.equal(await page.textContent('#list-title'), 'Watching prices');
+    assert.equal(await page.textContent('#list-title'), 'Explore products');
     assert.ok((await page.locator('#categories .chip').allTextContents()).includes('Sun care'));
     assert.match(await page.textContent('.notice'), /Official Stylevana US prices/);
     assert.equal(await page.locator('text=/[가-힣]/').count(), 0, 'no Korean text in the English UI');
   });
+  await page.locator('#products > .card .product-open').first().click();
+  assert.equal(await page.locator('#set-target,.analysis-section,.target-section').count(),0,'no price tracking UI');
   if (errors.length) console.log('JS errors:', JSON.stringify(errors));
   assert.deepEqual(errors, [], 'no JavaScript errors');
   console.log('web e2e passed');

@@ -19,6 +19,20 @@ final class AlimiTests: XCTestCase {
             product("tirtir", brand: "TIRTIR", brandKo: "티르티르", name: "Mask Fit Red Cushion 21C", category: "베이스메이크업", price: 20)
         ])
     }
+    func testCatalogSaveSurvivesRevisitWithoutHistoryOrTargets() async {
+        let defaults = UserDefaults(suiteName: "AlimiTests.catalog.\(UUID().uuidString)")!
+        let first = AlimiStore(defaults: defaults, products: [])
+        let item = CatalogItem(retailer: "Stylevana US", market: "US", sku: "999", brand: "COSRX", brandKo: nil,
+                               name: "Test", category: "립", priceMinor: 1750, currency: "USD", availability: "in_stock",
+                               imageUrl: nil, url: "https://www.stylevana.com/test.html")
+        let didSave = await first.saveCatalogItem(item)
+        XCTAssertTrue(didSave)
+        let second = AlimiStore(defaults: defaults, products: [])
+        XCTAssertEqual(second.products.count, 1)
+        XCTAssertTrue(second.saved.favorites.contains(second.products[0].id))
+        XCTAssertTrue(second.products[0].history.isEmpty)
+        XCTAssertTrue(second.saved.targets.isEmpty)
+    }
     func testNotificationPermissionRouting() {
         XCTAssertEqual(NotificationPermissionAction.resolve(.notDetermined), .request)
         XCTAssertEqual(NotificationPermissionAction.resolve(.denied), .settings)

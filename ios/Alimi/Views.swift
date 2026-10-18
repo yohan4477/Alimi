@@ -1,6 +1,5 @@
 ﻿import SwiftUI
 import UIKit
-import Charts
 
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
@@ -11,8 +10,7 @@ struct RootView: View {
             BrowseView().tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
             SavedView(tab: $tab).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
-            ChatTab().tabItem { Label(L("nav.chat"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
-            AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell") }.tag(MainTab.alerts)
+            ChatTab().tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
         }.id(lang).task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }
@@ -124,12 +122,12 @@ struct BrowseView: View {
                     } else if !brands.isEmpty { BrandStrip(brands: brands) }
                     CategoryTabs(categories: store.categories, selection: $category)
                     HStack {
-                        Text(L("section.watching")).font(.headline)
+                        Text(L("section.products")).font(.headline)
                         Spacer()
                         Text(L("count", ["n": results.count])).font(.subheadline).foregroundStyle(.secondary)
                     }
                     if results.isEmpty {
-                        Text(L("empty.watchingCategory"))
+                        Text(L("empty.category"))
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 16)], spacing: 24) {
@@ -248,7 +246,6 @@ struct TrackedCard: View {
                     Text(product.brandLabel).font(.caption).foregroundStyle(.secondary)
                     Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
                     Text(usd(product.price)).font(.system(size: 23, weight: .bold, design: .rounded))
-                    Text(PriceHistory.summary(product.history, current: product.price)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                 }.foregroundStyle(.primary)
             }.buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)").accessibilityValue(photoLoaded ? "photo-loaded" : "photo-missing")
             Button { store.toggle(product.id) } label: {
@@ -320,7 +317,6 @@ struct VariantList: View {
                     if let unit = v.item.unitPrice {
                         Text(L("unit.price", ["v": usd(unit), "u": CatalogItem.unitName(v.item.unit)])).font(.caption).foregroundStyle(.secondary)
                     }
-                    if trackedID != nil { Text(L("family.watching")).font(.caption2).foregroundStyle(.secondary) }
                 }
                 Spacer()
                 Text(usd(v.item.price)).font(.headline)
@@ -332,7 +328,7 @@ struct VariantList: View {
                 }
                 Button {
                     if let id = trackedID { store.toggle(id) }
-                    else { busy = v.item.id; Task { _ = await store.startTracking(v.item); busy = nil } }
+                    else { busy = v.item.id; Task { _ = await store.saveCatalogItem(v.item); busy = nil } }
                 } label: {
                     let saved = trackedID.map { store.saved.favorites.contains($0) } ?? false
                     Image(systemName: busy == v.item.id ? "hourglass" : saved ? "heart.fill" : "heart").font(.title3).frame(width: 44, height: 44)
@@ -410,23 +406,17 @@ struct CatalogRow: View {
 struct ProductDetail: View {
     @EnvironmentObject var store: AlimiStore
     let product: Product
-    @State private var showTarget = false
-    @State private var days = 30
     @Environment(\.openURL) private var openURL
-    private var series: [PricePoint] { PriceHistory.daily(product.history, days: days) }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 header
                 OtherSizes(product: product)
                 retailerSection
-                historySection
-                alertSection
             }.padding(20)
         }.navigationTitle(L("detail.title")).navigationBarTitleDisplayMode(.inline)
             .onAppear { EventLogger.shared.log(.productView, productID: product.id) }
             .safeAreaInset(edge: .bottom) { bottomBar }
-            .sheet(isPresented: $showTarget) { TargetSheet(product: product).environmentObject(store) }
     }
     private func buy() {
         EventLogger.shared.log(.merchantClick, productID: product.id, props: ["from": "detail_cta", "retailer": product.retailer])
@@ -438,7 +428,7 @@ struct ProductDetail: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(L("detail.usPrice", ["retailer": product.retailer])).font(.caption).foregroundStyle(.secondary)
                 Text(usd(product.price)).font(.largeTitle.bold())
-                Text(L("detail.checked", ["checked": product.checkedAt.formatted(dayFormat), "changed": product.changedAt.formatted(dayFormat)])).font(.caption).foregroundStyle(.secondary)
+                Text(product.id.hasPrefix("catalog|") ? L("catalog.savedSnapshot") : L("detail.checked", ["checked": product.checkedAt.formatted(dayFormat)])).font(.caption).foregroundStyle(.secondary)
                 Text(product.name).font(.title2.bold())
                 Text("\(product.brandLabel) · \(L10n.category(product.category))" + (product.size.isEmpty ? "" : " · \(product.size)")).font(.subheadline).foregroundStyle(.secondary)
             }
@@ -459,57 +449,6 @@ struct ProductDetail: View {
             Text(L("detail.disclaimer")).font(.caption2).foregroundStyle(.secondary)
         }
     }
-    private var historySection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack { Text(L("detail.priceHistory")).font(.headline); Spacer(); Text("USD").font(.caption).foregroundStyle(.secondary) }
-            Picker(L("period"), selection: $days) { Text(L("days", ["n": 7])).tag(7); Text(L("days", ["n": 14])).tag(14); Text(L("days", ["n": 30])).tag(30) }.pickerStyle(.segmented)
-            if Set(series.map(\.price)).count >= 2 {
-                priceChart
-            } else {
-                VStack(spacing: 6) {
-                    Text(PriceHistory.summary(product.history, current: product.price)).font(.subheadline.bold())
-                    Text(L("chart.pendingHint")).font(.caption).foregroundStyle(.secondary)
-                }.frame(maxWidth: .infinity, minHeight: 120).background(Color.canvas, in: RoundedRectangle(cornerRadius: 12))
-            }
-            let prices = series.map(\.price)
-            HStack {
-                metric(L("period.low"), prices.min())
-                Spacer()
-                metric(L("period.avg"), prices.isEmpty ? nil : prices.reduce(0, +) / Double(prices.count))
-                Spacer()
-                metric(L("period.high"), prices.max())
-            }
-            Text(L("chart.note", ["date": product.history.first.map { $0.date.formatted(dayFormat) } ?? "—"])).font(.caption2).foregroundStyle(.secondary)
-        }
-    }
-    private var priceChart: some View {
-        Chart {
-            ForEach(series) { point in
-                LineMark(x: .value(L("date"), point.date, unit: .day), y: .value("USD", point.price)).foregroundStyle(Color.red)
-            }
-            if let target = store.saved.targets[product.id] {
-                RuleMark(y: .value(L("target.rule"), target)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [4]))
-            }
-        }.frame(height: 190).accessibilityLabel(L("chart.a11y", ["name": product.name, "days": days]))
-    }
-    private var alertSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(L("detail.alertsTitle")).font(.title3.bold())
-            Text(store.status(product)).font(.headline).foregroundStyle(Color.alimi)
-            if let target = store.saved.targets[product.id] {
-                Text(L("target.current", ["v": usd(target)])).font(.subheadline)
-            }
-            HStack {
-                Button { showTarget = true } label: {
-                    Label(L(store.saved.targets[product.id] == nil ? "target.secondary" : "target.set"), systemImage: "bell")
-                }.buttonStyle(.bordered).accessibilityIdentifier("target-button")
-                if store.saved.targets[product.id] != nil {
-                    Button(L("target.remove"), role: .destructive) { store.saved.targets.removeValue(forKey: product.id) }.buttonStyle(.bordered)
-                }
-            }
-            Text(L("target.deviceNote")).font(.caption).foregroundStyle(.secondary)
-        }
-    }
     private var bottomBar: some View {
         HStack(spacing: 12) {
             Button { store.toggle(product.id) } label: {
@@ -520,58 +459,5 @@ struct ProductDetail: View {
                 Text(L("buy.at", ["retailer": product.retailer])).font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
             }.buttonStyle(.borderedProminent).accessibilityIdentifier("detail-buy")
         }.padding(.horizontal, 20).padding(.vertical, 10).background(.bar)
-    }
-    private func metric(_ title: String, _ value: Double?) -> some View {
-        VStack(alignment: .leading, spacing: 6) { Text(title).font(.caption).foregroundStyle(.secondary); Text(value.map(usd) ?? "—").font(.subheadline.bold()) }
-    }
-}
-struct TargetSheet: View {
-    @EnvironmentObject var store: AlimiStore
-    @Environment(\.dismiss) private var dismiss
-    let product: Product
-    @State private var text = ""
-    @State private var error = false
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Text(product.name)
-                    Text(L("now", ["v": usd(product.price)])).foregroundStyle(.secondary)
-                    TextField(L("target.field"), text: $text).keyboardType(.decimalPad)
-                    if error { Text(L("target.invalid")).foregroundStyle(.red) }
-                } footer: { Text(L("target.footer")) }
-                Button(L("dialog.save")) {
-                    guard let value = PriceRule.valid(text) else { error = true; return }
-                    store.saved.targets[product.id] = value
-                    EventLogger.shared.log(.targetPriceSet, productID: product.id)
-                    dismiss()
-                }
-            }.navigationTitle(L("target.sheetTitle")).navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("cancel")) { dismiss() } } }
-                .onAppear { text = store.saved.targets[product.id].map { String(format: "%.2f", $0) } ?? "" }
-        }.presentationDetents([.medium, .large])
-    }
-}
-struct AlertsView: View {
-    @EnvironmentObject var store: AlimiStore
-    var body: some View {
-        NavigationStack {
-            List {
-                SourceBanner().listRowSeparator(.hidden)
-                let products = store.products.filter { store.saved.targets[$0.id] != nil }
-                if products.isEmpty {
-                    ContentUnavailableView(L("alerts.empty"), systemImage: "bell", description: Text(L("alerts.emptyHint")))
-                }
-                ForEach(products) { product in
-                    NavigationLink { ProductDetail(product: product) } label: {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(product.name).font(.headline)
-                            Text(store.status(product)).foregroundStyle(Color.alimi)
-                            Text(L("alerts.row", ["now": usd(product.price), "target": usd(store.saved.targets[product.id] ?? 0)])).font(.caption).foregroundStyle(.secondary)
-                        }.padding(.vertical, 8)
-                    }
-                }
-            }.listStyle(.plain).navigationTitle(L("alerts.title")).refreshable { await store.refresh() }
-        }
     }
 }
