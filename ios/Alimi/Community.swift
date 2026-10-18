@@ -138,7 +138,8 @@ struct CommunityPostRow: View {
 struct CommunityTopic: View {
     @EnvironmentObject var store: AlimiStore
     let room: ChatRoom
-    @State private var mode = "posts"
+    init(room: ChatRoom, initialMode: String = "posts") { self.room = room; _mode = State(initialValue: initialMode) }
+    @State private var mode: String
     @State private var posts: [CommunityPost] = []
     @State private var composing = false
     @State private var failed = false

@@ -162,7 +162,20 @@ struct ChatTab: View {
     @State private var failed = false
     @State private var asking: ChatRoom?
     @State private var open: ChatRoom?
-    @State private var pane = Pane.rooms
+    init(initialPane: Pane = .rooms) { _pane = State(initialValue: initialPane) }
+    @State private var pane: Pane
+    @State private var homePosts: [CommunityPost] = []
+    @State private var previews: [String: String] = [:]
+    @State private var mentions: [HomeMention] = []
+    @State private var mentionsFailed = false
+    @State private var openProduct: ProductFamily?
+    private struct HomeMention: Identifiable {
+        let id: String
+        let item: ChatItem
+        var authors: Set<String>
+        var rooms: Set<String>
+        let roomID: String
+    }
     @State private var tag = "all"
     @State private var searching = false
     @State private var query = ""
@@ -173,7 +186,7 @@ struct ChatTab: View {
     }
     private var topics: [ChatRoom] { filtered.filter { !$0.isBrand } }
     private var hot: [ChatRoom] {
-        Array(topics.sorted { ($0.messages24h, $0.members) > ($1.messages24h, $1.members) }.prefix(6))
+        Array(filtered.filter { $0.messages24h > 0 }.sorted { ($0.lastMessageAt ?? "") > ($1.lastMessageAt ?? "") }.prefix(6))
     }
     private var tagged: [ChatRoom] {
         if tag == "all" { return topics.sorted { ($0.lastMessageAt ?? "") > ($1.lastMessageAt ?? "") } }
@@ -202,7 +215,8 @@ struct ChatTab: View {
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(item: $open) { ChatRoomView(room: $0) }
+            .navigationDestination(item: $open) { CommunityTopic(room: $0, initialMode: "live") }
+            .sheet(item: $openProduct) { FamilySheet(family: $0) }
             .sheet(item: $asking) { room in JoinSheet(room: room) { ChatAPI.agreed = true; asking = nil; open = room } }
             .task { await load() }
             .refreshable { await load() }
@@ -215,9 +229,9 @@ struct ChatTab: View {
             ForEach(Pane.allCases, id: \.self) { p in
                 Button { pane = p } label: {
                     VStack(spacing: 4) {
-                        Text(L(["chat.tab.rooms", "chat.tab.topics", "chat.tab.mine"][p.rawValue])).font(.title2.bold())
+                        Text(L(["nav.community", "chat.tab.topics", "chat.tab.mine"][p.rawValue])).font(.title2.bold())
                             .foregroundStyle(pane == p ? Color.black : Color.gray)
-                        Capsule().fill(pane == p ? Color.orange : Color.clear).frame(width: 22, height: 3)
+                        Capsule().fill(pane == p ? Color.alimi : Color.clear).frame(width: 22, height: 3)
                     }
                 }.buttonStyle(.plain).accessibilityIdentifier("chat-tab-\(p.rawValue)")
             }
@@ -229,21 +243,59 @@ struct ChatTab: View {
     }
 
     private var roomsContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(L("chat.hot")).font(.headline).padding(.horizontal, 16).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(colors: [Color.orange.opacity(0.15), Color.indigo.opacity(0.08)], startPoint: .leading, endPoint: .trailing))
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                ForEach(hot) { room in
-                    Button { choose(room) } label: { RoomCard(room: room) }.buttonStyle(.plain)
-                        .accessibilityIdentifier("chat-room-\(room.id)")
-                }
-            }.padding(16)
-            let brands = filtered.filter(\.isBrand)
-            if !brands.isEmpty {
-                Text(L("chat.brandRooms")).font(.headline).padding(.horizontal, 16).padding(.vertical, 10)
-                ForEach(brands) { room in rowButton(room) }
+        VStack(alignment: .leading, spacing: 16) {
+            Text(L("community.sub")).font(.subheadline).foregroundStyle(.secondary)
+            if let mine, !mine.isEmpty {
+                Button { pane = .mine } label: {
+                    HStack { Text(L("home.resume")); Spacer(); Image(systemName: "chevron.right") }
+                        .font(.subheadline.bold()).padding().background(Color.alimi.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                }.buttonStyle(.plain)
             }
-        }
+            Text(L("home.active")).font(.title3.bold())
+            if hot.isEmpty { Text(L("home.quiet")).font(.subheadline).foregroundStyle(.secondary) }
+            ForEach(hot) { room in
+                Button { choose(room) } label: {
+                    HStack(spacing: 14) {
+                        RoomBadge(room: room, size: 42)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(room.title).font(.headline).foregroundStyle(.primary)
+                            Text(previews[room.id] ?? room.intro).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                            Text(L("chat.members", ["n": room.members]) + " · " + L("home.messages", ["n": room.messages24h])).font(.caption).foregroundStyle(.secondary)
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    }.padding(.vertical, 12)
+                }.buttonStyle(.plain).accessibilityIdentifier("chat-room-\(room.id)")
+                Divider()
+            }
+            Text(L("home.mentioned")).font(.title3.bold()).padding(.top, 10)
+            Text(L("home.scope")).font(.caption).foregroundStyle(.secondary)
+            if mentionsFailed { Text(L("home.productsFailed")).font(.caption).foregroundStyle(.secondary) }
+            if mentions.isEmpty { Text(L("home.noProducts")).font(.subheadline).foregroundStyle(.secondary) }
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 18) {
+                ForEach(mentions) { mention in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button { openProduct = mention.item.family } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                RemoteImage(url: mention.item.imageUrl, label: mention.item.brandLabel).frame(height: 120)
+                                Text(mention.item.name).font(.subheadline.bold()).lineLimit(2).foregroundStyle(.primary)
+                                Text(L("home.productInfo")).font(.caption).foregroundStyle(Color.alimi)
+                            }
+                        }.buttonStyle(.plain).disabled(mention.item.family == nil)
+                        Text(L("home.mentionCount", ["people": mention.authors.count, "rooms": mention.rooms.count])).font(.caption).foregroundStyle(.secondary)
+                        Button(L("home.viewConversation")) { if let room = rooms?.first(where: { $0.id == mention.roomID }) { choose(room) } }.font(.caption)
+                    }
+                }
+            }
+            if !homePosts.isEmpty {
+                Text(L("home.questions")).font(.title3.bold()).padding(.top, 14)
+                ForEach(homePosts.prefix(6)) { post in
+                    NavigationLink { CommunityPostView(post: post) } label: { CommunityPostRow(post: post) }.buttonStyle(.plain)
+                }
+            }
+            Text(L("home.topics")).font(.title3.bold()).padding(.top, 14)
+            Text(L("home.askHint")).font(.caption).foregroundStyle(.secondary)
+            ForEach(filtered) { room in rowButton(room) }
+        }.padding(20)
     }
     private var topicsContent: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -291,7 +343,39 @@ struct ChatTab: View {
     private func load() async {
         EventLogger.shared.log(.chatOpen)
         do { rooms = try await ChatAPI.rooms(); failed = false } catch { failed = rooms == nil }
-        if pane == .mine { await loadMine() }
+        await loadMine()
+        await loadHomeDetails()
+    }
+    private func loadHomeDetails() async {
+        var groups: [String: HomeMention] = [:]
+        var preview: [String: String] = [:]
+        var failed = false
+        do {
+            homePosts = try await CommunityAPI.posts()
+            for post in homePosts {
+                guard let item = post.item, let at = ISODate.parse(post.created_at), Date().timeIntervalSince(at) <= 86400 else { continue }
+                let key = item.familyKey ?? "\(item.retailer):\(item.market):\(item.sku)"
+                if groups[key] == nil { groups[key] = HomeMention(id: key, item: item, authors: [], rooms: [], roomID: post.room_id) }
+                groups[key]?.authors.insert(post.author_tag)
+                groups[key]?.rooms.insert(post.room_id)
+            }
+        } catch { failed = true }
+        for room in hot {
+            do {
+                let messages = try await ChatAPI.messages(room: room.id).filter { !ChatAPI.blocked.contains($0.authorTag) }
+                preview[room.id] = messages.last?.body
+                for m in messages {
+                    guard let item = m.item, let at = ISODate.parse(m.createdAt), Date().timeIntervalSince(at) <= 86400 else { continue }
+                    let key = item.familyKey ?? "\(item.retailer):\(item.market):\(item.sku)"
+                    if groups[key] == nil { groups[key] = HomeMention(id: key, item: item, authors: [], rooms: [], roomID: room.id) }
+                    groups[key]?.authors.insert(m.authorTag)
+                    groups[key]?.rooms.insert(room.id)
+                }
+            } catch { failed = true }
+        }
+        previews = preview
+        mentions = Array(groups.values.sorted { $0.authors.count == $1.authors.count ? $0.rooms.count > $1.rooms.count : $0.authors.count > $1.authors.count }.prefix(6))
+        mentionsFailed = failed
     }
     private func loadMine() async {
         guard let rooms else { return }

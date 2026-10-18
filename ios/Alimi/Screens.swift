@@ -13,6 +13,22 @@ enum SavedLayout {
     }
 }
 
+// Activity keeps conversations and saved items together, without a price-alert destination.
+struct ActivityView: View {
+    @Binding var tab: MainTab
+    @State private var saved = false
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker(L("nav.activity"), selection: $saved) {
+                Text(L("activity.chats")).tag(false)
+                Text(L("activity.saved")).tag(true)
+            }.pickerStyle(.segmented).padding()
+            if saved { SavedView(tab: $tab) }
+            else { ChatTab(initialPane: .mine) }
+        }
+    }
+}
+
 // MARK: Saved
 
 struct SavedView: View {
@@ -164,6 +180,7 @@ struct SearchView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     field
                     if query.trimmingCharacters(in: .whitespaces).isEmpty {
+                        NavigationLink(L("section.watching")) { BrowseView() }
                         Text(L("search.recentEmpty")).font(.subheadline).foregroundStyle(.secondary)
                     } else {
                         trackedResults

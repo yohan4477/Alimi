@@ -34,7 +34,26 @@ final class AlimiUITests: XCTestCase {
         return element
     }
 
+    private func browse() {
+        app.tabBars.buttons["검색"].tap()
+        let explore = app.buttons["상품 둘러보기"].firstMatch
+        XCTAssertTrue(explore.waitForExistence(timeout: 10))
+        explore.tap()
+    }
+    private func saved() {
+        app.tabBars.buttons["내 활동"].tap()
+        app.buttons["저장한 상품과 글"].tap()
+    }
+    func testCommunityIsTheEntryPoint() {
+        XCTAssertTrue(app.tabBars.buttons["커뮤니티"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["지금 활발한 대화"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["brand-COSRX"].exists)
+        XCTAssertFalse(app.tabBars.buttons["알림"].exists)
+        attach("community-home-ko")
+    }
+
     func testFavoriteAppearsWithPhotoInFavoritesTab() {
+        browse()
         let product = "laneige-lip-sleeping-mask-ex-berry"
         XCTAssertTrue(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.waitForExistence(timeout: 15), "home should list tracked products")
         let heart = reveal(app.buttons["favorite-\(product)"].firstMatch)
@@ -42,7 +61,7 @@ final class AlimiUITests: XCTestCase {
         heart.tap()
         attach("home-after-favorite")
 
-        app.tabBars.buttons["관심 상품"].tap()
+        saved()
         let card = app.buttons["product-\(product)"].firstMatch
         XCTAssertTrue(card.waitForExistence(timeout: 10), "favorite should appear in the favorites tab")
         XCTAssertTrue(waitForPhoto(card), "favorite card should show the product photo, not a placeholder")
@@ -50,9 +69,9 @@ final class AlimiUITests: XCTestCase {
 
         // Re-render the list (unfavorite + favorite again) and make sure the photo survives.
         app.buttons["favorite-\(product)"].firstMatch.tap()
-        app.tabBars.buttons["홈"].tap()
+        browse()
         reveal(app.buttons["favorite-\(product)"].firstMatch).tap()
-        app.tabBars.buttons["관심 상품"].tap()
+        saved()
         XCTAssertTrue(waitForPhoto(app.buttons["product-\(product)"].firstMatch), "photo should survive list re-render")
     }
 
@@ -77,6 +96,7 @@ final class AlimiUITests: XCTestCase {
     }
 
     func testCategoryTabsFilterTrackedProducts() {
+        browse()
         XCTAssertTrue(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.waitForExistence(timeout: 15))
 
         tapCategory("립")
@@ -95,18 +115,20 @@ final class AlimiUITests: XCTestCase {
     }
 
     // Purchase path works without saving: the detail page leads with the retailer button, the price alert comes last.
-    func testDetailOffersRetailerButtonBeforePriceAlert() {
+    func testDetailOffersRetailerWithoutPriceTracking() {
+        browse()
         let card = app.buttons["product-cosrx-snail-96-100ml"].firstMatch
         XCTAssertTrue(card.waitForExistence(timeout: 15))
         reveal(card).tap()
         let buy = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Stylevana'")).firstMatch
         XCTAssertTrue(buy.waitForExistence(timeout: 10), "detail offers a view-at-retailer button")
         let alerts = app.staticTexts["가격이 내려가면 알려드릴까요?"]
-        reveal(alerts, swipes: 10)
-        XCTAssertTrue(alerts.exists, "price alert section comes after the retailer section")
+        XCTAssertFalse(alerts.exists, "price tracking is not part of the community experience")
+        XCTAssertFalse(app.buttons["target-button"].exists)
         attach("detail-purchase-flow")
     }
     func testTappingBrandOpensItsPage() {
+        browse()
         let cosrx = app.buttons["brand-COSRX"]
         XCTAssertTrue(cosrx.waitForExistence(timeout: 10), "popular-brand badges on home")
         attach("brand-strip")
@@ -119,14 +141,14 @@ final class AlimiUITests: XCTestCase {
         attach("brand-page")
     }
     func testSavedTabHasAddSlotsAndSettings() {
-        app.tabBars.buttons["관심 상품"].tap()
+        saved()
         XCTAssertTrue(app.staticTexts["관심상품"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["saved-add-slot"].firstMatch.exists)
         app.buttons["saved-add-slot"].firstMatch.tap()
         XCTAssertTrue(app.textFields["search-field"].waitForExistence(timeout: 5), "slot switches to the search tab")
     }
     func testSettingsOpensFromSaved() {
-        app.tabBars.buttons["관심 상품"].tap()
+        saved()
         let gear = app.buttons["settings-button"]
         XCTAssertTrue(gear.waitForExistence(timeout: 5))
         gear.tap()
@@ -165,9 +187,9 @@ final class AlimiUITests: XCTestCase {
         app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
-        XCTAssertTrue(app.tabBars.buttons["Saved"].waitForExistence(timeout: 15))
-        XCTAssertTrue(app.tabBars.buttons["Home"].exists)
-        XCTAssertTrue(app.staticTexts["Explore K-beauty"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["My activity"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.tabBars.buttons["Community"].exists)
+        XCTAssertTrue(app.staticTexts["Conversations happening now"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["가격을 지켜보는 상품"].firstMatch.exists)
         attach("english-home")
     }

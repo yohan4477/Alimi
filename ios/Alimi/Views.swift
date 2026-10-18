@@ -4,15 +4,13 @@ import Charts
 
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
-    @State private var tab = MainTab.home
+    @State private var tab = MainTab.chat
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
-            SavedView(tab: $tab).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
+            ChatTab().tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
-            CommunityTab().tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
-            AlertsView().tabItem { Label(L("alerts.title"), systemImage: "bell") }.tag(MainTab.alerts)
+            ActivityView(tab: $tab).tabItem { Label(L("nav.activity"), systemImage: "person.crop.circle") }.tag(MainTab.saved)
         }.id(lang).task { await store.refresh(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }
@@ -250,7 +248,7 @@ struct TrackedCard: View {
                     Text(product.brandLabel).font(.caption).foregroundStyle(.secondary)
                     Text(product.name).font(.subheadline).lineLimit(2).frame(minHeight: 38, alignment: .top)
                     Text(usd(product.price)).font(.system(size: 23, weight: .bold, design: .rounded))
-                    Text(L10n.category(product.category) + (product.size.isEmpty ? "" : " · " + product.size)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+
                 }.foregroundStyle(.primary)
             }.buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)").accessibilityValue(photoLoaded ? "photo-loaded" : "photo-missing")
             Button { store.toggle(product.id) } label: {
@@ -426,8 +424,6 @@ struct ProductDetail: View {
                 OtherSizes(product: product)
                 retailerSection
                 if let key = product.familyKey { ProductDiscussion(familyKey: key) }
-                historySection
-                alertSection
             }.padding(20)
         }.navigationTitle(L("detail.title")).navigationBarTitleDisplayMode(.inline)
             .onAppear { EventLogger.shared.log(.productView, productID: product.id) }
@@ -444,7 +440,7 @@ struct ProductDetail: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(L("detail.usPrice", ["retailer": product.retailer])).font(.caption).foregroundStyle(.secondary)
                 Text(usd(product.price)).font(.largeTitle.bold())
-                Text(L("detail.checked", ["checked": product.checkedAt.formatted(dayFormat), "changed": product.changedAt.formatted(dayFormat)])).font(.caption).foregroundStyle(.secondary)
+                Text(L("detail.currentChecked", ["date": product.checkedAt.formatted(dayFormat)])).font(.caption).foregroundStyle(.secondary)
                 Text(product.name).font(.title2.bold())
                 Text("\(product.brandLabel) · \(L10n.category(product.category))" + (product.size.isEmpty ? "" : " · \(product.size)")).font(.subheadline).foregroundStyle(.secondary)
             }
