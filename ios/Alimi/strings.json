@@ -907,5 +907,137 @@
   "detail.alertsTitle": {
     "ko": "가격이 내려가면 알려드릴까요?",
     "en": "Wait for a better price?"
+  },
+  "nav.community": {
+    "ko": "커뮤니티",
+    "en": "Community"
+  },
+  "community.title": {
+    "ko": "커뮤니티",
+    "en": "Community"
+  },
+  "community.sub": {
+    "ko": "한국 제품, 묻고 추천하고 바로 확인해요",
+    "en": "Ask, recommend, and check Korean products"
+  },
+  "community.posts": {
+    "ko": "글",
+    "en": "Posts"
+  },
+  "community.live": {
+    "ko": "실시간 채팅",
+    "en": "Live chat"
+  },
+  "community.write": {
+    "ko": "글쓰기",
+    "en": "Write"
+  },
+  "community.kind.question": {
+    "ko": "질문",
+    "en": "Question"
+  },
+  "community.kind.recommend": {
+    "ko": "추천",
+    "en": "Recommendation"
+  },
+  "community.kind.review": {
+    "ko": "후기",
+    "en": "Review"
+  },
+  "community.titlePh": {
+    "ko": "궁금한 점을 한 줄로",
+    "en": "Your question in one line"
+  },
+  "community.bodyPh": {
+    "ko": "자세히 적어 주세요 (선택)",
+    "en": "Add details (optional)"
+  },
+  "community.reasons": {
+    "ko": "무엇이 중요해요? (선택)",
+    "en": "What matters to you? (optional)"
+  },
+  "reason.price": {
+    "ko": "가격",
+    "en": "Price"
+  },
+  "reason.texture": {
+    "ko": "사용감",
+    "en": "Texture"
+  },
+  "reason.color": {
+    "ko": "색상",
+    "en": "Color"
+  },
+  "reason.ingredients": {
+    "ko": "성분",
+    "en": "Ingredients"
+  },
+  "reason.shipping": {
+    "ko": "배송",
+    "en": "Shipping"
+  },
+  "reason.skin_type": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "reason.scent": {
+    "ko": "향",
+    "en": "Scent"
+  },
+  "community.post": {
+    "ko": "올리기",
+    "en": "Post"
+  },
+  "community.comments": {
+    "ko": "댓글 {n}",
+    "en": "{n} comments"
+  },
+  "community.commentPh": {
+    "ko": "댓글 달기",
+    "en": "Add a comment"
+  },
+  "community.empty": {
+    "ko": "아직 글이 없어요. 첫 질문을 남겨 보세요",
+    "en": "No posts yet. Ask the first question"
+  },
+  "community.saveAsPost": {
+    "ko": "글로 남기기",
+    "en": "Save as post"
+  },
+  "community.savedAsPost": {
+    "ko": "글로 남겼어요",
+    "en": "Saved as a post"
+  },
+  "community.topics": {
+    "ko": "주제",
+    "en": "Topics"
+  },
+  "community.recent": {
+    "ko": "최근 글",
+    "en": "Recent posts"
+  },
+  "community.brandTalk": {
+    "ko": "브랜드별 이야기",
+    "en": "Brand talk"
+  },
+  "community.noComments": {
+    "ko": "첫 댓글을 남겨 보세요",
+    "en": "Be the first to reply"
+  },
+  "product.talk": {
+    "ko": "이 제품 이야기",
+    "en": "People talking about this"
+  },
+  "product.talkEmpty": {
+    "ko": "아직 이 제품 이야기가 없어요",
+    "en": "No one has talked about this yet"
+  },
+  "product.inChat": {
+    "ko": "채팅에서 언급",
+    "en": "Mentioned in chat"
+  },
+  "chat.tag.travel": {
+    "ko": "한국 여행 쇼핑",
+    "en": "Korea shopping"
   }
 }
