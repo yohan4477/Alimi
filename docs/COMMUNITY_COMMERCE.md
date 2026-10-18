@@ -3,9 +3,11 @@
 **최신 결정 D-012:** 소비자 가격 추적·이력·목표가·가격 알림은 제외한다. 관심 저장은 추적을 시작하지 않는 기기 내 상품 스냅샷이다. 현재 가격·판매처·상품 설명·후기·대화는 유지한다. 아래의 이전 추적 관련 계획은 현재 실행 대상이 아니다.
 
 
+[Strategy](STRATEGY.md) and [service plan](SERVICE_PLAN.md) define current direction and target experience. This document retains implementation details; code presence does not establish user validation or release.
+
 ## Product direction
 
-Help people interested in Korea discuss products and experiences, choose suitable products and buy through disclosed affiliate links. Start with K-beauty; Korea travel shopping is an adjacent topic. Additional categories depend on actual discussion and permitted merchant coverage. Price history and target alerts support decisions rather than define the main product.
+Help people interested in Korea discuss products and experiences, choose suitable products and buy through disclosed affiliate links. Start with K-beauty; Korea travel shopping is an adjacent topic. Additional categories depend on actual discussion and permitted merchant coverage. Consumer price history, target prices and price alerts are excluded under D-012. Current price and retailer information support product choices.
 
 One Community tab contains topics. Each topic separates lasting posts/comments (questions, recommendations, reviews) from live chat. Product identity connects both spaces to the same options, related discussions and retailer links. A review is a community post surfaced on the product, not a second duplicate review entry. Writers can turn their own chat messages into posts.
 
