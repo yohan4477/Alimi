@@ -222,7 +222,7 @@ final class AlimiUITests: XCTestCase {
     }
     func testEnglishForUSUsers() {
         app.terminate()
-        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding",
+        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding", "-alimi.lang", "en",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["My"].waitForExistence(timeout: 15))

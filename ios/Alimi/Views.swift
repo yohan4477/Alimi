@@ -6,7 +6,6 @@ struct RootView: View {
     @State private var tab = MainTab.chat
     @State private var onboarding: OnboardingStep? = Interests.load()?.done == true || ProcessInfo.processInfo.arguments.contains("-skipOnboarding") ? nil : .splash
     @State private var openRoom: ChatRoom?
-    @State private var pickedRoom: ChatRoom?
     @State private var searching = false
     @StateObject private var revisit = RevisitModel()
     @AppStorage("alimi.lang") private var lang = ""
@@ -22,12 +21,15 @@ struct RootView: View {
                 .tabItem { Label(L("tab2.my"), systemImage: "person") }.tag(MainTab.saved)
         }.id(lang)
         .sheet(isPresented: $searching) { SearchView().environmentObject(store) }
-        // A room picked at the end of onboarding opens once the cover has finished closing (a push during the
-        // dismissal animation is dropped).
-        .fullScreenCover(isPresented: Binding(get: { onboarding != nil }, set: { if !$0 { onboarding = nil } }),
-                         onDismiss: { if let room = pickedRoom { pickedRoom = nil; openRoom = room } }) {
-            OnboardingFlow(step: onboarding ?? .splash) { room in pickedRoom = room; tab = .chat; onboarding = nil }.environmentObject(store)
+        // First-visit flow drawn over the tabs (not a modal cover), so closing it and opening the picked room happen
+        // in one state change and the community stack is already on screen to receive the room.
+        .overlay {
+            if let step = onboarding {
+                OnboardingFlow(step: step) { room in tab = .chat; onboarding = nil; openRoom = room }
+                    .environmentObject(store).transition(.opacity).zIndex(1)
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: onboarding == nil)
         .task { await revisit.load(store: store) }
         .task { await store.refresh(); await AuthSession.shared.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
