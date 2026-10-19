@@ -1,4 +1,4 @@
-name: Alimi iPhone build
+name: Seoul Beauty iPhone Build
 on:
   workflow_dispatch:
   pull_request:
