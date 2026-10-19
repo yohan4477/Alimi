@@ -60,7 +60,7 @@ struct RootView: View {
         TabView(selection: $tab) {
             CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { activitySection = "rooms"; tab = .saved }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.community"), systemImage: "house") }.tag(MainTab.chat)
-            BrowseView(onCommunity: { tab = .chat }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
+            BrowseView(onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.explore"), systemImage: "magnifyingglass") }.tag(MainTab.home)
             SavedView(section: $activitySection, editInterests: { onboarding = .choose }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.activity"), systemImage: "person") }.tag(MainTab.saved)
@@ -174,7 +174,6 @@ struct ProductArt: View {
     }
 }
 struct BrowseView: View {
-    var onCommunity: () -> Void = {}
     var onSearch: () -> Void = {}
     var onAlerts: () -> Void = {}
     var unreadAlerts = 0
@@ -193,13 +192,9 @@ struct BrowseView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    SourceBanner()
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L("hero.line1")).font(.system(size: 28, weight: .bold))
-                        Text(L("hero.line2")).font(.system(size: 28, weight: .bold))
-                        Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
-                        Button(L("community.homeCTA"), action: onCommunity).buttonStyle(.borderedProminent)
-                    }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(L("explore.intro")).font(.subheadline).foregroundStyle(Color.sbGray)
+                        .lineLimit(1).minimumScaleFactor(0.8)
+                        .accessibilityIdentifier("explore-intro")
                     if brandsLoading { LoadingCompanion() }
                     else if brandsFailed {
                         VStack(alignment: .leading) {
@@ -222,6 +217,7 @@ struct BrowseView: View {
                         ForEach(results) { product in TrackedCard(product: product) }
                     }
                     browseSection
+                    SourceBanner()
                 }.padding(20)
             }
                 .toolbar(.hidden, for: .navigationBar)
