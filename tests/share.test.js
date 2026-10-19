@@ -14,6 +14,9 @@ test('system share sheet first; cancelling is not an error; otherwise copy the l
   assert.equal(copied, 'u');
   assert.equal(await share({title: 'T', url: 'u'}, m => toasts.push(m), {}), 'failed');
   assert.equal(toasts.length, 2);
+  assert.match(toasts[1], /u/);
+  assert.equal(await share({title: 'T', url: 'https://example.com/room'}, m => toasts.push(m), {}), 'failed');
+  assert.match(toasts[2], /https:\/\/example.com\/room/);
 });
 
 test('arrival links only accept a valid room id or a product key', () => {
