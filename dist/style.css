@@ -123,26 +123,17 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
 .profile-dialog .chat-chips{flex-wrap:wrap;overflow:visible;white-space:normal;gap:6px}.profile-dialog .chat-chips button{flex:none}
 .chat-start{max-height:85vh;overflow:auto}.chat-start .room-row{width:100%}
 
-/* Loading-only companion: existing content remains interactive; no artificial wait is added.
-   Atlas is 5 columns x 2 rows of 32x48 pixels, scaled x2 for pixel-perfect display. */
-.sb-loading-status{display:flex;align-items:center;justify-content:center;gap:10px;min-height:94px;padding:4px 16px;color:var(--muted,#6b7280);font-size:13px;text-align:left}
-.sb-loading-label{max-width:220px;line-height:1.5;overflow-wrap:anywhere}
-.sb-loading-sprite{display:block;flex:none;width:64px;height:96px;background-image:url('/assets/loading-characters-sprite.png');background-size:320px 192px;background-repeat:no-repeat;image-rendering:pixelated;opacity:0;animation:sb-sprite-appear .01s linear .4s forwards,sb-sprite-change 22s steps(1,end) calc(.4s + var(--sb-look-offset,0s)) infinite}
-@keyframes sb-sprite-appear{to{opacity:1}}
-@keyframes sb-sprite-change{
-  0%,9.999%{background-position:0 0}
-  10%,19.999%{background-position:-64px 0}
-  20%,29.999%{background-position:-128px 0}
-  30%,39.999%{background-position:-192px 0}
-  40%,49.999%{background-position:-256px 0}
-  50%,59.999%{background-position:0 -96px}
-  60%,69.999%{background-position:-64px -96px}
-  70%,79.999%{background-position:-128px -96px}
-  80%,89.999%{background-position:-192px -96px}
-  90%,100%{background-position:-256px -96px}
-}
-@media(prefers-reduced-motion:reduce){.sb-loading-sprite{animation:sb-sprite-appear .01s linear .4s forwards;opacity:0;background-position:var(--sb-static-x,0px) var(--sb-static-y,0px)}}
-@media(max-width:360px){.sb-loading-status{gap:6px;padding:4px 8px}}
+/* Reuse the launch photo for pending content. No avatar or costume animation. */
+.sb-loading-status{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px 16px;color:var(--muted,#6b7280);font-size:13px;text-align:center}
+.sb-loading-portrait{display:block;width:96px;overflow:hidden;border-radius:12px;background:#e5f0fe;opacity:0;animation:sb-loading-appear .01s linear .4s forwards}
+.sb-loading-portrait img{display:block;height:auto;object-fit:contain}
+.sb-loading-logo{width:calc(100% - 16px);margin:10px 8px 0}
+.sb-loading-photo{width:100%}
+.sb-loading-label{display:flex;align-items:center;justify-content:center;gap:8px;max-width:240px;line-height:1.5;overflow-wrap:anywhere}
+.sb-loading-spinner{width:16px;height:16px;flex:none;border:2px solid #dce7f8;border-top-color:#1974ef;border-radius:50%;animation:sb-loading-spin .8s linear infinite}
+@keyframes sb-loading-appear{to{opacity:1}}
+@keyframes sb-loading-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.sb-loading-spinner{animation:none}}
 
 /* Community guide (journey reference screens 1-2): inline, skippable, never a gate. */
 .onboard:empty{display:none}
