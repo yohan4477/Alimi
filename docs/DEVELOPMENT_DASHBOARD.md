@@ -14,7 +14,7 @@
 
 ## 최신 코드 및 배포 증거 범위
 
-- GitHub main `5cdb7d62ff4267f20153bd87074b84f01070ffca`에 대한 **GitHub Vercel combined status = failure**, target build-rate-limit (2026-10-19 확인). **Vercel 계정 직접 조회는 scope 403이라 추가 검증하지 못함**. 업데이트 후에도 별도 READY 배포가 확인되지 않으면 운영 완료가 아니다.
+- GitHub main `a09117e53e09bfdf769565f3cdd5dbd32e50a60f`에 대한 **GitHub Vercel combined status = failure**, target build-rate-limit (2026-10-19 확인). **Vercel 계정 직접 조회는 scope 403이라 추가 검증하지 못함**. 업데이트 후에도 별도 READY 배포가 확인되지 않으면 운영 완료가 아니다.
 - PR #109(복수 고민 기획), #108(전략 KPI), #107(대화 시작)은 merged. PR #105(선택형 아바타), #102(공유)는 2026-10-19 확인 당시 open. PR 머지 자체는 운영 검증이 아니다.
 - 웹·iOS 캐릭터 로딩 코드 존재. 캐릭터를 통한 **실제 신규 사용자 온보딩**과 **실제 방 추천**, 실제 첫 발화 이벤트 A/B와 D7은 구별한다.
 - 소비자 가격 이력·목표가·가격 푸시를 복원하지 않는다. 기존 핵심 탭·자유 방 생성·상품 상세·공유 동선을 유지한다.
