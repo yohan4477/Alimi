@@ -104,7 +104,7 @@ struct BrandView: View {
             LazyVStack(alignment: .leading, spacing: 12) {
                 header
                 list
-                if loading { ProgressView().frame(maxWidth: .infinity) }
+                if loading { LoadingCompanion(compact: true) }
                 else if failed {
                     VStack(spacing: 8) {
                         Text(L("loadFailed")).font(.caption).foregroundStyle(.secondary)
