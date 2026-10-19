@@ -1407,5 +1407,121 @@
   "profile.doNotSellDone": {
     "ko": "판매·공유 거부를 기록했어요.",
     "en": "Your opt-out of sale and sharing is recorded."
+  },
+  "onb.step": {
+    "ko": "{n}/3단계",
+    "en": "Step {n} of 3"
+  },
+  "onb.q0": {
+    "ko": "어떤 뷰티 이야기가 궁금해요?",
+    "en": "What beauty talk are you here for?"
+  },
+  "onb.s0": {
+    "ko": "스킨케어와 메이크업, 둘 다 골라도 돼요. 나중에 내 활동에서 바꿀 수 있어요.",
+    "en": "Pick Skincare, Makeup or both. You can change this later in My activity."
+  },
+  "onb.q1": {
+    "ko": "요즘 어떤 게 제일 궁금해요?",
+    "en": "What are you figuring out lately?"
+  },
+  "onb.s1": {
+    "ko": "여러 개 골라도 돼요. 피부 타입은 묻지 않아요.",
+    "en": "Pick as many as you like. We won't ask for your skin type."
+  },
+  "onb.q2": {
+    "ko": "여기서 이야기하고 있어요!",
+    "en": "People are talking about this here!"
+  },
+  "onb.s2": {
+    "ko": "고른 고민과 맞는 대화방이에요. 둘러보고 마음에 드는 곳에 들어가 보세요.",
+    "en": "Rooms that match what you picked. Have a look and jump in."
+  },
+  "onb.g.skincare": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "onb.g.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "onb.c.acne": {
+    "ko": "트러블·여드름",
+    "en": "Acne & breakouts"
+  },
+  "onb.c.sensitive": {
+    "ko": "민감성·자극",
+    "en": "Sensitive skin"
+  },
+  "onb.c.dry": {
+    "ko": "건조함",
+    "en": "Dryness"
+  },
+  "onb.c.pores": {
+    "ko": "모공·피부결",
+    "en": "Pores & texture"
+  },
+  "onb.c.cushion": {
+    "ko": "쿠션 호수",
+    "en": "Cushion shades"
+  },
+  "onb.c.lip": {
+    "ko": "틴트·립",
+    "en": "Lip tints"
+  },
+  "onb.c.longwear": {
+    "ko": "메이크업 지속력",
+    "en": "Makeup longevity"
+  },
+  "onb.c.shade": {
+    "ko": "컬러 매칭",
+    "en": "Color matching"
+  },
+  "onb.next": {
+    "ko": "다음",
+    "en": "Next"
+  },
+  "onb.show": {
+    "ko": "맞는 대화 보기",
+    "en": "Show matching rooms"
+  },
+  "onb.browse": {
+    "ko": "그냥 둘러볼게요",
+    "en": "Just browse"
+  },
+  "onb.browseAll": {
+    "ko": "전체 대화 둘러보기",
+    "en": "Browse all rooms"
+  },
+  "onb.skip": {
+    "ko": "건너뛰기",
+    "en": "Skip"
+  },
+  "onb.matched": {
+    "ko": "맞는 고민: {list}",
+    "en": "Matches: {list}"
+  },
+  "onb.field": {
+    "ko": "고른 분야의 대화",
+    "en": "In a field you picked"
+  },
+  "onb.popular": {
+    "ko": "지금 인기 있는 대화",
+    "en": "Popular right now"
+  },
+  "onb.forYou": {
+    "ko": "나에게 맞는 대화",
+    "en": "Rooms for you"
+  },
+  "onb.edit": {
+    "ko": "관심사 바꾸기",
+    "en": "Change interests"
+  },
+  "onb.manage": {
+    "ko": "관심 분야·고민",
+    "en": "Interests & concerns"
+  },
+  "onb.none": {
+    "ko": "아직 고르지 않았어요",
+    "en": "Not chosen yet"
   }
 }

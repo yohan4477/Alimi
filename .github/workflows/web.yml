@@ -36,6 +36,7 @@ jobs:
           CHROME_PATH="$(command -v google-chrome)" node e2e/brands.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/offline.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/web.e2e.mjs http://localhost:3000/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/onboarding.e2e.mjs http://localhost:3000/
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

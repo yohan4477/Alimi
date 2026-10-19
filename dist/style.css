@@ -143,3 +143,22 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
 }
 @media(prefers-reduced-motion:reduce){.sb-loading-sprite{animation:sb-sprite-appear .01s linear .4s forwards;opacity:0;background-position:var(--sb-static-x,0px) var(--sb-static-y,0px)}}
 @media(max-width:360px){.sb-loading-status{gap:6px;padding:4px 8px}}
+
+/* Community guide: inline, skippable first-visit choices (never a gate). */
+.onboard:empty{display:none}
+.onboard{margin:4px 0 8px}
+.onboard-card{display:flex;gap:12px;align-items:flex-start;background:#f3f6ff;border-radius:16px;padding:16px}
+.onboard-guide{flex:none;width:60px;height:60px;image-rendering:pixelated}
+.onboard-body{min-width:0}.onboard-body h2{font-size:18px;line-height:1.4;margin:2px 0 4px;word-break:keep-all}.onboard-body h2:focus{outline:none}.onboard-body p{margin:0;font-size:13px;color:#5b6270;line-height:1.5;word-break:keep-all}
+.onboard-step{font-size:12px;color:#3a43b8;font-weight:600}
+.onboard-group{font-size:14px;margin:16px 0 0;color:#30343a}
+.onboard-chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0 2px}
+.onboard-chips button{border:1px solid #e3e5e8;background:#fff;border-radius:20px;padding:9px 16px;font-size:14px;color:#4b5058;min-height:40px}
+.onboard-chips button.on{background:#eef0ff;border-color:#9aa3f5;color:#3a43b8;font-weight:600}
+.onboard-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 4px}
+.onboard-next{flex:1;min-width:140px;min-height:44px;border:0;border-radius:12px;background:#3a43b8;color:#fff;font-size:15px;font-weight:600}
+.onboard .text-btn{background:none;border:0;color:#5b6270;font-size:14px;padding:10px 8px;min-height:44px}
+.onboard-skip{margin-left:auto}
+.onboard-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.onboard-rec small{color:#3a43b8}
+.interest-row{width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:0;border-bottom:1px solid #edf0f4;padding:14px 0;margin:0 0 8px;color:#172b46}.interest-row>span:first-child{flex:1;min-width:0}.interest-row b{display:block;font-size:15px}.interest-row small{display:block;font-size:12px;color:#6b7280;margin-top:2px}
