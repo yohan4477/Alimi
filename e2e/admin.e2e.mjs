@@ -37,15 +37,28 @@ try {
   await login('admin@example.test');await page.getByRole('tab',{name:'전략',exact:true}).waitFor();
   const cookies=await page.context().cookies();const session=cookies.find(c=>c.name==='__Host-sb-admin');assert.ok(session?.httpOnly&&session.secure&&session.sameSite==='Strict');
   assert.equal(await page.evaluate(()=>document.cookie.includes('__Host-sb-admin')),false);
-  for(const name of ['전략','서비스 기획','실행 로드맵','관리 대시보드']) {
+  for(const name of ['전략','서비스 기획','디자인 리뷰','실행 로드맵','관리 대시보드']) {
     await page.getByRole('tab',{name,exact:true}).click();assert.equal(await page.locator('[role="tabpanel"]:visible').count(),1);
     assert.equal(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
   }
   await page.getByRole('tab',{name:'전략',exact:true}).click();await page.getByRole('tab',{name:'전략',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   await page.getByText('기존 기획 설명 보기',{exact:true}).click();
   await page.getByText('대화 · 익명으로 묻고 답하기',{exact:true}).click();assert.ok(await page.getByText('사진형 프로필은 필수로 두지 않는 안을 우선 검토',{exact:true}).isVisible());
+  await page.getByRole('tab',{name:'디자인 리뷰',exact:true}).click();
+  assert.ok(await page.getByText('맞춤 추천을 추가하되,',{exact:false}).first().isVisible());
+  assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),7);
+  await page.locator('#sb-design [data-design-filter="P0"]').click();
+  assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),3);
+  await page.locator('#sb-design [data-design-filter="P1"]').click();
+  assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),4);
+  await page.locator('#sb-design [data-design-filter="all"]').click();
+  await page.locator('#sb-design [data-design-lang="en"]').click();
+  assert.ok(await page.locator('#sb-design [data-design-locale="en"]').first().isVisible());
+  assert.ok(await page.locator('#sb-design [data-design-locale="ko"]').first().isHidden());
+  await page.locator('#sb-design [data-design-lang="ko"]').click();
+  assert.ok(await page.locator('#sb-design [data-design-locale="ko"]').first().isVisible());
   await mkdir('artifacts',{recursive:true});
-  await page.getByRole('tab',{name:'관리 대시보드',exact:true}).click();
+  await page.getByRole('tab',{name:'디자인 리뷰',exact:true}).click();
   for(const width of [320,390,1024]) {
     await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`no horizontal overflow at ${width}`);
   }
