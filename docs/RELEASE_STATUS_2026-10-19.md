@@ -1,6 +1,6 @@
 # Seoul Beauty — 기획·디자인·개발 상태
 
-기준: 2026-10-19 후속 배포 완료. 수동 확인 기록. 사용자 기기의 설치 상태와 실측 KPI는 확인하지 않았다.
+기준: 2026-10-19 23:21 KST. 후속 배포·웹/iOS 자동검사 완료. 수동 확인 기록. 사용자 기기의 설치 상태와 실측 KPI는 확인하지 않았다.
 
 ## 기획
 
@@ -26,9 +26,10 @@
 | 3탭·레이아웃·상품 표면·아바타 숨김 | main 반영 | [PR #127](https://github.com/yohan4477/Alimi/pull/127), 5efa85e |
 | 온보딩 좌우 전환 제거 | main 반영 | 921a6ea |
 | 표시 이름 Seoul Beauty | main 반영 | [PR #129](https://github.com/yohan4477/Alimi/pull/129), 10493c2 |
-| 웹 검사 | 성공 | [Web checks #95](https://github.com/yohan4477/Alimi/actions/runs/39260313253), JS 126/126 및 브라우저 회귀 |
-| 웹 배포 | 5efa85e GitHub Vercel status success 확인 | 이후 커밋은 각각 확인 필요. 과거 build-rate-limit은 이력 |
-| TestFlight | 1.0 (21.1), 10493c2 빌드·서명·업로드 성공 | [업로드 #21](https://github.com/yohan4477/Alimi/actions/runs/39261337516) |
+| 웹 검사 | 성공 | [Web checks #99](https://github.com/yohan4477/Alimi/actions/runs/39266571562), JS 127/127 및 브라우저 회귀 |
+| 웹 배포 | 고객여정 6e31dc7·상태 문서 699f19f Vercel status success 확인 | 과거 build-rate-limit은 이력 |
+| iOS 자동검사 | 빌드·XCTest·앱 실행·캡처 전체 성공 | [iOS CI #254](https://github.com/yohan4477/Alimi/actions/runs/39266571540), 6e31dc7 |
+| TestFlight | 1.0 (22.1), 6e31dc7 빌드·서명·업로드 성공 | [업로드 #22](https://github.com/yohan4477/Alimi/actions/runs/39267027856) |
 | 앱 구분 | Seoul Beauty 번들 com.yohan4477.seoulbeauty | 기존 Alimi와 분리 |
 | Apple 처리·테스터 배정·기기 설치 | 미확인 | 업로드 성공과 구분 |
 | 퍼널·제휴 주문·순수수료 | 실제 수신·집계 미검증 | 미측정을 0으로 표시하지 않음 |
@@ -42,7 +43,7 @@
 
 관리자 대시보드의 최신 상태 카드와 이 문서의 후속 배포 기록이 이전 시안·시뮬레이션·과거 출시 차단 설명보다 우선한다. 기존 시안은 검토 자료로 남기며 출시 기능으로 간주하지 않는다.
 
-## 후속 변경안 — 심플한 고객여정
+## 22.1 반영 — 심플한 고객여정
 
 - 기존 디자인과 하단 3탭 유지. 커뮤니티의 생성 버튼 하나를 항상 노출. 추천방 화면에서도 생성 가능.
 - 온보딩 3단계 유지: 관심·고민 1/3 → 선택형 연령대·피부 타입 2/3 → 추천방 3/3. 스플래시는 단계 제외.
@@ -53,4 +54,5 @@
 - PR #130 main 반영: `6e31dc739b0f6c65188a2edc36829668f928eee0`.
 - 웹: JS 127/127, Web checks #99 전체 성공(320/390px·한영 온보딩·생성·상품→브랜드→대화 복귀 포함). Vercel status success 확인.
 - TestFlight: 1.0 (22.1), [업로드 #22](https://github.com/yohan4477/Alimi/actions/runs/39267027856) 빌드·서명·업로드 성공.
-- iPhone XCTest 전체 완료·Apple 처리·테스터 배정·실기기 설치/3탭 화면은 미확인. 업로드 성공과 구분.
+- iOS CI #254 빌드·XCTest·앱 실행·화면 캡처 전체 성공.
+- Apple 처리·테스터 배정·실기기 설치/3탭 화면은 확인 대기. 자동검사·업로드 성공과 구분.
