@@ -113,7 +113,7 @@ struct CommunityTab: View {
                 Section(L("community.brandTalk")) {
                     ForEach(rooms.filter(\.isBrand)) { room in NavigationLink(room.title) { CommunityTopic(room: room) } }
                 }
-                if loading { ProgressView() }
+                if loading { LoadingCompanion(compact: true) }
                 if failed { Button(L("community.retry")) { Task { await load() } }; Text(L("community.loadError")).font(.caption) }
             }.navigationTitle(L("community.title")).refreshable { await load() }.task { await load(); EventLogger.shared.log(.communityOpen) }
         }
