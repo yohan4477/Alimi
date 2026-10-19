@@ -19,20 +19,22 @@ struct RootView: View {
     @State private var onboarding: OnboardingStep? = Interests.load()?.done == true || ProcessInfo.processInfo.arguments.contains("-skipOnboarding") ? nil : .splash
     @State private var openRoom: ChatRoom?
     @State private var searching = false
+    @State private var showingAlerts = false
+    @State private var activitySection = "saved"
     @StateObject private var revisit = RevisitModel()
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { tab = .rooms })
-                .tabItem { Label(L("tab2.home"), systemImage: "house") }.tag(MainTab.chat)
-            MyRoomsView(onSearch: { searching = true }).tabItem { Label(L("tab2.rooms"), systemImage: "bubble.left") }.tag(MainTab.rooms)
-            BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab2.discover"), systemImage: "safari") }.tag(MainTab.home)
-            NotificationsView(model: revisit).tabItem { Label(L("tab2.alerts"), systemImage: "bell") }.tag(MainTab.alerts)
-                .badge(tab == .alerts ? 0 : revisit.unread)
-            SavedView(tab: $tab, editInterests: { onboarding = .choose }, onSearch: { searching = true })
-                .tabItem { Label(L("tab2.my"), systemImage: "person") }.tag(MainTab.saved)
+            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { activitySection = "rooms"; tab = .saved }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
+                .tabItem { Label(L("nav.community"), systemImage: "house") }.tag(MainTab.chat)
+            BrowseView(onCommunity: { tab = .chat }, onSearch: { searching = true })
+                .tabItem { Label(L("nav.explore"), systemImage: "magnifyingglass") }.tag(MainTab.home)
+            SavedView(section: $activitySection, editInterests: { onboarding = .choose }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
+                .tabItem { Label(L("nav.activity"), systemImage: "person") }.tag(MainTab.saved)
         }.id(lang)
         .sheet(isPresented: $searching) { SearchView().environmentObject(store) }
+        .sheet(isPresented: $showingAlerts, onDismiss: { Task { await revisit.load(store: store) } }) { NotificationsView(model: revisit).environmentObject(store) }
+        .toolbar(onboarding == nil ? .automatic : .hidden, for: .tabBar)
         // First-visit flow drawn over the tabs (not a modal cover), so closing it and opening the picked room happen
         // in one state change and the community stack is already on screen to receive the room.
         .overlay {
@@ -124,6 +126,7 @@ struct ProductArt: View {
 }
 struct BrowseView: View {
     var onCommunity: () -> Void = {}
+    var onSearch: () -> Void = {}
     @EnvironmentObject var store: AlimiStore
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
@@ -169,7 +172,8 @@ struct BrowseView: View {
                     }
                     browseSection
                 }.padding(20)
-            }.navigationTitle("SeoulBeauty")
+            }.navigationTitle(L("nav.explore"))
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(action: onSearch) { Image(systemName: "magnifyingglass").frame(width: 44, height: 44) }.accessibilityLabel(L("search.title")).accessibilityIdentifier("explore-search") } }
                 .task(id: category) {
                     browse = []; browseDone = false
                     await loadMore()

@@ -207,7 +207,22 @@ struct AlertItem: Identifiable {
     let family: ProductFamily?
 }
 
+struct AlertBell: View {
+    let unread: Int
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "bell").font(.system(size: 23)).foregroundStyle(Color.sbNavy)
+                .frame(width: 44, height: 44)
+                .overlay(alignment: .topTrailing) {
+                    if unread > 0 { Circle().fill(Color.red).frame(width: 8, height: 8).padding(5) }
+                }
+        }.accessibilityLabel(L("alerts.title")).accessibilityValue(String(unread)).accessibilityIdentifier("open-alerts")
+    }
+}
+
 struct NotificationsView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var store: AlimiStore
     @ObservedObject var model: RevisitModel
     @State private var filter = "all"
@@ -217,7 +232,11 @@ struct NotificationsView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(L("alerts.title")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy).padding(.top, 12)
+                    HStack {
+                        Text(L("alerts.title")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy)
+                        Spacer()
+                        Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel(L("close")).accessibilityIdentifier("alerts-close")
+                    }.padding(.top, 12)
                     ScrollView(.horizontal, showsIndicators: false) {
                       HStack(spacing: 10) {
                         ForEach(["all", "room", "product", "service"], id: \.self) { f in
@@ -247,7 +266,7 @@ struct NotificationsView: View {
             .navigationDestination(for: ChatRoom.self) { CommunityTopic(room: $0, member: true) }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
-            .onAppear { Alerts.markOpened() }
+            .task { await model.load(store: store); Alerts.markOpened() }
             .accessibilityIdentifier("alerts")
         }
     }

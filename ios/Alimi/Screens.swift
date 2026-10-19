@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum MainTab: Hashable { case home, saved, search, chat, rooms, alerts }
+enum MainTab: Hashable { case home, saved, chat }
 
 // Pure layout rules for the Saved tab: the grid is padded to three slots and the headline depends on the count.
 enum SavedLayout {
@@ -17,10 +17,11 @@ enum SavedLayout {
 
 struct SavedView: View {
     @EnvironmentObject var store: AlimiStore
-    @Binding var tab: MainTab
+    @Binding var section: String
     var editInterests: () -> Void = {}
     var onSearch: () -> Void = {}
-    @State private var section = "saved"
+    var onAlerts: () -> Void = {}
+    var unreadAlerts = 0
     @State private var joined: [JoinedRoom] = []
     @State private var recent: [ProductFamily] = []
     @State private var openFamily: ProductFamily?
@@ -33,7 +34,7 @@ struct SavedView: View {
                     HStack(spacing: 12) {
                         Spacer()
                         Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium)).frame(width: 44, height: 44) }.accessibilityLabel(L("search.title"))
-                        Button { tab = .alerts } label: { Image(systemName: "bell").font(.system(size: 23, weight: .medium)).frame(width: 44, height: 44) }.accessibilityLabel(L("alerts.title"))
+                        AlertBell(unread: unreadAlerts, action: onAlerts)
                         NavigationLink { SettingsView() } label: { Image(systemName: "gearshape").font(.system(size: 21, weight: .medium)).frame(width: 44, height: 44) }
                             .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
                     }.foregroundStyle(Color.sbNavy)

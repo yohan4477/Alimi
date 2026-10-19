@@ -322,6 +322,8 @@ struct CommunityHome: View {
     var onEditInterests: () -> Void = {}
     var onSearch: () -> Void = {}
     var onMyRooms: () -> Void = {}
+    var onAlerts: () -> Void = {}
+    var unreadAlerts = 0
     @StateObject private var revisit = RevisitModel()
     var body: some View {
         NavigationStack(path: $path) {
@@ -357,6 +359,7 @@ struct CommunityHome: View {
         ZStack {
             Image("SeoulBeautyLogo").resizable().scaledToFit().frame(height: 58).accessibilityLabel("Seoul Beauty")
             HStack {
+                AlertBell(unread: unreadAlerts, action: onAlerts)
                 Spacer()
                 Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 24, weight: .medium)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 44) }
                     .accessibilityLabel(L("search.title")).accessibilityIdentifier("home-search")

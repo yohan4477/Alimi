@@ -16,7 +16,7 @@ final class AlimiUITests: XCTestCase {
     }
 
     // Community is the first tab; product flows start from Home.
-    private func openHome(_ label: String = "발견") { app.tabBars.buttons[label].tap() }
+    private func openHome(_ label: String = "탐색") { app.tabBars.buttons[label].tap() }
     private func attach(_ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = name
@@ -45,7 +45,7 @@ final class AlimiUITests: XCTestCase {
         heart.tap()
         attach("home-after-favorite")
 
-        app.tabBars.buttons["마이"].tap()
+        app.tabBars.buttons["내 활동"].tap()
         let card = app.buttons["product-\(product)"].firstMatch
         XCTAssertTrue(card.waitForExistence(timeout: 10), "favorite should appear in the favorites tab")
         XCTAssertTrue(waitForPhoto(card), "favorite card should show the product photo, not a placeholder")
@@ -53,9 +53,9 @@ final class AlimiUITests: XCTestCase {
 
         // Re-render the list (unfavorite + favorite again) and make sure the photo survives.
         app.buttons["favorite-\(product)"].firstMatch.tap()
-        app.tabBars.buttons["발견"].tap()
+        app.tabBars.buttons["탐색"].tap()
         reveal(app.buttons["favorite-\(product)"].firstMatch).tap()
-        app.tabBars.buttons["마이"].tap()
+        app.tabBars.buttons["내 활동"].tap()
         XCTAssertTrue(waitForPhoto(app.buttons["product-\(product)"].firstMatch), "photo should survive list re-render")
     }
 
@@ -124,14 +124,14 @@ final class AlimiUITests: XCTestCase {
         attach("brand-page")
     }
     func testSavedTabHasAddSlotsAndSettings() {
-        app.tabBars.buttons["마이"].tap()
+        app.tabBars.buttons["내 활동"].tap()
         XCTAssertTrue(app.staticTexts["saved-title"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["saved-add-slot"].firstMatch.exists)
         app.buttons["saved-add-slot"].firstMatch.tap()
         XCTAssertTrue(app.textFields["search-field"].waitForExistence(timeout: 5), "slot opens search")
     }
     func testSettingsOpensFromSaved() {
-        app.tabBars.buttons["마이"].tap()
+        app.tabBars.buttons["내 활동"].tap()
         let gear = app.buttons["settings-button"]
         XCTAssertTrue(gear.waitForExistence(timeout: 5))
         gear.tap()
@@ -140,7 +140,7 @@ final class AlimiUITests: XCTestCase {
         attach("settings")
     }
     func testChatJoinSendAndBlock() {
-        app.tabBars.buttons["홈"].tap()
+        app.tabBars.buttons["커뮤니티"].tap()
         app.buttons["home-tab-rooms"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
@@ -194,24 +194,28 @@ final class AlimiUITests: XCTestCase {
         if app.buttons["chat-join"].waitForExistence(timeout: 3) { app.buttons["chat-join"].tap() }
         let field = app.textFields["chat-text"].firstMatch.exists ? app.textFields["chat-text"].firstMatch : app.textViews["chat-text"].firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 5), "composer after joining")
-        app.tabBars.buttons["마이"].tap()
+        XCTAssertFalse(app.tabBars.buttons["내 활동"].isHittable)
+        app.buttons["room-back"].tap()
+        app.tabBars.buttons["내 활동"].tap()
         let row = app.buttons["interests-row"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertTrue(row.label.contains("스킨케어") && row.label.contains("여드름"), "choices listed in My activity: \(row.label)")
     }
-    // Journey 3: returning visitor sees joined rooms, alerts and the share hub with the 5-tab bar.
+    // Journey 3: returning visitor sees joined rooms, alerts and the share hub through three tabs and the notification bell.
     func testJourneyThreeRevisitAlertsShare() {
-        for name in ["홈", "대화방", "발견", "알림", "마이"] { XCTAssertTrue(app.tabBars.buttons[name].waitForExistence(timeout: 10), "tab \(name)") }
-        app.tabBars.buttons["대화방"].tap()
+        for name in ["커뮤니티", "탐색", "내 활동"] { XCTAssertTrue(app.tabBars.buttons[name].waitForExistence(timeout: 10), "tab \(name)") }
+        XCTAssertEqual(app.tabBars.buttons.count, 3)
+        app.tabBars.buttons["내 활동"].tap()
+        app.buttons["activity-tab-rooms"].tap()
         XCTAssertTrue(app.buttons["my-room-acne"].firstMatch.waitForExistence(timeout: 10), "joined room card")
-        XCTAssertTrue(app.staticTexts["다시 오신 걸 환영해요! 👋"].exists || app.otherElements["welcome-back"].exists, "welcome back")
         attach("j3-rooms")
-        app.tabBars.buttons["알림"].tap()
+        app.buttons["open-alerts"].firstMatch.tap()
         XCTAssertTrue(app.buttons["alerts-filter-all"].waitForExistence(timeout: 10))
         app.buttons["alerts-filter-service"].tap()
         XCTAssertTrue(app.staticTexts["서비스 알림이 없어요."].waitForExistence(timeout: 5), "no invented service alerts")
         attach("j3-alerts")
-        app.tabBars.buttons["마이"].tap()
+        app.buttons["alerts-close"].tap()
+        app.tabBars.buttons["내 활동"].tap()
         app.buttons["activity-tab-recent"].tap()
         attach("j3-activity")
         let hub = app.buttons["share-hub"].firstMatch
@@ -225,9 +229,9 @@ final class AlimiUITests: XCTestCase {
         app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding", "-alimi.lang", "en",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
-        XCTAssertTrue(app.tabBars.buttons["My"].waitForExistence(timeout: 15))
-        XCTAssertTrue(app.tabBars.buttons["Discover"].exists)
-        openHome("Discover")
+        XCTAssertTrue(app.tabBars.buttons["My activity"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.tabBars.buttons["Explore"].exists)
+        openHome("Explore")
         XCTAssertTrue(app.staticTexts["Explore products"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["가격을 지켜보는 상품"].firstMatch.exists)
         attach("english-home")

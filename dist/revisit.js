@@ -91,8 +91,8 @@ export async function renderMyRooms(box, {pictures = new Map(), savedFamilies = 
 
 // 알림
 let alertFilter = 'all', lastAlerts = [];
-export async function renderAlerts(box, {savedFamilies = []} = {}) {
-  box.innerHTML = `<h1 class="page-title">${esc(t('alerts.title'))}</h1><div class="alert-filters" role="tablist">${['all', 'room', 'product', 'service'].map(f => `<button role="tab" data-alert-filter="${f}" aria-selected="${alertFilter === f}" class="${alertFilter === f ? 'on' : ''}">${esc(t('alerts.filter.' + f))}</button>`).join('')}</div><div id="alert-list"><p class="home-note">${esc(t('loading'))}</p></div>`;
+export async function renderAlerts(box, {savedFamilies = [], returnScreen = 'saved'} = {}) {
+  box.innerHTML = `<div class="page-bar"><button class="icon-btn" data-screen="${esc(returnScreen)}" aria-label="${esc(t('back'))}">‹</button><h1 class="page-title">${esc(t('alerts.title'))}</h1></div><div class="alert-filters" role="tablist">${['all', 'room', 'product', 'service'].map(f => `<button role="tab" data-alert-filter="${f}" aria-selected="${alertFilter === f}" class="${alertFilter === f ? 'on' : ''}">${esc(t('alerts.filter.' + f))}</button>`).join('')}</div><div id="alert-list"><p class="home-note">${esc(t('loading'))}</p></div>`;
   try { lastAlerts = (await loadRevisit({savedFamilies})).alerts; } catch { lastAlerts = []; }
   markAlertsOpened();
   drawAlerts();

@@ -158,6 +158,7 @@ struct CommunityTopic: View {
             ChatRoomView(room: room, canPost: canPost, onJoin: join)
         }
         .toolbar(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showBoard) { CommunityBoard(room: room).environmentObject(store) }
     }
     private var topBar: some View {
@@ -165,7 +166,7 @@ struct CommunityTopic: View {
           HStack(spacing: 8) {
             Button { dismiss() } label: {
                 Image(systemName: "chevron.left").font(.system(size: 24, weight: .regular)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 48)
-            }.buttonStyle(.plain).accessibilityLabel(L("back"))
+            }.buttonStyle(.plain).accessibilityLabel(L("back")).accessibilityIdentifier("room-back")
             RoomThumb(room: room, picture: picture, size: 40).clipShape(Circle())
             VStack(alignment: .leading, spacing: 3) {
                 Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
