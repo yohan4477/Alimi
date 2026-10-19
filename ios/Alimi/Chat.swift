@@ -186,7 +186,7 @@ struct ChatTab: View {
                 ScrollView {
                     if rooms == nil {
                         if failed { Text(L("chat.loadFailed")).foregroundStyle(.secondary).padding(.top, 40) }
-                        else { ProgressView().frame(maxWidth: .infinity).padding(.top, 40) }
+                        else { LoadingCompanion().padding(.top, 18) }
                     } else {
                         switch pane {
                         case .rooms: roomsContent
@@ -272,7 +272,7 @@ struct ChatTab: View {
                 }
             }
         } else {
-            ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
+            LoadingCompanion().padding(.top, 18)
         }
     }
     private static let hhmm: DateFormatter = { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f }()
