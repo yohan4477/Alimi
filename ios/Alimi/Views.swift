@@ -18,6 +18,8 @@ struct RootView: View {
     @State private var tab = MainTab.chat
     @State private var onboarding: OnboardingStep? = Interests.load()?.done == true || ProcessInfo.processInfo.arguments.contains("-skipOnboarding") ? nil : .splash
     @State private var openRoom: ChatRoom?
+    @State private var linkedFamily: ProductFamily?
+    @State private var linkError = false
     @State private var searching = false
     @State private var showingAlerts = false
     @State private var activitySection = "saved"
@@ -32,6 +34,9 @@ struct RootView: View {
             SavedView(section: $activitySection, editInterests: { onboarding = .choose }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.activity"), systemImage: "person") }.tag(MainTab.saved)
         }.id(lang)
+        .onOpenURL { url in Task { await openShared(url) } }
+        .sheet(item: $linkedFamily) { FamilySheet(family: $0).environmentObject(store) }
+        .alert(L("loadFailed"), isPresented: $linkError) { Button("OK", role: .cancel) {} }
         .sheet(isPresented: $searching) { SearchView().environmentObject(store) }
         .sheet(isPresented: $showingAlerts, onDismiss: { Task { await revisit.load(store: store) } }) { NotificationsView(model: revisit).environmentObject(store) }
         .toolbar(onboarding == nil ? .automatic : .hidden, for: .tabBar)
@@ -46,6 +51,19 @@ struct RootView: View {
         .animation(.easeInOut(duration: 0.25), value: onboarding == nil)
         .task { await revisit.load(store: store) }
         .task { await store.refresh(); await AuthSession.shared.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
+    }
+    @MainActor private func openShared(_ url: URL) async {
+        guard url.scheme == "seoulbeauty", url.host == "open",
+              let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { return }
+        if let id = query.first(where: { $0.name == "room" })?.value, !id.isEmpty, id.count <= 200 {
+            guard let room = (try? await ChatAPI.rooms())?.first(where: { $0.id == id }) else { linkError = true; return }
+            onboarding = nil; tab = .chat; openRoom = room
+        } else if let key = query.first(where: { $0.name == "product" })?.value, !key.isEmpty, key.count <= 200 {
+            guard let choices = await store.family(key), let item = choices.first?.item else { linkError = true; return }
+            onboarding = nil
+            linkedFamily = ProductFamily(familyKey: key, brand: item.brand, brandKo: item.brandKo, baseName: item.name, category: item.category,
+                                         imageUrl: item.imageUrl, minPriceMinor: Int(item.price * 100), maxPriceMinor: Int(item.price * 100), variants: choices.count)
+        }
     }
 }
 private let dayFormat: Date.FormatStyle = .dateTime.month().day().locale(L10n.locale)
@@ -321,7 +339,7 @@ struct TrackedCard: View {
                 }.foregroundStyle(.primary)
             }.buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)").accessibilityValue(photoLoaded ? "photo-loaded" : "photo-missing")
             Button { store.toggle(product.id) } label: {
-                Label(L(saved ? "favorite.saved" : "favorite.add"), systemImage: saved ? "heart.fill" : "heart").font(.caption).frame(minHeight: 44)
+                Label(L(saved ? "favorite.saved" : "favorite.add"), systemImage: saved ? "bookmark.fill" : "bookmark").font(.caption).frame(minHeight: 44)
             }.accessibilityIdentifier("favorite-\(product.id)")
         }
     }
@@ -405,7 +423,7 @@ struct VariantList: View {
                         else { busy = v.item.id; Task { _ = await store.saveCatalogItem(v.item); busy = nil } }
                     } label: {
                         let saved = trackedID.map { store.saved.favorites.contains($0) } ?? false
-                        Image(systemName: busy == v.item.id ? "hourglass" : saved ? "heart.fill" : "heart").font(.title3).frame(width: 44, height: 44)
+                        Image(systemName: busy == v.item.id ? "hourglass" : saved ? "bookmark.fill" : "bookmark").font(.title3).frame(width: 44, height: 44)
                     }.disabled(busy != nil).accessibilityLabel(L("save.action"))
                 }
             }
@@ -421,6 +439,7 @@ struct FamilySheet: View {
     var ref: String? = nil
     // Set when opened from a live room: 대화에 첨부 puts the chosen option into the composer.
     var attach: ((CatalogItem) -> Void)? = nil
+    @State private var openBrand: CatalogBrand?
     @State private var variants: [VariantChoice]?
     @State private var selected = 0
     @State private var busy = false
@@ -457,6 +476,9 @@ struct FamilySheet: View {
             RecentViews.add(family)
             variants = await store.family(family.familyKey) ?? []
             EventLogger.shared.log(.productView, props: ["family": family.familyKey, "variants": String(variants?.count ?? 0)])
+        }
+        .sheet(item: $openBrand) { brand in
+            BrandView(brand: brand, attach: attach.map { callback in { item in callback(item); openBrand = nil; dismiss() } }).environmentObject(store)
         }
         .presentationDetents([.large])
     }
@@ -500,10 +522,13 @@ struct FamilySheet: View {
     private var info: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
-                Text(family.brandLabel).font(.system(size: 17)).foregroundStyle(Color.sbGray)
+                Button {
+                    Task { openBrand = (await store.brands())?.first { $0.brand == family.brand } ?? CatalogBrand(brand: family.brand, brandKo: family.brandKo, families: 0, logoUrl: nil) }
+                } label: { Label(family.brandLabel, systemImage: "chevron.right").font(.system(size: 17)).foregroundStyle(Color.sbBlue) }
+                .accessibilityIdentifier("product-brand")
                 Spacer()
                 Button { Task { await save() } } label: {
-                    Image(systemName: isSaved ? "heart.fill" : "heart").font(.system(size: 26)).foregroundStyle(Color(rgb: 0xF0476A)).frame(width: 44, height: 44)
+                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark").font(.system(size: 26)).foregroundStyle(Color.sbBlue).frame(width: 44, height: 44)
                 }.buttonStyle(.plain).disabled(busy).accessibilityLabel(L("save.action")).accessibilityIdentifier("product-save")
             }
             Text(family.baseName).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).fixedSize(horizontal: false, vertical: true)
@@ -657,7 +682,7 @@ struct ProductDetail: View {
     private var bottomBar: some View {
         HStack(spacing: 12) {
             Button { store.toggle(product.id) } label: {
-                Label(L("save.short"), systemImage: store.saved.favorites.contains(product.id) ? "heart.fill" : "heart").font(.subheadline)
+                Label(L("save.short"), systemImage: store.saved.favorites.contains(product.id) ? "bookmark.fill" : "bookmark").font(.subheadline)
                     .frame(minHeight: 48)
             }.accessibilityIdentifier("detail-save")
             Button { buy() } label: {

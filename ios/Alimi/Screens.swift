@@ -196,6 +196,7 @@ struct BrandView: View {
     @EnvironmentObject var store: AlimiStore
     @Environment(\.dismiss) private var dismiss
     let brand: CatalogBrand
+    var attach: ((CatalogItem) -> Void)? = nil
     @State private var families: [ProductFamily] = []
     @State private var done = false
     @State private var loading = false
@@ -230,7 +231,7 @@ struct BrandView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .task { await loadMore(); following = BrandFollow.isFollowing(brand.brand) }
-        .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
+        .sheet(item: $openFamily) { FamilySheet(family: $0, attach: attach).environmentObject(store) }
     }
     private var banner: some View {
         ZStack(alignment: .top) {

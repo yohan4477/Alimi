@@ -40,7 +40,7 @@ final class RevisitModel: ObservableObject {
         let mine = (try? await ChatAPI.myRooms(all: all)) ?? []
         let seen = Seen.all(), me = ChatAPI.myTag
         var acts: [RoomActivity] = [], items: [AlertItem] = []
-        for (room, _) in mine.prefix(8) {
+        for (room, _) in mine {
             let msgs = (try? await ChatAPI.messages(room: room.id)) ?? []
             let others = msgs.filter { $0.authorTag != me }
             let fresh = seen[room.id].map { s in others.filter { $0.createdAt > s } } ?? []

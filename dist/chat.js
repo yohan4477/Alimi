@@ -127,6 +127,9 @@ const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
 function drawHome() {
   const box = $('#community-home'); if (!box || !home) return;
+  let create = document.getElementById('community-create');
+  if (!create) { create = document.createElement('button'); create.id = 'community-create'; create.className = 'primary'; create.dataset.chatAction = 'create-room'; box.before(create); }
+  create.textContent = '+ ' + t('room.new');
   box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
   const {hot, topics, recent, previews, partial, joined, images, products} = home;
   if (homeTab === 'rec') {
@@ -136,7 +139,7 @@ function drawHome() {
     const trend = hot.length ? bigHead(t('home.trending'), t('home.trendingSub')) + `<div class="trend-row">${hot.map(trendCard).join('')}</div>` : '';
     box.innerHTML = `${mine}${trend}${bigHead(t('home.recRooms'), t('home.recRoomsSub'))}${picks.map(r => pickCard(r, {image: images.get(r.id), intro: false, highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
   } else if (homeTab === 'rooms') {
-    box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'), canCreateRooms(chat.rooms) ? `<button class="text-link" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
+    box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'))}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
   } else if (homeTab === 'discover') {
     const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p>`;
     const popular = home.popular?.length ? sectionHead(t('home.popular'), t('home.popularSub')) + `<div class="popular-grid">${home.popular.map(f => `<button class="popular-item" data-family="${esc(f.family_key)}" data-ref="discover"><span class="popular-img"><img src="${esc(f.image_url)}" alt="" loading="lazy"></span><small>${esc(brandLabel(f))}</small><b>${esc(f.base_name)}</b>${f.minPrice ? `<em>${esc(usd(f.minPrice))}</em>` : ''}</button>`).join('')}</div>` : '';
@@ -402,7 +405,7 @@ function drawTalk() {
 function openStart() {
   let dlg = $('#chat-start'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'chat-start'; dlg.className = 'chat-dialog chat-start'; document.body.append(dlg); }
   const topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a, b) => a.sort - b.sort);
-  dlg.innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('home.ask'))}</h2><p class="chat-sub">${esc(t('home.askHint'))}</p>${canCreateRooms(chat.rooms) ? `<button class="write-btn" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : ''}${topics.map(r => roomRow(r).replace('data-chat-room=', 'data-chat-start=')).join('')}`;
+  dlg.innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('home.ask'))}</h2><p class="chat-sub">${esc(t('home.askHint'))}</p>${true ? `<button class="write-btn" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : ''}${topics.map(r => roomRow(r).replace('data-chat-room=', 'data-chat-start=')).join('')}`;
   dlg.showModal();
 }
 // Free room creation: any subject. Field and concern tags are optional and only help others find the room.
@@ -522,3 +525,5 @@ export async function onboardingData() {
   return {rooms, pictures: pics ? topicPictures(rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map()};
 }
 export const openRoomById = id => { pendingRoom = id; };
+
+document.addEventListener('seoulbeauty-create-room', openCreateRoom);

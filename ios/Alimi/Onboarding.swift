@@ -1,8 +1,8 @@
 import SwiftUI
 
 // Journey 1 (신규 유입 · 고민 기반 온보딩), laid out like the reference screens:
-// splash → interests and concern keywords (2/3) → rooms that match (3/3) → the room itself.
-// Every number shown is real (room list); nothing is asked about skin type, nothing leaves the device.
+// Splash is not a step: interests → optional profile → matching rooms.
+// Optional profile stays on this device. Age does not affect room ranking.
 
 extension Color {
     static let sbNavy = Color(rgb: 0x0F1B3D)
@@ -12,7 +12,7 @@ extension Color {
     static let sbBlue = Color(rgb: 0x1A73F5)
 }
 
-enum OnboardingStep { case splash, choose, rooms }
+enum OnboardingStep { case splash, choose, profile, rooms }
 
 struct OnboardingFlow: View {
     @EnvironmentObject var store: AlimiStore
@@ -26,10 +26,12 @@ struct OnboardingFlow: View {
             case .splash: SplashScreen { step = .choose }
             case .choose:
                 InterestScreen(draft: $draft, back: { close(nil) }, next: {
-                    if draft.chosenGroup { step = .rooms } else { close(nil) }
+                    if draft.chosenGroup { step = .profile } else { close(nil) }
                 }).transition(.identity)
+            case .profile:
+                ProfileScreen(draft: $draft, back: { step = .choose }, next: { step = .rooms }).transition(.identity)
             case .rooms:
-                RoomPicksScreen(model: model, interests: draft, back: { step = .choose }, open: { close($0) })
+                RoomPicksScreen(model: model, interests: draft, back: { step = .profile }, open: { close($0) })
                     .transition(.identity)
             }
         }
@@ -124,7 +126,7 @@ struct InterestScreen: View {
                     Text(draft.chosenGroup ? L("onb.next") : L("onb.browse")).font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
                         .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
                 }.buttonStyle(.plain).accessibilityIdentifier("onb-next")
-                StepBar(step: 2)
+                StepBar(step: 1)
             }.padding(.horizontal, 24).padding(.bottom, 12)
         }.background(Color.white)
     }
@@ -162,6 +164,37 @@ struct InterestScreen: View {
     }
 }
 
+struct ProfileScreen: View {
+    @Binding var draft: Interests
+    let back: () -> Void
+    let next: () -> Void
+    var body: some View {
+        VStack(spacing: 0) {
+            LogoBar(back: back)
+            Form {
+                Section { Text(L("onb.private")).font(.subheadline).foregroundStyle(Color.sbGray) }
+                Section(L("onb.optional")) {
+                    Picker(L("onb.age"), selection: Binding(get: { draft.ageRange ?? "" }, set: { draft.ageRange = $0.isEmpty ? nil : $0 })) {
+                        Text(L("onb.unknown")).tag("")
+                        ForEach(["<18", "18–24", "25–34", "35–44", "45+"], id: \.self) { Text($0).tag($0) }
+                    }
+                    if draft.skincare {
+                        Picker(L("onb.skin"), selection: Binding(get: { draft.skinType ?? "" }, set: { draft.skinType = $0.isEmpty ? nil : $0 })) {
+                            Text(L("onb.unknown")).tag("")
+                            ForEach(["dry", "oily", "combination", "normal"], id: \.self) { Text(L("onb.skin." + $0)).tag($0) }
+                        }
+                    }
+                }
+            }.scrollContentBackground(.hidden)
+            Button(action: next) {
+                Text(L("onb.next")).font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
+            }.buttonStyle(.plain).padding(.horizontal, 24).accessibilityIdentifier("onb-profile-next")
+            StepBar(step: 2).padding(.vertical, 12)
+        }.background(Color.white)
+    }
+}
+
 struct StepBar: View {
     let step: Int
     var total = 3
@@ -189,6 +222,7 @@ struct RoomPicksScreen: View {
     let back: () -> Void
     let open: (ChatRoom) -> Void
     @State private var filter = RoomFilter.rec
+    @State private var creating = false
     private var rooms: [ChatRoom] {
         switch filter {
         case .rec: return Recommend.rooms(model.rooms, interests, limit: 6).map(\.room)
@@ -218,8 +252,10 @@ struct RoomPicksScreen: View {
                     }.padding(.top, 20)
                 }.padding(.horizontal, 20).padding(.bottom, 20)
             }
+            Button(L("room.new")) { creating = true }.frame(maxWidth: .infinity, minHeight: 44)
             StepBar(step: 3).padding(.bottom, 12)
         }.background(Color.white).accessibilityIdentifier("onb-rooms")
+        .sheet(isPresented: $creating) { CreateRoomSheet(interests: interests) { room in creating = false; open(room) } }
     }
     private func filterChip(_ f: RoomFilter) -> some View {
         let on = filter == f

@@ -1,4 +1,15 @@
 {
+  "onb.optional": {"ko": "내 정보 (선택)", "en": "About me (optional)"},
+  "onb.private": {"ko": "이 기기에만 저장돼요. 연령대는 추천에 사용하지 않아요.", "en": "Saved on this device only. Age is not used for recommendations."},
+  "onb.age": {"ko": "연령대", "en": "Age range"},
+  "onb.skin": {"ko": "피부 타입", "en": "Skin type"},
+  "onb.unknown": {"ko": "선택 안 함 / 잘 모르겠어요", "en": "Skip / not sure"},
+  "onb.skin.dry": {"ko": "건성", "en": "Dry"},
+  "onb.skin.oily": {"ko": "지성", "en": "Oily"},
+  "onb.skin.combination": {"ko": "복합성", "en": "Combination"},
+  "onb.skin.normal": {"ko": "중성", "en": "Normal"},
+  "onb.empty": {"ko": "맞는 방이 없나요? 직접 만들어보세요.", "en": "No room for you? Start one."},
+  "share.openApp": {"ko": "앱에서 열기", "en": "Open in app"},
   "nav.explore": {"ko": "탐색", "en": "Explore"},
   "_note": "Single source of UI text for web (dist/) and iOS (copied to ios/Alimi/strings.json; tests keep them identical). Korean shows when the device language is Korean, English otherwise. {name} placeholders are filled at runtime.",
   "all": {

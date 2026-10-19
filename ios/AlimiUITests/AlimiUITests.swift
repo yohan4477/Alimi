@@ -13,6 +13,7 @@ final class AlimiUITests: XCTestCase {
         app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
         app.launch()
+        XCTAssertEqual(app.tabBars.buttons.count, 3, "Only community, explore and activity")
     }
 
     // Community is the first tab; product flows start from Home.
@@ -183,6 +184,8 @@ final class AlimiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["onb-concern-toneup"].exists && app.buttons["onb-concern-trouble"].exists, "nine skincare keywords")
         attach("j1-interests")
         app.buttons["onb-next"].tap()
+        XCTAssertTrue(app.buttons["onb-profile-next"].waitForExistence(timeout: 5))
+        app.buttons["onb-profile-next"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10), "acne room recommended")
         XCTAssertTrue(app.buttons["onb-filter-rec"].exists && app.buttons["onb-filter-all"].exists)

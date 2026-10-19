@@ -32,7 +32,7 @@ export async function loadRevisit({savedFamilies = []} = {}) {
   const rooms = await fetchRooms(), tag = await myTag(), seen = readJSON(SEEN_KEY, {}), blocked = readBlocked(storage);
   const mine = await fetchMyRooms(tag).catch(() => []);
   const activity = [], alerts = [];
-  for (const j of mine.slice(0, 8)) {
+  for (const j of mine) {
     const room = rooms.find(r => r.id === j.room_id); if (!room) continue;
     const msgs = (await fetchMessages(room.id).catch(() => [])).filter(m => !blocked.includes(m.author_tag));
     const others = msgs.filter(m => m.author_tag !== tag);
