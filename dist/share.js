@@ -13,7 +13,7 @@ export async function share({title, url}, toast = () => {}, nav = globalThis.nav
     catch (e) { if (e?.name === 'AbortError') return 'cancelled'; }
   }
   try { await nav.clipboard.writeText(url); toast(t('share.copied')); return 'copied'; }
-  catch { toast(t('share.failed')); return 'failed'; }
+  catch { toast(`${t('share.failed')} ${url}`); return 'failed'; }
 }
 // What a shared link asks to open on arrival.
 export function sharedTarget(search = globalThis.location?.search ?? '') {
