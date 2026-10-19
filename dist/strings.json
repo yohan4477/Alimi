@@ -1683,5 +1683,69 @@
   "home.newMessages": {
     "ko": "새 메시지",
     "en": "New"
+  },
+  "avatar.profile": {
+    "ko": "내 캐릭터",
+    "en": "My character"
+  },
+  "avatar.local": {
+    "ko": "이 기기의 내 화면에만 표시돼요.",
+    "en": "Visible only to you on this device."
+  },
+  "avatar.title": {
+    "ko": "대화에서 사용할 캐릭터를 골라주세요.",
+    "en": "Choose your conversation character."
+  },
+  "avatar.subtitle": {
+    "ko": "마음에 드는 모습으로, 편하게 시작해요.",
+    "en": "Pick a look you like and join the conversation."
+  },
+  "avatar.character": {
+    "ko": "캐릭터",
+    "en": "Character"
+  },
+  "avatar.color": {
+    "ko": "배경 테두리 색",
+    "en": "Background ring"
+  },
+  "avatar.option": {
+    "ko": "캐릭터 {n}",
+    "en": "Character {n}"
+  },
+  "avatar.note": {
+    "ko": "캐릭터는 자유롭게 골라요. 실제 외모나 피부 정보를 의미하지 않아요.",
+    "en": "Choose freely. Your character does not describe your real appearance or skin."
+  },
+  "avatar.save": {
+    "ko": "이 캐릭터로 시작하기",
+    "en": "Use this character"
+  },
+  "avatar.skip": {
+    "ko": "나중에 고를게요",
+    "en": "Choose later"
+  },
+  "avatar.failed": {
+    "ko": "저장하지 못했어요. 다시 시도하거나 닫아주세요.",
+    "en": "Could not save. Please try again or close this screen."
+  },
+  "avatar.color0": {
+    "ko": "파랑",
+    "en": "Blue"
+  },
+  "avatar.color1": {
+    "ko": "라벤더",
+    "en": "Lavender"
+  },
+  "avatar.color2": {
+    "ko": "피치",
+    "en": "Peach"
+  },
+  "avatar.color3": {
+    "ko": "민트",
+    "en": "Mint"
+  },
+  "avatar.color4": {
+    "ko": "회색",
+    "en": "Gray"
   }
 }

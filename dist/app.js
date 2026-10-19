@@ -1,4 +1,5 @@
 import {loadingMarkup} from './loading-companion.js';
+import {profileButton} from './avatar.js';
 import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
@@ -113,7 +114,7 @@ let activityTab='saved';
 function renderSaved(){
   const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
   const hint=n===0?t('saved.hint'):n<3?t('saved.hintMore',{n:3-n}):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('nav.activity'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div>${profileCard()}${interestRow()}<div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':`<h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>`;
+  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('nav.activity'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div>${profileButton()}${profileCard()}${interestRow()}<div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':`<h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
@@ -128,6 +129,7 @@ async function authAction(a){
 }
 function renderSettings(){
   $('#settings').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="saved" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('settings.title'))}</h1></div>
+${profileButton()}
 <section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span class="account-avatar">${esc((auth.user.email||'?').slice(0,1).toUpperCase())}</span><span><b>${esc(auth.user.email||'')}</b><em>${esc(t('account.signedIn'))}</em></span></div><button class="auth-button secondary" data-auth="signout">${esc(t('account.signout'))}</button>`:`<button class="auth-button" data-auth="google"><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
 <section class="set-group"><h3>${esc(t('settings.service'))}</h3>
 <div class="set-row static"><span class="set-ico">${icon.globe}</span><span class="set-label">${esc(t('settings.language'))}</span><span class="seg"><button data-lang="ko" class="${lang==='ko'?'on':''}">한국어</button><button data-lang="en" class="${lang==='en'?'on':''}">English</button></span></div><p class="set-hint">${esc(t('settings.languageHint'))}</p></section>
@@ -260,3 +262,4 @@ loadProducts().then(({products:list,source,exportedAt})=>{
 auth.handleCallback().catch(error=>{const clean=new URL(location.href);for(const key of ['code','state','error','error_description'])clean.searchParams.delete(key);history.replaceState({},'',clean.toString());toast(error?.message||t('account.failed'))}).finally(()=>auth.restore().then(()=>{if(screen==='settings')renderSettings()}));
 document.addEventListener('profile-change',()=>{if(screen==='saved')renderSaved()});
 if(cachedProfile())refreshProfile();
+document.addEventListener('avatar-change',()=>{if(screen==='saved')renderSaved();if(screen==='settings')renderSettings()});

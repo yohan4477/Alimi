@@ -1,5 +1,6 @@
 import {loadingMarkup} from './loading-companion.js';
 import {share, shareUrl} from './share.js';
+import {chooseAvatar, avatarMarkup} from './avatar.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
 // and Live chat, kept in separate views. Product cards are the shared link: the same card in a post,
 // comment or chat message opens the same product sheet and carries the source as Awin clickref.
@@ -164,6 +165,7 @@ export async function renderMyConversations(box) {
 }
 
 function askJoin(room, then) {
+  const proceed = then; then = () => chooseAvatar({onboarding:true}).then(proceed);
   if (hasAgreed(storage)) { then(); return; }
   const dlg = $('#chat-join');
   dlg.innerHTML = `<h2>${esc(t('chat.joinTitle', {room: roomTitle(room)}))}</h2><p class="chat-intro">${esc(roomIntro(room))}</p><p class="chat-rules">${esc(t('chat.rules'))}</p><div class="chat-join-actions"><button data-chat-action="join-cancel">${esc(t('cancel'))}</button><button class="primary" data-chat-action="join-ok">${esc(t('chat.join'))}</button></div>`;
@@ -294,7 +296,7 @@ function renderLog(scroll) {
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
   log.innerHTML = list.length ? list.map(m => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
-    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine ? '' : `<small class="chat-nick"><i class="chat-avatar" style="background:${avatarColor(m.author_tag)}" aria-hidden="true">${esc([...(m.nickname || '?')][0])}</i>${esc(m.nickname)}</small>`}<div class="chat-bubble-row"><div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><span class="chat-side"><time>${esc(time(m.created_at))}</time><button class="chat-like" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♡ ${m.likes || ''}</button><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></span></div></article>`;
+    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine ? avatarMarkup(undefined, 'chat-self-avatar') : `<small class="chat-nick"><i class="chat-avatar" style="background:${avatarColor(m.author_tag)}" aria-hidden="true">${esc([...(m.nickname || '?')][0])}</i>${esc(m.nickname)}</small>`}<div class="chat-bubble-row"><div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><span class="chat-side"><time>${esc(time(m.created_at))}</time><button class="chat-like" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♡ ${m.likes || ''}</button><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></span></div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   if (scroll || near) log.scrollTop = log.scrollHeight;
 }
@@ -504,3 +506,6 @@ document.addEventListener('click', async e => {
     try { const n = await likeCommunity(secret, type, +id); const x = type === 'post' ? view.post : view.comments.find(c => c.id === +id); if (x) x.likes = n; renderPost(); } catch {}
   }
 });
+
+
+document.addEventListener('avatar-change',()=>{if(document.querySelector('#chat-log'))renderLog(false)});
