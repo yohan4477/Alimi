@@ -1,4 +1,4 @@
-name: Alimi TestFlight upload
+name: Seoul Beauty TestFlight Upload
 
 on:
   workflow_dispatch:
