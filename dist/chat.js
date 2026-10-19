@@ -1,3 +1,4 @@
+import {loadingMarkup} from './loading-companion.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
 // and Live chat, kept in separate views. Product cards are the shared link: the same card in a post,
 // comment or chat message opens the same product sheet and carries the source as Awin clickref.
@@ -75,7 +76,7 @@ let homeVersion = 0;
 async function renderHome() {
   const version = ++homeVersion;
   stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="page-head community-head"><div><h1>${esc(t('community.title'))}</h1><p>${esc(t('community.sub'))}</p></div><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="chat-rooms" id="community-home"><p class="empty">${esc(t('loading'))}</p></div>`);
+  shell(`<div class="page-head community-head"><div><h1>${esc(t('community.title'))}</h1><p>${esc(t('community.sub'))}</p></div><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div>`);
   let posts = [], joined = [], postsFailed = false;
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
@@ -120,7 +121,7 @@ function openTopic(room, mode = view.mode) {
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
-  body(`<button class="write-btn" data-chat-action="write">${icon.pen}<span>${esc(t('community.write'))}</span></button><div id="post-list"><p class="empty">${esc(t('loading'))}</p></div>`);
+  body(`<button class="write-btn" data-chat-action="write">${icon.pen}<span>${esc(t('community.write'))}</span></button><div id="post-list">${loadingMarkup(t('loading'))}</div>`);
   let posts; try { posts = visiblePosts(await fetchPosts(room.id)); } catch { posts = null; }
   const list = $('#post-list'); if (!list || chat.room?.id !== room.id || view.mode !== 'posts') return; // user moved on
   if (!posts) { list.innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
@@ -130,7 +131,7 @@ async function renderTopicPosts(room) {
 // Post detail with comments; each comment may carry a product card.
 async function openPost(id) {
   stopPolling();
-  shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="${chat.room ? 'topic' : 'rooms'}" aria-label="${esc(t('back'))}">${icon.back}</button></div><div id="post-view" class="post-view"><p class="empty">${esc(t('loading'))}</p></div>`);
+  shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="${chat.room ? 'topic' : 'rooms'}" aria-label="${esc(t('back'))}">${icon.back}</button></div><div id="post-view" class="post-view">${loadingMarkup(t('loading'))}</div>`);
   let post, comments; try { [post, comments] = await Promise.all([fetchPost(id), fetchComments(id)]); } catch { post = null; }
   if (!$('#post-view')) return;
   if (!post) { $('#post-view').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
@@ -206,7 +207,7 @@ async function submitPost() {
 // Live chat inside a topic.
 async function startLive(room) {
   chat.messages = []; chat.item = null; chat.replyTo = null;
-  body(`<div id="chat-log" class="chat-log" aria-live="polite"><p class="empty">${esc(t('loading'))}</p></div><form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
+  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
   $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
   $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
   try {
@@ -306,7 +307,7 @@ function openReport() {
 // "People talking about this" for a product sheet / detail page.
 export async function renderProductTalk(box, familyKey) {
   if (!box || !familyKey) return;
-  box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))}</h3><p class="empty">${esc(t('loading'))}</p>`;
+  box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))}</h3>${loadingMarkup(t('loading'))}`;
   let talk; try { talk = await fetchProductTalk(familyKey); } catch { box.innerHTML = ''; return; }
   talkState = {box, talk}; talkFilter = {}; drawTalk();
 }
