@@ -1207,5 +1207,37 @@
   "chat.sharePickRoom": {
     "ko": "“{product}”을(를) 첨부할 대화방을 선택하세요.",
     "en": "Choose a room to attach “{product}” to."
+  },
+  "share.productButton": {
+    "ko": "친구에게 보내기",
+    "en": "Send to a friend"
+  },
+  "share.productTitle": {
+    "ko": "이 제품 같이 볼래?",
+    "en": "Want to look at this together?"
+  },
+  "share.productMessage": {
+    "ko": "{product}이야. 서울뷰티에서 본 제품인데 너도 같이 볼래?",
+    "en": "I found {product} on SeoulBeauty and thought you might want to see it."
+  },
+  "chat.inviteFriend": {
+    "ko": "대화에 초대",
+    "en": "Invite to this conversation"
+  },
+  "chat.shareTitle": {
+    "ko": "대화 같이 볼래?",
+    "en": "Join this conversation"
+  },
+  "chat.shareRoomMessage": {
+    "ko": "서울뷰티에서 나누는 대화야. 너도 같이 볼래? {room}",
+    "en": "A conversation on SeoulBeauty that you might enjoy: {room}"
+  },
+  "share.linkCopied": {
+    "ko": "공유 링크를 복사했어요",
+    "en": "Share link copied"
+  },
+  "share.copyPrompt": {
+    "ko": "링크를 복사해 친구에게 보내세요",
+    "en": "Copy this link to send to a friend"
   }
 }
