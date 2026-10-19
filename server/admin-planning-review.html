@@ -20,8 +20,18 @@
 #sb-reference-review .sb-onboard-phone h4{font-size:19px;line-height:1.3;margin:0 0 7px}
 #sb-reference-review .sb-onboard-phone p{font-size:12px;color:#687789;margin:0 0 18px}
 #sb-reference-review .sb-onboard-picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#sb-reference-review .sb-onboard-picks span{border:1px solid #dce4ef;border-radius:11px;padding:11px 6px;text-align:center;font-size:12px;font-weight:600}
-#sb-reference-review .sb-onboard-picks span.chosen{background:#edf4ff;border:2px solid #135dda;color:#135dda}
+#sb-reference-review .sb-onboard-picks button{border:2px solid #dce4ef;border-radius:11px;padding:10px 6px;text-align:center;font-size:12px;font-weight:600;min-height:43px;background:#fff;color:#26364c;white-space:normal;cursor:pointer}
+#sb-reference-review .sb-onboard-picks button[aria-pressed="true"]{background:#edf4ff;border-color:#135dda;color:#135dda}
+#sb-reference-review .sb-onboard-picks button:focus-visible,#sb-reference-review .sb-onboard-secondary:focus-visible,#sb-reference-review .sb-onboard-skip:focus-visible{outline:3px solid #135dda;outline-offset:2px}
+#sb-reference-review .sb-onboard-group-heading{font-size:12px;font-weight:700;color:#50617b;margin:10px 0 6px}
+#sb-reference-review .sb-onboard-summary{font-size:11px;background:#edf4ff;border-radius:8px;padding:8px 9px;color:#24518b;margin:10px 0}
+#sb-reference-review .sb-onboard-skip{border:0;background:transparent;color:#135dda;text-decoration:underline;margin:6px 0 0;padding:6px;font-size:11px}
+#sb-reference-review .sb-onboard-secondary{background:#fff;border:1px solid #b8cee9;color:#135dda;border-radius:9px;min-height:35px;padding:8px;margin:6px 0 0;font-size:12px;font-weight:600}
+#sb-reference-review .sb-onboard-room-input{width:100%;border:1px solid #cbd9e9;border-radius:10px;padding:11px;font-size:13px;color:#172b45;background:#fff;min-height:44px}
+#sb-reference-review .sb-onboard-note{font-size:11px;color:#687789;line-height:1.5}
+#sb-reference-review .sb-onboard-result button{display:block;border:0;background:none;padding:0;margin:0;text-align:left;color:#135dda;font-size:12px;font-weight:700}
+#sb-reference-review .sb-onboard-next{min-height:42px}
+
 #sb-reference-review .sb-onboard-result{background:#f9fbff;border:1px solid #dce4ef;border-radius:11px;padding:10px;margin-bottom:7px}
 #sb-reference-review .sb-onboard-result b{display:block;font-size:12px}
 #sb-reference-review .sb-onboard-result small{display:block;color:#63738a;font-size:11px;margin-top:4px}
@@ -35,9 +45,9 @@
 @media(max-width:610px){#sb-reference-review .sb-onboard-layout{grid-template-columns:1fr}#sb-reference-review .sb-onboard-phone{width:276px;max-width:100%}}
 </style>
 <section class="sb-onboard-section" id="sb-onboard-section" aria-label="신규 온보딩 고객 여정">
-  <div class="sb-onboard-top"><h3>신규 · 첫 방문 온보딩과 맞춤 채팅방</h3><div class="sb-onboard-language" aria-label="앱 미리보기 언어"><button type="button" data-onboard-lang="ko" aria-pressed="true">한국어</button><button type="button" data-onboard-lang="en" aria-pressed="false">English</button></div></div>
-  <p class="note">기존 Community · Search · 내 활동 UI에 앞서 연결하는 신규 설계안입니다. 실제 앱 구현·실험·배포 완료를 의미하지 않습니다.</p>
-  <div class="sb-onboard-steps" role="tablist" aria-label="온보딩 고객 여정"><button type="button" data-onboard-step="0" role="tab" aria-selected="true">1. 피부 타입</button><button type="button" data-onboard-step="1" role="tab" aria-selected="false">2. 피부 고민</button><button type="button" data-onboard-step="2" role="tab" aria-selected="false">3. 채팅방 추천</button></div>
+  <div class="sb-onboard-top"><h3>신규 · 관심 분야·고민 복수 선택 → 기존 방 추천/자유 방 생성</h3><div class="sb-onboard-language" aria-label="앱 미리보기 언어"><button type="button" data-onboard-lang="ko" aria-pressed="true">한국어</button><button type="button" data-onboard-lang="en" aria-pressed="false">English</button></div></div>
+  <p class="note">스킨케어·메이크업을 <strong>동시에</strong> 선택하고 세부 고민을 복수 선택할 수 있습니다. <strong>방은 누구나 자유롭게 생성</strong>하며 추천은 이미 존재하는 방을 찾는 기능입니다. 시안의 방 목록·생성·입장은 가상 시뮬레이션이며 실제 앱/데이터와 연결되지 않습니다. 기존 Community · Search · 내 활동 화면과 이미지는 유지합니다.</p>
+  <div class="sb-onboard-steps" role="tablist" aria-label="온보딩 고객 여정"><button type="button" data-onboard-step="0" role="tab" aria-selected="true">1. 관심 분야</button><button type="button" data-onboard-step="1" role="tab" aria-selected="false">2. 세부 고민</button><button type="button" data-onboard-step="2" role="tab" aria-selected="false">3. 방 추천·생성</button></div>
   <div class="sb-onboard-layout"><div class="sb-onboard-phone" id="sb-onboard-phone" aria-live="polite"></div><div class="sb-onboard-detail" id="sb-onboard-detail" aria-live="polite"></div></div>
   <div class="sb-onboard-divider"></div><h3>기존 화면별 수정 위치 · 기존 이미지 유지</h3>
 </section>
@@ -82,40 +92,164 @@ new ResizeObserver(() => {
 (()=>{
   const root=document.getElementById('sb-onboard-section');
   if(!root)return;
-  let language='ko',step=0;
+  let language='ko',step=0,lastRoomList=2,roomSequence=0,roomDraft='',roomError='',openedRoom=null,flash='';
+  const interests=new Set(),chosenConcerns=new Set(),draftTags=new Set();
+  const groups=[
+    {id:'skin',ko:'스킨케어',en:'Skincare'},
+    {id:'makeup',ko:'메이크업',en:'Makeup'}
+  ];
+  const concerns=[
+    {id:'acne',group:'skin',ko:'트러블·여드름',en:'Acne & breakouts'},
+    {id:'sensitive',group:'skin',ko:'민감성·자극',en:'Sensitive skin'},
+    {id:'dry',group:'skin',ko:'건조함',en:'Dryness'},
+    {id:'pores',group:'skin',ko:'모공·피부결',en:'Pores & texture'},
+    {id:'cushion',group:'makeup',ko:'쿠션 호수·커버력',en:'Cushion shades'},
+    {id:'lip',group:'makeup',ko:'틴트·립',en:'Lip tints'},
+    {id:'longwear',group:'makeup',ko:'메이크업 지속력',en:'Makeup longevity'},
+    {id:'shade',group:'makeup',ko:'색상 매칭',en:'Color matching'}
+  ];
+  // These are hypothetical user-created rooms in the ADMIN PREVIEW ONLY.
+  // The production recommendation should query ALL existing public rooms.
+  const rooms=[
+    {id:'skinbase',groups:['skin','makeup'],tags:['acne','cushion','longwear'],ko:'트러블 피부의 베이스 메이크업',en:'Base makeup for breakout-prone skin'},
+    {id:'acne',groups:['skin'],tags:['acne','pores'],ko:'트러블·모공 이야기',en:'Breakouts & pores'},
+    {id:'lip',groups:['makeup'],tags:['lip','shade'],ko:'틴트·립 컬러 이야기',en:'Lip & tint colors'},
+    {id:'dry',groups:['skin'],tags:['sensitive','dry'],ko:'민감성·건조 피부 이야기',en:'Sensitive & dry skin'},
+    {id:'cushion',groups:['makeup'],tags:['cushion','longwear'],ko:'쿠션·메이크업 지속력',en:'Cushion & long-wear makeup'},
+    {id:'popular',groups:[],tags:[],ko:'K-뷰티 인기 대화',en:'Popular K-beauty talks'}
+  ];
   const copy={
-    ko:{heads:['내 피부 타입은?','어떤 피부 고민이 있나요?','나에게 맞는 커뮤니티'],subs:['비슷한 피부를 가진 사람들의 경험을 찾아보세요.','해당하는 고민을 모두 선택해 주세요.','같은 고민의 대화를 추천해 드려요.'],skins:['건성','지성','복합성','중성','민감성'],issues:['트러블','홍조','건조함','모공','잡티','피부결'],rooms:[['트러블 고민방','같은 고민을 나누는 방'],['복합성 피부 이야기','비슷한 피부 타입의 이야기'],['K-뷰티 수다방','관심사 기반 전체 인기 방']],next:'다음',find:'채팅방 찾기',again:'다시 선택',skip:'건너뛰어도 커뮤니티를 이용할 수 있어요.',tags:'복합성 · 트러블 · 모공'},
-    en:{heads:["What's your skin type?","What are your skin concerns?","Your communities"],subs:['Find people who understand your skin.','Select all that apply.','Explore conversations with similar concerns.'],skins:['Dry','Oily','Combination','Normal','Sensitive'],issues:['Acne','Redness','Dryness','Pores','Dark spots','Texture'],rooms:[['Acne & Breakouts','Talk with people facing similar concerns'],['Combination Skin Club','Experiences with your skin type'],['K-Beauty Talk','Explore popular K-beauty discussions']],next:'Continue',find:'Find communities',again:'Start over',skip:'You can skip this and explore communities.',tags:'Combination · Acne · Pores'}
+    ko:{
+      heads:['어떤 뷰티 이야기에 관심 있나요?','요즘 어떤 게 고민인가요?','고민에 맞는 대화 찾아보기','새 대화방 만들기','모든 대화방 둘러보기','대화방 미리보기'],
+      subs:['스킨케어와 메이크업을 둘 다 선택해도 돼요.','선택한 각 분야에서 해당하는 고민을 여러 개 골라주세요.','추천은 고정된 방이 아니라 실제 존재하는 방을 찾는 기능이에요.','원하는 주제로 자유롭게 만들 수 있어요.','추천과 관계없이 모든 공개 방을 찾아볼 수 있어요.','이 화면의 대화방은 시안용 예시입니다.'],
+      next:'다음',show:'추천방 보기',startOver:'처음부터 다시',back:'이전',skip:'건너뛰고 둘러보기',
+      choose:'관심 분야를 선택하거나 건너뛰어도 돼요.',noConcerns:'세부 고민 선택 없이도 둘러볼 수 있어요.',
+      create:'방 만들기',browse:'전체 방 보기',save:'예시 방 생성',roomTitle:'방 제목',roomPlaceholder:'예: 나에게 맞는 쿠션 찾기',roomError:'방 제목을 3자 이상 입력해 주세요.',
+      demo:'시안용 가상 방 목록 · 실제 사용자 방/활동 아님',matched:'고민 일치: ',byInterest:'선택 분야와 일치',popular:'전체 인기 대화',noResults:'관련 방이 없다면 다른 방을 찾거나 자유롭게 만들 수 있어요.',
+      created:'예시 방을 만들었어요 (실제 저장되지 않음).',roomNotReal:'이 방은 기획 시안에서만 열립니다. 실제 입장/글쓰기/저장은 일어나지 않아요.',
+      roomTags:'방 태그 (선택)',empty:'태그가 없어도 자유로운 주제로 만들 수 있어요.',selected:'선택한 고민',none:'선택 없음'
+    },
+    en:{
+      heads:['What are you into?','What are your concerns?','Find matching conversations','Create a room','Browse all rooms','Room preview'],
+      subs:['Choose both skincare and makeup if you like.','Select any concerns from either interest.','Suggestions find existing rooms; they do not limit what you can create.','Create a room about anything you want.','Browse all public rooms independently of suggestions.','This is a sample room in an admin-only prototype.'],
+      next:'Continue',show:'Find conversations',startOver:'Start over',back:'Back',skip:'Skip & explore',
+      choose:'Choose any interests, or skip.',noConcerns:'You can explore without choosing a concern.',
+      create:'Create a room',browse:'Browse all rooms',save:'Create demo room',roomTitle:'Room title',roomPlaceholder:'e.g. Finding the right cushion shade',roomError:'Enter at least 3 characters for the room title.',
+      demo:'Example rooms only · no live community data',matched:'Matching concerns: ',byInterest:'Matches selected interest',popular:'Popular conversations',noResults:'Nothing matches? Browse or freely create your own room.',
+      created:'Demo room created (not saved to the app).',roomNotReal:'This room is a prototype preview; no real joining or posting occurs.',
+      roomTags:'Room tags (optional)',empty:'You can create any topic even without tags.',selected:'Your concerns',none:'Nothing selected'
+    }
   };
   const notes=[
-    {change:'피부 타입을 하나 선택. 모를 경우 건너뛰기 가능하며 아바타·사진으로 피부·연령·인종을 추정하지 않는다.',journey:'최초 실행 → 언어 확인 → 피부 타입 선택 / 건너뛰기',kpi:'피부 타입 선택률 = 선택자 ÷ 단계 노출자 / 건너뛰기율'},
-    {change:'여드름·홍조·건조함·모공 등 여러 고민을 선택. 수집 목적은 채팅방 추천에 한정하고 내 활동에서 수정·초기화하도록 설계한다.',journey:'피부 타입 → 피부 고민 복수 선택 → 추천 결과',kpi:'온보딩 완료율 = 완료자 ÷ 시작자 / 고민 선택 단계 이탈률'},
-    {change:'기존 채팅방에 고민·타입 태그를 연결해 추천. 추천 이유와 실제 활동을 알리고 매칭이 없으면 전체 인기 대화를 노출한다. 빈 채팅방을 자동 생성하지 않는다.',journey:'추천 결과 → 채팅방 열람 → 첫 질문·답변 → 대화 재방문',kpi:'추천방 입장률 = 입장자 ÷ 추천 노출자 / 첫 발화율 = 전송자 ÷ 입장자'}
+    {change:'Skincare와 Makeup을 독립 복수 선택. 둘 다 선택·하나만 선택·둘 다 해제·건너뛰기 가능. 피부 타입·톤은 필수가 아님.',journey:'첫 방문 → 분야 복수 선택 또는 바로 전체 공개 방 탐색',kpi:'단계 노출→선택/건너뛰기, 스킨만/메이크업만/둘 다/미선택 분포'},
+    {change:'선택한 스킨케어·메이크업 분야의 세부 고민을 각각 여러 개 선택. 분야 해제 시 관련 고민은 추천에 남지 않음.',journey:'관심 분야 → 양쪽 고민 조합 → 추천 또는 자유 탐색',kpi:'세부 고민 1개 이상 선택률, 분야 교차 고민 선택률, 단계 이탈률'},
+    {change:'사용자들이 자유 생성한 실제 방 가운데 주제·고민·활동에 맞춰 추천. 추천 목록 고정/생성 제한 없음. 예시 방 목록으로 인터랙션만 시뮬레이션.',journey:'추천된 방 입장 / 전체 탐색 / 직접 방 생성 → 대화',kpi:'추천 노출→방 열람률, 탐색·방 생성 분기율, 첫 발화율·D7'},
+    {change:'모든 사용자가 원하는 제목·태그로 방을 자유롭게 생성. 시안 생성은 로컬 임시 예시이며 실제 서버에는 저장하지 않음.',journey:'방 만들기 → 제목·선택 태그 → 생성 → 대화·초대',kpi:'방 만들기 시작→완료율, 생성 이후 첫 타인 참여·첫 답변 시간'},
+    {change:'추천 없이도 전체 공개 방과 새로 생성한 방을 찾을 수 있음. 선택한 고민이 방 열람 권한을 제한하지 않음.',journey:'전체 방/검색 → 방 입장 또는 방 만들기',kpi:'전체 탐색→방 입장률, 신규 생성 방 열람률'},
+    {change:'방 입장 예시만 보여줌. 실제 대화는 사용자의 작성·답변·공유로 발생하고 추천과 독립적임.',journey:'방 입장 → 읽기·체류 → 발화 → 답변·제품 연결',kpi:'실제 방 체류시간 중위값/p75, 입장→첫 발화, D1/D7, 제품 카드→제휴 링크'}
   ];
-  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function escapeHtml(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
+  function translatedConcern(id){const t=concerns.find(c=>c.id===id);return t?t[language]:id;}
+  function activeConcerns(){return concerns.filter(c=>interests.has(c.group)&&chosenConcerns.has(c.id)).map(c=>c.id);}
+  function candidates(){
+    const tags=activeConcerns();
+    if(!interests.size)return [rooms.find(r=>r.id==='popular')];
+    const scored=rooms.filter(r=>r.id!=='popular').map(room=>{
+      const matching=room.tags.filter(id=>tags.includes(id));
+      const category=room.groups.filter(id=>interests.has(id));
+      return {room,matching,score:matching.length*10+category.length};
+    }).filter(x=>x.score>0&&(tags.length===0||x.matching.length>0));
+    scored.sort((a,b)=>b.score-a.score);
+    return scored.length?scored.slice(0,4).map(x=>x.room):[rooms.find(r=>r.id==='popular')];
+  }
+  function pickButton(id,title,kind,selected){
+    return '<button type="button" data-onboard-'+kind+'="'+escapeHtml(id)+'" aria-pressed="'+String(selected)+'">'+escapeHtml(title)+(selected?' ✓':'')+'</button>';
+  }
+  function tagsSummary(){
+    const ids=activeConcerns();
+    const t=copy[language];
+    return '<div class="sb-onboard-summary">'+escapeHtml(t.selected)+': '+escapeHtml(ids.length?ids.map(translatedConcern).join(' · '):t.none)+'</div>';
+  }
+  function roomMarkup(list){
+    const t=copy[language],ids=activeConcerns();
+    return list.map(room=>{
+      const matches=room.tags.filter(id=>ids.includes(id));
+      const why=matches.length?t.matched+matches.map(translatedConcern).join(' · '):(room.id==='popular'?t.popular:t.byInterest);
+      return '<div class="sb-onboard-result"><button type="button" data-onboard-room="'+escapeHtml(room.id)+'">'+escapeHtml(room[language])+' ↗</button><small>'+escapeHtml(why)+'</small></div>';
+    }).join('');
+  }
+  function action(label,attr,cls){
+    return '<button type="button" class="'+(cls||'sb-onboard-secondary')+'" '+attr+'>'+escapeHtml(label)+'</button>';
+  }
   function render(){
     const t=copy[language],n=notes[step];
     root.querySelectorAll('[data-onboard-step]').forEach(b=>b.setAttribute('aria-selected',String(Number(b.dataset.onboardStep)===step)));
     root.querySelectorAll('[data-onboard-lang]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.onboardLang===language)));
-    let inner='';
-    if(step<2){
-      const vals=step===0?t.skins:t.issues;
-      inner='<div class="sb-onboard-picks">'+vals.map((v,i)=>'<span class="'+((step===0&&i===2)||(step===1&&(i===0||i===3))?'chosen':'')+'">'+escapeHtml(v)+'</span>').join('')+'</div>';
-    }else{
-      inner='<div class="sb-onboard-result"><b>'+escapeHtml(t.tags)+'</b></div>'+t.rooms.map(r=>'<div class="sb-onboard-result"><b>'+escapeHtml(r[0])+'</b><small>'+escapeHtml(r[1])+'</small></div>').join('');
+    let inner='',actions='';
+    if(step===0){
+      inner='<div class="sb-onboard-picks">'+groups.map(g=>pickButton(g.id,g[language],'group',interests.has(g.id))).join('')+'</div>';
+      actions=action(t.next,'data-onboard-next','sb-onboard-next')+action(t.skip,'data-onboard-skip','sb-onboard-skip');
+    } else if(step===1){
+      const chosen=groups.filter(g=>interests.has(g.id));
+      inner=chosen.length?chosen.map(g=>'<div class="sb-onboard-group-heading">'+escapeHtml(g[language])+'</div><div class="sb-onboard-picks">'+concerns.filter(o=>o.group===g.id).map(o=>pickButton(o.id,o[language],'concern',chosenConcerns.has(o.id))).join('')+'</div>').join(''):'<p>'+escapeHtml(t.choose)+'</p>';
+      actions=action(t.back,'data-onboard-back')+action(t.show,'data-onboard-next','sb-onboard-next')+action(t.skip,'data-onboard-skip','sb-onboard-skip');
+    } else if(step===2){
+      inner=tagsSummary()+'<p class="sb-onboard-note">'+escapeHtml(t.demo)+'</p>'+roomMarkup(candidates());
+      actions=action(t.browse,'data-onboard-browse','sb-onboard-next')+action(t.create,'data-onboard-create')+action(t.back,'data-onboard-back');
+    } else if(step===3){
+      inner='<label class="sb-onboard-group-heading" for="sb-demo-room-title">'+escapeHtml(t.roomTitle)+'</label><input id="sb-demo-room-title" class="sb-onboard-room-input" data-onboard-room-title maxlength="60" value="'+escapeHtml(roomDraft)+'" placeholder="'+escapeHtml(t.roomPlaceholder)+'" />';
+      inner+='<div class="sb-onboard-group-heading">'+escapeHtml(t.roomTags)+'</div><div class="sb-onboard-picks">'+concerns.map(o=>pickButton(o.id,o[language],'roomtag',draftTags.has(o.id))).join('')+'</div><p class="sb-onboard-note">'+escapeHtml(t.empty)+'</p>';
+      if(roomError)inner+='<p role="status" class="sb-onboard-note">'+escapeHtml(roomError)+'</p>';
+      actions=action(t.save,'data-onboard-save-room','sb-onboard-next')+action(t.back,'data-onboard-back');
+    } else if(step===4){
+      inner='<p class="sb-onboard-note">'+escapeHtml(t.demo)+'</p>'+roomMarkup(rooms);
+      actions=action(t.create,'data-onboard-create','sb-onboard-next')+action(t.back,'data-onboard-back');
+    } else {
+      inner='<div class="sb-onboard-result"><b>'+escapeHtml(openedRoom?openedRoom[language]:t.popular)+'</b><small>'+escapeHtml(t.roomNotReal)+'</small></div>';
+      actions=action(t.back,'data-onboard-back','sb-onboard-next')+action(t.create,'data-onboard-create');
     }
-    const btn=step===2?t.again:step===1?t.find:t.next;
-    root.querySelector('#sb-onboard-phone').innerHTML='<div class="sb-onboard-brand">SeoulBeauty</div><div class="sb-onboard-progress">'+[0,1,2].map(i=>'<span class="'+(i<=step?'is-done':'')+'"></span>').join('')+'</div><h4>'+escapeHtml(t.heads[step])+'</h4><p>'+escapeHtml(t.subs[step])+'</p>'+inner+'<div class="sb-onboard-grow"></div><button type="button" class="sb-onboard-next" data-onboard-next>'+escapeHtml(btn)+'</button><p class="sb-onboard-hint">'+escapeHtml(t.skip)+'</p>';
-    root.querySelector('#sb-onboard-detail').innerHTML='<strong>구성요소 · 변경 내용</strong><div>'+n.change+'</div><strong>고객 여정</strong><div>'+n.journey+'</div><strong>연결 KPI (목표값·현재값 미측정)</strong><div>'+n.kpi+'</div><strong>기존 UI와 관계</strong><div>Community · Search · 내 활동 탭, 게시글/실시간 채팅, 상품 카드·첨부·브랜드 탐색 유지. UI 텍스트는 한국어/영어를 따로 제공하고 사용자 작성 글은 원문 유지.</div>';
+    if(flash)inner='<div class="sb-onboard-summary" role="status">'+escapeHtml(flash)+'</div>'+inner;
+    root.querySelector('#sb-onboard-phone').innerHTML='<div class="sb-onboard-brand">SeoulBeauty</div><div class="sb-onboard-progress">'+[0,1,2].map(i=>'<span class="'+(i<=Math.min(step,2)?'is-done':'')+'"></span>').join('')+'</div><h4>'+escapeHtml(t.heads[step])+'</h4><p>'+escapeHtml(t.subs[step])+'</p>'+inner+'<div class="sb-onboard-grow"></div>'+actions;
+    root.querySelector('#sb-onboard-detail').innerHTML='<strong>구성요소 · 변경 내용</strong><div>'+n.change+'</div><strong>고객 여정</strong><div>'+n.journey+'</div><strong>연결 KPI (실측·목표 미확정)</strong><div>'+n.kpi+'</div><strong>기존 UI와 관계</strong><div>Community · Search · 내 활동 탭, 게시글/실시간 채팅, 제품 카드·브랜드 탐색 유지. 전략팀과 퍼널 분모·이용시간·전환·목표치를 협의하는 기획 시안이며 실제 방/상품 활동 데이터가 아님.</div>';
   }
+  root.addEventListener('input',event=>{if(event.target.hasAttribute('data-onboard-room-title'))roomDraft=event.target.value;});
   root.addEventListener('click',event=>{
-    const b=event.target.closest('button');if(!b)return;
-    if(b.dataset.onboardLang){language=b.dataset.onboardLang;}
-    else if(b.dataset.onboardStep!==undefined){step=Number(b.dataset.onboardStep);}
-    else if(b.hasAttribute('data-onboard-next')){step=(step+1)%3;}
-    else return;
+    const b=event.target.closest('button');
+    if(!b)return;
+    if(b.dataset.onboardLang){language=b.dataset.onboardLang;render();return;}
+    if(b.dataset.onboardStep!==undefined){step=Number(b.dataset.onboardStep);flash='';render();return;}
+    if(b.dataset.onboardGroup){
+      const id=b.dataset.onboardGroup;
+      if(interests.has(id)){interests.delete(id);concerns.filter(o=>o.group===id).forEach(o=>chosenConcerns.delete(o.id));}else interests.add(id);
+    }else if(b.dataset.onboardConcern){
+      const id=b.dataset.onboardConcern;
+      if(chosenConcerns.has(id))chosenConcerns.delete(id);else chosenConcerns.add(id);
+    }else if(b.dataset.onboardRoomtag){
+      const id=b.dataset.onboardRoomtag;
+      if(draftTags.has(id))draftTags.delete(id);else draftTags.add(id);
+    }else if(b.hasAttribute('data-onboard-next')){
+      step=Math.min(step+1,2);
+    }else if(b.hasAttribute('data-onboard-skip')){
+      lastRoomList=4;step=4;
+    }else if(b.hasAttribute('data-onboard-browse')){
+      lastRoomList=4;step=4;
+    }else if(b.hasAttribute('data-onboard-create')){
+      draftTags.clear();activeConcerns().forEach(x=>draftTags.add(x));
+      roomDraft='';roomError='';step=3;
+    }else if(b.hasAttribute('data-onboard-save-room')){
+      if(roomDraft.trim().length<3){roomError=copy[language].roomError;render();return;}
+      const tags=[...draftTags],selGroups=groups.filter(g=>concerns.some(x=>x.group===g.id&&tags.includes(x.id))).map(g=>g.id);
+      const room={id:'demo-'+(++roomSequence),ko:roomDraft.trim(),en:roomDraft.trim(),groups:selGroups,tags};
+      rooms.unshift(room);roomDraft='';roomError='';lastRoomList=4;step=4;flash=copy[language].created;
+    }else if(b.dataset.onboardRoom){
+      openedRoom=rooms.find(r=>r.id===b.dataset.onboardRoom)||null;lastRoomList=step;step=5;
+    }else if(b.hasAttribute('data-onboard-back')){
+      if(step===1)step=0;else if(step===3)step=lastRoomList;else if(step===5)step=lastRoomList;else if(step===4)step=2;else step=1;
+    }else return;
+    if(!b.hasAttribute('data-onboard-save-room'))flash='';
     render();
-  });render();
+  });
+  render();
 })();
 </script>
 </body></html>

@@ -112,6 +112,28 @@ test('review loads only after its tab is visible and responds to width changes',
   assert.match(review,/width > 0 && width !== lastWidth/);
 });
 
+test('planning preview supports both interests, dynamic concern tags, free room creation and KPI funnel', async () => {
+  const page=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
+  assert.match(page,/스킨케어·메이크업 함께 선택/);
+  assert.match(page,/자유 방 생성/);
+  assert.match(page,/고객 이용/);
+  assert.match(page,/FUNNEL_KPI_REVIEW\.md/);
+  const review=await readFile(new URL('../server/admin-planning-review.html',import.meta.url),'utf8');
+  assert.match(review,/data-onboard-step="0"/);
+  assert.match(review,/1\. 관심 분야/);
+  assert.match(review,/const interests=new Set\(\)/);
+  assert.match(review,/chosenConcerns=new Set\(\)/);
+  assert.match(review,/data-onboard-create/);
+  assert.match(review,/data-onboard-save-room/);
+  assert.match(review,/rooms\.unshift\(room\)/);
+  assert.match(review,/실제 앱\/데이터와 연결되지 않습니다/);
+  assert.doesNotMatch(review,/1\. 피부 타입/);
+  const scripts=[...review.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  assert.ok(scripts.length>=2,'admin planning preview preserves original review and new onboarding');
+  // Parsing is independent of Playwright/browser availability; syntax errors must fail CI.
+  for(const script of scripts)assert.doesNotThrow(()=>new Function(script));
+});
+
 test('password-only login, protected review, invalid credentials and logout', async () => {
   const envOverrides={ADMIN_SHARED_PASSWORD:'test-password',ADMIN_SHARED_SESSION_SECRET:'test-signing-secret-with-at-least-32-characters'};
   const run=options=>request({envOverrides,fetchImpl:()=>assert.fail('password mode must not call external Auth'),...options});
