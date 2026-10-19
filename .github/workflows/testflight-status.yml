@@ -1,0 +1,44 @@
+name: SeoulBeauty TestFlight Status
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Build number to check (empty = latest five builds)'
+        required: false
+        type: string
+  workflow_run:
+    workflows: ['SeoulBeauty TestFlight Upload']
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/testflight-status.yml'
+      - 'scripts/testflight-status.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Always run trusted main code, never download upload-workflow artifacts.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read Apple processing and beta testing state
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID || secrets.ASC_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID || secrets.ASC_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 || secrets.ASC_KEY_P8 }}
+          IOS_BUNDLE_ID: com.yohan4477.seoulbeauty
+          TARGET_BUILD: ${{ github.event_name == 'workflow_run' && format('{0}.{1}', github.event.workflow_run.run_number, github.event.workflow_run.run_attempt) || inputs.build_number || '' }}
+          WAIT_FOR_PROCESSING: ${{ github.event_name == 'workflow_run' && 'true' || 'false' }}
+        run: node scripts/testflight-status.mjs
