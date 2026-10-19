@@ -19,7 +19,7 @@ concurrency:
 jobs:
   simulator:
     runs-on: macos-15
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Prepare Xcode project
@@ -32,7 +32,7 @@ jobs:
           xcodegen --version | tee -a artifacts/environment.txt
           cd ios
           xcodegen generate
-      - name: Select available iPhone simulator
+      - name: Start iPhone simulator boot (do not wait)
         shell: bash
         run: |
           set -euo pipefail
@@ -47,18 +47,30 @@ jobs:
           )
           echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
           xcrun simctl boot "$DEVICE_ID" || true
-          xcrun simctl bootstatus "$DEVICE_ID" -b
-      - name: Build and run XCTest
+      - name: Restore incremental build cache
+        uses: actions/cache@v4
+        with:
+          path: build/Build/Intermediates.noindex
+          key: ios-intermediates-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ios/**', 'dist/strings.json') }}
+          restore-keys: |
+            ios-intermediates-${{ runner.os }}-${{ runner.arch }}-
+      - name: Build app and tests while simulator boots
         shell: bash
         run: |
           set -euo pipefail
-          xcodebuild test -project ios/Alimi.xcodeproj -scheme Alimi -configuration Debug -destination "platform=iOS Simulator,id=$DEVICE_ID" -derivedDataPath build -resultBundlePath artifacts/Alimi.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO 2>&1 | tee artifacts/xcodebuild.log
+          xcodebuild build-for-testing -project ios/Alimi.xcodeproj -scheme Alimi -configuration Debug -destination "platform=iOS Simulator,id=$DEVICE_ID" -derivedDataPath build -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO 2>&1 | tee artifacts/xcodebuild-build.log
+      - name: Wait for simulator and run XCTest
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcodebuild test-without-building -project ios/Alimi.xcodeproj -scheme Alimi -configuration Debug -destination "platform=iOS Simulator,id=$DEVICE_ID" -derivedDataPath build -resultBundlePath artifacts/Alimi.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO 2>&1 | tee artifacts/xcodebuild-test.log
       - name: Launch and capture home screen
         shell: bash
         run: |
           set -euo pipefail
           xcrun simctl install "$DEVICE_ID" build/Build/Products/Debug-iphonesimulator/Alimi.app
-          xcrun simctl launch "$DEVICE_ID" com.yohan4477.alimi -disableEvents  # keep CI launches out of the funnel
+          xcrun simctl launch "$DEVICE_ID" com.yohan4477.alimi -disableEvents
           sleep 3
           xcrun simctl io "$DEVICE_ID" screenshot artifacts/alimi-iphone-home.png
           ditto -c -k --sequesterRsrc --keepParent build/Build/Products/Debug-iphonesimulator/Alimi.app artifacts/Alimi-simulator.zip
@@ -69,4 +81,3 @@ jobs:
           name: alimi-ios-validation
           path: artifacts/
           retention-days: 3
-
