@@ -234,9 +234,10 @@ struct PickCard: View {
     let room: ChatRoom
     let picture: URL?
     var highlight: [String] = []
+    var showIntro = true
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            RoomThumb(room: room, picture: picture, size: 100).frame(width: 100, height: 112)
+        HStack(alignment: showIntro ? .top : .center, spacing: 16) {
+            RoomThumb(room: room, picture: picture, size: 100).frame(width: 100, height: showIntro ? 112 : 100)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .top) {
                     Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1)
@@ -244,7 +245,7 @@ struct PickCard: View {
                     Image(systemName: "chevron.right").font(.system(size: 17)).foregroundStyle(Color.sbNavy)
                 }
                 Text(RoomText.stats(room)).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1)
-                Text(room.intro).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1)
+                if showIntro { Text(room.intro).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1) }
                 let tags = Recommend.concerns(of: room).prefix(3)
                 if !tags.isEmpty {
                     HStack(spacing: 6) {

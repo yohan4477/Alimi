@@ -421,7 +421,7 @@ struct ChatRoomView: View {
         }
         .safeAreaInset(edge: .bottom) { if canPost { composer } else { joinBar } }
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
-        .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef).environmentObject(store) }
+        .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef, attach: canPost ? { picked in item = picked } : nil).environmentObject(store) }
         .sheet(item: $savingMessage) { CommunityComposer(room: room, fromMessage: $0).environmentObject(store) }
         .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reporting != nil }, set: { if !$0 { reporting = nil } }), titleVisibility: .visible) {
             ForEach(["spam", "abuse", "sexual", "other"], id: \.self) { reason in
@@ -615,6 +615,7 @@ struct ChatProductCard: View {
                     Text(usd(Double(item.priceMinor) / 100)).font(.system(size: 19, weight: .bold)).foregroundStyle(Color(rgb: 0xF0335A))
                 }
                 Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.system(size: 15)).foregroundStyle(Color.sbGray)
             }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.white, in: RoundedRectangle(cornerRadius: 18)).overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(rgb: 0xE3E7EE)))
         }.buttonStyle(.plain).accessibilityLabel(L("chat.sharedPrice", ["v": usd(Double(item.priceMinor) / 100)]) + " " + item.name)

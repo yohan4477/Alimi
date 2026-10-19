@@ -163,8 +163,7 @@ struct CommunityTopic: View {
     private var topBar: some View {
         HStack(spacing: 12) {
             Button { dismiss() } label: {
-                Image(systemName: "chevron.left").font(.system(size: 20, weight: .medium)).foregroundStyle(Color.sbNavy)
-                    .frame(width: 48, height: 48).background(Color.sbChipBg, in: RoundedRectangle(cornerRadius: 14))
+                Image(systemName: "chevron.left").font(.system(size: 24, weight: .regular)).foregroundStyle(Color.sbNavy).frame(width: 36, height: 48)
             }.buttonStyle(.plain).accessibilityLabel(L("back"))
             RoomThumb(room: room, picture: picture, size: 56).clipShape(Circle())
             VStack(alignment: .leading, spacing: 3) {
@@ -177,11 +176,13 @@ struct CommunityTopic: View {
                     Text("+ " + L("room.join")).font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
                         .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
                 }.buttonStyle(.plain).accessibilityIdentifier("room-join")
-            } else {
-                ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) {
-                    Image(systemName: "square.and.arrow.up").font(.system(size: 18)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 44)
-                }.accessibilityLabel(L("share.room")).accessibilityIdentifier("room-share")
             }
+            Menu {
+                ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) { Label(L("share.room"), systemImage: "square.and.arrow.up") }
+                Button { showBoard = true } label: { Label(L("community.posts"), systemImage: "list.bullet.rectangle") }
+            } label: {
+                Image(systemName: "ellipsis").rotationEffect(.degrees(90)).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.sbNavy).frame(width: 28, height: 48)
+            }.accessibilityLabel(L("chat.more")).accessibilityIdentifier("room-more")
         }.padding(.horizontal, 16).padding(.top, 6).padding(.bottom, 8)
     }
     // The rules are on screen next to the button, so tapping it is the agreement.

@@ -320,6 +320,7 @@ struct CommunityHome: View {
     // A room picked at the end of onboarding opens here; the guide itself is a full-screen flow (Onboarding.swift).
     @Binding var openRoom: ChatRoom?
     var onEditInterests: () -> Void = {}
+    var onSearch: () -> Void = {}
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
@@ -351,19 +352,23 @@ struct CommunityHome: View {
         }
     }
     private var header: some View {
-        HStack {
-            Image("SeoulBeautyLogo").resizable().scaledToFit().frame(height: 44).accessibilityLabel("Seoul Beauty")
-            Spacer()
-        }.padding(.top, 8)
+        ZStack {
+            Image("SeoulBeautyLogo").resizable().scaledToFit().frame(height: 58).accessibilityLabel("Seoul Beauty")
+            HStack {
+                Spacer()
+                Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 24, weight: .medium)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 44) }
+                    .accessibilityLabel(L("search.title")).accessibilityIdentifier("home-search")
+            }
+        }.padding(.top, 6)
     }
     private var tabs: some View {
         HStack(spacing: 0) {
             ForEach(HomeTab.allCases, id: \.self) { t in
                 Button { tab = t; if t == .brands { Task { await model.loadBrands(store: store) } } } label: {
-                    VStack(spacing: 8) {
-                        Text(L("home.tab." + t.rawValue)).font(.subheadline.weight(tab == t ? .bold : .regular))
-                            .foregroundStyle(tab == t ? Color.alimi : Color.secondary)
-                        Rectangle().fill(tab == t ? Color.alimi : Color.clear).frame(height: 2)
+                    VStack(spacing: 10) {
+                        Text(L("home.tab." + t.rawValue)).font(.system(size: 18, weight: tab == t ? .bold : .regular))
+                            .foregroundStyle(tab == t ? Color.sbBlue : Color.sbGray)
+                        Rectangle().fill(tab == t ? Color.sbBlue : Color.clear).frame(width: 74, height: 3)
                     }.frame(maxWidth: .infinity)
                 }.buttonStyle(.plain).accessibilityIdentifier("home-tab-" + t.rawValue)
                     .accessibilityAddTraits(tab == t ? .isSelected : [])
@@ -381,24 +386,29 @@ struct CommunityHome: View {
     @ViewBuilder private var recommended: some View {
         if !model.joined.isEmpty { welcomeBack }
         if !model.hot.isEmpty {
-            SectionHead(title: L("home.trending"), sub: L("home.trendingSub"))
-            HStack(alignment: .top, spacing: 10) {
-                ForEach(model.hot.prefix(3)) { room in
-                    NavigationLink(value: room) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            RoomThumb(room: room, picture: model.pictures[room.id], size: nil)
-                            Text(room.title).font(.footnote.bold()).foregroundStyle(Color.sbInk).lineLimit(1)
-                            Text(L("home.msgShort", ["n": room.messages24h])).font(.caption2).foregroundStyle(.secondary)
-                        }
-                    }.buttonStyle(.plain).frame(maxWidth: .infinity).accessibilityIdentifier("chat-room-" + room.id)
-                }
+            BigHead(title: L("home.trending"), sub: L("home.trendingSub")) { tab = .rooms }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 14) {
+                    ForEach(model.hot) { room in
+                        NavigationLink(value: room) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                RoomThumb(room: room, picture: model.pictures[room.id], size: 150)
+                                Text(room.title).font(.system(size: 17, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1).frame(width: 150, alignment: .leading)
+                                Text(L("room.newToday", ["n": room.messages24h])).font(.system(size: 14)).foregroundStyle(Color.sbGray)
+                            }
+                        }.buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
+                    }
+                }.padding(.horizontal, 2)
             }
         }
-        SectionHead(title: L("home.recRooms"), sub: L("home.recRoomsSub")) {
-            Button(L("home.seeAll") + " ›") { tab = .rooms }.font(.footnote.weight(.semibold))
-        }
+        BigHead(title: L("home.recRooms"), sub: L("home.recRoomsSub")) { tab = .rooms }
         let picks = (interests?.done == true && interests?.chosenGroup == true) ? Recommend.rooms(model.rooms, interests, limit: 4).map(\.room) : Array((model.hot.isEmpty ? model.topics : model.hot).prefix(4))
-        ForEach(picks) { room in roomLink(room, note: room.intro) }
+        VStack(spacing: 14) {
+            ForEach(picks) { room in
+                NavigationLink(value: room) { PickCard(room: room, picture: model.pictures[room.id], highlight: interests?.concerns ?? [], showIntro: false) }
+                    .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
+            }
+        }
         Button(L(interests?.chosenGroup == true ? "onb.edit" : "onb.manage"), action: onEditInterests).font(.footnote).padding(.top, 4)
             .accessibilityIdentifier("edit-interests")
     }
@@ -473,6 +483,25 @@ struct CommunityHome: View {
     private func roomLink(_ room: ChatRoom, note: String?, fresh: Bool = false) -> some View {
         NavigationLink(value: room) { RoomListCard(room: room, picture: model.pictures[room.id], note: note, fresh: fresh) }
             .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
+    }
+}
+
+// Section title of the community home (journey 2): large title, subtitle, 전체보기 ›.
+struct BigHead: View {
+    let title: String
+    let sub: String
+    let more: () -> Void
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title).font(.system(size: 25, weight: .heavy)).foregroundStyle(Color.sbNavy)
+                Text(sub).font(.system(size: 16)).foregroundStyle(Color.sbGray)
+            }
+            Spacer()
+            Button(action: more) {
+                HStack(spacing: 4) { Text(L("home.seeAll")); Image(systemName: "chevron.right") }.font(.system(size: 16)).foregroundStyle(Color.sbBlue)
+            }.buttonStyle(.plain)
+        }.padding(.top, 26).padding(.bottom, 14)
     }
 }
 

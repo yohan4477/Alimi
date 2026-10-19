@@ -130,48 +130,151 @@ struct AddSlot: View {
 
 struct BrandView: View {
     @EnvironmentObject var store: AlimiStore
+    @Environment(\.dismiss) private var dismiss
     let brand: CatalogBrand
     @State private var families: [ProductFamily] = []
     @State private var done = false
     @State private var loading = false
     @State private var failed = false
     @State private var openFamily: ProductFamily?
+    @State private var tab = "products"
+    @State private var showAll = false
+    @State private var reviews: [CommunityPost] = []
+    @State private var following = false
+    // Brand page of journey 2: banner from the brand's own product photo, logo, product count, follow (this device),
+    // categories it sells, then 대표 상품 / 리뷰 (community reviews of this brand).
+    private let grid = Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: 3)
+    private var categories: [String] { Array(Set(families.compactMap(\.category))).sorted().prefix(4).map { $0 } }
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 12) {
-                header
-                list
-                if loading { LoadingCompanion(compact: true) }
-                else if failed {
-                    VStack(spacing: 8) {
-                        Text(L("loadFailed")).font(.caption).foregroundStyle(.secondary)
-                        Button(L("retry")) { Task { await loadMore() } }.accessibilityIdentifier("brand-retry")
-                    }.frame(maxWidth: .infinity)
+            LazyVStack(alignment: .leading, spacing: 0) {
+                banner
+                header.padding(.horizontal, 20)
+                if !categories.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(categories, id: \.self) { c in
+                                Text("#" + L10n.category(c).replacingOccurrences(of: " ", with: "")).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color.sbBlue)
+                                    .padding(.horizontal, 14).padding(.vertical, 8).background(Color.sbTagBg, in: Capsule())
+                            }
+                        }.padding(.horizontal, 20)
+                    }.padding(.top, 16)
                 }
-                else if families.isEmpty && done {
-                    Text(L("brand.empty")).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("brand-empty")
-                }
-            }.padding(20)
+                tabs.padding(.top, 22)
+                if tab == "products" { products } else { reviewList }
+            }.padding(.bottom, 24)
         }
-        .navigationTitle(brand.label).navigationBarTitleDisplayMode(.inline)
-        .task { await loadMore() }
+        .ignoresSafeArea(edges: .top)
+        .toolbar(.hidden, for: .navigationBar)
+        .task { await loadMore(); following = BrandFollow.isFollowing(brand.brand) }
         .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
     }
-    private var header: some View {
-        HStack(spacing: 16) {
-            BrandBadge(brand: brand, size: 84, showLabel: false)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(brand.label).font(.title2.bold()).lineLimit(2).accessibilityIdentifier("brand-header-title")
-                if brand.families > 0 { Text(L("count", ["n": brand.families])).font(.subheadline).foregroundStyle(.secondary) }
-            }
-            Spacer()
-        }.padding(.bottom, 8)
+    private var banner: some View {
+        ZStack(alignment: .top) {
+            Color(rgb: 0xF6DADB)
+            if let url = families.first?.imageUrl { RemoteThumb(url: url).opacity(0.9) }
+            HStack {
+                roundButton("chevron.left") { dismiss() }.accessibilityLabel(L("back"))
+                Spacer()
+                ShareLink(item: ShareLinks.site, subject: Text(brand.label)) {
+                    Image(systemName: "square.and.arrow.up").font(.system(size: 18, weight: .medium)).foregroundStyle(Color.sbNavy)
+                        .frame(width: 48, height: 48).background(Color.white.opacity(0.85), in: Circle())
+                }
+            }.padding(.horizontal, 16).padding(.top, 60)
+        }.frame(height: 240).clipped()
     }
-    private var list: some View {
-        ForEach(families) { family in
-            FamilyRow(family: family) { openFamily = family }
-                .onAppear { if family.id == families.last?.id { Task { await loadMore() } } }
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .bottom, spacing: 16) {
+                BrandBadge(brand: brand, size: 108, showLabel: false)
+                    .padding(4).background(Color.white, in: Circle()).offset(y: -44).padding(.bottom, -44)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(brand.label).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.7)
+                        .accessibilityIdentifier("brand-header-title")
+                    if brand.families > 0 { Text(L("count", ["n": brand.families])).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
+                }
+                Spacer(minLength: 4)
+                Button {
+                    following.toggle(); BrandFollow.set(brand.brand, following)
+                } label: {
+                    Text(following ? L("brand.following") : "+ " + L("brand.follow")).font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(following ? Color.sbGray : Color.sbBlue)
+                        .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbTagBg, in: Capsule())
+                }.buttonStyle(.plain).accessibilityIdentifier("brand-follow")
+            }.padding(.top, 12)
+            Text(L("brand.headline", ["brand": brand.label])).font(.system(size: 22, weight: .heavy)).foregroundStyle(Color.sbNavy)
+            Text(L("brand.followNote")).font(.system(size: 14)).foregroundStyle(Color.sbGray)
         }
+    }
+    private var tabs: some View {
+        HStack(spacing: 0) {
+            ForEach(["products", "reviews"], id: \.self) { t in
+                Button { tab = t; if t == "reviews" { Task { await loadReviews() } } } label: {
+                    VStack(spacing: 10) {
+                        Text(L("brand.tab." + t)).font(.system(size: 17, weight: tab == t ? .bold : .regular)).foregroundStyle(tab == t ? Color.sbBlue : Color.sbGray)
+                        Rectangle().fill(tab == t ? Color.sbBlue : Color.clear).frame(height: 3)
+                    }.frame(maxWidth: .infinity)
+                }.buttonStyle(.plain)
+            }
+        }.overlay(alignment: .bottom) { Rectangle().fill(Color(rgb: 0xE6EAF1)).frame(height: 1) }
+    }
+    @ViewBuilder private var products: some View {
+        LazyVGrid(columns: grid, spacing: 16) {
+            ForEach(showAll ? families : Array(families.prefix(3))) { f in
+                VStack(alignment: .leading, spacing: 6) {
+                    Button { openFamily = f } label: {
+                        RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 120).background(Color(rgb: 0xF7E9EA))
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }.buttonStyle(.plain)
+                    Text(f.baseName).font(.system(size: 14)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                    HStack {
+                        Text(f.priceText).font(.system(size: 16, weight: .bold)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.8)
+                        Spacer(minLength: 2)
+                        Button { openFamily = f } label: {
+                            Image(systemName: "cart").font(.system(size: 15)).foregroundStyle(Color.sbBlue).frame(width: 34, height: 34).background(Color.sbTagBg, in: Circle())
+                        }.buttonStyle(.plain).accessibilityLabel(L("variant.buy"))
+                    }
+                }
+                .onAppear { if showAll && f.id == families.last?.id { Task { await loadMore() } } }
+            }
+        }.padding(.horizontal, 20).padding(.top, 18)
+        if !showAll && families.count > 3 {
+            Button { showAll = true } label: {
+                HStack {
+                    Image(systemName: "square.grid.2x2").font(.system(size: 18))
+                    Text(L("brand.allProducts")).font(.system(size: 16))
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(Color.sbGray)
+                }.foregroundStyle(Color.sbNavy).padding(.horizontal, 18).frame(minHeight: 54)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(rgb: 0xE6EAF1)))
+            }.buttonStyle(.plain).padding(.horizontal, 20).padding(.top, 16).accessibilityIdentifier("brand-all")
+        }
+        if loading { LoadingCompanion(compact: true) }
+        else if failed {
+            VStack(spacing: 8) {
+                Text(L("loadFailed")).font(.caption).foregroundStyle(.secondary)
+                Button(L("retry")) { Task { await loadMore() } }.accessibilityIdentifier("brand-retry")
+            }.frame(maxWidth: .infinity).padding(.top, 12)
+        } else if families.isEmpty && done {
+            Text(L("brand.empty")).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 20).padding(.top, 16).accessibilityIdentifier("brand-empty")
+        }
+    }
+    @ViewBuilder private var reviewList: some View {
+        if reviews.isEmpty { Text(L("brand.noReviews")).font(.subheadline).foregroundStyle(Color.sbGray).padding(20) }
+        ForEach(reviews) { p in
+            NavigationLink { CommunityPostView(post: p) } label: { CommunityPostRow(post: p).padding(.horizontal, 20).padding(.vertical, 8) }.buttonStyle(.plain)
+            Divider().padding(.horizontal, 20)
+        }
+    }
+    private func roundButton(_ icon: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.system(size: 18, weight: .medium)).foregroundStyle(Color.sbNavy)
+                .frame(width: 48, height: 48).background(Color.white.opacity(0.85), in: Circle())
+        }.buttonStyle(.plain)
+    }
+    private func loadReviews() async {
+        let posts = (try? await CommunityAPI.posts()) ?? []
+        reviews = posts.filter { $0.item?.brand == brand.brand }
     }
     private func loadMore() async {
         guard !loading, !done else { return }
@@ -185,6 +288,16 @@ struct BrandView: View {
     }
 }
 
+// Followed brands live on this device only (no account, nothing sent).
+enum BrandFollow {
+    static let key = "seoulbeauty.brands.followed.v1"
+    static func all(_ d: UserDefaults = .standard) -> Set<String> { Set(d.stringArray(forKey: key) ?? []) }
+    static func isFollowing(_ brand: String, _ d: UserDefaults = .standard) -> Bool { all(d).contains(brand) }
+    static func set(_ brand: String, _ on: Bool, _ d: UserDefaults = .standard) {
+        var s = all(d); if on { s.insert(brand) } else { s.remove(brand) }
+        d.set(Array(s).sorted(), forKey: key)
+    }
+}
 // MARK: Search
 
 struct SearchView: View {

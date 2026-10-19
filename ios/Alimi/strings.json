@@ -1601,16 +1601,16 @@
     "en": "Trending now"
   },
   "home.trendingSub": {
-    "ko": "최근 24시간 가장 많이 이야기한 대화방이에요.",
-    "en": "Rooms with the most messages in the last 24 hours."
+    "ko": "요즘 가장 많이 이야기하는 주제예요!",
+    "en": "What people are talking about most right now!"
   },
   "home.recRooms": {
     "ko": "추천 대화방",
     "en": "Recommended rooms"
   },
   "home.recRoomsSub": {
-    "ko": "고른 관심사와 지금 활동을 기준으로 골랐어요.",
-    "en": "Picked from your interests and recent activity."
+    "ko": "지금 주목받는 인기 대화방이에요!",
+    "en": "Popular rooms getting attention right now!"
   },
   "home.seeAll": {
     "ko": "전체보기",
@@ -1747,5 +1747,65 @@
   "chat.typeHere": {
     "ko": "메시지를 입력하세요...",
     "en": "Type a message..."
+  },
+  "product.fact.options": {
+    "ko": "옵션",
+    "en": "Options"
+  },
+  "product.fact.sellers": {
+    "ko": "판매처",
+    "en": "Sellers"
+  },
+  "product.fact.unit": {
+    "ko": "최저 단가",
+    "en": "Best unit price"
+  },
+  "product.fact.category": {
+    "ko": "분류",
+    "en": "Category"
+  },
+  "product.fact.count": {
+    "ko": "{n}개",
+    "en": "{n}"
+  },
+  "product.fact.places": {
+    "ko": "{n}곳",
+    "en": "{n}"
+  },
+  "product.buy": {
+    "ko": "{seller}에서 보기",
+    "en": "View at {seller}"
+  },
+  "brand.follow": {
+    "ko": "팔로우",
+    "en": "Follow"
+  },
+  "brand.following": {
+    "ko": "팔로잉",
+    "en": "Following"
+  },
+  "brand.followNote": {
+    "ko": "팔로우는 이 기기에만 저장돼요.",
+    "en": "Follows are saved on this device only."
+  },
+  "brand.headline": {
+    "ko": "{brand}의 상품과 이야기",
+    "en": "Products and talk about {brand}"
+  },
+  "brand.tab.products": {
+    "ko": "대표 상품",
+    "en": "Top products"
+  },
+  "brand.tab.reviews": {
+    "ko": "리뷰",
+    "en": "Reviews"
+  },
+  "brand.allProducts": {
+    "ko": "전체 상품 보기",
+    "en": "See all products"
+  },
+  "brand.noReviews": {
+    "ko": "아직 이 브랜드 후기가 없어요.",
+    "en": "No reviews of this brand yet."
   }
 }

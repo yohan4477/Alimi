@@ -27,7 +27,7 @@ try {
   assert.equal(await guide.locator('[data-onb-group="skincare"]').getAttribute('aria-pressed'),'true');
   assert.equal(await guide.locator('[data-onb-group="makeup"]').getAttribute('aria-pressed'),'true');
   // Concerns of both fields appear on the same screen as the fields.
-  assert.equal(await guide.locator('[data-onb-concern]').count(),8);
+  assert.equal(await guide.locator('[data-onb-concern]').count(),14);
   await guide.locator('[data-onb-concern="dry"]').click();
   await guide.locator('[data-onb-concern="cushion"]').click();
   // Back from the recommendations keeps choices.
@@ -45,7 +45,7 @@ try {
   assert.equal(await guide.locator('[data-onb-group]').count(),0);
   // My activity shows the choices and reopens the guide to change them.
   await page.locator('#tabbar [data-screen="saved"]').click();
-  assert.match(await page.locator('.interest-row small').innerText(),lang==='ko'?/스킨케어 · 메이크업 · 건조함 · 쿠션 호수/:/Skincare · Makeup · Dryness · Cushion shades/);
+  assert.match(await page.locator('.interest-row small').innerText(),lang==='ko'?/스킨케어 · 메이크업 · 건조 · 쿠션 호수/:/Skincare · Makeup · Dryness · Cushion shades/);
   await page.locator('[data-onb-manage]').click();
   await guide.locator('[data-onb-group="makeup"]').click();
   assert.equal(await guide.locator('[data-onb-group="makeup"]').getAttribute('aria-pressed'),'false');

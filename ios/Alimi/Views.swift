@@ -9,7 +9,7 @@ struct RootView: View {
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }).tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
+            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { tab = .search }).tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
             BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
             SavedView(tab: $tab, editInterests: { onboarding = .choose }).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
@@ -351,32 +351,152 @@ struct VariantList: View {
 struct FamilySheet: View {
     @EnvironmentObject var store: AlimiStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     let family: ProductFamily
     var ref: String? = nil
+    // Set when opened from a live room: 대화에 첨부 puts the chosen option into the composer.
+    var attach: ((CatalogItem) -> Void)? = nil
     @State private var variants: [VariantChoice]?
+    @State private var selected = 0
+    @State private var busy = false
+    // Product page of journey 2: photo of each option, name, price, real facts, then every option with its seller.
+    private var photos: [URL] {
+        var seen = Set<URL>(), out: [URL] = []
+        for u in (variants ?? []).compactMap(\.item.imageUrl) + [family.imageUrl].compactMap({ $0 }) where !seen.contains(u) { seen.insert(u); out.append(u) }
+        return out
+    }
+    // The option shown in the photo; options without a photo of their own fall back to the cheapest.
+    private var current: CatalogItem? {
+        let list = variants ?? []
+        let url = photos.indices.contains(selected) ? photos[selected] : nil
+        return list.first { $0.item.imageUrl != nil && $0.item.imageUrl == url }?.item ?? list.first?.item
+    }
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    RemoteImage(url: family.imageUrl, label: family.brandLabel).frame(height: 180)
-                    Text(family.brandLabel).font(.caption).foregroundStyle(.secondary)
-                    Text(family.baseName).font(.title3.bold())
-                    Text(L("family.buyHint")).font(.caption).foregroundStyle(.secondary)
-                    if let variants { VariantList(variants: variants, ref: ref) } else { LoadingCompanion(compact: true) }
-                }.padding(20)
+                VStack(alignment: .leading, spacing: 0) {
+                    hero
+                    if photos.count > 1 { thumbs }
+                    info.padding(.horizontal, 20).padding(.top, 18)
+                    facts.padding(.horizontal, 20).padding(.top, 20)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(L("family.buyHint")).font(.caption).foregroundStyle(.secondary)
+                        if let variants { VariantList(variants: variants, ref: ref) } else { LoadingCompanion(compact: true) }
+                    }.padding(.horizontal, 20).padding(.top, 20)
+                }.padding(.bottom, 20)
             }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } }
-                ToolbarItem(placement: .primaryAction) {
-                    ShareLink(item: ShareLinks.product(family.familyKey), subject: Text(family.baseName)) { Image(systemName: "square.and.arrow.up") }
-                        .accessibilityLabel(L("share.product")).accessibilityIdentifier("product-share")
+            cta.padding(.horizontal, 20).padding(.vertical, 10)
+        }
+        .background(Color.white)
+        .task {
+            variants = await store.family(family.familyKey) ?? []
+            EventLogger.shared.log(.productView, props: ["family": family.familyKey, "variants": String(variants?.count ?? 0)])
+        }
+        .presentationDetents([.large])
+    }
+    private var hero: some View {
+        ZStack(alignment: .top) {
+            Color(rgb: 0xF7E9EA)
+            TabView(selection: $selected) {
+                ForEach(Array(photos.enumerated()), id: \.offset) { i, url in
+                    RemoteImage(url: url, label: family.brandLabel).padding(28).tag(i)
                 }
+            }.tabViewStyle(.page(indexDisplayMode: .never))
+            HStack {
+                circleButton("chevron.left", label: L("close")) { dismiss() }
+                Spacer()
+                ShareLink(item: ShareLinks.product(family.familyKey), subject: Text(family.baseName)) {
+                    Image(systemName: "square.and.arrow.up").font(.system(size: 19, weight: .medium)).foregroundStyle(Color.sbNavy)
+                        .frame(width: 50, height: 50).background(Color.white.opacity(0.85), in: RoundedRectangle(cornerRadius: 16))
+                }.accessibilityLabel(L("share.product")).accessibilityIdentifier("product-share")
+            }.padding(16)
+            if photos.count > 1 {
+                VStack { Spacer(); HStack { Spacer()
+                    Text("\(selected + 1)/\(photos.count)").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+                        .padding(.horizontal, 12).padding(.vertical, 6).background(Color.black.opacity(0.45), in: Capsule())
+                } }.padding(16)
             }
-            .task {
-                variants = await store.family(family.familyKey) ?? []
-                EventLogger.shared.log(.productView, props: ["family": family.familyKey, "variants": String(variants?.count ?? 0)])
+        }.frame(height: 380)
+    }
+    private var thumbs: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(Array(photos.enumerated()), id: \.offset) { i, url in
+                    Button { withAnimation { selected = i } } label: {
+                        RemoteThumb(url: url).frame(width: 68, height: 68).clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(i == selected ? Color.sbBlue : Color(rgb: 0xE6EAF1), lineWidth: i == selected ? 2 : 1))
+                    }.buttonStyle(.plain)
+                }
+            }.padding(.horizontal, 20)
+        }.padding(.top, 14)
+    }
+    private var info: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                Text(family.brandLabel).font(.system(size: 17)).foregroundStyle(Color.sbGray)
+                Spacer()
+                Button { Task { await save() } } label: {
+                    Image(systemName: isSaved ? "heart.fill" : "heart").font(.system(size: 26)).foregroundStyle(Color(rgb: 0xF0476A))
+                }.buttonStyle(.plain).disabled(busy).accessibilityLabel(L("save.action")).accessibilityIdentifier("product-save")
             }
-        }.presentationDetents([.medium, .large])
+            Text(family.baseName).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).fixedSize(horizontal: false, vertical: true)
+            Text(usd(current?.price ?? Double(family.minPriceMinor) / 100)).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).padding(.top, 6)
+        }
+    }
+    // Facts the catalog actually knows (no ratings, delivery or gift claims).
+    private var facts: some View {
+        let list = variants ?? []
+        let sellers = Set(list.map(\.item.retailer)).count
+        let unit = list.compactMap { v in v.item.unitPrice.map { (v.item, $0) } }.min { $0.1 < $1.1 }
+        let items: [(String, String, String)] = [
+            ("square.stack.3d.up", L("product.fact.options"), L("product.fact.count", ["n": max(list.count, family.variants)])),
+            ("shippingbox", L("product.fact.sellers"), L("product.fact.places", ["n": max(sellers, 1)])),
+            ("scalemass", L("product.fact.unit"), unit.map { usd($0.1) + "/" + CatalogItem.unitName($0.0.unit) } ?? "—"),
+            ("sparkles", L("product.fact.category"), family.category.map(L10n.category) ?? "—"),
+        ]
+        return HStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { i, f in
+                VStack(spacing: 8) {
+                    Image(systemName: f.0).font(.system(size: 26, weight: .light)).foregroundStyle(Color.sbNavy)
+                    Text(f.1).font(.system(size: 14)).foregroundStyle(Color(rgb: 0x5B6475))
+                    Text(f.2).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.7)
+                }.frame(maxWidth: .infinity).padding(.vertical, 16)
+                if i < items.count - 1 { Rectangle().fill(Color(rgb: 0xE6EAF1)).frame(width: 1, height: 64) }
+            }
+        }
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 18)).overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(rgb: 0xE6EAF1)))
+        .accessibilityElement(children: .combine).accessibilityIdentifier("product-facts")
+    }
+    @ViewBuilder private var cta: some View {
+        if let attach, let item = current {
+            Button { attach(item); dismiss() } label: {
+                Label(L("family.attach"), systemImage: "ellipsis.bubble").font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 16))
+            }.buttonStyle(.plain).accessibilityIdentifier("family-attach")
+        } else if let item = current, let link = Purchase.buyURL(item.affiliateUrl ?? item.url, ref: ref) {
+            Button {
+                EventLogger.shared.log(.merchantClick, props: ["from": ref ?? "product", "sku": item.sku])
+                openURL(link)
+            } label: {
+                Label(L("product.buy", ["seller": item.retailer]), systemImage: "bag").font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 16))
+            }.buttonStyle(.plain).accessibilityIdentifier("product-buy")
+        }
+    }
+    private var isSaved: Bool {
+        guard let sku = current?.sku, let id = store.products.first(where: { $0.sku == sku })?.id else { return false }
+        return store.saved.favorites.contains(id)
+    }
+    private func save() async {
+        guard let item = current else { return }
+        if let id = store.products.first(where: { $0.sku == item.sku })?.id { store.toggle(id); return }
+        busy = true; _ = await store.saveCatalogItem(item); busy = false
+    }
+    private func circleButton(_ icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.system(size: 19, weight: .medium)).foregroundStyle(Color.sbNavy)
+                .frame(width: 50, height: 50).background(Color.white.opacity(0.85), in: RoundedRectangle(cornerRadius: 16))
+        }.buttonStyle(.plain).accessibilityLabel(label)
     }
 }
 // Other sizes / options of a tracked product, compared by unit price.
