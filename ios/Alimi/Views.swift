@@ -541,9 +541,8 @@ struct FamilySheet: View {
                     info.padding(.horizontal, 20).padding(.top, 18)
                     facts.padding(.horizontal, 20).padding(.top, 20)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(L("family.buyHint")).font(.caption).foregroundStyle(.secondary)
                         if let variants {
-                            ForEach(variants) { v in
+                            ForEach(variants.count > 1 ? variants : []) { v in
                                 Button { selectedOption = v.item.id } label: {
                                     HStack {
                                         Image(systemName: current?.id == v.item.id ? "checkmark.circle.fill" : "circle")
@@ -626,9 +625,7 @@ struct FamilySheet: View {
                 } label: { Label(family.brandLabel, systemImage: "chevron.right").font(.system(size: 17)).foregroundStyle(Color.sbBlue) }
                 .accessibilityIdentifier("product-brand")
                 Spacer()
-                Button { Task { await save() } } label: {
-                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark").font(.system(size: 26)).foregroundStyle(Color.sbBlue).frame(width: 44, height: 44)
-                }.buttonStyle(.plain).disabled(busy).accessibilityLabel(L("save.action")).accessibilityIdentifier("product-save")
+
             }
             Text(family.baseName).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).fixedSize(horizontal: false, vertical: true)
             Text(current?.variantLabel ?? "").font(.subheadline).foregroundStyle(Color.sbGray)
@@ -659,12 +656,17 @@ struct FamilySheet: View {
         .accessibilityElement(children: .combine).accessibilityIdentifier("product-facts")
     }
     @ViewBuilder private var cta: some View {
+
         if let attach, let item = current {
             Button { attach(item); dismiss() } label: {
                 Label(L("family.attach"), systemImage: "ellipsis.bubble").font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 16))
             }.buttonStyle(.plain).accessibilityIdentifier("family-attach")
         }
+        HStack(spacing: 12) {
+                Button { Task { await save() } } label: {
+                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark").font(.system(size: 26)).foregroundStyle(Color.sbBlue).frame(width: 44, height: 44)
+                }.buttonStyle(.plain).disabled(busy).accessibilityLabel(L("save.action")).accessibilityIdentifier("product-save")
         if let item = current, item.availability != "out_of_stock", let link = Purchase.buyURL(item.affiliateUrl ?? item.url, ref: ref) {
             Button {
                 EventLogger.shared.log(.merchantClick, props: ["from": ref ?? "product", "sku": item.sku])
@@ -673,6 +675,7 @@ struct FamilySheet: View {
                 Label(L("product.buy", ["seller": item.retailer]), systemImage: "bag").font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 16))
             }.buttonStyle(.plain).accessibilityIdentifier("product-buy")
+        }
         }
     }
     private func rememberOption() {

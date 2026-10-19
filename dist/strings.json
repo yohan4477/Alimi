@@ -1,4 +1,6 @@
 {
+  "chat.rulesTitle": {"ko": "대화 이용 안내", "en": "Community guidelines"},
+  "chat.quickRules": {"ko": "서로 존중하며 이야기해요. 광고·욕설·개인정보 공유는 금지돼요.", "en": "Be respectful. No ads, abuse or sharing personal information."},
   "onb.optional": {"ko": "내 정보 (선택)", "en": "About me (optional)"},
   "onb.private": {"ko": "이 기기에만 저장돼요. 연령대는 추천에 사용하지 않아요.", "en": "Saved on this device only. Age is not used for recommendations."},
   "onb.age": {"ko": "연령대", "en": "Age range"},

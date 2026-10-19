@@ -139,11 +139,7 @@ struct CommunityTopic: View {
     let room: ChatRoom
     var member = false
     var picture: URL? = nil
-    @State private var agreed = ChatAPI.agreed
-    @State private var joined = false
     @State private var showBoard = false
-    // Reading is open to everyone; posting needs the rules accepted and the room joined (journey screen 4).
-    private var canPost: Bool { agreed && (member || joined) }
     var body: some View {
         VStack(spacing: 0) {
             topBar
@@ -155,7 +151,7 @@ struct CommunityTopic: View {
                     Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(Color.sbGray)
                 }.padding(.horizontal, 16).frame(minHeight: 50).background(Color.sbTagBg.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
             }.buttonStyle(.plain).padding(.horizontal, 16).padding(.top, 6).accessibilityIdentifier("room-notice")
-            ChatRoomView(room: room, canPost: canPost, onJoin: join)
+            ChatRoomView(room: room)
         }
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
@@ -180,16 +176,9 @@ struct CommunityTopic: View {
                 Image(systemName: "ellipsis").rotationEffect(.degrees(90)).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 48)
             }.accessibilityLabel(L("chat.more")).accessibilityIdentifier("room-more")
           }
-            if !canPost {
-                Button(action: join) {
-                    InlineActionLabel(title: L("room.join"), icon: "plus").font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
-                        .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
-                }.buttonStyle(.plain).accessibilityIdentifier("room-join")
-            }
+
         }.padding(.horizontal, 16).padding(.top, 6).padding(.bottom, 8)
     }
-    // The rules are on screen next to the button, so tapping it is the agreement.
-    private func join() { ChatAPI.agreed = true; agreed = true; joined = true }
 }
 
 // Posts of a room (questions, reviews), opened from the notice banner.

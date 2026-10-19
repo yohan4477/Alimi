@@ -53,7 +53,7 @@ try {
   });
   await step('saved tab: add slots when empty, favorite shows up with a loaded photo', async () => {
     await page.click('#tabbar [data-screen="saved"]');
-    assert.equal(await page.locator('#saved .add-slot').count(), 1, 'one discovery action when nothing is saved');
+    assert.equal(await page.locator('#saved .add-slot').count(), 0, 'empty state has no add tile');
     await page.click('#tabbar [data-screen="search"]');await page.fill('#search', '');await page.click('.explore-link');
     await page.click('[data-category="전체"]');
     await page.locator('#products > .card .heart').first().click();

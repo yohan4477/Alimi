@@ -124,12 +124,12 @@ final class AlimiUITests: XCTestCase {
         XCTAssertFalse(app.buttons["brand-retry"].exists, "successful empty results are not request failures")
         attach("brand-page")
     }
-    func testSavedTabHasAddSlotsAndSettings() {
+    func testSavedTabHasSearchWithoutAddSlots() {
         app.tabBars.buttons["내 활동"].tap()
         XCTAssertTrue(app.staticTexts["saved-title"].firstMatch.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["saved-add-slot"].firstMatch.exists)
-        app.buttons["saved-add-slot"].firstMatch.tap()
-        XCTAssertTrue(app.textFields["search-field"].waitForExistence(timeout: 5), "slot opens search")
+        XCTAssertFalse(app.buttons["saved-add-slot"].firstMatch.exists)
+        app.buttons["activity-search"].tap()
+        XCTAssertTrue(app.textFields["search-field"].waitForExistence(timeout: 5), "header opens search")
     }
     func testSettingsOpensFromSaved() {
         app.tabBars.buttons["내 활동"].tap()
@@ -146,11 +146,8 @@ final class AlimiUITests: XCTestCase {
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
-        // Reading is open; the join bar shows the rules and unlocks posting.
-        let join = app.buttons["chat-join"]
-        XCTAssertTrue(join.waitForExistence(timeout: 5), "rules are shown before the first join")
-        attach("chat-rules")
-        join.tap()
+        XCTAssertFalse(app.buttons["chat-join"].exists)
+        XCTAssertFalse(app.buttons["room-join"].exists)
         let other = app.otherElements["chat-message-1"].firstMatch
         XCTAssertTrue(app.staticTexts["추천 좀 해주세요"].waitForExistence(timeout: 10))
         let field = app.textFields["chat-text"].firstMatch.exists ? app.textFields["chat-text"].firstMatch : app.textViews["chat-text"].firstMatch
@@ -221,11 +218,8 @@ final class AlimiUITests: XCTestCase {
         app.tabBars.buttons["내 활동"].tap()
         app.buttons["activity-tab-recent"].tap()
         attach("j3-activity")
-        let hub = app.buttons["share-hub"].firstMatch
-        XCTAssertTrue(reveal(hub).exists)
-        hub.tap()
-        XCTAssertTrue(app.buttons["share-rooms"].waitForExistence(timeout: 5) && app.buttons["share-products"].exists)
-        attach("j3-share")
+        XCTAssertFalse(app.buttons["share-hub"].exists)
+
     }
     func testEnglishForUSUsers() {
         app.terminate()

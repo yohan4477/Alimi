@@ -51,8 +51,9 @@ struct ProductInformationView: View {
             Text(L("about.title")).font(.title3.bold())
             Text(L("about.type." + (Product.categories.contains(category) ? category : "기타"))).font(.subheadline)
             if let copy = ProductInformation.copy(retailer: retailer, sku: sku) ?? fetched {
-                Text(L("about.official")).font(.caption.bold())
-                Text(copy.description).font(.subheadline)
+                DisclosureGroup(L("about.official")) {
+                    Text(copy.description).font(.subheadline)
+                }
                 if let url = Purchase.buyURL(copy.sourceUrl) { Link(L("about.source"), destination: url).font(.caption) }
             } else {
                 Text(L("about.general")).font(.caption).foregroundStyle(.secondary)

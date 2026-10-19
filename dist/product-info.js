@@ -10,7 +10,7 @@ export function approvedCopy(rows, item) {
 }
 export function productInfoHTML(item, copy = null) {
   const category = item.category ?? '기타', known = t('about.type.' + category), source = safeSource(copy?.sourceUrl ?? item.url);
-  return `<section class="product-description"><h2>${esc(t('about.title'))}</h2><p>${esc(known.startsWith('about.type.') ? t('about.type.기타') : known)}</p>${copy ? `<h3>${esc(t('about.official'))}</h3><p class="official-copy">${esc(copy.description)}</p>` : `<small>${esc(t('about.general'))}</small>`}${source ? `<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">${esc(t('about.source'))}</a>` : ''}</section>`;
+  return `<section class="product-description"><h2>${esc(t('about.title'))}</h2><p>${esc(known.startsWith('about.type.') ? t('about.type.기타') : known)}</p>${copy ? `<details><summary>${esc(t('about.official'))}</summary><p class="official-copy">${esc(copy.description)}</p></details>` : `<small>${esc(t('about.general'))}</small>`}${source ? `<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">${esc(t('about.source'))}</a>` : ''}</section>`;
 }
 // Retailer description stored with the catalog row; usable only when its permission basis is recorded.
 export function catalogCopy(row, item) {
