@@ -1413,28 +1413,20 @@
     "en": "Step {n} of 3"
   },
   "onb.q0": {
-    "ko": "어떤 뷰티 이야기가 궁금해요?",
-    "en": "What beauty talk are you here for?"
+    "ko": "어떤 뷰티에 관심이 있으신가요?",
+    "en": "What beauty topics are you into?"
   },
   "onb.s0": {
-    "ko": "스킨케어와 메이크업, 둘 다 골라도 돼요. 나중에 내 활동에서 바꿀 수 있어요.",
-    "en": "Pick Skincare, Makeup or both. You can change this later in My activity."
+    "ko": "관심 사항을 선택해 주세요 (복수 선택 가능). 피부 타입은 묻지 않아요.",
+    "en": "Pick what interests you — choose as many as you like. We won't ask for your skin type."
   },
   "onb.q1": {
-    "ko": "요즘 어떤 게 제일 궁금해요?",
-    "en": "What are you figuring out lately?"
+    "ko": "내 고민에 맞는 대화방 추천",
+    "en": "Rooms that match your concerns"
   },
   "onb.s1": {
-    "ko": "여러 개 골라도 돼요. 피부 타입은 묻지 않아요.",
-    "en": "Pick as many as you like. We won't ask for your skin type."
-  },
-  "onb.q2": {
-    "ko": "여기서 이야기하고 있어요!",
-    "en": "People are talking about this here!"
-  },
-  "onb.s2": {
-    "ko": "고른 고민과 맞는 대화방이에요. 둘러보고 마음에 드는 곳에 들어가 보세요.",
-    "en": "Rooms that match what you picked. Have a look and jump in."
+    "ko": "지금, 비슷한 고민을 가진 사람들과 이야기해 보세요!",
+    "en": "Talk with people who have the same questions right now!"
   },
   "onb.g.skincare": {
     "ko": "스킨케어",
@@ -1477,12 +1469,8 @@
     "en": "Color matching"
   },
   "onb.next": {
-    "ko": "다음",
+    "ko": "다음으로",
     "en": "Next"
-  },
-  "onb.show": {
-    "ko": "맞는 대화 보기",
-    "en": "Show matching rooms"
   },
   "onb.browse": {
     "ko": "그냥 둘러볼게요",
@@ -1499,10 +1487,6 @@
   "onb.matched": {
     "ko": "맞는 고민: {list}",
     "en": "Matches: {list}"
-  },
-  "onb.field": {
-    "ko": "고른 분야의 대화",
-    "en": "In a field you picked"
   },
   "onb.popular": {
     "ko": "지금 인기 있는 대화",
@@ -1579,5 +1563,21 @@
   "chat.err.duplicate": {
     "ko": "같은 이름의 방이 이미 있어요. 그 방에서 이야기해 보세요.",
     "en": "A room with this name already exists. Try talking there."
+  },
+  "onb.fields": {
+    "ko": "관심 분야",
+    "en": "Interests"
+  },
+  "onb.keywords": {
+    "ko": "고민 키워드",
+    "en": "Concerns"
+  },
+  "onb.pickField": {
+    "ko": "관심 분야를 고르면 고민 키워드가 나와요.",
+    "en": "Pick an interest to see related concerns."
+  },
+  "room.liveNow": {
+    "ko": "지금 활발한 대화 중",
+    "en": "Active now"
   }
 }

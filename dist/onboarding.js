@@ -3,7 +3,7 @@
 // Choices stay on this device; they are not sent anywhere and never infer skin or demographic facts.
 import {t} from './i18n.js';
 import {esc} from './util.js';
-import {roomTitle, roomIntro} from './chat-api.js';
+import {roomListCard} from './room-card.js';
 
 export const GROUPS = ['skincare', 'makeup'];
 // Stable ids shared with the admin planning preview; only labels are translated.
@@ -57,37 +57,38 @@ export function recommendRooms(rooms, sel, limit = 3) {
   return topics.map(room => ({room, matched: [], popular: true})).sort(byActivity).slice(0, limit);
 }
 
-// ---- Inline card ----
-let step = 0, draft = null, editing = false;
+// ---- Inline guide (journey reference: choose → matching rooms → room) ----
+let step = 0, draft = null, editing = false, images = new Map();
 export const editInterests = () => { editing = true; step = 0; draft = null; };
 export const needsGuide = () => editing || !readInterests()?.done;
 
-const guide = '<img class="onboard-guide" src="assets/hanbok-guide-pixel.svg" alt="" width="60" height="60">';
-const chip = (attr, id, on, label) => `<button type="button" ${attr}="${esc(id)}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(label)}</button>`;
-const recRow = ({room, matched, popular}) => `<button class="conversation-row onboard-rec" data-chat-room="${esc(room.id)}"><span><b>${esc(roomTitle(room))}</b><p>${esc(roomIntro(room))}</p><small>${esc(matched.length ? t('onb.matched', {list: matched.map(id => t('onb.c.' + id)).join(', ')}) : popular ? t('onb.popular') : t('onb.field'))}${room.messages_24h > 0 ? ' · ' + esc(t('home.messages', {n: room.messages_24h})) : ''}</small></span><i>›</i></button>`;
+const check = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+const chip = (attr, id, on, label) => `<button type="button" ${attr}="${esc(id)}" aria-pressed="${on}" class="${on ? 'on' : ''}">${on ? check : ''}${esc(label)}</button>`;
+const recCard = ({room, matched, popular}) => roomListCard(room, {image: images.get(room.id), highlight: matched,
+  note: matched.length ? t('onb.matched', {list: matched.map(id => t('onb.c.' + id)).join(', ')}) : popular ? t('onb.popular') : ''});
+const progress = n => `<div class="onboard-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${n}" aria-label="${esc(t('onb.step', {n}))}"><span style="width:${n * 100 / 3}%"></span></div><small class="onboard-count">${n}/3</small>`;
 
-export function renderGuide(box, rooms) {
+export function renderGuide(box, rooms, roomPictures = images) {
+  images = roomPictures;
   const saved = readInterests();
   if (!draft) draft = saved ? {...saved, concerns: [...saved.concerns]} : {version: 1, skincare: false, makeup: false, concerns: [], done: false};
   if (!needsGuide()) {
     // Done: show what matched, with a way back to edit. Skipped entirely: stay out of the way.
     if (!saved.skincare && !saved.makeup) { box.innerHTML = ''; return; }
-    box.innerHTML = `<div class="onboard-head"><h2 class="chat-section">${esc(t('onb.forYou'))}</h2><button type="button" class="text-btn" data-onb="edit">${esc(t('onb.edit'))}</button></div>${recommendRooms(rooms, saved).map(recRow).join('')}`;
+    box.innerHTML = `<div class="onboard-head"><h2 class="chat-section">${esc(t('onb.forYou'))}</h2><button type="button" class="text-btn" data-onb="edit">${esc(t('onb.edit'))}</button></div>${recommendRooms(rooms, saved).map(recCard).join('')}`;
     return;
   }
   const field = draft.skincare || draft.makeup;
   let inner, actions;
   if (step === 0) {
-    inner = `<div class="onboard-chips" role="group" aria-label="${esc(t('onb.q0'))}">${GROUPS.map(g => chip('data-onb-group', g, draft[g], t('onb.g.' + g))).join('')}</div>`;
-    actions = `<button type="button" class="onboard-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button>`;
-  } else if (step === 1) {
-    inner = GROUPS.filter(g => draft[g]).map(g => `<h3 class="onboard-group">${esc(t('onb.g.' + g))}</h3><div class="onboard-chips" role="group" aria-label="${esc(t('onb.g.' + g))}">${CONCERNS.filter(c => c.group === g).map(c => chip('data-onb-concern', c.id, draft.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div>`).join('');
-    actions = `<button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button><button type="button" class="onboard-next" data-onb="next">${esc(t('onb.show'))}</button>`;
+    const concerns = visibleConcerns(draft);
+    inner = `<h3 class="onboard-label">${esc(t('onb.fields'))}</h3><div class="onboard-chips onboard-fields" role="group" aria-label="${esc(t('onb.fields'))}">${GROUPS.map(g => chip('data-onb-group', g, draft[g], t('onb.g.' + g))).join('')}</div><h3 class="onboard-label">${esc(t('onb.keywords'))}</h3>${concerns.length ? `<div class="onboard-chips" role="group" aria-label="${esc(t('onb.keywords'))}">${concerns.map(c => chip('data-onb-concern', c.id, draft.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div>` : `<p class="onboard-hint">${esc(t('onb.pickField'))}</p>`}`;
+    actions = `<button type="button" class="onboard-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button><button type="button" class="text-btn onboard-skip" data-onb="skip">${esc(t('onb.skip'))}</button>`;
   } else {
-    inner = recommendRooms(rooms, draft).map(recRow).join('');
-    actions = `<button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button><button type="button" class="onboard-next" data-onb="finish">${esc(t('onb.browseAll'))}</button>${canCreateRooms(rooms) ? `<button type="button" class="text-btn onboard-create" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : ''}`;
+    inner = `<div class="onboard-recs">${recommendRooms(rooms, draft).map(recCard).join('')}</div>`;
+    actions = `<button type="button" class="onboard-next" data-onb="finish">${esc(t('onb.browseAll'))}</button><button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button>${canCreateRooms(rooms) ? `<button type="button" class="text-btn onboard-create" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : ''}`;
   }
-  box.innerHTML = `<div class="onboard-card" aria-labelledby="onb-title">${guide}<div class="onboard-body"><small class="onboard-step">${esc(t('onb.step', {n: step + 1}))}</small><h2 id="onb-title" tabindex="-1">${esc(t('onb.q' + step))}</h2><p>${esc(t('onb.s' + step))}</p></div></div>${inner}<div class="onboard-actions">${actions}${step < 2 ? `<button type="button" class="text-btn onboard-skip" data-onb="skip">${esc(t('onb.skip'))}</button>` : ''}</div>`;
+  box.innerHTML = `<div class="onboard-panel" aria-labelledby="onb-title"><div class="onboard-top"><div class="onboard-body"><h2 id="onb-title" tabindex="-1">${esc(t('onb.q' + step))}</h2><p>${esc(t('onb.s' + step))}</p></div><img class="onboard-guide" src="assets/hanbok-guide-pixel.svg" alt="" width="44" height="44"></div>${inner}<div class="onboard-actions">${actions}</div>${progress(step + 1)}</div>`;
 }
 
 function finish(box, rooms, value) {
@@ -102,9 +103,9 @@ export function handleGuideClick(b, box, rooms) {
   const a = b.dataset.onb;
   if (b.dataset.onbGroup) { const g = b.dataset.onbGroup; draft[g] = !draft[g]; draft = normalize(draft); }
   else if (b.dataset.onbConcern) { const id = b.dataset.onbConcern; draft.concerns = draft.concerns.includes(id) ? draft.concerns.filter(c => c !== id) : [...draft.concerns, id]; }
-  else if (a === 'next') { if (step === 0 && !draft.skincare && !draft.makeup) { finish(box, rooms, draft); return true; } step++; }
-  else if (a === 'back') step = Math.max(0, step - 1);
-  else if (a === 'skip') { finish(box, rooms, step === 0 ? {version: 1, skincare: false, makeup: false, concerns: []} : draft); return true; }
+  else if (a === 'next') { if (!draft.skincare && !draft.makeup) { finish(box, rooms, draft); return true; } step = 1; }
+  else if (a === 'back') step = 0;
+  else if (a === 'skip') { finish(box, rooms, {version: 1, skincare: false, makeup: false, concerns: []}); return true; }
   else if (a === 'finish') { finish(box, rooms, draft); return true; }
   else if (a === 'edit') { editInterests(); }
   // Leaving the guide for a room (or to create one) keeps what was chosen so far.

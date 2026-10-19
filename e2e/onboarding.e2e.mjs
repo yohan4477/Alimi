@@ -26,14 +26,15 @@ try {
   await guide.locator('[data-onb-group="makeup"]').click();
   assert.equal(await guide.locator('[data-onb-group="skincare"]').getAttribute('aria-pressed'),'true');
   assert.equal(await guide.locator('[data-onb-group="makeup"]').getAttribute('aria-pressed'),'true');
-  await guide.locator('[data-onb="next"]').click();
+  // Concerns of both fields appear on the same screen as the fields.
   assert.equal(await guide.locator('[data-onb-concern]').count(),8);
   await guide.locator('[data-onb-concern="dry"]').click();
   await guide.locator('[data-onb-concern="cushion"]').click();
-  // Back keeps choices.
-  await guide.locator('[data-onb="back"]').click();await guide.locator('[data-onb="next"]').click();
+  // Back from the recommendations keeps choices.
+  await guide.locator('[data-onb="next"]').click();await guide.locator('[data-onb="back"]').click();
   assert.equal(await guide.locator('[data-onb-concern="dry"]').getAttribute('aria-pressed'),'true');
   await guide.locator('[data-onb="next"]').click();
+  assert.equal(await guide.locator('[role="progressbar"]').getAttribute('aria-valuenow'),'2');
   const recs=await guide.locator('[data-chat-room]').evaluateAll(l=>l.map(b=>b.dataset.chatRoom));
   assert.ok(recs.includes('dry-sensitive')&&recs.includes('makeup'),'skin and makeup rooms recommended together: '+recs);
   assert.equal(await guide.locator('[data-chat-action="create-room"]').count(),0,'no create button before the server supports it');
@@ -48,7 +49,6 @@ try {
   await page.locator('[data-onb-manage]').click();
   await guide.locator('[data-onb-group="makeup"]').click();
   assert.equal(await guide.locator('[data-onb-group="makeup"]').getAttribute('aria-pressed'),'false');
-  await guide.locator('[data-onb="next"]').click();
   assert.equal(await guide.locator('[data-onb-concern="cushion"]').count(),0,'deselected field hides its concerns');
   await guide.locator('[data-onb="next"]').click();
   const skinOnly=await guide.locator('[data-chat-room]').evaluateAll(l=>l.map(b=>b.dataset.chatRoom));
@@ -80,7 +80,7 @@ try {
   });
   await page.goto(base+'?lang=ko');
   const guide=page.locator('#onboard-guide');
-  await guide.locator('[data-onb-group="makeup"]').click();await guide.locator('[data-onb="next"]').click();
+  await guide.locator('[data-onb-group="makeup"]').click();
   await guide.locator('[data-onb-concern="lip"]').click();await guide.locator('[data-onb="next"]').click();
   await guide.locator('[data-chat-action="create-room"]').click();
   const dlg=page.locator('#room-create');
