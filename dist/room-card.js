@@ -1,5 +1,6 @@
 // Room list card from the journey reference: thumbnail, name, real member / activity numbers, concern tags.
-// The thumbnail is a product someone actually mentioned in the room; otherwise a tinted field icon.
+// Use actual product imagery where supplied; otherwise a topic-specific SVG icon.
+// No profile photos or inferred personal attributes are used for room thumbnails.
 // Numbers come straight from chat_room_list — never rounded up or invented.
 import {t} from './i18n.js';
 import {esc} from './util.js';
@@ -12,9 +13,17 @@ const glyph = {
   deals: '<path d="M4 12V4h8l8 8-8 8z"/><circle cx="8" cy="8" r="1.5"/>',
   travel: '<path d="M3 12h18M12 3l3 9-3 9-3-9z"/>',
   talk: '<path d="M5 5h14v11H11l-4 3v-3H5z"/>',
+  sensitive: '<path d="M12 3C8 7 6 10 6 14a6 6 0 0 0 12 0c0-4-2-7-6-11z"/><path d="M9 15c1 2 3 3 5 2"/>',
+  acne: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="13" r="1.2"/><path d="M8 16c3-1 5-1 8 0"/>',
+  pores: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="16" cy="16" r="1"/>',
+  lips: '<path d="M3 12c2-1 4-5 7-4l2 2 2-2c3-1 5 3 7 4-3 5-7 7-9 7s-6-2-9-7z"/><path d="M3 12c5 1 13 1 18 0"/>',
 };
 export function roomThumb(room, image) {
-  const field = FIELD[room.tag] ?? 'talk';
+  const field = (room.concerns ?? []).includes('sensitive') ? 'sensitive'
+    : (room.concerns ?? []).includes('acne') ? 'acne'
+    : (room.concerns ?? []).includes('pores') ? 'pores'
+    : (room.concerns ?? []).some(c => ['lip', 'longwear', 'shade'].includes(c)) ? 'lips'
+    : FIELD[room.tag] ?? 'talk';
   return image
     ? `<span class="room-thumb"><img src="${esc(image)}" alt="" loading="lazy"></span>`
     : `<span class="room-thumb room-thumb-${field}"><svg viewBox="0 0 24 24" aria-hidden="true">${glyph[field]}</svg></span>`;
