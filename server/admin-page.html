@@ -20,7 +20,21 @@
   </section>
   <section class="sb-panel" id="sb-plan" role="tabpanel" aria-labelledby="sb-plan-tab" hidden>
     <h3>화면별 고객 여정 · 구성요소 · KPI</h3>
+    <div class="card" style="margin:12px 0"><span class="viz-badge">2026.10.19 · 고객 여정 개편안 · 미구현</span><h3>피부 고민 선택 → 맞춤 대화 → 상품 발견 → 재방문</h3><span>기존 Community · Search · My Activity 탭과 게시글/실시간 채팅, 상품 첨부 흐름은 유지한다. 아래는 신규 기획이며 실제 배포·계측 완료를 뜻하지 않는다.</span></div>
+    <div class="sb-flow" aria-label="개편 고객 여정"><span>언어 선택</span><span>→</span><span>피부 타입·고민 선택</span><span>→</span><span>관련 채팅방 추천</span><span>→</span><span>질문·답변</span><span>→</span><span>상품·브랜드</span><span>→</span><span>재방문·초대</span></div>
+    <h3 class="sb-section">화면별 변경 요소 · 사용자 행동 · KPI</h3>
+    <div class="sb-line"><div class="sb-label">첫 방문 · 신규</div><div class="sb-value"><span>기기 언어 기본값 → 피부 타입 단일 선택 → 피부 고민 복수 선택 → 추천방 보기. 건너뛰기·나중에 변경 가능.</span><span class="text-small text-muted">KPI: 온보딩 시작 대비 완료율, 단계별 이탈률, 추천방 진입률. 피부 정보는 선택값이며 인종·나이·성별 추정 금지.</span></div></div>
+    <div class="sb-line"><div class="sb-label">Community 홈 · 수정</div><div class="sb-value"><span>기존 참여 대화 바로 아래 '나와 비슷한 사람들의 대화' 추천 카드 추가. 활발한 대화·언급 상품·최근 질문·전체 주제는 보존.</span><span class="text-small text-muted">KPI: 추천 노출 대비 방 입장률, 첫 질문·댓글·채팅 참여율, 기존 인기방 대비 참여율.</span></div></div>
+    <div class="sb-line"><div class="sb-label">채팅방 · 수정</div><div class="sb-value"><span>기존 주제방에 피부 고민/타입 태그와 추천 이유 표시. Posts와 Live Chat 구분 및 상품 첨부는 그대로 유지. 빈 방 양산 방지.</span><span class="text-small text-muted">KPI: 방 입장→첫 메시지 전환율, 유용한 답변 비율, 첫 유용한 답변 시간, 무응답 질문 비율.</span></div></div>
+    <div class="sb-line"><div class="sb-label">Search·브랜드 · 유지+연결</div><div class="sb-value"><span>기존 브랜드 로고·상품 필터·검색 유지. 상품에서 관련 고민 대화방으로 이동, 채팅에서 상품 상세로 복귀하는 양방향 경로 강화.</span><span class="text-small text-muted">KPI: 상품→대화 이동률, 대화→상품 상세 이동률, 정확한 옵션 선택률.</span></div></div>
+    <div class="sb-line"><div class="sb-label">상품 상세 · 수정</div><div class="sb-value"><span>기존 설명·옵션·후기·현재 가격·판매처 유지. 관련 대화 링크를 더 잘 보이게 배치하고 사용자 후기와 공식 설명 구분.</span><span class="text-small text-muted">KPI: 관련 대화 열람률, 상품 저장률, 판매처 이동률. 클릭을 주문으로 간주하지 않음.</span></div></div>
+    <div class="sb-line"><div class="sb-label">My Activity · 수정</div><div class="sb-value"><span>기존 참여 대화·저장 상품·게시글 유지. 내 피부 타입·고민 편집 및 추천 재설정 추가.</span><span class="text-small text-muted">KPI: D7 재방문율, 참여 대화 재방문율, 관심사 수정 후 추천방 참여율.</span></div></div>
+    <div class="sb-line"><div class="sb-label">공유 · 연결</div><div class="sb-value"><span>기존 대화·상품에 친구 초대/공유 경로를 연결. 초대받은 사람은 해당 콘텐츠로 바로 이동.</span><span class="text-small text-muted">KPI: 공유 클릭률, 공유 링크 유입률, 초대 유입자의 첫 대화 참여율.</span></div></div>
+    <div class="sb-line"><div class="sb-label">언어 · 전 화면</div><div class="sb-value"><span>한국어·영어 시스템 문구와 기본 채팅방 정보를 분리. 선택한 언어 유지, 상품 고유명과 사용자 작성 원문은 보존.</span><span class="text-small text-muted">KPI: 언어별 온보딩 완료율·첫 참여율·누락 번역 건수. 기존 i18n 체계를 확장하며 탭 UI를 교체하지 않음.</span></div></div>
+    <p class="text-small text-muted">추천 점수 초안: 고민 일치 60% · 타입 일치 30% · 활성도 10%. 실제 실험으로 조정. 모든 신규 KPI는 현재 미측정.</p>
+    <details><summary class="cursor-interaction">기존 화면별 인터랙티브 UI·구성요소 보기 (유지)</summary>
     <iframe id="sb-planning-review" class="sb-planning-review" title="피부 관심사 온보딩과 기존 탭별 고객 여정·구성요소·KPI 설계" data-src="/api/admin?view=planning-review"></iframe>
+    </details>
     <details class="sb-plan-notes"><summary>기존 기획 설명 보기</summary>
     <h3>피부 고민을 공유하는 사람들과 대화하고, 상품을 발견하기</h3>
     <div class="sb-flow" aria-label="핵심 흐름"><span>피부 타입·고민 선택(선택 사항)</span><span aria-hidden="true">→</span><span>맞춤 채팅방</span><span aria-hidden="true">→</span><span>질문·답변</span><span aria-hidden="true">→</span><span>상품 확인·공유</span><span aria-hidden="true">→</span><span>재방문</span></div>
