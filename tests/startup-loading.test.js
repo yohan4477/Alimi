@@ -18,11 +18,11 @@ test('fast first request never displays artwork or leaves timers/listeners behin
   const s = setup(); s.tick(399); s.finish(); s.tick(9000);
   assert.equal(s.children.length, 0); assert.equal(s.timers.size, 0); assert.equal(s.events.size, 0);
 });
-test('slow first request shows the original launch assets and leaves immediately on completion', () => {
+test('slow first request shows the brand artwork and leaves immediately on completion', () => {
   const s = setup(); s.tick(400);
   assert.equal(s.children.length, 1);
-  assert.match(s.children[0].innerHTML, /splash-photo.webp/);
-  assert.match(s.children[0].innerHTML, /seoul-beauty-logo.webp/);
+  assert.match(s.children[0].innerHTML, /startup-brand.png/);
+  assert.doesNotMatch(s.children[0].innerHTML, /seoul-beauty-logo.webp|splash-photo.webp/);
   assert.doesNotMatch(s.children[0].innerHTML, /loading-characters/);
   s.finish(); assert.equal(s.children.length, 0);
 });

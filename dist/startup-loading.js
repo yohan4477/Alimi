@@ -1,7 +1,7 @@
-// The existing launch artwork is only a cover for the first pending community request.
+// Brand artwork covers only the first pending community request.
 import {esc} from './util.js';
 
-export function beginStartupLoading({label, line1, line2, doc = document, schedule = setTimeout, cancel = clearTimeout}) {
+export function beginStartupLoading({label, doc = document, schedule = setTimeout, cancel = clearTimeout}) {
   let cover, stopped = false;
   const finish = () => {
     if (stopped) return;
@@ -17,7 +17,7 @@ export function beginStartupLoading({label, line1, line2, doc = document, schedu
     cover.className = 'startup-loading';
     cover.setAttribute('role', 'status');
     cover.setAttribute('aria-label', label);
-    cover.innerHTML = `<div class="ob-splash" aria-hidden="true"><p class="ob-line1">${esc(line1)}</p><p class="ob-line2">${esc(line2)}</p><img class="ob-logo" src="assets/seoul-beauty-logo.webp" alt="" width="300" height="90"><img class="ob-photo" src="assets/splash-photo.webp" alt="" width="776" height="1085"><span class="startup-label">${esc(label)}</span></div>`;
+    cover.innerHTML = `<div class="startup-brand-art" aria-hidden="true"><img src="assets/startup-brand.png" alt=""><span class="startup-label">${esc(label)}</span></div>`;
     doc.body.append(cover);
   }, 400);
   // A stalled request must not permanently cover navigation or the retry state.

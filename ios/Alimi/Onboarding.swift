@@ -67,13 +67,12 @@ struct StartupLoadingScreen: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("SplashPhoto").resizable().scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped().accessibilityHidden(true)
+                Color.white
+                Image("StartupBrand").resizable().scaledToFit()
+                    .frame(width: geometry.size.width,
+                           height: max(0, geometry.size.height - geometry.safeAreaInsets.top - geometry.safeAreaInsets.bottom - 80))
+                    .accessibilityHidden(true)
                 VStack {
-                    Image("SeoulBeautyLogo").resizable().scaledToFit()
-                        .frame(maxWidth: 300).padding(.horizontal, 32)
-                        .padding(.top, geometry.safeAreaInsets.top + 32)
                     Spacer()
                     HStack(spacing: 8) {
                         ProgressView()
@@ -85,9 +84,9 @@ struct StartupLoadingScreen: View {
             }.frame(width: geometry.size.width, height: geometry.size.height)
         }
         .ignoresSafeArea()
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(L("loading"))
-            .accessibilityIdentifier("startup-loading")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L("loading"))
+        .accessibilityIdentifier("startup-loading")
     }
 }
 
