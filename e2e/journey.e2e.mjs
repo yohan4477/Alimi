@@ -21,7 +21,7 @@ async function open(url,setup=async()=>{}){
  await setup(page);await page.goto(url);return {ctx,page,errors};
 }
 try {
- // Shared room link opens the room; header shows real members, join for non-members, and share copies a clean link.
+ // Shared room link opens the room; header shows real members, immediate composer for non-members, and share copies a clean link.
  {
   const {ctx,page,errors}=await open(base+'?room=tint&lang=ko',async p=>p.addInitScript(()=>localStorage.setItem('alimi-chat-agreed','1')));
   await page.locator('.room-top h1').waitFor();
@@ -32,7 +32,7 @@ try {
   await page.waitForFunction(()=>document.querySelector('#toast')?.classList.contains('show'));
   assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),new URL('?room=tint',base).href);
   await page.locator('#chat-log .chat-msg').first().waitFor();
-  await page.locator('#join-live').click();
+  assert.equal(await page.locator('#join-live').count(),0);
   await page.locator('#chat-text').waitFor();
   assert.equal(await page.locator('#room-join').count(),0,'join button gone once joined');
   assert.equal(await page.locator('.msg-avatar').count(),0);
@@ -46,13 +46,12 @@ try {
   assert.equal(await page.locator('.room-top h1').innerText(),'틴트 이야기');
   assert.deepEqual(errors,[]);await ctx.close();
  }
- // Not yet a member: the header offers join, which asks for the rules first and then opens live chat.
+ // Not yet a member: reading and composing are available immediately.
  {
   const {ctx,page,errors}=await open(base+'?lang=en');
   await page.locator('[data-home-tab="rooms"][role="tab"]').click();
   await page.locator('.room-list-card[data-chat-room="tint"]').click();
-  await page.locator('#room-join').click();
-  await page.locator('[data-chat-action="join-ok"]').click();
+  assert.equal(await page.locator('#room-join').count(),0);
   await page.locator('#chat-text').waitFor();
   await page.locator('#chat-log .chat-msg').first().waitFor();
   assert.equal(await page.locator('#room-join').count(),0);
