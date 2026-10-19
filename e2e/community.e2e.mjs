@@ -39,11 +39,17 @@ try {
   await page.locator('#family-dialog[open] .variant-row').waitFor();
   assert.equal(await page.locator('.analysis-section').count(),0);
   assert.equal(await page.locator('.target-section').count(),0);
-  await page.locator('#family-dialog .close-dialog').click();
+  // Opened from a live room: 대화에 첨부 puts the product into the composer.
+  assert.equal(await page.locator('#family-dialog .family-attach').count(),1);
+  await page.locator('#family-dialog .family-attach').click();
+  assert.equal(await page.locator('#family-dialog').evaluate(d=>d.open),false);
+  assert.match(await page.locator('#chat-form').innerText(),/Soft tint 03/);
+  assert.equal(await page.locator('#chat-text').evaluate(e=>e===document.activeElement),true);
   assert.equal(await page.locator('#chat-log').isVisible(),true);
   assert.equal(await page.locator('#chat-log .chat-msg').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
   await page.locator('#tabbar [data-screen="saved"]').click();
+  await page.locator('[data-activity-tab="rooms"]').click();
   await page.locator('#activity-conversations h2').waitFor();
   assert.match(await page.locator('#saved h1').innerText(),lang==='en'?/My activity/:/내 활동/);
   assert.deepEqual(errors,[]);

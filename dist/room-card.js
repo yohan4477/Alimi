@@ -24,8 +24,8 @@ export const roomTags = (room, highlight = []) => (room.concerns ?? []).slice(0,
 export const roomStats = room => [t('chat.members', {n: room.members ?? 0}), room.messages_24h > 0 ? t('room.liveNow') : ''].filter(Boolean).join(' · ');
 
 // note: an extra line (why it was recommended, latest message); attrs: data-* to open the room.
-export const roomListCard = (room, {image = null, note = '', highlight = [], attrs = `data-chat-room="${esc(room.id)}"`} = {}) =>
-  `<button class="room-list-card" ${attrs}>${roomThumb(room, image)}<span class="room-list-text"><b>${esc(roomTitle(room))}</b><small>${esc(roomStats(room))}</small>${note ? `<em>${esc(note)}</em>` : ''}${(room.concerns ?? []).length ? `<span class="room-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
+export const roomListCard = (room, {image = null, note = '', highlight = [], fresh = false, attrs = `data-chat-room="${esc(room.id)}"`} = {}) =>
+  `<button class="room-list-card" ${attrs}>${roomThumb(room, image)}<span class="room-list-text"><b>${esc(roomTitle(room))}${fresh ? ` <span class="new-badge">${esc(t('home.newMessages'))}</span>` : ''}</b><small>${esc(roomStats(room))}</small>${note ? `<em>${esc(note)}</em>` : ''}${(room.concerns ?? []).length ? `<span class="room-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
 
 // Catalog category that illustrates a room when nobody has mentioned a product there yet.
 const ROOM_CATEGORY = {acne: '에센스·세럼', 'dry-sensitive': '크림·로션', routine: '토너·패드', sunscreen: '선케어', makeup: '립', 'korea-shopping': '마스크팩'};

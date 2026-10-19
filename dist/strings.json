@@ -1635,5 +1635,53 @@
   "home.popularSub": {
     "ko": "카탈로그에서 지금 많이 찾는 제품이에요. 대화에서 추천받은 제품과는 달라요.",
     "en": "Popular in the catalog right now — not the same as products recommended in conversations."
+  },
+  "family.attach": {
+    "ko": "대화에 첨부",
+    "en": "Attach to chat"
+  },
+  "family.attached": {
+    "ko": "대화에 상품을 첨부했어요",
+    "en": "Product attached to your message"
+  },
+  "room.join": {
+    "ko": "참여",
+    "en": "Join"
+  },
+  "share.room": {
+    "ko": "대화방 공유",
+    "en": "Share room"
+  },
+  "share.product": {
+    "ko": "상품 공유",
+    "en": "Share product"
+  },
+  "share.copied": {
+    "ko": "링크를 복사했어요",
+    "en": "Link copied"
+  },
+  "share.failed": {
+    "ko": "공유하지 못했어요",
+    "en": "Couldn't share"
+  },
+  "activity.tab.saved": {
+    "ko": "저장한 상품",
+    "en": "Saved"
+  },
+  "activity.tab.rooms": {
+    "ko": "참여한 대화방",
+    "en": "My rooms"
+  },
+  "home.welcome": {
+    "ko": "다시 오신 걸 환영해요!",
+    "en": "Welcome back!"
+  },
+  "home.welcomeSub": {
+    "ko": "참여한 대화방에서 이야기를 이어가 보세요.",
+    "en": "Pick up where you left off in your rooms."
+  },
+  "home.newMessages": {
+    "ko": "새 메시지",
+    "en": "New"
   }
 }

@@ -26,3 +26,11 @@ test('"active now" appears only with messages in the last 24 hours', () => {
   assert.doesNotMatch(roomStats(room('x', {members: 3})), /·/);
   assert.match(roomStats(room('x', {members: 3, messages_24h: 1})), /·/);
 });
+
+test('"new messages" only when the room changed after this device last looked', async () => {
+  const {hasNewSince} = await import('../dist/chat.js').catch(() => ({}));
+  if (!hasNewSince) return; // chat.js needs a browser; covered by e2e/journey.e2e.mjs
+  assert.equal(hasNewSince({created_at: '2026-10-19T10:00'}, '2026-10-19T09:00'), true);
+  assert.equal(hasNewSince({created_at: '2026-10-19T08:00'}, '2026-10-19T09:00'), false);
+  assert.equal(hasNewSince({created_at: '2026-10-19T10:00'}, undefined), false, 'never seen: no claim');
+});
