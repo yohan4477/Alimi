@@ -370,20 +370,17 @@ struct CommunityHome: View {
                     .accessibilityLabel(L("search.title")).accessibilityIdentifier("home-search")
             }
         }.padding(.top, 6)
+            .frame(height: SectionTabLayout.top - 10)
     }
     private var tabs: some View {
         HStack(spacing: 0) {
             ForEach(HomeTab.allCases, id: \.self) { t in
                 Button { tab = t; if t == .brands { Task { await model.loadBrands(store: store) } } } label: {
-                    VStack(spacing: 10) {
-                        Text(L("home.tab." + t.rawValue)).font(.system(size: 18, weight: tab == t ? .bold : .regular)).lineLimit(1).minimumScaleFactor(0.8)
-                            .foregroundStyle(tab == t ? Color.sbBlue : Color.sbGray)
-                        Rectangle().fill(tab == t ? Color.sbBlue : Color.clear).frame(height: 3)
-                    }.frame(maxWidth: .infinity)
+                    UnderlineSectionTab(title: L("home.tab." + t.rawValue), selected: tab == t)
                 }.buttonStyle(.plain).accessibilityIdentifier("home-tab-" + t.rawValue)
                     .accessibilityAddTraits(tab == t ? .isSelected : [])
             }
-        }.overlay(alignment: .bottom) { Rectangle().fill(Color.sbBorder).frame(height: 1) }
+        }
     }
     @ViewBuilder private var content: some View {
         switch tab {

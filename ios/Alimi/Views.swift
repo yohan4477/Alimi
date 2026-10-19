@@ -44,6 +44,29 @@ struct TabPageHeader: View {
     }
 }
 
+// Shared geometry: the existing Activity header (60) plus content inset (20).
+enum SectionTabLayout {
+    static let top: CGFloat = 80
+    static let height: CGFloat = 58
+}
+
+struct UnderlineSectionTab: View {
+    let title: String
+    let selected: Bool
+    var body: some View {
+        Text(title)
+            .font(.system(size: 16, weight: selected ? .bold : .regular))
+            .lineLimit(1).minimumScaleFactor(0.8)
+            .foregroundStyle(selected ? Color.sbBlue : Color.sbGray)
+            .frame(maxWidth: .infinity, minHeight: SectionTabLayout.height)
+            .contentShape(Rectangle())
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(selected ? Color.sbBlue : Color.sbBorder)
+                    .frame(height: selected ? 3 : 1)
+            }
+    }
+}
+
 struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var initialLoadPending = true
@@ -81,7 +104,7 @@ struct RootView: View {
         // in one state change and the community stack is already on screen to receive the room.
         .overlay {
             if showStartup && initialLoadPending && onboarding == nil && scenePhase == .active {
-                StartupLoadingScreen().zIndex(2)
+                StartupLoadingScreen().ignoresSafeArea().zIndex(2)
             }
             if let step = onboarding {
                 OnboardingFlow(step: step) { room in tab = .chat; onboarding = nil; openRoom = room }

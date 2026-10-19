@@ -31,15 +31,13 @@ struct SavedView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 0) {
                         ForEach(["saved", "rooms", "recent"], id: \.self) { s in
                             Button { section = s; if s == "recent" { recent = RecentViews.all() } } label: {
-                                Text(L("activity.tab." + s)).font(.system(size: 16, weight: section == s ? .bold : .medium)).lineLimit(1).minimumScaleFactor(0.8)
-                                    .foregroundStyle(section == s ? Color.white : Color(rgb: 0x3B4A63))
-                                    .frame(maxWidth: .infinity, minHeight: 50).background(section == s ? Color.sbBlue : Color.clear, in: RoundedRectangle(cornerRadius: 14))
+                                UnderlineSectionTab(title: L("activity.tab." + s), selected: section == s)
                             }.buttonStyle(.plain).accessibilityIdentifier("activity-tab-" + s).accessibilityAddTraits(section == s ? .isSelected : [])
                         }
-                    }.padding(4).background(Color(rgb: 0xEEF3FB), in: RoundedRectangle(cornerRadius: 18))
+                    }
                     switch section {
                     case "rooms": rooms
                     case "recent": recentList

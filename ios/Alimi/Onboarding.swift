@@ -65,14 +65,26 @@ struct SplashArtwork: View {
 
 struct StartupLoadingScreen: View {
     var body: some View {
-        SplashArtwork()
-            .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    Text(L("loading")).font(.footnote)
+        GeometryReader { geometry in
+            ZStack {
+                Image("SplashPhoto").resizable().scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped().accessibilityHidden(true)
+                VStack {
+                    Image("SeoulBeautyLogo").resizable().scaledToFit()
+                        .frame(maxWidth: 300).padding(.horizontal, 32)
+                        .padding(.top, geometry.safeAreaInsets.top + 32)
+                    Spacer()
+                    HStack(spacing: 8) {
+                        ProgressView()
+                        Text(L("loading")).font(.footnote)
+                    }
+                    .padding(12).background(.regularMaterial, in: Capsule())
+                    .padding(.bottom, geometry.safeAreaInsets.bottom + 20)
                 }
-                .padding(12).background(.regularMaterial, in: Capsule()).padding(.bottom, 12)
-            }
+            }.frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .ignoresSafeArea()
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(L("loading"))
             .accessibilityIdentifier("startup-loading")
