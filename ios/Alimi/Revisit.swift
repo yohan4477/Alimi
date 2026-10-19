@@ -132,11 +132,12 @@ struct WelcomeBanner: View {
             Text(L("home.welcomeSub")).font(.system(size: 16)).foregroundStyle(Color(rgb: 0x3B4A63))
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 24).padding(.vertical, 26)
-        .background(
+        .background {
             ZStack(alignment: .trailing) {
                 LinearGradient(colors: [Color(rgb: 0xE9F2FF), Color(rgb: 0xDCEBFF)], startPoint: .leading, endPoint: .trailing)
                 Circle().fill(Color.white.opacity(0.35)).frame(width: 140).offset(x: 60, y: 30)
-            }, in: RoundedRectangle(cornerRadius: 20))
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .accessibilityElement(children: .combine).accessibilityIdentifier("welcome-back")
     }
