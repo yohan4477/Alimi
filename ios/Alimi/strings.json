@@ -1683,5 +1683,9 @@
   "home.newMessages": {
     "ko": "새 메시지",
     "en": "New"
+  },
+  "onb.heroAlt": {
+    "ko": "Seoul Beauty — 함께 이야기하는 K-뷰티",
+    "en": "Seoul Beauty — beauty lives together"
   }
 }

@@ -67,6 +67,9 @@ try {
     await page.waitForSelector('#chat [data-chat-room="acne"]');
   });
   await step('start a conversation opens a topic sheet, then the write form for that topic', async () => {
+    // First visit: the guide hides the floating button until it is skipped or finished.
+    assert.equal(await page.isVisible('[data-chat-action="find-topic"]'), false);
+    await page.click('[data-onb="skip"]');
     await page.click('[data-chat-action="find-topic"]');
     await page.click('#chat-start [data-chat-start="acne"]');
     await page.waitForSelector('#post-write[open] #write-title');

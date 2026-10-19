@@ -88,7 +88,9 @@ export function renderGuide(box, rooms, roomPictures = images) {
     inner = `<div class="onboard-recs">${recommendRooms(rooms, draft).map(recCard).join('')}</div>`;
     actions = `<button type="button" class="onboard-next" data-onb="finish">${esc(t('onb.browseAll'))}</button><button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button>${canCreateRooms(rooms) ? `<button type="button" class="text-btn onboard-create" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : ''}`;
   }
-  box.innerHTML = `<div class="onboard-panel" aria-labelledby="onb-title"><div class="onboard-top"><div class="onboard-body"><h2 id="onb-title" tabindex="-1">${esc(t('onb.q' + step))}</h2><p>${esc(t('onb.s' + step))}</p></div><img class="onboard-guide" src="assets/hanbok-guide-pixel.svg" alt="" width="44" height="44"></div>${inner}<div class="onboard-actions">${actions}</div>${progress(step + 1)}</div>`;
+  // First step opens with the brand visual (journey reference screen 1); later steps stay compact.
+  const hero = step === 0 ? `<img class="onboard-hero" src="assets/onboarding-hero.webp" alt="${esc(t('onb.heroAlt'))}" width="753" height="460">` : '';
+  box.innerHTML = `<div class="onboard-panel${step === 0 ? ' with-hero' : ''}" aria-labelledby="onb-title">${hero}<div class="onboard-top"><div class="onboard-body"><h2 id="onb-title" tabindex="-1">${esc(t('onb.q' + step))}</h2><p>${esc(t('onb.s' + step))}</p></div><img class="onboard-guide" src="assets/hanbok-guide-pixel.svg" alt="" width="44" height="44"></div>${inner}<div class="onboard-actions">${actions}</div>${progress(step + 1)}</div>`;
 }
 
 function finish(box, rooms, value) {

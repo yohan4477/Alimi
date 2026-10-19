@@ -255,3 +255,6 @@ button:focus-visible,input:focus-visible{outline-color:#1463e8}
 .new-badge{display:inline-block;vertical-align:middle;margin-left:4px;font-size:11px;font-weight:700;color:#fff;background:var(--blue);border-radius:999px;padding:1px 7px}
 .activity-tabs{position:static;margin:12px 0 8px}
 .section-head>div{flex:1;min-width:0}
+.onboard-panel.with-hero{padding-top:0;overflow:hidden}.onboard-hero{display:block;width:calc(100% + 36px);max-width:none;height:auto;aspect-ratio:753/460;object-fit:cover;margin:0 -18px 16px}
+#chat:has(.onboard-panel) .start-conversation{display:none}
+.wordmark{margin:0;line-height:0}.wordmark img{display:block;height:48px;width:auto}.logo img{display:block;height:42px;width:auto}
