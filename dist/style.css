@@ -127,26 +127,19 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
    Atlas is 5 columns x 2 rows of 32x48 pixels, scaled x2 for pixel-perfect display. */
 .sb-loading-status{display:flex;align-items:center;justify-content:center;gap:10px;min-height:94px;padding:4px 16px;color:var(--muted,#6b7280);font-size:13px;text-align:left}
 .sb-loading-label{max-width:220px;line-height:1.5;overflow-wrap:anywhere}
-.sb-loading-sprite{display:block;flex:none;width:48px;height:72px;background-image:url('/assets/loading-characters.svg');background-size:240px 144px;background-repeat:no-repeat;image-rendering:pixelated;opacity:0;animation:sb-sprite-appear .01s linear .4s forwards,sb-sprite-change 22s steps(1,end) calc(.4s + var(--sb-look-offset,0s)) infinite}
+.sb-loading-sprite{display:block;flex:none;width:64px;height:96px;background-image:url('/assets/loading-characters-sprite.png');background-size:320px 192px;background-repeat:no-repeat;image-rendering:pixelated;opacity:0;animation:sb-sprite-appear .01s linear .4s forwards,sb-sprite-change 22s steps(1,end) calc(.4s + var(--sb-look-offset,0s)) infinite}
 @keyframes sb-sprite-appear{to{opacity:1}}
 @keyframes sb-sprite-change{
   0%,9.999%{background-position:0 0}
-  10%,19.999%{background-position:-48px 0}
-  20%,29.999%{background-position:-96px 0}
-  30%,39.999%{background-position:-144px 0}
-  40%,49.999%{background-position:-192px 0}
-  50%,59.999%{background-position:0 -72px}
-  60%,69.999%{background-position:-48px -72px}
-  70%,79.999%{background-position:-96px -72px}
-  80%,89.999%{background-position:-144px -72px}
-  90%,100%{background-position:-192px -72px}
+  10%,19.999%{background-position:-64px 0}
+  20%,29.999%{background-position:-128px 0}
+  30%,39.999%{background-position:-192px 0}
+  40%,49.999%{background-position:-256px 0}
+  50%,59.999%{background-position:0 -96px}
+  60%,69.999%{background-position:-64px -96px}
+  70%,79.999%{background-position:-128px -96px}
+  80%,89.999%{background-position:-192px -96px}
+  90%,100%{background-position:-256px -96px}
 }
 @media(prefers-reduced-motion:reduce){.sb-loading-sprite{animation:sb-sprite-appear .01s linear .4s forwards;opacity:0;background-position:var(--sb-static-x,0px) var(--sb-static-y,0px)}}
 @media(max-width:360px){.sb-loading-status{gap:6px;padding:4px 8px}}
-
-/* Decorative character appears only after a genuine 400ms load, without blocking content. */
-.pixel-loading-charm{display:flex;justify-content:center;align-items:center;pointer-events:none;min-height:72px;margin:7px 0 2px;overflow:hidden}
-.pixel-loading-sprite{display:block;flex:none;width:48px;height:72px;background-image:url('assets/loading-characters.svg');background-size:240px 144px;background-repeat:no-repeat;background-position:0 0;image-rendering:pixelated}
-#chat-log .pixel-loading-charm{align-self:center}
-#family-body .pixel-loading-charm{margin:10px auto}
-@media(prefers-reduced-motion:reduce){.pixel-loading-charm,.pixel-loading-sprite{transition:none!important;animation:none!important}}

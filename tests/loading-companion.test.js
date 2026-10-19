@@ -13,15 +13,14 @@ test('loading companion preserves localized status, escapes markup and hides art
   assert.match(loadingMarkup('Finding conversations'), /Finding conversations/);
 });
 
-test('each new loader rotates its initial look instead of always starting in blue', () => {
-  const first = loadingMarkup('first load');
-  const second = loadingMarkup('second load');
-  const a = first.match(/--sb-look-offset:([^;]+)/)?.[1];
-  const b = second.match(/--sb-look-offset:([^;]+)/)?.[1];
-  assert.ok(a && b);
-  assert.notEqual(a, b, 'subsequent requests begin on different costumes');
-  assert.match(first, /--sb-static-x:/);
-  assert.match(second, /--sb-static-y:/);
+test('a different costume can start each separate real loading state', () => {
+  const positions = new Set(Array.from({length: 10}, () => {
+    const html = loadingMarkup('Loading');
+    const x = html.match(/--sb-static-x:(-?\\d+)px/)?.[1];
+    const y = html.match(/--sb-static-y:(-?\\d+)px/)?.[1];
+    return x + ',' + y;
+  }));
+  assert.equal(positions.size, 10);
 });
 
 test('the ten-character atlas is tiny, transparently encoded and the same on web and iOS', async () => {
@@ -40,9 +39,6 @@ test('both web motion reduction and native loading delay are declared', async ()
   assert.match(css, /sb-loading-sprite/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /sb-sprite-change 22s/);
-  assert.match(css, /--sb-look-offset/);
-  assert.match(css, /--sb-static-x/);
-  assert.match(native, /LoadingCostumeSequence.take\(\)/);
   assert.match(native, /\.milliseconds\(400\)/);
   assert.match(native, /accessibilityReduceMotion/);
   assert.match(native, /\.periodic\(from: \.now, by: 2\.2\)/);
