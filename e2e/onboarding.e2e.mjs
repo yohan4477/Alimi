@@ -36,6 +36,7 @@ try {
   await guide.locator('[data-onb="next"]').click();
   const recs=await guide.locator('[data-chat-room]').evaluateAll(l=>l.map(b=>b.dataset.chatRoom));
   assert.ok(recs.includes('dry-sensitive')&&recs.includes('makeup'),'skin and makeup rooms recommended together: '+recs);
+  assert.equal(await guide.locator('[data-chat-action="create-room"]').count(),0,'no create button before the server supports it');
   await guide.locator('[data-onb="finish"]').click();
   // Done: compact "for you" list persists across reloads; the guide steps do not come back.
   await guide.locator('[data-onb="edit"]').waitFor();
@@ -62,5 +63,47 @@ try {
   assert.deepEqual(errors,[]);
   await page.close();
  }
- console.log('ok - onboarding guide: both fields, concerns, matched rooms, persistence, edit, skip, 320/390px, ko/en, no writes');
+ // Free room creation from the guide's last step: duplicate name error, then success opens the new room.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[],created=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  const list=rooms.map(r=>({...r,concerns:[]})); // server with the user_rooms migration
+  await page.route('**/rest/v1/**',async route=>{
+   const u=new URL(route.request().url()),resource=u.pathname.split('/').at(-1);
+   if(resource==='chat_room_list')return route.fulfill({json:list});
+   if(resource==='create_room'){const body=JSON.parse(route.request().postData());created.push(body);
+    if(body.p_title==='acne room')return route.fulfill({status:400,json:{message:'chat:duplicate'}});
+    list.push(room('u-new123','makeup',100,{title_en:body.p_title,title_ko:body.p_title,intro_ko:body.p_intro,intro_en:body.p_intro,concerns:body.p_concerns,user_created:true}));return route.fulfill({json:'u-new123'});}
+   if(resource==='join_chat')return route.fulfill({json:'Dewy Otter'});
+   if(resource==='app_events')return route.fulfill({status:204});
+   return route.fulfill({json:[]});
+  });
+  await page.goto(base+'?lang=ko');
+  const guide=page.locator('#onboard-guide');
+  await guide.locator('[data-onb-group="makeup"]').click();await guide.locator('[data-onb="next"]').click();
+  await guide.locator('[data-onb-concern="lip"]').click();await guide.locator('[data-onb="next"]').click();
+  await guide.locator('[data-chat-action="create-room"]').click();
+  const dlg=page.locator('#room-create');
+  assert.equal(await dlg.locator('[data-room-tag="makeup"]').getAttribute('aria-pressed'),'true','field prefilled from the guide');
+  assert.equal(await dlg.locator('[data-room-concern="lip"]').getAttribute('aria-pressed'),'true','concern prefilled from the guide');
+  assert.equal(await dlg.locator('[data-room-concern="acne"]').count(),0,'only makeup concerns for a makeup room');
+  await dlg.locator('[data-chat-action="room-submit"]').click();
+  assert.match(await dlg.locator('#room-error').innerText(),/3자 이상/);
+  await dlg.locator('#room-title').fill('acne room');await dlg.locator('[data-chat-action="room-submit"]').click();
+  await page.waitForFunction(()=>/이미 있어요/.test(document.querySelector('#room-error')?.textContent));
+  assert.equal(await dlg.locator('#room-title').inputValue(),'acne room','typed text survives an error');
+  await dlg.locator('#room-title').fill('웜톤 립 추천');await dlg.locator('#room-intro').fill('웜톤에 맞는 틴트');
+  await dlg.locator('[data-chat-action="room-submit"]').click();
+  await page.locator('#chat-join, #topic-body').first().waitFor();
+  if(await page.locator('#chat-join').isVisible())await page.locator('[data-chat-action="join-ok"]').click();
+  await page.waitForFunction(()=>/웜톤 립 추천/.test(document.querySelector('#chat')?.textContent));
+  assert.deepEqual(created.at(-1),{p_secret:created.at(-1).p_secret,p_title:'웜톤 립 추천',p_intro:'웜톤에 맞는 틴트',p_tag:'makeup',p_concerns:['lip']});
+  // The "start a conversation" sheet offers the same path.
+  await page.locator('#tabbar [data-screen="chat"]').click();
+  await page.locator('[data-chat-action="find-topic"]').first().click();
+  assert.equal(await page.locator('#chat-start [data-chat-action="create-room"]').count(),1);
+  assert.deepEqual(errors,[]);
+  await page.close();
+ }
+ console.log('ok - onboarding guide: both fields, concerns, matched rooms, persistence, edit, skip, 320/390px, ko/en, no writes; room creation errors and success');
 } finally { await browser.close(); }

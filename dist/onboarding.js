@@ -34,6 +34,8 @@ export function saveInterests(p, storage = deviceStorage()) {
 }
 function deviceStorage() { try { return globalThis.localStorage; } catch { return undefined; } }
 
+// Room creation needs the user_rooms migration; its room list carries `concerns`, older servers do not.
+export const canCreateRooms = rooms => rooms.some(r => Array.isArray(r.concerns));
 export const visibleConcerns = sel => CONCERNS.filter(c => sel?.[c.group]);
 
 // Rooms matching more chosen concerns first, then the chosen field, then recent activity.
@@ -83,7 +85,7 @@ export function renderGuide(box, rooms) {
     actions = `<button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button><button type="button" class="onboard-next" data-onb="next">${esc(t('onb.show'))}</button>`;
   } else {
     inner = recommendRooms(rooms, draft).map(recRow).join('');
-    actions = `<button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button><button type="button" class="onboard-next" data-onb="finish">${esc(t('onb.browseAll'))}</button>`;
+    actions = `<button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button><button type="button" class="onboard-next" data-onb="finish">${esc(t('onb.browseAll'))}</button>${canCreateRooms(rooms) ? `<button type="button" class="text-btn onboard-create" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : ''}`;
   }
   box.innerHTML = `<div class="onboard-card" aria-labelledby="onb-title">${guide}<div class="onboard-body"><small class="onboard-step">${esc(t('onb.step', {n: step + 1}))}</small><h2 id="onb-title" tabindex="-1">${esc(t('onb.q' + step))}</h2><p>${esc(t('onb.s' + step))}</p></div></div>${inner}<div class="onboard-actions">${actions}${step < 2 ? `<button type="button" class="text-btn onboard-skip" data-onb="skip">${esc(t('onb.skip'))}</button>` : ''}</div>`;
 }
@@ -105,7 +107,8 @@ export function handleGuideClick(b, box, rooms) {
   else if (a === 'skip') { finish(box, rooms, step === 0 ? {version: 1, skincare: false, makeup: false, concerns: []} : draft); return true; }
   else if (a === 'finish') { finish(box, rooms, draft); return true; }
   else if (a === 'edit') { editInterests(); }
-  else if (b.dataset.chatRoom && needsGuide()) { saveInterests({...draft, done: true}); editing = false; step = 0; draft = null; return false; }
+  // Leaving the guide for a room (or to create one) keeps what was chosen so far.
+  else if ((b.dataset.chatRoom || b.dataset.chatAction === 'create-room') && needsGuide()) { finish(box, rooms, draft); return false; }
   else return false;
   renderGuide(box, rooms);
   box.querySelector(b.dataset.onbGroup ? `[data-onb-group="${b.dataset.onbGroup}"]` : b.dataset.onbConcern ? `[data-onb-concern="${b.dataset.onbConcern}"]` : '#onb-title, .onboard-head button')?.focus?.();

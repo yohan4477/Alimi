@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {CONCERNS, normalize, readInterests, saveInterests, visibleConcerns, recommendRooms} from '../dist/onboarding.js';
+import {CONCERNS, canCreateRooms, normalize, readInterests, saveInterests, visibleConcerns, recommendRooms} from '../dist/onboarding.js';
 
 const room = (id, tag, extra = {}) => ({id, kind: 'topic', tag, sort: 1, members: 0, messages_24h: 0, title_en: id, title_ko: id, ...extra});
 const rooms = [
@@ -61,4 +61,9 @@ test('recent activity breaks ties and skipped choices fall back to popular rooms
   const popular = recommendRooms(busy, null);
   assert.ok(popular.length > 0 && popular.every(r => r.matched.length === 0 && r.popular));
   assert.equal(popular[0].room.id, 'routine');
+});
+
+test('room creation is offered only once the server lists room concerns', () => {
+  assert.equal(canCreateRooms(rooms), false);
+  assert.equal(canCreateRooms([...rooms, room('u-1', 'talk', {concerns: []})]), true);
 });

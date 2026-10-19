@@ -1523,5 +1523,61 @@
   "onb.none": {
     "ko": "아직 고르지 않았어요",
     "en": "Not chosen yet"
+  },
+  "room.new": {
+    "ko": "새 대화방 만들기",
+    "en": "Create a room"
+  },
+  "room.newHint": {
+    "ko": "어떤 주제든 괜찮아요. 분야와 고민 태그는 선택이고, 다른 사람이 방을 찾는 데만 쓰여요.",
+    "en": "Any topic is welcome. Field and concern tags are optional and only help others find your room."
+  },
+  "room.titlePh": {
+    "ko": "방 이름 (3~40자)",
+    "en": "Room name (3–40 characters)"
+  },
+  "room.introPh": {
+    "ko": "어떤 이야기를 나누고 싶나요? (선택)",
+    "en": "What would you like to talk about? (optional)"
+  },
+  "room.field": {
+    "ko": "분야",
+    "en": "Field"
+  },
+  "room.tag.talk": {
+    "ko": "자유 주제",
+    "en": "Anything"
+  },
+  "room.tag.skin": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "room.tag.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "room.concerns": {
+    "ko": "고민 태그 (선택)",
+    "en": "Concern tags (optional)"
+  },
+  "room.note": {
+    "ko": "공개 방이라 누구나 볼 수 있어요. 링크와 부적절한 표현은 쓸 수 없고, 하루에 3개까지 만들 수 있어요.",
+    "en": "Rooms are public. Links and abusive words aren't allowed, and you can create up to 3 rooms a day."
+  },
+  "room.create": {
+    "ko": "방 만들기",
+    "en": "Create room"
+  },
+  "room.created": {
+    "ko": "방을 만들었어요",
+    "en": "Room created"
+  },
+  "chat.err.short": {
+    "ko": "3자 이상 입력해 주세요.",
+    "en": "Please enter at least 3 characters."
+  },
+  "chat.err.duplicate": {
+    "ko": "같은 이름의 방이 이미 있어요. 그 방에서 이야기해 보세요.",
+    "en": "A room with this name already exists. Try talking there."
   }
 }
