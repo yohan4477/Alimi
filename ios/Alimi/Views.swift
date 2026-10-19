@@ -6,6 +6,7 @@ struct RootView: View {
     @State private var tab = MainTab.chat
     @State private var onboarding: OnboardingStep? = Interests.load()?.done == true || ProcessInfo.processInfo.arguments.contains("-skipOnboarding") ? nil : .splash
     @State private var openRoom: ChatRoom?
+    @State private var pickedRoom: ChatRoom?
     @State private var searching = false
     @StateObject private var revisit = RevisitModel()
     @AppStorage("alimi.lang") private var lang = ""
@@ -21,8 +22,11 @@ struct RootView: View {
                 .tabItem { Label(L("tab2.my"), systemImage: "person") }.tag(MainTab.saved)
         }.id(lang)
         .sheet(isPresented: $searching) { SearchView().environmentObject(store) }
-        .fullScreenCover(isPresented: Binding(get: { onboarding != nil }, set: { if !$0 { onboarding = nil } })) {
-            OnboardingFlow(step: onboarding ?? .splash) { room in onboarding = nil; tab = .chat; openRoom = room }.environmentObject(store)
+        // A room picked at the end of onboarding opens once the cover has finished closing (a push during the
+        // dismissal animation is dropped).
+        .fullScreenCover(isPresented: Binding(get: { onboarding != nil }, set: { if !$0 { onboarding = nil } }),
+                         onDismiss: { if let room = pickedRoom { pickedRoom = nil; openRoom = room } }) {
+            OnboardingFlow(step: onboarding ?? .splash) { room in pickedRoom = room; tab = .chat; onboarding = nil }.environmentObject(store)
         }
         .task { await revisit.load(store: store) }
         .task { await store.refresh(); await AuthSession.shared.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
