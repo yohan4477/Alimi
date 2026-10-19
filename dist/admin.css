@@ -115,3 +115,59 @@
 #sb-design .sb-design-hero{padding:16px}
 #sb-design .sb-design-frames .sb-design-frame-col{padding:12px 6px}
 }
+
+/* Character onboarding is a preview inside the protected admin planning tab. */
+#sb-management .sb-pixel-guide-demo{margin:20px 0 24px;padding:20px;border:1px solid light-dark(#d8e6fc,#3f5473);border-radius:18px;background:light-dark(#f8fbff,#1c2937)}
+#sb-management .sb-guide-titlebar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+#sb-management .sb-guide-titlebar h3{font-size:1.12rem;font-weight:750;margin:7px 0 6px}
+#sb-management .sb-guide-titlebar p{margin:0}
+#sb-management .sb-guide-status{font-size:.71rem;color:var(--muted-foreground)}
+#sb-management .sb-guide-layout{display:grid;grid-template-columns:minmax(260px,320px) minmax(0,1fr);gap:22px;align-items:start}
+#sb-management .sb-guide-phone-wrap,#sb-management .sb-guide-spec{min-width:0}
+#sb-management .sb-guide-phone{max-width:320px;min-height:485px;padding:17px 16px 15px;border:1px solid #d6e1f0;border-radius:21px;background:#fff;color:#173057;box-shadow:0 12px 34px #1b488a18;display:flex;flex-direction:column}
+#sb-management .sb-guide-top{display:flex;align-items:center;justify-content:space-between;font-size:.81rem;color:#1b54ad}
+#sb-management .sb-guide-top span{font-size:.7rem;color:#7890b2}
+#sb-management .sb-guide-lang{display:flex;justify-content:flex-end;gap:6px;margin:12px 0 10px}
+#sb-management .sb-guide-lang button{padding:4px 9px;min-height:32px;border:1px solid #d7e3f1;border-radius:8px;background:#fff;color:#4a607e;font-size:.73rem}
+#sb-management .sb-guide-lang button[aria-pressed="true"]{background:#e9f2ff;color:#1555c0;border-color:#1555c0;font-weight:750}
+#sb-management .sb-guide-progress{display:flex;gap:5px;margin:3px 0 13px}
+#sb-management .sb-guide-progress span{display:block;height:4px;flex:1;background:#e5eaf2;border-radius:4px}
+#sb-management .sb-guide-progress span.current{background:#3975e6}
+#sb-management .sb-guide-figure{display:flex;align-items:center;gap:10px;min-height:115px;margin:0 0 10px}
+#sb-management .sb-guide-figure img{width:70px;height:105px;object-fit:contain;image-rendering:pixelated;flex:none}
+#sb-management .sb-guide-figure p{margin:0;padding:12px;border-radius:13px 13px 13px 3px;background:#edf4ff;color:#214f93;line-height:1.5;font-size:.83rem;font-weight:700;min-width:0}
+#sb-management #sb-guide-options{flex:1}
+#sb-management #sb-guide-options h4{font-size:.91rem;margin:8px 0 12px;font-weight:750}
+#sb-management #sb-guide-options h4 small{display:block;color:#7183a1;font-size:.7rem;font-weight:450;margin-top:2px}
+#sb-management .sb-guide-choices{display:flex;gap:7px;flex-wrap:wrap}
+#sb-management .sb-guide-choices button{padding:9px 12px;background:#fff;color:#29446b;font-size:.8rem;min-height:42px;border:1px solid #d5e0f0;border-radius:11px}
+#sb-management .sb-guide-choices.compact button{font-size:.72rem;min-height:37px;padding:7px 9px}
+#sb-management .sb-guide-choices button[aria-pressed="true"]{border-color:#2260d1;color:#1555c0;background:#eaf2ff;font-weight:750}
+#sb-management .sb-guide-help{color:#7183a1;font-size:.71rem;margin:12px 0;line-height:1.55}
+#sb-management .sb-guide-group-title{font-size:.76rem;font-weight:700;color:#4d6588;margin:10px 0 6px}
+#sb-management .sb-guide-room{border:1px solid #dce6f4;background:#fafcff;padding:9px 11px;border-radius:10px;margin-bottom:7px;display:grid;gap:3px}
+#sb-management .sb-guide-room b{font-size:.75rem;font-weight:730}
+#sb-management .sb-guide-room small{font-size:.67rem;color:#63799b;line-height:1.5}
+#sb-management .sb-guide-actions{display:flex;gap:8px;margin-top:14px}
+#sb-management .sb-guide-actions button{min-height:42px;border:1px solid #cbdcf2;border-radius:10px;padding:9px 12px;background:#fff;color:#24569b;font-size:.79rem}
+#sb-management .sb-guide-actions .primary{flex:1;border-color:#316ee8;color:#fff;background:linear-gradient(115deg,#317ce9,#4366df);font-weight:750}
+#sb-management .sb-guide-skip{padding:8px;border:0;color:#647c9b;background:transparent;min-height:38px;font-size:.75rem}
+#sb-management .sb-guide-caption{max-width:320px;margin:10px 0 0;font-size:.7rem;line-height:1.6;color:var(--muted-foreground)}
+#sb-management .sb-guide-spec>h4{margin:5px 0 12px;font-size:.92rem;font-weight:750}
+#sb-management .sb-guide-specrow{display:grid;grid-template-columns:27px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+#sb-management .sb-guide-no{font-weight:800;color:light-dark(#285dba,#a9c8ff);font-size:.78rem}
+#sb-management .sb-guide-specrow strong{font-size:.82rem}
+#sb-management .sb-guide-specrow p{font-size:.76rem;color:var(--muted-foreground);margin:5px 0;line-height:1.6}
+#sb-management .sb-guide-specrow small{display:block;font-size:.72rem;color:light-dark(#3060a2,#a0bfe9)}
+#sb-management .sb-guide-scope{padding:11px 12px;margin-top:14px;background:light-dark(#ebf3ff,#263b57);border-radius:11px}
+#sb-management .sb-guide-scope strong{font-size:.81rem}
+#sb-management .sb-guide-scope p{font-size:.74rem;line-height:1.65;color:var(--muted-foreground);margin:5px 0 0}
+#sb-management .sb-guide-links{margin-top:12px;font-size:.8rem;color:light-dark(#245bb0,#a4caff)}
+#sb-design .sb-design-character{display:flex;align-items:center;gap:17px;border:1px solid var(--dline);border-radius:15px;padding:15px 18px;margin:18px 0;background:var(--dsoft)}
+#sb-design .sb-design-character img{object-fit:contain;image-rendering:pixelated;flex:none}
+#sb-design .sb-design-character h4{font-size:.94rem;font-weight:750;margin:5px 0 8px}
+#sb-design .sb-design-character p{font-size:.8rem;color:var(--muted-foreground);line-height:1.65;margin:0 0 6px}
+#sb-design .sb-design-character small{font-size:.72rem;color:var(--dblue)}
+@media(max-width:720px){#sb-management .sb-guide-layout{grid-template-columns:1fr;gap:18px}#sb-management .sb-guide-phone{margin:0 auto}#sb-management .sb-guide-caption{margin:10px auto 0}}
+@media(max-width:440px){#sb-management .sb-pixel-guide-demo{padding:13px}#sb-management .sb-guide-phone{padding:14px 12px}#sb-design .sb-design-character{align-items:flex-start;gap:10px;padding:12px}#sb-design .sb-design-character img{width:48px;height:72px}}
+@media(prefers-reduced-motion:reduce){#sb-management .sb-guide-phone *{transition:none!important;animation:none!important}}
