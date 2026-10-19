@@ -32,6 +32,8 @@
 - `node e2e/offline.e2e.mjs ...`: 온보딩/내 활동/프로필 동의/글·댓글/리뷰/채팅 차단 회귀 통과.
 - `node e2e/admin.e2e.mjs`: 익명·일반계정 거부, 관리자 탭/모바일/권한 회수/로그아웃 통과. 인증은 로컬 mock.
 - `node e2e/no-tracking.e2e.mjs ...`, `node e2e/brands.e2e.mjs ...`: 저장/복귀/구매 링크, 브랜드 실패·재시도·페이지 분기 통과.
+- `node e2e/onboarding.e2e.mjs ...`, `node e2e/journey.e2e.mjs ...`: 320/390px 온보딩·건너뛰기·관심사·새 방 실패/성공, 방/상품 공유 링크·클립보드 대체·브랜드 경유 첨부·아바타 부재·읽음 배지·내 활동 통과. OS 시스템 공유창/실제 인증은 이 fixture 검증 범위가 아니다.
+- GitHub Web run39299051068에서135개 단위검사, 관리자, handoff/community/offline/brands/no-tracking와 live web E2E 통과. 이후 onboarding이 제거된 #community-create를 찾아 실패했다. 테스트를 현재의 이야기 시작→방 생성 경로로 고친 후 로컬 onboarding/journey 모두 통과. 후속 CI 결과 별도.
 - `node --check dist/app.js`, `node --check dist/chat.js`, `git diff --check`: 통과.
 - 브라우저: Chromium, 390×844. iOS Xcode/실기기, 실제 공유 시스템창, 인증/온보딩 딥링크, Dynamic Type, 구매 외부앱 왕복은 실행 미검증.
 
