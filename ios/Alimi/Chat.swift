@@ -420,6 +420,11 @@ struct ChatRoomView: View {
             .onChange(of: messages.count) { if let last = shown.last { withAnimation { proxy.scrollTo(last.id, anchor: .bottom) } } }
         }
         .safeAreaInset(edge: .bottom) { if canPost { composer } else { joinBar } }
+        .toolbar { ToolbarItem(placement: .topBarTrailing) {
+            ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) {
+                Label(L("share.room"), systemImage: "square.and.arrow.up")
+            }.accessibilityIdentifier("chat-room-share")
+        } }
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
         .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef, attach: canPost ? { picked in item = picked } : nil).environmentObject(store) }
         .sheet(item: $savingMessage) { CommunityComposer(room: room, fromMessage: $0).environmentObject(store) }
