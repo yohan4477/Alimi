@@ -89,6 +89,8 @@ if (root) {
       else {
         sprite.style.backgroundPosition = '';
         sprite.style.animation = '';
+        // Resume the 10-step cycle from the paused frame instead of restarting at frame 0.
+        sprite.style.animationDelay = (-parseFloat(getComputedStyle(sprite).animationDuration) * frame / 10) + 's';
         paused = false;
       }
       refreshLabel();
