@@ -94,7 +94,8 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
       if (url.searchParams.get('view') === 'planning-review') {
         const review = await readReview();
         const scriptHashes = [...review.matchAll(/<script>([\s\S]*?)<\/script>/g)]
-          .map(([, script]) => "'sha256-" + createHash('sha256').update(script).digest('base64') + "'").join(' ');
+          // Browsers hash script text after normalizing CRLF/CR to LF (e.g. Windows checkouts).
+          .map(([, script]) => "'sha256-" + createHash('sha256').update(script.replace(/\r\n?/g, '\n')).digest('base64') + "'").join(' ');
         // The unchanged review uses dynamic style attributes for screenshot crops.
         // Permit these only in the authenticated, isolated review document.
         res.setHeader('Content-Security-Policy', `default-src 'none'; script-src ${scriptHashes}; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
