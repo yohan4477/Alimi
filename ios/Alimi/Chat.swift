@@ -67,6 +67,10 @@ enum ChatAPI {
     static var myTag: String { tag(secret) }
     static var blocked: [String] { defaults.stringArray(forKey: "alimi.chat.blocked") ?? [] }
     static func block(_ tag: String) { defaults.set(Array(Set(blocked + [tag])), forKey: "alimi.chat.blocked") }
+    static var likedIDs: Set<Int> {
+        get { Set(defaults.array(forKey: "seoulbeauty.chat.hearts." + myTag) as? [Int] ?? []) }
+        set { defaults.set(Array(newValue), forKey: "seoulbeauty.chat.hearts." + myTag) }
+    }
     static var agreed: Bool {
         get { defaults.bool(forKey: "alimi.chat.agreed") }
         set { defaults.set(newValue, forKey: "alimi.chat.agreed") }
@@ -401,6 +405,10 @@ struct ChatRoomView: View {
     @State private var reporting: ChatMessage?
     @State private var notice: String?
     @State private var sending = false
+    @State private var likedIDs = ChatAPI.likedIDs
+    @State private var likingIDs: Set<Int> = []
+    @State private var atBottom = true
+    @State private var unread = 0
     private var shown: [ChatMessage] { messages.filter { !blocked.contains($0.authorTag) } }
 
     var body: some View {
@@ -408,16 +416,38 @@ struct ChatRoomView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 22) {
                     if shown.isEmpty { Text(L("chat.empty")).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.top, 40) }
-                    ForEach(shown) { m in
+                    ForEach(Array(shown.enumerated()), id: \.element.id) { index, m in
+                        if index == 0 || !ChatTime.sameDay(shown[index - 1].createdAt, m.createdAt) {
+                            HStack(spacing: 14) {
+                                Rectangle().fill(Color(rgb: 0xE3E7EE)).frame(height: 1)
+                                Text(ChatTime.day(m.createdAt)).font(.system(size: 12)).foregroundStyle(Color.sbGray).fixedSize()
+                                Rectangle().fill(Color(rgb: 0xE3E7EE)).frame(height: 1)
+                            }.padding(.vertical, 8)
+                        }
                         MessageRow(message: m, parent: m.replyTo.flatMap { id in shown.first { $0.id == id } }, mine: m.authorTag == ChatAPI.myTag,
-                                   replies: shown.filter { $0.replyTo == m.id }.count,
+                                   replies: shown.filter { $0.replyTo == m.id }.count, liked: likedIDs.contains(m.id), liking: likingIDs.contains(m.id), jump: { if let id = m.replyTo { withAnimation { proxy.scrollTo(id, anchor: .center) } } },
                                    open: { purchaseRef = "chat-\(m.id)"; openFamily = $0 }, like: { like(m) }, reply: { replyTo = m },
                                    report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") }, savePost: { savingMessage = m })
                             .id(m.id)
                     }
+                    Color.clear.frame(height: 1).id("chat-bottom")
+                        .onAppear { atBottom = true; unread = 0 }
+                        .onDisappear { atBottom = false }
                 }.padding(.horizontal, 16).padding(.vertical, 14)
             }
-            .onChange(of: messages.count) { if let last = shown.last { withAnimation { proxy.scrollTo(last.id, anchor: .bottom) } } }
+            .overlay(alignment: .bottom) {
+                if unread > 0 {
+                    Button(L("chat.newMessages", ["n": unread])) {
+                        proxy.scrollTo("chat-bottom", anchor: .bottom); unread = 0
+                    }.font(.caption).padding(12).background(Color.sbTagBg, in: Capsule()).padding(.bottom, 8)
+                }
+            }
+            .onChange(of: messages.count) { old, new in
+                if old == 0 || atBottom || messages.last?.authorTag == ChatAPI.myTag {
+                    withAnimation { proxy.scrollTo("chat-bottom", anchor: .bottom) }
+                    unread = 0
+                } else { unread += max(0, new - old) }
+            }
         }
         .safeAreaInset(edge: .bottom) { if canPost { composer } else { joinBar } }
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
@@ -443,7 +473,16 @@ struct ChatRoomView: View {
     }
     private var composer: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if let replyTo { Chip(text: L("chat.replyingTo", ["name": replyTo.nickname])) { self.replyTo = nil } }
+            if let replyTo {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L("chat.replyingTo", ["name": replyTo.nickname])).font(.caption.bold())
+                        Text(replyTo.body.isEmpty ? replyTo.item?.name ?? "" : replyTo.body).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    Spacer()
+                    Button { self.replyTo = nil } label: { Image(systemName: "xmark") }.frame(width: 44, height: 44).accessibilityLabel(L("close"))
+                }
+            }
             if let item { Chip(text: item.brandLabel + " · " + item.name) { self.item = nil } }
             HStack(alignment: .center, spacing: 12) {
                 Button { picking = true } label: {
@@ -493,7 +532,17 @@ struct ChatRoomView: View {
         }
     }
     private func like(_ m: ChatMessage) {
-        Task { if let n = try? await ChatAPI.like(m.id), let i = messages.firstIndex(where: { $0.id == m.id }) { messages[i].likes = n } }
+        guard !likingIDs.contains(m.id) else { return }
+        likingIDs.insert(m.id)
+        Task {
+            defer { likingIDs.remove(m.id) }
+            do {
+                let n = ChatAPI.offline ? max(0, m.likes + (likedIDs.contains(m.id) ? -1 : 1)) : try await ChatAPI.like(m.id)
+                if let i = messages.firstIndex(where: { $0.id == m.id }) { messages[i].likes = n }
+                if likedIDs.contains(m.id) { likedIDs.remove(m.id) } else { likedIDs.insert(m.id) }
+                ChatAPI.likedIDs = likedIDs
+            } catch { notice = L("chat.err.other") }
+        }
     }
     private func report(_ reason: String) {
         guard let m = reporting else { return }
@@ -518,6 +567,9 @@ struct MessageRow: View {
     let parent: ChatMessage?
     let mine: Bool
     var replies = 0
+    var liked = false
+    var liking = false
+    var jump: () -> Void = {}
     let open: (ProductFamily) -> Void
     let like: () -> Void
     let reply: () -> Void
@@ -525,30 +577,42 @@ struct MessageRow: View {
     let block: () -> Void
     var savePost: (() -> Void)? = nil
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            if mine { Spacer(minLength: 48) }
-            VStack(alignment: mine ? .trailing : .leading, spacing: 10) {
-                HStack(spacing: 8) {
-                    if !mine { Text(message.nickname).font(.system(size: 16, weight: .semibold)).foregroundStyle(Color(rgb: 0x5B6475)) }
-                    Text(ChatTime.ago(message.createdAt)).font(.system(size: 14)).foregroundStyle(Color(rgb: 0xA0A7B4))
-                }
+        HStack(alignment: .bottom, spacing: 8) {
+            VStack(alignment: mine ? .trailing : .leading, spacing: 6) {
+                if !mine { Text(message.nickname).font(.system(size: 13, weight: .semibold)).foregroundStyle(nicknameColor) }
                 bubble.contextMenu { menu }
-                if let item = message.item { ChatProductCard(item: item, open: open) }
-                if message.likes > 0 || replies > 0 {
-                    HStack(spacing: 8) {
-                        pill(icon: "heart.fill", tint: Color(rgb: 0xF0476A), count: message.likes, action: like).accessibilityLabel(L("chat.like"))
-                        pill(icon: "bubble.left", tint: Color.sbNavy, count: replies, action: reply).accessibilityLabel(L("chat.reply"))
-                    }
-                }
-            }.frame(maxWidth: .infinity, alignment: mine ? .trailing : .leading)
+                if let item = message.item { ChatProductCard(item: item, open: open).contextMenu { menu } }
+                Text(ChatTime.clock(message.createdAt)).font(.system(size: 11)).foregroundStyle(Color.sbGray)
+            }.frame(maxWidth: .infinity, alignment: mine ? .trailing : .leading).padding(.leading, mine ? 24 : 0)
+            Button(action: like) {
+                HStack(spacing: 6) {
+                    Text(String(message.likes)).font(.system(size: 13)).foregroundStyle(Color.sbGray)
+                    Image(systemName: liked ? "heart.fill" : "heart").font(.system(size: 20))
+                        .foregroundStyle(liked ? Color(rgb: 0xED2850) : Color.sbGray)
+                }.frame(width: 54, height: 44, alignment: .trailing).contentShape(Rectangle())
+            }.buttonStyle(.plain).disabled(liking).padding(.bottom, 16)
+                .accessibilityLabel(L("chat.like") + " " + String(message.likes))
+                .accessibilityValue(liked ? "Selected" : "Not selected")
+                .accessibilityIdentifier("chat-heart-\(message.id)")
         }
     }
+    private var nicknameColor: Color {
+        let colors: [UInt32] = [0x147B86, 0x2463EB, 0x8056A3, 0x99601B]
+        let index = message.authorTag.utf8.reduce(0) { ($0 + Int($1)) % colors.count }
+        return Color(rgb: colors[index])
+    }
+
     @ViewBuilder private var bubble: some View {
         if !message.body.isEmpty || parent != nil {
             VStack(alignment: .leading, spacing: 6) {
                 if let parent {
-                    Text(parent.nickname + ": " + (parent.body.isEmpty ? parent.item?.name ?? "" : parent.body))
-                        .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Button(action: jump) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(parent.nickname).font(.caption.bold()).foregroundStyle(Color.sbBlue)
+                            Text(parent.body.isEmpty ? parent.item?.name ?? "" : parent.body)
+                                .font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.leading)
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                    }.buttonStyle(.plain).padding(.bottom, 4)
                 }
                 if !message.body.isEmpty { Text(message.body).font(.system(size: 16)).foregroundStyle(Color.sbNavy) }
             }
@@ -568,7 +632,7 @@ struct MessageRow: View {
     }
     @ViewBuilder private var menu: some View {
         Button(L("chat.reply"), systemImage: "arrowshape.turn.up.left", action: reply)
-        Button(L("chat.like"), systemImage: "heart", action: like)
+        Button(L("chat.copy"), systemImage: "doc.on.doc") { UIPasteboard.general.string = message.body.isEmpty ? message.item?.name ?? "" : message.body }
         if mine, let savePost { Button(L("community.saveAsPost"), systemImage: "square.and.pencil", action: savePost) }
         if !mine {
             Button(L("chat.report"), systemImage: "exclamationmark.bubble", role: .destructive, action: report)
@@ -578,6 +642,21 @@ struct MessageRow: View {
 }
 
 enum ChatTime {
+    static func sameDay(_ a: String, _ b: String) -> Bool {
+        guard let first = ISODate.parse(a), let second = ISODate.parse(b) else { return false }
+        return Calendar.current.isDate(first, inSameDayAs: second)
+    }
+    static func day(_ iso: String) -> String {
+        guard let date = ISODate.parse(iso) else { return "" }
+        let f = DateFormatter(); f.locale = L10n.locale
+        f.setLocalizedDateFormatFromTemplate("yyyyMMMMd")
+        return f.string(from: date)
+    }
+    static func clock(_ iso: String) -> String {
+        guard let date = ISODate.parse(iso) else { return "" }
+        let f = DateFormatter(); f.locale = L10n.locale; f.timeStyle = .short
+        return f.string(from: date)
+    }
     static func ago(_ iso: String, now: Date = Date()) -> String {
         guard let date = ISODate.parse(iso) else { return "" }
         let f = RelativeDateTimeFormatter(); f.locale = L10n.locale; f.unitsStyle = .full
@@ -591,7 +670,7 @@ struct ChatProductCard: View {
     var body: some View {
         Button { if let f = item.family { open(f) } } label: {
             HStack(spacing: 16) {
-                RemoteImage(url: item.imageUrl, label: item.brandLabel).frame(width: 96, height: 96)
+                RemoteImage(url: item.imageUrl, label: item.brandLabel).frame(width: 64, height: 64)
                     .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
                 VStack(alignment: .leading, spacing: 6) {
                     Text(item.brandLabel).font(.system(size: 17, weight: .bold)).foregroundStyle(Color.sbNavy)

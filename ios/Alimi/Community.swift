@@ -168,9 +168,9 @@ struct CommunityTopic: View {
                 Image(systemName: "chevron.left").font(.system(size: 24, weight: .regular)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 48)
             }.buttonStyle(.plain).accessibilityLabel(L("back")).accessibilityIdentifier("room-back")
             RoomThumb(room: room, picture: picture, size: 40).clipShape(Circle())
-            VStack(alignment: .leading, spacing: 3) {
-                Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
-                Text(RoomText.memberLine(room)).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1)
+            HStack(spacing: 6) {
+                Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                Label(String(room.members), systemImage: "person").font(.caption).foregroundStyle(Color.sbGray).fixedSize()
             }.accessibilityElement(children: .combine).accessibilityIdentifier("room-header")
             Spacer(minLength: 4)
             Menu {

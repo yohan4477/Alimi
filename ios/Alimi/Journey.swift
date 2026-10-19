@@ -284,12 +284,13 @@ struct RoomListCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(room.title).font(.headline).foregroundStyle(Color.sbInk).lineLimit(1)
+                    Label(String(room.members), systemImage: "person").font(.caption).foregroundStyle(Color.sbGray).fixedSize()
                     if fresh {
                         Text(L("home.newMessages")).font(.caption2.bold()).foregroundStyle(.white)
                             .padding(.horizontal, 7).padding(.vertical, 1).background(Color.alimi, in: Capsule())
                     }
                 }
-                Text(stats).font(.caption).foregroundStyle(.secondary)
+                if room.messages24h > 0 { Text(L("room.newToday", ["n": room.messages24h])).font(.caption).foregroundStyle(.secondary) }
                 if let note, !note.isEmpty { Text(note).font(.caption).foregroundStyle(Color(rgb: 0x5B6B85)).lineLimit(1) }
                 let tags = Recommend.concerns(of: room).prefix(3)
                 if !tags.isEmpty {
@@ -444,11 +445,13 @@ struct CommunityHome: View {
                 }.padding(.horizontal, 2)
             }
         }
-        BigHead(title: L("home.recRooms"), sub: L("home.recRoomsSub")) { tab = .rooms }
+        SectionHead(title: L("home.recRooms"), sub: L("home.recRoomsSub")) {
+            Button { tab = .rooms } label: { InlineActionLabel(title: L("home.seeAll"), icon: "chevron.right") }.buttonStyle(.plain).foregroundStyle(Color.sbBlue)
+        }
         let picks = (interests?.done == true && interests?.chosenGroup == true) ? Recommend.rooms(model.rooms, interests, limit: 4).map(\.room) : Array((model.hot.isEmpty ? model.topics : model.hot).prefix(4))
-        VStack(spacing: 14) {
+        VStack(spacing: 8) {
             ForEach(picks) { room in
-                NavigationLink(value: room) { PickCard(room: room, picture: model.pictures[room.id], highlight: interests?.concerns ?? [], showIntro: false) }
+                NavigationLink(value: room) { RoomListCard(room: room, picture: model.pictures[room.id], highlight: interests?.concerns ?? []) }
                     .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
             }
         }

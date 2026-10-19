@@ -56,7 +56,7 @@ export const pickCard = (room, {image = null, intro = true, highlight = [], attr
 
 // note: an extra line (why it was recommended, latest message); attrs: data-* to open the room.
 export const roomListCard = (room, {image = null, note = '', highlight = [], fresh = false, attrs = `data-chat-room="${esc(room.id)}"`} = {}) =>
-  `<button class="room-list-card" ${attrs}>${roomThumb(room, image)}<span class="room-list-text"><b>${esc(roomTitle(room))}${fresh ? ` <span class="new-badge">${esc(t('home.newMessages'))}</span>` : ''}</b><small>${esc(roomStats(room))}</small>${note ? `<em>${esc(note)}</em>` : ''}${concernsOf(room).length ? `<span class="room-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
+  `<button class="room-list-card" ${attrs}>${roomThumb(room, image)}<span class="room-list-text"><span class="room-title-line"><b>${esc(roomTitle(room))}${fresh ? ` <span class="new-badge">${esc(t('home.newMessages'))}</span>` : ''}</b><span class="room-count" aria-label="${esc(t('chat.members', {n: room.members ?? 0}))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg> ${room.members ?? 0}</span></span>${roomActivity(room) ? `<small>${esc(roomActivity(room))}</small>` : ''}${note ? `<em>${esc(note)}</em>` : ''}${concernsOf(room).length ? `<span class="room-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
 
 // Catalog category that illustrates a room when nobody has mentioned a product there yet.
 const ROOM_CATEGORY = {acne: '에센스·세럼', 'dry-sensitive': '크림·로션', routine: '토너·패드', sunscreen: '선케어', makeup: '립', 'korea-shopping': '마스크팩'};
