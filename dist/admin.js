@@ -69,6 +69,8 @@ if (root) {
     const renderGuide = () => {
       const active = guideLang + '-' + stage;
       guideDemo.querySelector('#sb-guide-counter').textContent = (stage + 1) + ' / 3';
+      const guideImage = guideDemo.querySelector('[data-guide-alt-ko]');
+      if (guideImage) guideImage.alt = guideLang === 'ko' ? guideImage.dataset.guideAltKo : guideImage.dataset.guideAltEn;
       for (const button of guideDemo.querySelectorAll('[data-guide-lang]')) {
         button.setAttribute('aria-pressed', String(button.dataset.guideLang === guideLang));
       }
