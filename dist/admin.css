@@ -268,3 +268,6 @@
 #sb-dev .sb-dev-footer a{font-size:.74rem;font-weight:700;color:var(--dev-blue)}
 @media(max-width:710px){#sb-dev .sb-dev-hero{grid-template-columns:1fr}#sb-dev .sb-dev-summary,#sb-dev .sb-dev-flow{grid-template-columns:repeat(2,minmax(0,1fr))}#sb-dev .sb-dev-board{grid-template-columns:1fr}#sb-dev .sb-dev-heading-row{flex-direction:column;align-items:flex-start}}
 @media(max-width:400px){#sb-dev .sb-dev-hero{padding:17px}#sb-dev .sb-dev-summary>div{padding:12px 9px}#sb-dev .sb-dev-flow>div{padding:10px 9px}#sb-dev .sb-dev-gates>div{grid-template-columns:1fr;gap:5px}}
+
+/* Long release-status badges must wrap on narrow dashboards. */
+.viz-badge{max-width:100%;white-space:normal;overflow-wrap:anywhere}
