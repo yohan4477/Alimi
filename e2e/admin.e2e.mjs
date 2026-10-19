@@ -107,11 +107,9 @@ try {
   // Design loader controls and bundled art are accessible only as demo controls.
   const loader = page.locator('#sb-loading-design-review');
   await loader.waitFor();
-  const atlas = await page.request.get(base+'/assets/loading-characters.svg');
+  const atlas = await page.request.get(base+'/assets/loading-characters-sprite.png');
   assert.equal(atlas.status(),200);
-  assert.equal(atlas.status(),200);
-  assert.match(atlas.headers()['content-type'],/image\/svg\+xml/);
-  assert.match(await atlas.text(),/data:image\/png;base64,/);
+  assert.match(atlas.headers()['content-type'],/image\/png/);
   assert.ok((await atlas.body()).byteLength < 10_000);
   await loader.locator('[data-loader-pause]').click();
   assert.equal(await loader.locator('[data-loader-pause]').getAttribute('aria-pressed'),'true');
