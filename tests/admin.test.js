@@ -8,11 +8,11 @@ import {SESSION_COOKIE, isAdmin, adminOrigin, readToken} from '../server/admin-a
 const token = 'header.signed.token';
 const admin = {id:'user-1',email_confirmed_at:'2026-10-19T00:00:00Z',is_anonymous:false,app_metadata:{seoulbeauty_admin:true}};
 function response(body, status = 200) { return new Response(JSON.stringify(body), {status,headers:{'Content-Type':'application/json'}}); }
-async function request({method='GET',url='/admin',headers={},body,fetchImpl=async()=>response(admin),readPage=async()=>'<p>PRIVATE STRATEGY</p>',envOverrides={}}={}) {
+async function request({method='GET',url='/admin',headers={},body,fetchImpl=async()=>response(admin),readPage=async()=>'<p>PRIVATE STRATEGY</p>',readReview,envOverrides={}}={}) {
   const req=Readable.from(body === undefined || typeof body === 'object' ? [] : [body]);
   Object.assign(req,{method,url,headers}); if (typeof body === 'object') req.body=body;
   const res={headers:{},statusCode:200,setHeader(k,v){this.headers[k.toLowerCase()]=v},end(b=''){this.body=b}};
-  await createAdminHandler({fetchImpl,readPage,env:{NODE_ENV:'test',ADMIN_ORIGIN:'https://admin.example',...envOverrides}})(req,res);
+  await createAdminHandler({fetchImpl,readPage,...(readReview&&{readReview}),env:{NODE_ENV:'test',ADMIN_ORIGIN:'https://admin.example',...envOverrides}})(req,res);
   return res;
 }
 const cookie={cookie:`${SESSION_COOKIE}=${token}`};
@@ -100,6 +100,14 @@ test('planning review is authenticated and keeps original interactive UI isolate
   assert.match(allowed.headers['cache-control'],/no-store/);
   const page = await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
   assert.match(page,/data-src="\/api\/admin\?view=planning-review"/);
+});
+
+test('planning review script hashes match browser newline normalization', async () => {
+  const {createHash} = await import('node:crypto');
+  const hash = text => "'sha256-" + createHash('sha256').update(text).digest('base64') + "'";
+  // Windows checkouts (core.autocrlf) serve CRLF; browsers hash script text after normalizing it to LF.
+  const allowed = await request({url:'/api/admin?view=planning-review',headers:cookie,readReview:async()=>'<script>\r\nrun();\r\n</script>'});
+  assert.ok(allowed.headers['content-security-policy'].includes(`script-src ${hash('\nrun();\n')};`));
 });
 
 test('review loads only after its tab is visible and responds to width changes', async () => {
