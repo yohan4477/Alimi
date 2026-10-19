@@ -41,7 +41,7 @@
       post(7, 'new-to-kbeauty', 6, 'question', 'First K-beauty routine under $50?', 'Total beginner. Normal skin, a bit dull. Where do I start?', null, 60, {likes: 5, reasons: ['price']}),
       post(8, 'routine', 7, 'recommend', 'Double cleanse combo that works for me', 'Cleansing balm first, then a low-pH gel. Takes off sunscreen without stripping.', I.balm, 2000, {likes: 7, reasons: ['texture']}),
       post(9, 'korea-shopping', 0, 'question', 'Going to Seoul next month — Olive Young or duty free?', 'Mostly skincare, some makeup. Is the tax refund worth the hassle?', null, 240, {likes: 8}),
-      post(10, 'brand-anua', 3, 'review', 'Heartleaf toner after two months', 'Very watery, almost like nothing. Redness around my nose is less obvious. Smell is mild and herbal.', I.toner, 4000,
+      post(10, 'dry-sensitive', 3, 'review', 'Heartleaf toner after two months', 'Very watery, almost like nothing. Redness around my nose is less obvious. Smell is mild and herbal.', I.toner, 4000,
         {likes: 11, reasons: ['skin_type', 'scent'], used_for: 'months', skin_type: 'sensitive', skin_tone: 'fair', undertone: 'cool', climate: 'dry', bought_where: 'Stylevana', bought_price_minor: 1785, bought_currency: 'USD', ship_country: 'CA', ship_days: 12}),
       post(11, 'everyone', 4, 'recommend', 'Underrated ampoule for dark spots', 'Takes patience. I saw a difference after about six weeks, used with sunscreen every day.', I.skin1004, 800, {likes: 5, reasons: ['ingredients']}),
     ];
@@ -78,8 +78,8 @@
       msg('sunscreen', 2, 'Saving this, thanks', null, 290),
       msg('korea-shopping', 4, 'Myeongdong or Hongdae Olive Young — which is less crowded?', null, 25),
       msg('korea-shopping', 0, 'Hongdae on weekday mornings was okay for me', null, 20, 1),
-      msg('brand-anua', 6, 'Heartleaf oil vs Beauty of Joseon balm?', I.oil, 70),
-      msg('brand-anua', 3, 'Oil rinses cleaner, balm feels richer', I.balm, 65, 2),
+      msg('routine', 6, 'Heartleaf oil vs Beauty of Joseon balm?', I.oil, 70),
+      msg('routine', 3, 'Oil rinses cleaner, balm feels richer', I.balm, 65, 2),
     ];
   });
 
@@ -147,7 +147,7 @@
     if (table === 'chat_room_list') {
       await seed;
       const rooms = await realFetch(input, init).then(r => r.json());
-      return json(rooms.map(r => {
+      return json(rooms.filter(r => r.kind !== 'brand').map(r => {
         const ms = db.messages.filter(m => m.room_id === r.id);
         return {...r, members: r.members + new Set(ms.map(m => m.author_tag)).size, messages_24h: ms.length, last_message_at: ms.at(-1)?.created_at ?? r.last_message_at};
       }));
