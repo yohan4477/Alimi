@@ -42,6 +42,7 @@ export function leaveChat() { stopPolling(); chat.room = null; }
 
 const icon = {
   people: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M15 5.2a3.2 3.2 0 0 1 0 6M17 14a5 5 0 0 1 3.5 5"/></svg>',
+  share: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.6 6.6-4.2M8.7 13.4l6.6 4.2"/></svg>',
   back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
   pen: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></svg>',
   comment: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>'
@@ -117,7 +118,7 @@ let joinThen = () => {};
 // Topic: header + Posts / Live chat switch. The two never share one stream.
 function openTopic(room, mode = view.mode) {
   stopPolling(); chat.room = room; view.mode = mode; view.post = null;
-  shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(roomTitle(room))}</h1></div><div class="topic-head"><p>${esc(roomIntro(room))}</p><div class="seg topic-seg"><button data-topic-mode="posts" class="${mode === 'posts' ? 'on' : ''}">${esc(t('community.posts'))}</button><button data-topic-mode="live" class="${mode === 'live' ? 'on' : ''}">${esc(t('community.live'))}</button></div></div><div id="topic-body"></div>`);
+  shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(roomTitle(room))}</h1><button class="icon-btn room-share-btn" data-chat-action="share-room" aria-label="${esc(t('chat.inviteFriend'))}">${icon.share}</button></div><div class="topic-head"><p>${esc(roomIntro(room))}</p><div class="seg topic-seg"><button data-topic-mode="posts" class="${mode === 'posts' ? 'on' : ''}">${esc(t('community.posts'))}</button><button data-topic-mode="live" class="${mode === 'live' ? 'on' : ''}">${esc(t('community.live'))}</button></div></div><div id="topic-body"></div>`);
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
@@ -323,14 +324,16 @@ function drawTalk() {
 }
 // A post tapped outside the community (product sheet, detail page) opens there next time the screen opens.
 let pendingPost = null;
+async function shareRoom(room){const url=new URL(location.href);url.searchParams.delete('family');url.searchParams.set('room',room.id);url.hash='';const payload={title:t('chat.shareTitle'),text:t('chat.shareRoomMessage',{room:roomTitle(room)}),url:url.href};try{if(navigator.share){await navigator.share(payload);return}}catch(e){if(e.name==='AbortError')return}try{await navigator.clipboard.writeText(url.href);toast(t('share.linkCopied'))}catch{window.prompt(t('share.copyPrompt'),url.href)}}
 export const openPostNext = id => { pendingPost = id; };
-let pendingRoom = null;
+let pendingRoom = new URLSearchParams(globalThis.location?.search ?? '').get('room');
 export const openRoomNext = id => { pendingRoom = id; };
 
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
   if (a === 'rooms') renderHome();
+  else if (a === 'share-room' && chat.room) await shareRoom(chat.room);
   else if (a === 'resume') renderJoined();
   else if (a === 'find-topic') $('#home-topics')?.scrollIntoView({behavior:'smooth'});
   else if (a === 'topic') openTopic(chat.room, 'posts');
