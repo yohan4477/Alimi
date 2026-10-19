@@ -13,6 +13,37 @@ struct InlineActionLabel: View {
     }
 }
 
+// Shared top bar keeps Explore and My Activity aligned above their scroll content.
+struct TabPageHeader: View {
+    let title: String
+    let titleID: String
+    let searchID: String
+    var onSearch: () -> Void
+    var onAlerts: () -> Void
+    var unreadAlerts = 0
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text(title).font(.system(size: 28, weight: .heavy))
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .accessibilityIdentifier(titleID)
+            Spacer(minLength: 0)
+            Button(action: onSearch) {
+                Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium))
+                    .frame(width: 44, height: 44)
+            }.accessibilityLabel(L("search.title")).accessibilityIdentifier(searchID)
+            AlertBell(unread: unreadAlerts, action: onAlerts)
+            NavigationLink { SettingsView() } label: {
+                Image(systemName: "gearshape").font(.system(size: 21, weight: .medium))
+                    .frame(width: 44, height: 44)
+            }.accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
+        }
+        .foregroundStyle(Color.sbNavy).buttonStyle(.plain)
+        .padding(.horizontal, 20).padding(.vertical, 8)
+        .frame(maxWidth: .infinity).background(Color.white)
+    }
+}
+
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
     @State private var tab = MainTab.chat
@@ -29,7 +60,7 @@ struct RootView: View {
         TabView(selection: $tab) {
             CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { activitySection = "rooms"; tab = .saved }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.community"), systemImage: "house") }.tag(MainTab.chat)
-            BrowseView(onCommunity: { tab = .chat }, onSearch: { searching = true })
+            BrowseView(onCommunity: { tab = .chat }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.explore"), systemImage: "magnifyingglass") }.tag(MainTab.home)
             SavedView(section: $activitySection, editInterests: { onboarding = .choose }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.activity"), systemImage: "person") }.tag(MainTab.saved)
@@ -145,6 +176,8 @@ struct ProductArt: View {
 struct BrowseView: View {
     var onCommunity: () -> Void = {}
     var onSearch: () -> Void = {}
+    var onAlerts: () -> Void = {}
+    var unreadAlerts = 0
     @EnvironmentObject var store: AlimiStore
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
@@ -190,14 +223,16 @@ struct BrowseView: View {
                     }
                     browseSection
                 }.padding(20)
-            }.navigationTitle(L("nav.explore"))
-                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(action: onSearch) { Image(systemName: "magnifyingglass").frame(width: 44, height: 44) }.accessibilityLabel(L("search.title")).accessibilityIdentifier("explore-search") } }
+            }
+                .toolbar(.hidden, for: .navigationBar)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    TabPageHeader(title: L("nav.explore"), titleID: "explore-title", searchID: "explore-search", onSearch: onSearch, onAlerts: onAlerts, unreadAlerts: unreadAlerts)
+                }
                 .task(id: category) {
                     browse = []; browseDone = false
                     await loadMore()
                 }
                 .task { if brands.isEmpty { await loadBrands() } }
-                .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: CatalogBrand.self) { BrandView(brand: $0) }
                 .refreshable { await store.refresh() }
                 .sheet(item: $openFamily) { family in FamilySheet(family: family).environmentObject(store) }

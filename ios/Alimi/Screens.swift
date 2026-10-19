@@ -31,14 +31,6 @@ struct SavedView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    HStack(alignment: .center, spacing: 12) {
-                        Text(L("nav.activity")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy).accessibilityIdentifier("saved-title")
-                        Spacer(minLength: 0)
-                        Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium)).frame(width: 44, height: 44) }.accessibilityLabel(L("search.title"))
-                        AlertBell(unread: unreadAlerts, action: onAlerts)
-                        NavigationLink { SettingsView() } label: { Image(systemName: "gearshape").font(.system(size: 21, weight: .medium)).frame(width: 44, height: 44) }
-                            .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
-                    }.foregroundStyle(Color.sbNavy)
                     HStack(spacing: 4) {
                         ForEach(["saved", "rooms", "recent"], id: \.self) { s in
                             Button { section = s; if s == "recent" { recent = RecentViews.all() } } label: {
@@ -65,6 +57,9 @@ struct SavedView: View {
                 }.padding(20)
             }
             .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                TabPageHeader(title: L("nav.activity"), titleID: "saved-title", searchID: "activity-search", onSearch: onSearch, onAlerts: onAlerts, unreadAlerts: unreadAlerts)
+            }
             .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
         }
     }
