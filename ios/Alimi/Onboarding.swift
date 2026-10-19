@@ -23,14 +23,14 @@ struct OnboardingFlow: View {
     var body: some View {
         ZStack {
             switch step {
-            case .splash: SplashScreen { withAnimation(.easeInOut) { step = .choose } }.transition(.opacity)
+            case .splash: SplashScreen { step = .choose }
             case .choose:
                 InterestScreen(draft: $draft, back: { close(nil) }, next: {
-                    if draft.chosenGroup { withAnimation { step = .rooms } } else { close(nil) }
-                }).transition(.move(edge: .trailing))
+                    if draft.chosenGroup { step = .rooms } else { close(nil) }
+                }).transition(.identity)
             case .rooms:
-                RoomPicksScreen(model: model, interests: draft, back: { withAnimation { step = .choose } }, open: { close($0) })
-                    .transition(.move(edge: .trailing))
+                RoomPicksScreen(model: model, interests: draft, back: { step = .choose }, open: { close($0) })
+                    .transition(.identity)
             }
         }
         .task { await model.load(store: store) }
