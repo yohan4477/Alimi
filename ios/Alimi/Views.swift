@@ -45,6 +45,9 @@ struct TabPageHeader: View {
 }
 
 struct RootView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var initialLoadPending = true
+    @State private var showStartup = false
     @EnvironmentObject var store: AlimiStore
     @State private var tab = MainTab.chat
     @State private var onboarding: OnboardingStep? = Interests.load()?.done == true || ProcessInfo.processInfo.arguments.contains("-skipOnboarding") ? nil : .splash
@@ -58,13 +61,16 @@ struct RootView: View {
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { activitySection = "rooms"; tab = .saved }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
+            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { activitySection = "rooms"; tab = .saved }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread, onInitialLoadComplete: { initialLoadPending = false; showStartup = false })
                 .tabItem { Label(L("nav.community"), systemImage: "house") }.tag(MainTab.chat)
             BrowseView(onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.explore"), systemImage: "magnifyingglass") }.tag(MainTab.home)
             SavedView(section: $activitySection, editInterests: { onboarding = .choose }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.activity"), systemImage: "person") }.tag(MainTab.saved)
         }.id(lang)
+        .onChange(of: tab) { _, value in
+            if value != .chat { initialLoadPending = false; showStartup = false }
+        }
         .onOpenURL { url in Task { await openShared(url) } }
         .sheet(item: $linkedFamily) { FamilySheet(family: $0).environmentObject(store) }
         .alert(L("loadFailed"), isPresented: $linkError) { Button("OK", role: .cancel) {} }
@@ -74,16 +80,32 @@ struct RootView: View {
         // First-visit flow drawn over the tabs (not a modal cover), so closing it and opening the picked room happen
         // in one state change and the community stack is already on screen to receive the room.
         .overlay {
+            if showStartup && initialLoadPending && onboarding == nil && scenePhase == .active {
+                StartupLoadingScreen().zIndex(2)
+            }
             if let step = onboarding {
                 OnboardingFlow(step: step) { room in tab = .chat; onboarding = nil; openRoom = room }
                     .environmentObject(store).transition(.opacity).zIndex(1)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: onboarding == nil)
+        .task(id: scenePhase) {
+            guard scenePhase == .active, initialLoadPending, onboarding == nil else { return }
+            do {
+                try await Task.sleep(for: .milliseconds(400))
+                guard initialLoadPending, !Task.isCancelled else { return }
+                showStartup = true
+                // Release the cover even if the network never settles; the underlying screen can retry.
+                try await Task.sleep(for: .seconds(8))
+                initialLoadPending = false
+                showStartup = false
+            } catch { }
+        }
         .task { await revisit.load(store: store) }
         .task { await store.refresh(); await AuthSession.shared.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
     @MainActor private func openShared(_ url: URL) async {
+        initialLoadPending = false; showStartup = false
         guard url.scheme == "seoulbeauty", url.host == "open",
               let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { return }
         if let id = query.first(where: { $0.name == "room" })?.value, !id.isEmpty, id.count <= 200 {

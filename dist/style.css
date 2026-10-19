@@ -481,3 +481,11 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .ob-profile-field{display:flex;flex-direction:column;gap:12px;margin-top:28px;font-weight:600}
 .ob-profile-field select{width:100%;min-height:48px;padding:12px;border:1px solid #e3e7ee;border-radius:12px;background:white;color:#0f1b3d;font:inherit}
 #community-create{width:100%;min-height:44px;margin:12px 0}
+
+/* First request only: reuse the launch photo; never cover a background refresh. */
+.startup-loading{position:fixed;inset:0;z-index:1000;background:#e5f0fe;overflow:hidden}
+.startup-loading .ob-splash{height:100dvh;min-height:0;cursor:default;position:relative;padding-top:env(safe-area-inset-top)}
+.startup-loading .ob-line1{margin-top:clamp(24px,7vh,64px);flex-shrink:0}
+.startup-loading .ob-line2,.startup-loading .ob-logo{flex-shrink:0}
+.startup-loading .ob-photo{min-height:0;flex:1;object-fit:contain;object-position:bottom}
+.startup-label{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));padding:10px 18px;border-radius:24px;background:#ffffffeb;color:var(--sb-navy);font-size:14px}

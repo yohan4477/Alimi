@@ -326,6 +326,7 @@ struct CommunityHome: View {
     var onMyRooms: () -> Void = {}
     var onAlerts: () -> Void = {}
     var unreadAlerts = 0
+    var onInitialLoadComplete: () -> Void = {}
     @StateObject private var revisit = RevisitModel()
     var body: some View {
         NavigationStack(path: $path) {
@@ -350,7 +351,7 @@ struct CommunityHome: View {
                 if let post = model.posts.first(where: { $0.id == id }) { CommunityPostView(post: post) }
             }
             .toolbar(.hidden, for: .navigationBar)
-            .task { if model.rooms.isEmpty { await model.load(store: store) }; await revisit.load(store: store); EventLogger.shared.log(.communityOpen) }
+            .task { if model.rooms.isEmpty { await model.load(store: store) }; onInitialLoadComplete(); await revisit.load(store: store); EventLogger.shared.log(.communityOpen) }
             .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
             .sheet(isPresented: $creating, onDismiss: { Task { await model.load(store: store) } }) {
                 CreateRoomSheet(interests: Interests.load()) { room in creating = false; path.append(room) }
