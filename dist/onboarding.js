@@ -3,7 +3,7 @@
 // Choices stay on this device; they are not sent anywhere and never infer skin or demographic facts.
 import {t} from './i18n.js';
 import {esc} from './util.js';
-import {roomListCard} from './room-card.js';
+import {pickCard, concernsOf} from './room-card.js';
 
 export const GROUPS = ['skincare', 'makeup'];
 // Stable ids shared with the admin planning preview; only labels are translated.
@@ -11,11 +11,6 @@ export const CONCERNS = [
   ...['acne', 'dry', 'sensitive', 'pores', 'spots', 'firmness', 'sebum', 'toneup', 'trouble'].map(id => ({id, group: 'skincare'})),
   ...['lip', 'base', 'cushion', 'longwear', 'shade'].map(id => ({id, group: 'makeup'})),
 ];
-// Seed rooms have no concern tags yet; a room's own `concerns` column, when present, replaces this.
-const ROOM_CONCERNS = {
-  acne: ['acne', 'trouble', 'sebum'], 'dry-sensitive': ['sensitive', 'dry'], routine: ['pores', 'spots', 'firmness', 'toneup'],
-  makeup: ['lip', 'base', 'cushion', 'longwear', 'shade'],
-}
 const ROOM_GROUP = {skin: 'skincare', makeup: 'makeup'};
 const KEY = 'seoulbeauty-interests-v1';
 
@@ -48,7 +43,7 @@ export function recommendRooms(rooms, sel, limit = 3) {
   const picked = sel ? topics.flatMap(room => {
     const group = ROOM_GROUP[room.tag];
     if (group && !sel[group]) return [];
-    const tags = Array.isArray(room.concerns) ? room.concerns : ROOM_CONCERNS[room.id] ?? [];
+    const tags = concernsOf(room);
     const matched = chosen.filter(id => tags.includes(id));
     if (!matched.length && !group) return [];
     return [{room, matched, score: matched.length * 2 + (group ? 1 : 0)}];
@@ -57,61 +52,76 @@ export function recommendRooms(rooms, sel, limit = 3) {
   return topics.map(room => ({room, matched: [], popular: true})).sort(byActivity).slice(0, limit);
 }
 
-// ---- Inline guide (journey reference: choose → matching rooms → room) ----
-let step = 0, draft = null, editing = false, images = new Map();
-export const editInterests = () => { editing = true; step = 0; draft = null; };
-export const needsGuide = () => editing || !readInterests()?.done;
+// ---- Full-screen first-visit flow (journey 1): splash → interests (2/3) → matching rooms (3/3) → the room ----
+let flow = null;
+const icon = {
+  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>',
+  back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  skincare: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/></svg>',
+  makeup: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V11l3-8 3 8v10z"/><path d="M9 14h6"/></svg>',
+  leaf: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19 14 10"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
+};
+const FILTERS = ['rec', 'skincare', 'makeup', 'all'];
+const logoBar = () => `<div class="ob-bar"><button type="button" class="ob-back" data-onb="back" aria-label="${esc(t('back'))}">${icon.back}</button><img class="ob-logo-small" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"></div>`;
+const stepBar = n => `<div class="ob-step" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${n}" aria-label="${esc(t('onb.step', {n}))}"><span><i style="width:${n * 100 / 3}%"></i></span><small>${n}/3</small></div>`;
 
-const check = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
-const chip = (attr, id, on, label) => `<button type="button" ${attr}="${esc(id)}" aria-pressed="${on}" class="${on ? 'on' : ''}">${on ? check : ''}${esc(label)}</button>`;
-const recCard = ({room, matched, popular}) => roomListCard(room, {image: images.get(room.id), highlight: matched,
-  note: matched.length ? t('onb.matched', {list: matched.map(id => t('onb.c.' + id)).join(', ')}) : popular ? t('onb.popular') : ''});
-const progress = n => `<div class="onboard-progress" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${n}" aria-label="${esc(t('onb.step', {n}))}"><span style="width:${n * 100 / 3}%"></span></div><small class="onboard-count">${n}/3</small>`;
-
-export function renderGuide(box, rooms, roomPictures = images) {
-  images = roomPictures;
+// opts: step ('splash' | 'choose'), load() → {rooms, pictures: Map}, onRoom(room), onClose()
+export function openOnboarding(opts) {
   const saved = readInterests();
-  if (!draft) draft = saved ? {...saved, concerns: [...saved.concerns]} : {version: 1, skincare: false, makeup: false, concerns: [], done: false};
-  if (!needsGuide()) {
-    // Done: show what matched, with a way back to edit. Skipped entirely: stay out of the way.
-    if (!saved.skincare && !saved.makeup) { box.innerHTML = ''; return; }
-    box.innerHTML = `<div class="onboard-head"><h2 class="chat-section">${esc(t('onb.forYou'))}</h2><button type="button" class="text-btn" data-onb="edit">${esc(t('onb.edit'))}</button></div>${recommendRooms(rooms, saved).map(recCard).join('')}`;
+  flow = {...opts, step: opts.step ?? 'splash', filter: 'rec', rooms: [], pictures: new Map(),
+    draft: saved ? {...saved, concerns: [...saved.concerns]} : {version: 1, skincare: false, makeup: false, concerns: [], done: false}};
+  const box = document.getElementById('onboarding');
+  box.hidden = false; document.body.classList.add('onboarding-open');
+  Promise.resolve(opts.load?.()).then(d => { if (flow && d) { flow.rooms = d.rooms ?? []; flow.pictures = d.pictures ?? new Map(); if (flow.step === 'rooms') drawFlow(); } }, () => {});
+  drawFlow();
+  if (flow.step === 'splash' && !new URLSearchParams(location.search).has('holdSplash')) setTimeout(() => { if (flow?.step === 'splash') { flow.step = 'choose'; drawFlow(); } }, 1800);
+}
+export const onboardingOpen = () => Boolean(flow);
+function closeFlow(room) {
+  const f = flow; if (!f) return;
+  saveInterests({...f.draft, done: true});
+  flow = null;
+  const box = document.getElementById('onboarding'); box.hidden = true; box.innerHTML = ''; document.body.classList.remove('onboarding-open');
+  f.onClose?.(); if (room) f.onRoom?.(room);
+}
+function filtered() {
+  const {rooms, draft, filter} = flow, topics = rooms.filter(r => r.kind !== 'brand');
+  const inGroup = g => r => (r.tag === (g === 'skincare' ? 'skin' : 'makeup')) || concernsOf(r).some(c => CONCERNS.find(x => x.id === c)?.group === g);
+  if (filter === 'rec') return recommendRooms(rooms, draft, 6).map(x => x.room);
+  if (filter === 'all') return topics;
+  return topics.filter(inGroup(filter));
+}
+function drawFlow() {
+  const box = document.getElementById('onboarding'); if (!flow || !box) return;
+  const {step, draft} = flow;
+  if (step === 'splash') {
+    box.innerHTML = `<div class="ob-splash" data-onb="splash" role="button" tabindex="0" aria-label="${esc(t('onb.next'))}"><p class="ob-line1">${esc(t('splash.line1'))}</p><p class="ob-line2">${esc(t('splash.line2'))}</p><img class="ob-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="300" height="90"><img class="ob-photo" src="assets/splash-photo.webp" alt="" width="776" height="1085"></div>`;
     return;
   }
-  const field = draft.skincare || draft.makeup;
-  let inner, actions;
-  if (step === 0) {
-    const concerns = visibleConcerns(draft);
-    inner = `<h3 class="onboard-label">${esc(t('onb.fields'))}</h3><div class="onboard-chips onboard-fields" role="group" aria-label="${esc(t('onb.fields'))}">${GROUPS.map(g => chip('data-onb-group', g, draft[g], t('onb.g.' + g))).join('')}</div><h3 class="onboard-label">${esc(t('onb.keywords'))}</h3>${concerns.length ? `<div class="onboard-chips" role="group" aria-label="${esc(t('onb.keywords'))}">${concerns.map(c => chip('data-onb-concern', c.id, draft.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div>` : `<p class="onboard-hint">${esc(t('onb.pickField'))}</p>`}`;
-    actions = `<button type="button" class="onboard-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button><button type="button" class="text-btn onboard-skip" data-onb="skip">${esc(t('onb.skip'))}</button>`;
-  } else {
-    inner = `<div class="onboard-recs">${recommendRooms(rooms, draft).map(recCard).join('')}</div>`;
-    actions = `<button type="button" class="onboard-next" data-onb="finish">${esc(t('onb.browseAll'))}</button><button type="button" class="text-btn" data-onb="back">${esc(t('back'))}</button>${canCreateRooms(rooms) ? `<button type="button" class="text-btn onboard-create" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : ''}`;
+  if (step === 'choose') {
+    const concerns = visibleConcerns(draft), field = draft.skincare || draft.makeup;
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q0'))}</h1><p class="ob-sub">${esc(t('onb.s0'))}</p><h2>${esc(t('onb.fields'))}</h2><div class="ob-fields">${GROUPS.map(g => `<button type="button" data-onb-group="${g}" aria-pressed="${draft[g]}" class="${draft[g] ? 'on' : ''}">${draft[g] ? icon.check : ''}${icon[g]}<span>${esc(t('onb.g.' + g))}</span></button>`).join('')}</div><h2>${esc(t('onb.keywords'))}</h2>${concerns.length ? `<div class="ob-keywords">${concerns.map(c => { const on = draft.concerns.includes(c.id); return `<button type="button" data-onb-concern="${c.id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${on ? icon.check : ''}<span>${esc(t('onb.c.' + c.id))}</span></button>`; }).join('')}</div>` : `<p class="ob-hint">${esc(t('onb.pickField'))}</p>`}</div><div class="ob-foot"><button type="button" class="ob-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button>${stepBar(2)}</div></div>`;
+    return;
   }
-  box.innerHTML = `<div class="onboard-panel" aria-labelledby="onb-title"><div class="onboard-top"><div class="onboard-body"><h2 id="onb-title" tabindex="-1">${esc(t('onb.q' + step))}</h2><p>${esc(t('onb.s' + step))}</p></div><img class="onboard-guide" src="assets/hanbok-guide-pixel.svg" alt="" width="44" height="44"></div>${inner}<div class="onboard-actions">${actions}</div>${progress(step + 1)}</div>`;
+  const chosen = visibleConcerns(draft).map(c => c.id).filter(id => draft.concerns.includes(id));
+  const list = filtered();
+  box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q1'))}</h1><p class="ob-sub">${esc(t('onb.s1'))}</p><div class="ob-filters">${FILTERS.map(f => `<button type="button" data-onb-filter="${f}" aria-pressed="${flow.filter === f}" class="${flow.filter === f ? 'on' : ''}">${f === 'skincare' ? icon.leaf : f === 'makeup' ? icon.makeup : f === 'all' ? icon.grid : ''}<span>${esc(t('onb.filter.' + f))}</span></button>`).join('')}</div><div class="ob-rooms">${list.map(r => pickCard(r, {image: flow.pictures.get(r.id), highlight: chosen, attrs: `data-onb-room="${esc(r.id)}"`})).join('')}${!flow.rooms.length ? `<p class="ob-hint">${esc(t('loading'))}</p>` : ''}</div></div><div class="ob-foot">${stepBar(3)}</div></div>`;
 }
-
-function finish(box, rooms, value) {
-  saveInterests({...value, done: true});
-  editing = false; step = 0; draft = null;
-  renderGuide(box, rooms);
-}
-
-// Returns true when the click belonged to the guide.
-export function handleGuideClick(b, box, rooms) {
-  if (!box?.contains(b)) return false;
-  const a = b.dataset.onb;
-  if (b.dataset.onbGroup) { const g = b.dataset.onbGroup; draft[g] = !draft[g]; draft = normalize(draft); }
-  else if (b.dataset.onbConcern) { const id = b.dataset.onbConcern; draft.concerns = draft.concerns.includes(id) ? draft.concerns.filter(c => c !== id) : [...draft.concerns, id]; }
-  else if (a === 'next') { if (!draft.skincare && !draft.makeup) { finish(box, rooms, draft); return true; } step = 1; }
-  else if (a === 'back') step = 0;
-  else if (a === 'skip') { finish(box, rooms, {version: 1, skincare: false, makeup: false, concerns: []}); return true; }
-  else if (a === 'finish') { finish(box, rooms, draft); return true; }
-  else if (a === 'edit') { editInterests(); }
-  // Leaving the guide for a room (or to create one) keeps what was chosen so far.
-  else if ((b.dataset.chatRoom || b.dataset.chatAction === 'create-room') && needsGuide()) { finish(box, rooms, draft); return false; }
-  else return false;
-  renderGuide(box, rooms);
-  box.querySelector(b.dataset.onbGroup ? `[data-onb-group="${b.dataset.onbGroup}"]` : b.dataset.onbConcern ? `[data-onb-concern="${b.dataset.onbConcern}"]` : '#onb-title, .onboard-head button')?.focus?.();
-  return true;
-}
+globalThis.document?.addEventListener('click', e => {
+  if (!flow) return;
+  const b = e.target.closest('[data-onb],[data-onb-group],[data-onb-concern],[data-onb-filter],[data-onb-room]');
+  if (!b || !document.getElementById('onboarding')?.contains(b)) return;
+  const a = b.dataset.onb, d = flow.draft;
+  if (a === 'splash') flow.step = 'choose';
+  else if (a === 'back') { if (flow.step === 'rooms') flow.step = 'choose'; else { closeFlow(null); return; } }
+  else if (a === 'next') { if (!d.skincare && !d.makeup) { closeFlow(null); return; } flow.step = 'rooms'; }
+  else if (b.dataset.onbGroup) { const g = b.dataset.onbGroup; d[g] = !d[g]; flow.draft = normalize(d); }
+  else if (b.dataset.onbConcern) { const id = b.dataset.onbConcern; d.concerns = d.concerns.includes(id) ? d.concerns.filter(c => c !== id) : [...d.concerns, id]; }
+  else if (b.dataset.onbFilter) flow.filter = b.dataset.onbFilter;
+  else if (b.dataset.onbRoom) { closeFlow(flow.rooms.find(r => r.id === b.dataset.onbRoom)); return; }
+  drawFlow();
+  const sel = b.dataset.onbGroup ? `[data-onb-group="${b.dataset.onbGroup}"]` : b.dataset.onbConcern ? `[data-onb-concern="${b.dataset.onbConcern}"]` : b.dataset.onbFilter ? `[data-onb-filter="${b.dataset.onbFilter}"]` : '#onb-title';
+  document.querySelector('#onboarding ' + sel)?.focus?.();
+});
+globalThis.document?.addEventListener('keydown', e => { if (flow?.step === 'splash' && (e.key === 'Enter' || e.key === ' ')) { flow.step = 'choose'; drawFlow(); } });

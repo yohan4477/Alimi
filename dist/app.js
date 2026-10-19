@@ -4,9 +4,10 @@ import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-ca
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
 import {profileCard,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
-import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat} from './chat.js';
+import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData} from './chat.js';
+import {renderMyRooms,renderAlerts,renderShareHub,addRecent,readRecent,loadRevisit,unreadCount} from './revisit.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
-import {readInterests,editInterests} from './onboarding.js';
+import {readInterests,openOnboarding} from './onboarding.js';
 import {share,shareUrl,sharedTarget} from './share.js';
 import {buyUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
 import {$,esc} from './util.js';
@@ -38,12 +39,27 @@ function variantRows(list,ref=null){
   const tracked=new Map(products.map(p=>[p.sku,p.id]));
   return list.map(v=>{const id=tracked.get(v.sku),href=buyUrl(v,ref);return `<article class="variant-row"><div><strong>${esc([v.size_label,v.option_label].filter(Boolean).join(' · ')||t('family.default'))}</strong>${v.bestValue?`<span class="best-tag">${esc(t('badge.bestValue'))}</span>`:''}<small>${v.unitPrice!=null?esc(t('unit.price',{v:usd(v.unitPrice),u:unitName(v.unit)})):''}</small></div><b>${usd(v.price)}</b>${href?`<a class="variant-buy observed-buy" href="${esc(href)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(v.sku)}" data-ref="${esc(ref??'')}">${esc(t('variant.buy'))}</a>`:''}${id?`<button class="variant-heart" data-favorite="${esc(id)}" aria-pressed="${state.favorites.includes(id)}" aria-label="${esc(t('favorites'))}">${state.favorites.includes(id)?'♥':'♡'}</button>`:`<button class="variant-heart" data-catalog-save="${esc(remember(v))}" data-retailer="${esc(v.retailer)}" data-market="${esc(v.market)}" aria-label="${esc(t('save.action'))}">♡</button>`}</article>`}).join('');
 }
-// Product sheet (journey reference): photo first, then options; 대화에 첨부 when opened from a live room.
-let familyHead=null;
+// Product page (journey 2): a photo per option with counter and strip, brand / name / save / price, facts the
+// catalog really has (options, sellers, best unit price, category), 대화에 첨부 from a live room or the seller link.
+let familyHead=null,familyList=[],familyPhoto=0;
+const familyPhotos=()=>[...new Set(familyList.map(v=>v.image_url).filter(Boolean))];
+const familyCurrent=()=>{const url=familyPhotos()[familyPhoto];return familyList.find(v=>v.image_url&&v.image_url===url)??familyList[0]};
+function drawFamilyHero(){
+  const photos=familyPhotos(),cur=familyCurrent();
+  $('#family-hero').innerHTML=photos.length?`<div class="fh-main"><img src="${esc(photos[familyPhoto]??photos[0])}" alt="${esc(cur?brandLabel(cur)+' '+(cur.name?.split(' - ')[0]??''):'')}">${photos.length>1?`<span class="fh-count">${familyPhoto+1}/${photos.length}</span>`:''}</div>${photos.length>1?`<div class="fh-thumbs">${photos.map((u,i)=>`<button class="${i===familyPhoto?'on':''}" data-family-photo="${i}" aria-label="${i+1}/${photos.length}"><img src="${esc(u)}" alt=""></button>`).join('')}</div>`:''}`:'';
+  const price=$('#family-price');if(price&&cur)price.textContent=usd(cur.price);
+}
 async function openFamily(key,ref=null){
-  const dlg=$('#family-dialog');$('#family-body').innerHTML=`${loadingMarkup(t('loading'))}`;$('#family-talk').innerHTML='';dlg.showModal();
-  try{const list=await fetchFamily(key);const head=list[0];$('#family-title').textContent=head?brandLabel(head):'';
-    $('#family-name').textContent=head?.name?.split(' - ')[0]??'';familyHead=head??null;$('#family-body').innerHTML=(head?.image_url?`<div class="family-hero"><img src="${esc(head.image_url)}" alt="${esc(brandLabel(head)+' '+(head.name?.split(' - ')[0]??''))}"></div>`:'')+(head&&canAttachToChat()?`<button class="primary family-attach" data-family-attach>${esc(t('family.attach'))}</button>`:'')+(head?`<button class="family-share" data-family-share="${esc(key)}">${esc(t('share.product'))}</button>`:'')+'<div id="family-description"></div>'+variantRows(list,ref);if(head)renderProductInfo($('#family-description'),head);track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});renderProductTalk($('#family-talk'),key)}
+  const dlg=$('#family-dialog');$('#family-hero').innerHTML='';$('#family-body').innerHTML=`${loadingMarkup(t('loading'))}`;$('#family-talk').innerHTML='';dlg.showModal();
+  try{const list=await fetchFamily(key);const head=list[0];familyList=list;familyPhoto=0;familyHead=head??null;
+    $('#family-title').textContent=head?brandLabel(head):'';$('#family-name').textContent=head?.name?.split(' - ')[0]??'';
+    drawFamilyHero();
+    const sellers=new Set(list.map(v=>v.retailer)).size,unit=list.filter(v=>v.unitPrice!=null).sort((a,b)=>a.unitPrice-b.unitPrice)[0];
+    const facts=[['options',t('product.fact.options'),t('product.fact.count',{n:list.length})],['sellers',t('product.fact.sellers'),t('product.fact.places',{n:Math.max(sellers,1)})],['unit',t('product.fact.unit'),unit?usd(unit.unitPrice)+'/'+unitName(unit.unit):'—'],['category',t('product.fact.category'),head?.category?categoryLabel(head.category):'—']];
+    const cta=head&&canAttachToChat()?`<button class="primary family-attach" data-family-attach>${esc(t('family.attach'))}</button>`:head&&buyUrl(head,ref)?`<a class="primary family-buy" href="${esc(buyUrl(head,ref))}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('product.buy',{seller:head.retailer}))}</a>`:'';
+    $('#family-body').innerHTML=(head?`<div class="family-price-row"><b id="family-price">${usd(head.price)}</b><button class="family-save heart" data-family-save aria-label="${esc(t('save.action'))}">♡</button><button class="family-share" data-family-share="${esc(key)}" aria-label="${esc(t('share.product'))}">${esc(t('share.product'))}</button></div><div class="family-facts" data-product-facts>${facts.map(f=>`<div><i class="ff-${f[0]}" aria-hidden="true"></i><small>${esc(f[1])}</small><b>${esc(f[2])}</b></div>`).join('')}</div>${cta}`:'')+'<div id="family-description"></div>'+variantRows(list,ref);
+    if(head){renderProductInfo($('#family-description'),head);addRecent({family_key:key,brand:head.brand,brand_ko:head.brand_ko,name:head.name?.split(' - ')[0],category:head.category,image_url:head.image_url,min_price_minor:head.price_minor})}
+    track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});renderProductTalk($('#family-talk'),key)}
   catch{$('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`}
 }
 async function loadOtherSizes(p){
@@ -66,12 +82,12 @@ const icon={
 };
 // Screens: home / saved / search / brand / settings / detail / chat. The bottom tab bar stays on every
 // screen except product detail (which has its own bottom action bar).
-const TABS=['saved','search','chat'];
+const TABS=['chat','rooms','search','alerts','saved'];
 let screen='chat',lastTab='chat',detailReturn='chat';
 const screenEl=n=>n==='home'?$('#browse'):n==='search'?$('#search-screen'):$('#'+n);
 function show(n){
   if(screen==='chat'&&n!=='chat')leaveChat();
-  for(const s of ['home','saved','search','brand','settings','detail','chat'])screenEl(s).hidden=s!==n;
+  for(const s of ['home','saved','search','brand','settings','detail','chat','rooms','alerts','share'])screenEl(s).hidden=s!==n;
   screen=n;if(TABS.includes(n))lastTab=n;
   $('#tabbar').hidden=n==='detail';
   document.querySelectorAll('#tabbar [data-screen]').forEach(x=>x.classList.toggle('active',x.dataset.screen===lastTab));
@@ -80,6 +96,9 @@ function show(n){
   if(n==='settings')renderSettings();
   if(n==='search'){renderSearch();setTimeout(()=>$('#search').focus(),0)}
   if(n==='chat')openChat({toast,onClose:()=>show('chat')});
+  if(n==='rooms')renderMyRooms($('#rooms'),{savedFamilies:savedFamilies()});
+  if(n==='alerts'){renderAlerts($('#alerts'),{savedFamilies:savedFamilies()}).then(()=>setAlertBadge(0))}
+  if(n==='share'){renderShareHub($('#share'),{saved:savedFamilies()});loadRevisit({}).then(d=>{if(screen==='share')renderShareHub($('#share'),{rooms:d.activity.map(a=>a.room),saved:savedFamilies()})},()=>{})}
 }
 // Popular-brand strip: round badges like a delivery app's brand grid; tapping one opens that brand's page.
 let brands=[];
@@ -89,10 +108,14 @@ document.addEventListener('error',e=>{if(e.target.matches?.('.brand-item img,.br
 function renderBrands(){const box=$('#brands');if(!brands.length){box.hidden=true;return}box.hidden=false;
   box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><div class="brand-grid">${twoRowOrder(brands).map(b=>`<button class="brand-item" data-brand="${esc(b.brand)}"><i>${brandBadge(b)}</i><small>${esc(brandLabel(b))}</small></button>`).join('')}</div>`}
 const brandPage={brand:null,items:[],done:false,loading:false,failed:false,seq:0};let brandObserver;
+// Followed brands live on this device only.
+const followedBrands=()=>{try{const v=JSON.parse(localStorage.getItem('seoulbeauty-brands-followed-v1'));return Array.isArray(v)?v:[]}catch{return[]}};
+function toggleFollow(name){const list=followedBrands(),next=list.includes(name)?list.filter(x=>x!==name):[...list,name];try{localStorage.setItem('seoulbeauty-brands-followed-v1',JSON.stringify(next))}catch{}renderBrandPage()}
 function openBrand(name){Object.assign(brandPage,{brand:name,items:[],done:false,failed:false,seq:brandPage.seq+1});show('brand');renderBrandPage();track('search',null,{brand:name})}
 function renderBrandPage(){
   const b=brands.find(x=>x.brand===brandPage.brand)??{brand:brandPage.brand,brand_ko:null};
-  $('#brand').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="home" aria-label="${esc(t('back'))}">${icon.back}</button></div><div class="brand-hero"><i class="brand-badge-lg">${brandBadge(b)}</i><div><h1>${esc(brandLabel(b))}</h1>${b.families?`<p>${esc(t('count',{n:b.families}))}</p>`:''}</div></div><div class="catalog-grid">${brandPage.items.map(familyCard).join('')}</div>${brandPage.failed?`<p class="empty" role="status">${esc(t('loadFailed'))} <button data-brand-retry>${esc(t('retry'))}</button></p>`:brandPage.done?(brandPage.items.length?'':`<p class="empty">${esc(t('brand.empty'))}</p>`):`<p class="empty" id="brand-more">${esc(t('loading'))}</p>`}`;
+  const banner=brandPage.items[0]?.image_url,cats=[...new Set(brandPage.items.map(f=>f.category).filter(Boolean))].slice(0,4),following=followedBrands().includes(b.brand);
+  $('#brand').innerHTML=`<div class="brand-banner">${banner?`<img src="${esc(banner)}" alt="">`:''}<button class="icon-btn round" data-screen="home" aria-label="${esc(t('back'))}">${icon.back}</button><button class="icon-btn round right" data-brand-share aria-label="${esc(t('share.hubNav'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6h14v-6"/></svg></button></div><div class="brand-hero"><i class="brand-badge-lg">${brandBadge(b)}</i><div><h1>${esc(brandLabel(b))}</h1>${b.families?`<p>${esc(t('count',{n:b.families}))}</p>`:''}</div><button class="brand-follow${following?' on':''}" data-follow-brand="${esc(b.brand)}" aria-pressed="${following}">${esc(following?t('brand.following'):'+ '+t('brand.follow'))}</button></div><p class="brand-headline">${esc(t('brand.headline',{brand:brandLabel(b)}))}</p><p class="page-sub">${esc(t('brand.followNote'))}</p>${cats.length?`<div class="brand-tags">${cats.map(c=>`<span>#${esc(categoryLabel(c).replace(/\s+/g,''))}</span>`).join('')}</div>`:''}<div class="home-tabs brand-tabs"><button class="on" aria-selected="true">${esc(t('brand.tab.products'))}</button></div><div class="catalog-grid">${brandPage.items.map(familyCard).join('')}</div>${brandPage.failed?`<p class="empty" role="status">${esc(t('loadFailed'))} <button data-brand-retry>${esc(t('retry'))}</button></p>`:brandPage.done?(brandPage.items.length?'':`<p class="empty">${esc(t('brand.empty'))}</p>`):`<p class="empty" id="brand-more">${esc(t('loading'))}</p>`}`;
   brandObserver?.disconnect();const more=$('#brand-more');if(!more)return;
   if(!brandPage.items.length){loadBrandPage();return}
   brandObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))loadBrandPage()},{rootMargin:'600px'});brandObserver.observe(more);
@@ -110,10 +133,15 @@ const savedCard=p=>`<article class="saved-card"><button class="product-open" dat
 // Interests chosen in the community guide; tapping reopens the guide there to change or clear them.
 function interestRow(){const p=readInterests(),list=p?[...['skincare','makeup'].filter(g=>p[g]).map(g=>t('onb.g.'+g)),...p.concerns.map(c=>t('onb.c.'+c))]:[];return `<button class="interest-row" data-onb-manage><span><b>${esc(t('onb.manage'))}</b><small>${esc(list.length?list.join(' · '):t('onb.none'))}</small></span><span aria-hidden="true">›</span></button>`}
 let activityTab='saved';
+// Recently viewed products on this device (revisit.js).
+const recentList=()=>{const list=readRecent();return list.length?`<div class="recent-list">${list.map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:`<p class="empty">${esc(t('activity.recentEmpty'))}</p>`};
+// Products saved on this device that have a family key (for 알림 and 상품 공유).
+const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
+const setAlertBadge=n=>{const b=$('#alert-count');if(b){b.textContent=n;b.hidden=!n}};
 function renderSaved(){
   const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
   const hint=n===0?t('saved.hint'):n<3?t('saved.hintMore',{n:3-n}):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('nav.activity'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div>${profileCard()}${interestRow()}<div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':`<h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>`;
+  $('#saved').innerHTML=`<div class="logo-head"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><h1 class="page-title">${esc(t('nav.activity'))}</h1><div class="pill-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms','recent'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>${profileCard()}${interestRow()}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button>`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
@@ -213,12 +241,19 @@ localizePage();
 const arrival=sharedTarget();if(arrival?.room)openRoomNext(arrival.room);
 show('chat');
 if(arrival?.product)openFamily(arrival.product);
+const startGuide=step=>openOnboarding({step,load:onboardingData,onRoom:r=>{openRoomNext(r.id);show('chat')}});
+if(!readInterests()?.done&&!arrival&&!new URLSearchParams(location.search).has('skipOnboarding'))startGuide('splash');
+loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.openRoom){openRoomNext(b.dataset.openRoom);show('chat');return}
   if(b.dataset.familyShare){share({title:$('#family-name').textContent,url:shareUrl({product:b.dataset.familyShare})},toast);return}
-  if('familyAttach' in b.dataset){$('#family-dialog').close();if(attachToChat(familyHead))toast(t('family.attached'));return}
+  if('familyAttach' in b.dataset){$('#family-dialog').close();if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`).focus();return}
-  if('onbManage' in b.dataset){editInterests();show('chat');return}
+  if('onbManage' in b.dataset){startGuide('choose');return}
+  if(b.dataset.familyPhoto){familyPhoto=+b.dataset.familyPhoto;drawFamilyHero();return}
+  if('familySave' in b.dataset){const cur=familyCurrent();if(!cur)return;let id=products.find(p=>p.sku===cur.sku)?.id;if(!id){try{id=saveCatalogSnapshot(cur,storage).id;products=mergeCatalogSaves(products,readCatalogSaves(storage))}catch{toast(t('loadFailed'));return}}toggleFavorite(state,id);save();const on=state.favorites.includes(id);b.textContent=on?'♥':'♡';b.setAttribute('aria-pressed',on);return}
+  if(b.dataset.followBrand){toggleFollow(b.dataset.followBrand);return}
+  if('brandShare' in b.dataset){share({title:$('#brand h1')?.textContent??'',url:shareUrl({})},toast);return}
   if(b.dataset.catalogSave){saveCatalogSelection(b);return}
   if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null);return}
   if(b.dataset.post&&screen!=='chat'){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);show('chat');return}

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 const b=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{channel:'chrome'});
 try{
  const p=await b.newPage({viewport:{width:390,height:844}}),requests=[],errors=[];
+ await p.addInitScript(()=>localStorage.setItem('seoulbeauty-interests-v1',JSON.stringify({version:1,skincare:false,makeup:false,concerns:[],done:true}))); // returning visitor: no first-visit flow
  p.on('pageerror',e=>errors.push(e.message));p.on('request',r=>{if(r.url().includes('request_tracking'))requests.push(r.url())});
  const item={retailer:'Stylevana US',market:'US',sku:'local-999',brand:'COSRX',name:'Local sample',category:'립',price_minor:1700,currency:'USD',availability:'in_stock',image_url:null,url:'https://www.stylevana.com/test.html',affiliate_url:null};
  await p.route('**/rest/v1/**',r=>{const u=new URL(r.request().url());return r.fulfill({json:u.pathname.endsWith('/catalog_items')?[item]:[]})});
