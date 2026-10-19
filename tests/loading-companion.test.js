@@ -33,6 +33,18 @@ test('the ten-character atlas is tiny, transparently encoded and the same on web
   assert.equal(web.readUInt32BE(20), 96);  // 2 rows × 48 px
 });
 
+test('admin design preview uses the shipped atlas on the same 64×96 grid as its controls', async () => {
+  const css = await readFile(new URL('../dist/admin.css', import.meta.url), 'utf8');
+  const js = await readFile(new URL('../dist/admin.js', import.meta.url), 'utf8');
+  const rule = css.match(/#sb-design \.sb-design-loader-character\{[^}]*\}/)[0];
+  assert.match(rule, /url\('\/assets\/loading-characters-sprite\.png'\)/);
+  assert.match(rule, /width:64px;height:96px/);
+  assert.match(rule, /background-size:320px 192px/);
+  assert.match(css, /90%,100%\{background-position:-256px -96px\}/);
+  assert.match(js, /-64 \* \(frame % 5\)/);
+  assert.match(js, /-96 \* Math\.floor\(frame \/ 5\)/);
+});
+
 test('both web motion reduction and native loading delay are declared', async () => {
   const css = await readFile(new URL('../dist/style.css', import.meta.url), 'utf8');
   const native = await readFile(new URL('../ios/Alimi/LoadingCompanion.swift', import.meta.url), 'utf8');
