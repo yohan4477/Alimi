@@ -1,3 +1,4 @@
+import {canonicalTags} from './room-policy.js';
 // First-visit guide on the community home: pick Skincare and/or Makeup, then concerns in each, then
 // existing public rooms that talk about them. Inline and skippable — it never blocks browsing or joining.
 // Choices stay on this device; they are not sent anywhere and never infer skin or demographic facts.
@@ -36,14 +37,14 @@ export const visibleConcerns = sel => CONCERNS.filter(c => sel?.[c.group]);
 // Rooms matching more chosen concerns first, then the chosen field, then recent activity.
 // Nothing chosen (or skipped) falls back to the busiest topics, marked as popular rather than matched.
 export function recommendRooms(rooms, sel, limit = 3) {
-  const topics = rooms.filter(r => r.kind !== 'brand');
+  const topics = rooms.filter(r => r.kind !== 'brand' && (!r.status || r.status === 'active'));
   const active = r => Math.min(r.messages_24h || 0, 50);
   const byActivity = (a, b) => active(b.room) - active(a.room) || a.room.sort - b.room.sort;
-  const chosen = sel ? visibleConcerns(sel).map(c => c.id).filter(id => sel.concerns?.includes(id)) : [];
+  const chosen = sel ? canonicalTags(visibleConcerns(sel).map(c => c.id).filter(id => sel.concerns?.includes(id))) : [];
   const picked = sel ? topics.flatMap(room => {
     const group = ROOM_GROUP[room.tag];
     if (group && !sel[group]) return [];
-    const tags = concernsOf(room);
+    const tags = canonicalTags(concernsOf(room));
     const matched = chosen.filter(id => tags.includes(id));
     if (!matched.length && !group) return [];
     return [{room, matched, score: matched.length * 4 + (group ? 2 : 0) + (sel.skincare && ((sel.skinType === 'dry' && tags.includes('dry')) || (sel.skinType === 'oily' && tags.includes('sebum'))) ? 1 : 0)}];
@@ -134,3 +135,4 @@ globalThis.document?.addEventListener('click', e => {
 globalThis.document?.addEventListener('keydown', e => { if (flow?.step === 'splash' && (e.key === 'Enter' || e.key === ' ')) { flow.step = 'choose'; drawFlow(); } });
 
 globalThis.document?.addEventListener('change', e => { if (flow && e.target.matches('[data-onb-profile]')) flow.draft[e.target.dataset.onbProfile] = e.target.value || null; });
+

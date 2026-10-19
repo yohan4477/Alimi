@@ -67,12 +67,11 @@ try {
     await page.waitForSelector('#tabbar [data-screen="chat"].active');
     await page.waitForSelector('#chat [data-chat-room="acne"]');
   });
-  await step('start a conversation opens a topic sheet, then the write form for that topic', async () => {
-    await page.click('[data-chat-action="find-topic"]');
-    await page.click('#chat-start [data-chat-start="acne"]');
-    await page.waitForSelector('#post-write[open] #write-title');
-    assert.match(await page.locator('#post-write h2').innerText(), /Acne/);
-    await page.click('#post-write .close-dialog');
+  await step('start a conversation opens the room creation form directly', async () => {
+    await page.click('.start-conversation');
+    await page.waitForSelector('#room-create[open] #room-title');
+    assert.equal(await page.locator('#chat-start[open]').count(), 0);
+    await page.click('#room-create .close-dialog');
   });
   await step('search finds catalog items', async () => {
     await page.click('#tabbar [data-screen="search"]');
@@ -139,7 +138,7 @@ try {
     await page.click('[data-chat-action="topic"]');
     await page.click('.room-notice[data-topic-mode="live"]');
     await page.waitForSelector('.chat-msg >> text=Anyone tried snail?');
-    if (await page.isVisible('#join-live')) await page.click('#join-live');
+    assert.equal(await page.locator('#join-live').count(), 0);
     await page.waitForSelector('#chat-text');
     await page.fill('#chat-text', 'Yes, it is light');
     await page.click('#chat-form .chat-send');

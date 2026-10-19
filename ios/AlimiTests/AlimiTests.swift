@@ -90,7 +90,7 @@ final class AlimiTests: XCTestCase {
         // Same SHA-256 prefix the post_chat RPC stores, so "mine" and Block line up with the server.
         XCTAssertEqual(ChatAPI.tag("11111111-1111-4111-8111-111111111111"), "bd7662a5eeb41614e720d477")
         XCTAssertEqual(ChatAPI.errorKey("chat:slow"), "chat.err.slow")
-        XCTAssertEqual(ChatAPI.errorKey("chat:secret"), "chat.err.other")
+        XCTAssertEqual(ChatAPI.errorKey("chat:secret"), "chat.err.secret")
         XCTAssertEqual(ChatAPI.errorKey("HTTP"), "chat.err.other")
         let q = URLComponents(url: ChatAPI.messagesURL(room: "acne", after: 42), resolvingAgainstBaseURL: true)!.queryItems!
         XCTAssertEqual(q.first { $0.name == "id" }?.value, "gt.42")
@@ -253,3 +253,4 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(ChatAPI.errorKey("Failure(message: \"chat:duplicate\")"), "chat.err.duplicate")
     }
 }
+

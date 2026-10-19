@@ -30,8 +30,10 @@ export const roomIntro = r => (lang === 'ko' ? r.intro_ko : r.intro_en);
 export const visible = (messages, blocked) => messages.filter(m => !blocked.includes(m.author_tag));
 // Server errors are "chat:<code>"; anything else is a network / unknown failure.
 export const errorKey = message => {
+  if (/PGRST202|Could not find the function/.test(String(message))) return 'chat.err.unavailable';
+  if (/abort|timeout|fetch failed|Failed to fetch/i.test(String(message))) return 'chat.err.network';
   const code = /chat:(\w+)/.exec(String(message ?? ''))?.[1];
-  return ['slow', 'link', 'blocked', 'banned', 'long', 'item', 'photo', 'short', 'duplicate'].includes(code) ? 'chat.err.' + code : 'chat.err.other';
+  return ['slow', 'link', 'blocked', 'banned', 'long', 'item', 'photo', 'short', 'duplicate', 'tag', 'tags', 'room', 'owner', 'participated', 'secret'].includes(code) ? 'chat.err.' + code : 'chat.err.other';
 };
 
 export const roomsUrl = () => SUPABASE_URL + '/rest/v1/chat_room_list?' + new URLSearchParams({select: '*', order: 'sort'});
@@ -71,3 +73,9 @@ export const createRoom = (secret, {title, intro = '', tag = 'talk', concerns = 
 }, fetchImpl);
 export const likeMessage = (secret, id, fetchImpl = fetch) => rpc('like_chat', {p_secret: secret, p_message: id}, fetchImpl);
 export const reportMessage = (secret, id, reason, fetchImpl = fetch) => rpc('report_chat', {p_secret: secret, p_message: id, p_reason: reason}, fetchImpl);
+
+
+export const roomActions = (secret, room, fetchImpl = fetch) => rpc('room_actions', {p_secret: secret, p_room: room}, fetchImpl);
+export const leaveRoom = (secret, room, fetchImpl = fetch) => rpc('leave_room', {p_secret: secret, p_room: room}, fetchImpl);
+export const deleteRoom = (secret, room, fetchImpl = fetch) => rpc('delete_room', {p_secret: secret, p_room: room}, fetchImpl);
+export const deleteMessage = (secret, id, fetchImpl = fetch) => rpc('delete_chat_message', {p_secret: secret, p_message: id}, fetchImpl);

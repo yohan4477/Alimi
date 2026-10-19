@@ -101,10 +101,9 @@ try {
     assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
     await page.click('[data-home-tab="rooms"][role="tab"]');
     await page.click('.room-list-card[data-chat-room="acne"]');
-    // Opens on the chat, readable; the join bar shows the rules and unlocks the composer.
+    // Opens on the chat, readable; the composer is available without a join step.
     await page.waitForSelector('.chat-msg >> text=추천 좀 해주세요');
-    assert.match(await page.textContent('.join-bar .chat-rules'), /.+/);
-    await page.click('#join-live');
+    assert.equal(await page.locator('#join-live, #room-join').count(), 0);
     await page.waitForSelector('#chat-text');
     assert.equal(await page.getAttribute('#chat-text', 'placeholder'), '메시지를 입력하세요...');
     await page.click('[data-chat-menu="1"]');
@@ -140,6 +139,7 @@ try {
     await page.click('.room-list-card[data-chat-room="acne"]');
     await page.click('.room-notice[data-topic-mode="posts"]');
     await page.click('[data-chat-action="write"]');
+    await page.click('[data-chat-action="join-ok"]');
     await page.click('[data-write-kind="question"]');
     await page.fill('#write-title', '끈적이지 않는 선크림 추천해 주세요');
     await page.click('[data-write-reason="texture"]');

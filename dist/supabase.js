@@ -16,6 +16,7 @@ export async function restGet(url, fetchImpl = fetch) {
 // POST to an RPC. Server errors keep PostgREST's message (e.g. "chat:link") so callers can map them.
 export async function rpc(name, body, fetchImpl = fetch) {
   const res = await fetchImpl(SUPABASE_URL + '/rest/v1/rpc/' + name, {method: 'POST', headers: writeHeaders, body: JSON.stringify(body), signal: AbortSignal.timeout(TIMEOUT)});
-  if (!res.ok) { let msg = 'HTTP ' + res.status; try { msg = (await res.json()).message ?? msg; } catch {} throw Error(msg); }
+  if (!res.ok) { let msg = 'HTTP ' + res.status; try { const error = await res.json(); msg = [error.code, error.message ?? msg].filter(Boolean).join(': '); } catch {} throw Error(msg); }
   return res.status === 204 ? null : res.json();
 }
+

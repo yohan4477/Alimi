@@ -7,6 +7,8 @@ on:
       - 'server/**'
       - 'vercel.json'
       - 'tests/**'
+      - 'supabase/migrations/**'
+      - 'package*.json'
       - 'scripts/**'
       - 'e2e/**'
       - '.github/workflows/web.yml'
@@ -21,6 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm ci
       - run: npm test
       - name: Admin access and mobile flow (mocked auth)
         run: |
@@ -31,6 +34,7 @@ jobs:
           set -euo pipefail
           python3 -m http.server 3000 --directory dist >/dev/null 2>&1 &
           sleep 1
+          CHROME_PATH="$(command -v google-chrome)" node e2e/room-lifecycle.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/no-tracking.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/community.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/brands.e2e.mjs http://localhost:3000/

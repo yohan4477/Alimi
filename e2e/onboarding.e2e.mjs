@@ -14,7 +14,7 @@ async function open(width,lang,{extra='',setup=async()=>{},list=rooms}={}){
   await page.route('**/rest/v1/**',async route=>{
    const u=new URL(route.request().url()),resource=u.pathname.split('/').at(-1);
    if(resource==='create_room')return route.fallback(); // handled by the test's own route
-   if(route.request().method()!=='GET'&&resource!=='app_events')writes.push(resource); // existing page analytics aside
+   if(route.request().method()!=='GET'&&!['app_events','room_actions'].includes(resource))writes.push(resource); // existing page analytics aside
    if(resource==='chat_room_list')return route.fulfill({json:list});
    if(resource==='app_events')return route.fulfill({status:204});
    return route.fulfill({json:[]});
@@ -93,7 +93,6 @@ try {
   }});
   await page.locator('[data-home-tab="rooms"][role="tab"]').click();
   await page.locator('.start-conversation').click();
-  await page.locator('#chat-start [data-chat-action="create-room"]').click();
   const dlg=page.locator('#room-create');
   assert.equal(await dlg.locator('[data-room-tag="makeup"]').getAttribute('aria-pressed'),'true','field prefilled from interests');
   assert.equal(await dlg.locator('[data-room-concern="lip"]').getAttribute('aria-pressed'),'true','concern prefilled from interests');

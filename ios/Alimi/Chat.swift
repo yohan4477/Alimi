@@ -16,11 +16,14 @@ struct ChatRoom: Codable, Identifiable, Hashable {
     var lastMessageAt: String? = nil
     // Concern tags (user_rooms migration); nil on servers without it, which also hides room creation.
     var concerns: [String]? = nil
+    var status: String? = nil
+    var closureReason: String? = nil
+    var isClosed: Bool { status == "closed" || status == "archived" || status == "deleted" }
     var isBrand: Bool { kind == "brand" }
     var title: String { L10n.language == "ko" ? titleKo : titleEn }
     var intro: String { L10n.language == "ko" ? introKo : introEn }
     enum CodingKeys: String, CodingKey {
-        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h", kind, tag, brand, logoUrl = "logo_url", lastMessageAt = "last_message_at", concerns
+        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h", kind, tag, brand, logoUrl = "logo_url", lastMessageAt = "last_message_at", concerns, status, closureReason = "closure_reason"
     }
 }
 struct ChatItem: Codable, Hashable {
@@ -47,6 +50,8 @@ struct ChatMessage: Codable, Identifiable, Hashable {
     let replyTo: Int?
     var likes: Int
     let createdAt: String
+    var isDeleted: Bool { body.isEmpty && item == nil }
+    var displayBody: String { isDeleted ? L("chat.deleted") : body }
     enum CodingKeys: String, CodingKey {
         case id, authorTag = "author_tag", nickname, body, item, replyTo = "reply_to", likes, createdAt = "created_at"
     }
@@ -77,8 +82,10 @@ enum ChatAPI {
     }
     // Server errors are "chat:<code>"; anything else is a network / unknown failure.
     static func errorKey(_ message: String) -> String {
+        if message.contains("PGRST202") || message.contains("Could not find the function") { return "chat.err.unavailable" }
+        if message.lowercased().contains("timed out") || message.lowercased().contains("offline") { return "chat.err.network" }
         let code = message.range(of: #"chat:(\w+)"#, options: .regularExpression).map { String(message[$0].dropFirst(5)) }
-        return ["slow", "link", "blocked", "banned", "long", "short", "duplicate"].contains(code ?? "") ? "chat.err." + code! : "chat.err.other"
+        return ["slow", "link", "blocked", "banned", "long", "short", "duplicate", "tag", "tags", "room", "owner", "participated", "secret"].contains(code ?? "") ? "chat.err." + code! : "chat.err.other"
     }
     static func messagesURL(room: String, after: Int = 0, limit: Int = 60) -> URL {
         var c = URLComponents(url: URL(string: "/rest/v1/chat_messages", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
@@ -96,7 +103,8 @@ enum ChatAPI {
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["message"] as? String
-            throw Failure(message: message ?? "HTTP")
+            let code = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["code"] as? String
+            throw Failure(message: [code, message].compactMap { $0 }.joined(separator: ": "))
         }
         return data
     }
@@ -142,6 +150,13 @@ enum ChatAPI {
                                     "p_intro": intro.trimmingCharacters(in: .whitespacesAndNewlines), "p_tag": tag, "p_concerns": concerns]
         return try JSONDecoder().decode(String.self, from: try await rpc("create_room", body))
     }
+    struct RoomActions: Decodable { let joined: Bool; let can_delete: Bool }
+    static func actions(room: String) async throws -> RoomActions {
+        try JSONDecoder().decode(RoomActions.self, from: await rpc("room_actions", ["p_secret": secret, "p_room": room]))
+    }
+    static func leave(room: String) async throws { _ = try await rpc("leave_room", ["p_secret": secret, "p_room": room]) }
+    static func deleteRoom(_ room: String) async throws { _ = try await rpc("delete_room", ["p_secret": secret, "p_room": room]) }
+    static func deleteMessage(_ id: Int) async throws { _ = try await rpc("delete_chat_message", ["p_secret": secret, "p_message": id]) }
     static func join(room: String) async throws -> String {
         if offline { return "Dewy Panda" }
         return try JSONDecoder().decode(String.self, from: try await rpc("join_chat", ["p_secret": secret, "p_room": room]))
@@ -400,6 +415,7 @@ struct ChatRoomView: View {
     @State private var openFamily: ProductFamily?
     @State private var savingMessage: ChatMessage?
     @State private var purchaseRef: String?
+    @State private var deleting: ChatMessage?
     @State private var reporting: ChatMessage?
     @State private var notice: String?
     @State private var sending = false
@@ -425,7 +441,7 @@ struct ChatRoomView: View {
                         MessageRow(message: m, parent: m.replyTo.flatMap { id in shown.first { $0.id == id } }, mine: m.authorTag == ChatAPI.myTag,
                                    replies: shown.filter { $0.replyTo == m.id }.count, liked: likedIDs.contains(m.id), liking: likingIDs.contains(m.id), jump: { if let id = m.replyTo { withAnimation { proxy.scrollTo(id, anchor: .center) } } },
                                    open: { purchaseRef = "chat-\(m.id)"; openFamily = $0 }, like: { like(m) }, reply: { replyTo = m },
-                                   report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") }, savePost: { savingMessage = m })
+                                   report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") }, savePost: { savingMessage = m }, delete: { deleting = m })
                             .id(m.id)
                     }
                     Color.clear.frame(height: 1).id("chat-bottom")
@@ -447,13 +463,21 @@ struct ChatRoomView: View {
                 } else { unread += max(0, new - old) }
             }
         }
-        .safeAreaInset(edge: .bottom) { composer }
+        .safeAreaInset(edge: .bottom) { if room.isClosed { Text(room.closureReason ?? L("room.closed")).font(.footnote).padding() } else { composer } }
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
         .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef, attach: { picked in item = picked }).environmentObject(store) }
         .sheet(item: $savingMessage) { CommunityComposer(room: room, fromMessage: $0).environmentObject(store) }
         .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reporting != nil }, set: { if !$0 { reporting = nil } }), titleVisibility: .visible) {
             ForEach(["spam", "abuse", "sexual", "other"], id: \.self) { reason in
                 Button(L("chat.reason." + reason)) { report(reason) }
+            }
+        }
+        .confirmationDialog(L("chat.deleteConfirm"), isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
+            if let m = deleting {
+                Button(L("chat.delete"), role: .destructive) { Task {
+                    do { try await ChatAPI.deleteMessage(m.id); messages = try await ChatAPI.messages(room: room.id); replyTo = nil }
+                    catch { notice = L(ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? "")) }
+                } }
             }
         }
         .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) { Button("OK") {} }
@@ -501,9 +525,10 @@ struct ChatRoomView: View {
         } catch { notice = L("chat.loadFailed") }
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(4))
-            guard let fresh = try? await ChatAPI.messages(room: room.id, after: messages.last?.id ?? 0) else { continue }
+            guard let fresh = try? await ChatAPI.messages(room: room.id, after: 0) else { continue }
+            let updates = Dictionary(uniqueKeysWithValues: fresh.map { ($0.id, $0) })
             let known = Set(messages.map(\.id))
-            messages += fresh.filter { !known.contains($0.id) }
+            messages = messages.map { updates[$0.id] ?? $0 } + fresh.filter { !known.contains($0.id) }
             Seen.mark(room.id, messages.last?.createdAt)
         }
     }
@@ -515,6 +540,7 @@ struct ChatRoomView: View {
             if !messages.contains(where: { $0.id == m.id }) { messages.append(m) }
             EventLogger.shared.log(.chatSend, props: ["room": room.id, "item": item == nil ? "0" : "1", "reply": replyTo == nil ? "0" : "1"])
             text = ""; item = nil; replyTo = nil
+            NotificationCenter.default.post(name: .roomMembershipChanged, object: nil)
         } catch {
             notice = L(ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? ""))
         }
@@ -564,6 +590,7 @@ struct MessageRow: View {
     let report: () -> Void
     let block: () -> Void
     var savePost: (() -> Void)? = nil
+    var delete: (() -> Void)? = nil
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
             VStack(alignment: mine ? .trailing : .leading, spacing: 6) {
@@ -578,7 +605,7 @@ struct MessageRow: View {
                     Image(systemName: liked ? "heart.fill" : "heart").font(.system(size: 20))
                         .foregroundStyle(liked ? Color(rgb: 0xED2850) : Color.sbGray)
                 }.frame(width: 54, height: 44, alignment: .trailing).contentShape(Rectangle())
-            }.buttonStyle(.plain).disabled(liking).padding(.bottom, 16)
+            }.buttonStyle(.plain).disabled(liking || message.isDeleted).padding(.bottom, 16)
                 .accessibilityLabel(L("chat.like") + " " + String(message.likes))
                 .accessibilityValue(liked ? "Selected" : "Not selected")
                 .accessibilityIdentifier("chat-heart-\(message.id)")
@@ -591,18 +618,18 @@ struct MessageRow: View {
     }
 
     @ViewBuilder private var bubble: some View {
-        if !message.body.isEmpty || parent != nil {
+        if !message.displayBody.isEmpty || parent != nil {
             VStack(alignment: .leading, spacing: 6) {
                 if let parent {
                     Button(action: jump) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(parent.nickname).font(.caption.bold()).foregroundStyle(Color.sbBlue)
-                            Text(parent.body.isEmpty ? parent.item?.name ?? "" : parent.body)
+                            Text(parent.isDeleted ? L("chat.deleted") : (parent.body.isEmpty ? parent.item?.name ?? "" : parent.body))
                                 .font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.leading)
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }.buttonStyle(.plain).padding(.bottom, 4)
                 }
-                if !message.body.isEmpty { Text(message.body).font(.system(size: 16)).foregroundStyle(Color.sbNavy) }
+                if !message.displayBody.isEmpty { Text(message.displayBody).font(.system(size: 16)).foregroundStyle(Color.sbNavy) }
             }
             .padding(.horizontal, 16).padding(.vertical, 13)
             .background(mine ? Color.sbTagBg : Color(rgb: 0xF1F4F9), in: RoundedRectangle(cornerRadius: 18))
@@ -621,7 +648,8 @@ struct MessageRow: View {
     @ViewBuilder private var menu: some View {
         Button(L("chat.reply"), systemImage: "arrowshape.turn.up.left", action: reply)
         Button(L("chat.copy"), systemImage: "doc.on.doc") { UIPasteboard.general.string = message.body.isEmpty ? message.item?.name ?? "" : message.body }
-        if mine, let savePost { Button(L("community.saveAsPost"), systemImage: "square.and.pencil", action: savePost) }
+        if mine && !message.isDeleted, let delete { Button(L("chat.delete"), systemImage: "trash", role: .destructive, action: delete) }
+        if mine && !message.isDeleted, let savePost { Button(L("community.saveAsPost"), systemImage: "square.and.pencil", action: savePost) }
         if !mine {
             Button(L("chat.report"), systemImage: "exclamationmark.bubble", role: .destructive, action: report)
             Button(L("chat.block"), systemImage: "hand.raised", role: .destructive, action: block)
@@ -724,3 +752,4 @@ struct ItemPicker: View {
         }
     }
 }
+

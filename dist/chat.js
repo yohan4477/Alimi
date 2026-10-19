@@ -1,3 +1,4 @@
+import {offeredTags, canonicalTags, toggleRoomTag, deletedMessage} from './room-policy.js';
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
 import {beginStartupLoading} from './startup-loading.js';
@@ -15,7 +16,7 @@ import {track} from './events.js';
 import {t, locale} from './i18n.js';
 import {searchCatalog, brandLabel, usd, brandInitials, brandColor, fetchBrands, fetchFamiliesPage} from './live.js';
 import {chatSecret, readBlocked, block, hasAgreed, agree, roomTitle, roomIntro, visible, errorKey,
-  fetchRooms, createRoom, fetchMessages, fetchMyRooms, postMessage, likeMessage, reportMessage} from './chat-api.js';
+  roomActions, leaveRoom, deleteRoom, deleteMessage, fetchRooms, createRoom, fetchMessages, fetchMyRooms, postMessage, likeMessage, reportMessage} from './chat-api.js';
 import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, filterReviews, photoUrl, reviewPayload, uploadPhoto, ago, fetchPosts, fetchPost, fetchComments, fetchProductTalk, createPost, addComment, likeCommunity, reportCommunity} from './community-api.js';
 
 import {$, esc} from './util.js';
@@ -181,6 +182,34 @@ export async function renderMyConversations(box) {
   } catch { if(box.isConnected)box.innerHTML = `<p class="home-note">${esc(t('home.retry'))}</p>`; }
 }
 
+
+async function loadRoomActions(room, showError = false) {
+  try {
+    const actions = await roomActions(secret, room.id);
+    if (chat.room?.id !== room.id) return;
+    const menu = $('#room-menu'); if (!menu) return;
+    menu.querySelectorAll('[data-room-management]').forEach(e => e.remove());
+    menu.insertAdjacentHTML('beforeend', `${actions.joined ? `<button data-room-management data-chat-action="leave-room">${esc(t('room.leave'))}</button>` : ''}${actions.can_delete ? `<button data-room-management data-chat-action="delete-room">${esc(t('room.delete'))}</button>` : ''}`);
+  } catch(e) {
+    if (chat.room?.id !== room.id) return;
+    if (showError) toast(t(errorKey(e.message)));
+    if (!$('#room-menu [data-room-management]')) $('#room-menu')?.insertAdjacentHTML('beforeend', `<button data-room-management data-chat-action="retry-room-actions">${esc(t('room.manage'))}</button>`);
+  }
+}
+let managingRoom = false;
+async function manageRoom(action) {
+  const room = chat.room; if (!room || managingRoom) return;
+  if (!confirm(t(action === 'delete' ? 'room.deleteConfirm' : 'room.leaveConfirm'))) return;
+  managingRoom = true;
+  try {
+    await (action === 'delete' ? deleteRoom : leaveRoom)(secret, room.id);
+    homeJoined = homeJoined.filter(j => j.room_id !== room.id);
+    roomDrafts.delete(room.id); leaveChat(); await renderHome();
+    toast(t(action === 'delete' ? 'room.deleted' : 'room.left'));
+  } catch(e) { toast(t(errorKey(e.message))); }
+  finally { managingRoom = false; }
+}
+
 function askRules(room, then) {
   if (hasAgreed(storage)) { then(); return; }
   const dlg = $('#chat-join');
@@ -193,7 +222,8 @@ let joinThen = () => {};
 function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null;
   const other = mode === 'posts' ? 'live' : 'posts';
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div><div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div><div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(room.status === 'closed' ? room.closure_reason || t('room.closed') : mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
+  loadRoomActions(room);
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
@@ -286,9 +316,11 @@ async function startLive(room) {
   chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
   body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
   {
+    if (room.status === 'closed') { $('#chat-form').innerHTML = `<p class="chat-rules">${esc(room.closure_reason || t('room.closed'))}</p>`; } else {
     $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
+    }
   }
   try {
     const messages = await fetchMessages(room.id);
@@ -319,7 +351,7 @@ function renderLog(scroll) {
     const day = new Intl.DateTimeFormat(locale(), {year:'numeric', month:'long', day:'numeric'}).format(new Date(m.created_at));
     const divider = day !== previousDay ? `<div class="chat-date"><span>${esc(day)}</span></div>` : '';
     previousDay = day;
-    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}"><div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<time class="msg-time">${esc(time(m.created_at))}</time></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
+    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}"><div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body || deletedMessage(m) ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(deletedMessage(parent) ? t('chat.deleted') : parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body || deletedMessage(m) ? `<p>${esc(deletedMessage(m) ? t('chat.deleted') : m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<time class="msg-time">${esc(time(m.created_at))}</time></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) || deletedMessage(m) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   let press;
@@ -345,6 +377,7 @@ async function send() {
   try {
     const m = await postMessage(secret, roomId, text, item, replyTo);
     roomDrafts.delete(roomId);
+    if (chat.room?.id === roomId) loadRoomActions(chat.room);
     if (!homeJoined.some(j => j.room_id === roomId)) homeJoined.unshift({room_id: roomId, last: m});
     chat.nickname = m.nickname;
     track('chat_send', null, {room:roomId,item:item?1:0,reply:replyTo?1:0});
@@ -360,9 +393,12 @@ function startPolling() {
     if (!chat.room || document.hidden || view.mode !== 'live') return;
     const roomId=chat.room.id,last = chat.messages.at(-1)?.id ?? 0;
     try {
-      const fresh = (await fetchMessages(roomId, last)).filter(m => !chat.messages.some(x => x.id === m.id));
+      const page = await fetchMessages(roomId);
+      const updates = new Map(page.map(m => [m.id,m]));
+      const fresh = page.filter(m => !chat.messages.some(x => x.id === m.id));
       if(chat.room?.id!==roomId)return;
-      if (fresh.length) { unreadMessages += fresh.length; chat.messages.push(...fresh); renderLog(false); }
+      chat.messages = chat.messages.map(m => updates.get(m.id) ?? m);
+      unreadMessages += fresh.length; chat.messages.push(...fresh); renderLog(false);
     } catch {}
   }, 4000);
 }
@@ -397,7 +433,7 @@ let menuTarget = null;
 function openMenu(id) {
   chat.menuFor = chat.messages.find(m => m.id === id); if (!chat.menuFor) return;
   const mine = chat.menuFor.author_tag === chat.myTag; menuTarget = {type: 'chat', id};
-  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button>${mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
+  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button>${mine && !deletedMessage(chat.menuFor) ? `<button data-chat-action="delete-message">${esc(t('chat.delete'))}</button><button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
   $('#chat-menu').showModal();
 }
 function openCommunityMenu(spec) {
@@ -443,33 +479,38 @@ function openStart() {
 }
 // Free room creation: any subject. Field and concern tags are optional and only help others find the room.
 const ROOM_TAGS = ['talk', 'skin', 'makeup'], TAG_GROUP = {skin: 'skincare', makeup: 'makeup'};
-const newRoom = {tag: 'talk', concerns: [], title: '', intro: '', error: '', busy: false};
+const newRoom = {more: false, tag: 'talk', concerns: [], title: '', intro: '', error: '', busy: false};
 function openCreateRoom() {
   $('#chat-start')?.open && $('#chat-start').close();
   const sel = readInterests();
   newRoom.tag = sel?.skincare && !sel.makeup ? 'skin' : sel?.makeup && !sel.skincare ? 'makeup' : 'talk';
-  Object.assign(newRoom, {concerns: [...(sel?.concerns ?? [])], title: '', intro: '', error: '', busy: false});
+  Object.assign(newRoom, {more: false, concerns: canonicalTags(sel?.concerns ?? []).filter(id => offeredTags(newRoom.tag).some(t => t.id === id)).slice(0, 3), title: '', intro: '', error: '', busy: false});
   let dlg = $('#room-create'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'room-create'; dlg.className = 'chat-dialog post-write room-create'; dlg.setAttribute('aria-labelledby', 'room-create-title'); document.body.append(dlg); }
   renderCreateRoom(); dlg.showModal(); $('#room-title').focus();
 }
 const keepRoomText = () => { newRoom.title = $('#room-title')?.value ?? newRoom.title; newRoom.intro = $('#room-intro')?.value ?? newRoom.intro; };
 function renderCreateRoom() {
-  const group = TAG_GROUP[newRoom.tag], offered = CONCERNS.filter(c => !group || c.group === group);
+  const offered = offeredTags(newRoom.tag);
   newRoom.concerns = newRoom.concerns.filter(id => offered.some(c => c.id === id));
+  const popular = ['acne','dry','sensitive','pores','shade','longwear','lip','base'];
+  const shown = newRoom.more ? offered : offered.filter(c => popular.includes(c.id) || newRoom.concerns.includes(c.id));
   const chip = (attr, id, on, label) => `<button type="button" ${attr}="${id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(label)}</button>`;
-  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t('room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${offered.map(c => chip('data-room-concern', c.id, newRoom.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div><p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t('room.create'))}</button>`;
+  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t('room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${['skin','makeup','product'].map(group => { const tags = shown.filter(c => c.group === group); return tags.length ? `<div><p class="write-label">${esc(t('room.group.'+group))}</p>${tags.map(c => chip('data-room-concern', c.id, newRoom.concerns.includes(c.id), t('room.topic.'+c.id))).join('')}</div>` : ''; }).join('')}${offered.length > 8 ? `<button type="button" data-chat-action="more-room-tags" aria-expanded="${newRoom.more}">${esc(t(newRoom.more ? 'room.lessTags' : 'room.moreTags'))}</button>` : ''}</div><p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t(newRoom.busy ? 'room.creating' : 'room.create'))}</button>`;
+  if (newRoom.busy) $('#room-create').querySelectorAll('input,textarea,button').forEach(el => el.disabled = true);
 }
 async function submitRoom() {
+  if (newRoom.busy) return;
   keepRoomText();
+  if (newRoom.concerns.length > 3) { newRoom.error=t('chat.err.tags'); renderCreateRoom(); return; }
   if (newRoom.title.trim().length < 3) { newRoom.error = t('chat.err.short'); renderCreateRoom(); $('#room-title').focus(); return; }
   newRoom.busy = true; newRoom.error = ''; renderCreateRoom();
   try {
     const id = await createRoom(secret, newRoom);
     chat.rooms = await fetchRooms().catch(() => chat.rooms);
     $('#room-create').close(); toast(t('room.created'));
-    const room = chat.rooms.find(r => r.id === id);
+    const room = chat.rooms.find(r => r.id === id) ?? {id, title_en:newRoom.title.trim(), title_ko:newRoom.title.trim(), intro_en:newRoom.intro, intro_ko:newRoom.intro, kind:'topic', tag:newRoom.tag, concerns:newRoom.concerns, members:1, messages_24h:0};
     if (room) { chat.room = room; openTopic(room, 'live'); } else renderHome();
-  } catch (e) { newRoom.busy = false; newRoom.error = t(errorKey(e.message)); renderCreateRoom(); }
+  } catch (e) { newRoom.busy = false; newRoom.error = t(errorKey(e.message) === 'chat.err.other' ? 'chat.err.create' : errorKey(e.message)); renderCreateRoom(); }
 }
 let pendingPost = null;
 export const openPostNext = id => { pendingPost = id; };
@@ -479,11 +520,15 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
+  if (newRoom.busy && b.closest('#room-create')) return;
   if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (b.hasAttribute('data-home-brands-retry')) { homeBrands = null; drawHome(); }
   else if (b.dataset.homeTab) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
+  else if (a === 'retry-room-actions') loadRoomActions(chat.room, true);
+  else if (a === 'leave-room') manageRoom('leave');
+  else if (a === 'delete-room') manageRoom('delete');
   else if (a === 'room-more') { const m = $('#room-menu'); if (m) { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); } }
   else if (b.dataset.chatJump) { $('#chat-log [data-id="' + b.dataset.chatJump + '"]')?.scrollIntoView({block:'center', behavior:'smooth'}); }
   else if (a === 'copy') { try { await navigator.clipboard.writeText(chat.menuFor.body || chat.menuFor.item?.name || ''); $('#chat-menu').close(); } catch { toast(t('chat.err.other')); } }
@@ -492,8 +537,9 @@ document.addEventListener('click', async e => {
   else if (a === 'find-topic') openStart();
   else if (a === 'create-room') openCreateRoom();
   else if (a === 'room-submit') submitRoom();
+  else if (a === 'more-room-tags') { keepRoomText(); newRoom.more = !newRoom.more; renderCreateRoom(); }
   else if (b.dataset.roomTag) { keepRoomText(); newRoom.tag = b.dataset.roomTag; renderCreateRoom(); $(`[data-room-tag="${newRoom.tag}"]`).focus(); }
-  else if (b.dataset.roomConcern) { keepRoomText(); const id = b.dataset.roomConcern; newRoom.concerns = newRoom.concerns.includes(id) ? newRoom.concerns.filter(c => c !== id) : [...newRoom.concerns, id]; renderCreateRoom(); $(`[data-room-concern="${id}"]`).focus(); }
+  else if (b.dataset.roomConcern) { keepRoomText(); const id = b.dataset.roomConcern; newRoom.error = !newRoom.concerns.includes(id) && newRoom.concerns.length >= 3 ? t('chat.err.tags') : ''; newRoom.concerns = toggleRoomTag(newRoom.concerns, id); renderCreateRoom(); $(`[data-room-concern="${id}"]`).focus(); }
   else if (b.dataset.chatStart) { const room = chat.rooms.find(r => r.id === b.dataset.chatStart); $('#chat-start').close(); if (room) { chat.room = room; askRules(room, () => openWrite()); } }
   else if (a === 'topic') openTopic(chat.room, 'posts');
   else if (b.dataset.topicMode) openTopic(chat.room, b.dataset.topicMode);
@@ -518,6 +564,12 @@ document.addEventListener('click', async e => {
   else if (a === 'menu-close') $('#chat-menu').close();
   else if (a === 'reply') { chat.replyTo = chat.menuFor.id; $('#chat-menu').close(); renderContext(); $('#chat-text').focus(); }
   else if (a === 'save-as-post') { const m = chat.menuFor; $('#chat-menu').close(); openWrite({kind: 'recommend', title: m.body.slice(0, 60), body: m.body, item: m.item, fromMessage: m.id}); }
+  else if (a === 'delete-message') {
+    const message=chat.menuFor, room=chat.room;
+    if (!message || !confirm(t('chat.deleteConfirm'))) return;
+    try { await deleteMessage(secret,message.id); $('#chat-menu').close(); if(chat.room?.id===room.id) { message.body='';message.item=null;message.likes=0;renderLog(false);renderContext(); } }
+    catch(e) { toast(t(errorKey(e.message))); }
+  }
   else if (a === 'report') openReport();
   else if (a === 'block') {
     block(storage, menuTarget.type === 'chat' ? chat.menuFor.author_tag : menuTarget.author); $('#chat-menu').close();
@@ -566,3 +618,4 @@ export async function onboardingData() {
 export const openRoomById = id => { pendingRoom = id; };
 
 document.addEventListener('seoulbeauty-create-room', openCreateRoom);
+
