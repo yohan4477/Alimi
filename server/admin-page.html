@@ -37,8 +37,8 @@
     <div class="card" id="sb-plan-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 최신 기획 상태</span><h3>3개 고객 여정 · 하단 3탭 확정</h3>
     <div class="sb-line"><div class="sb-label">하단 탐색</div><div class="sb-value">커뮤니티 / 탐색 / 내 활동. 참여한 방은 내 활동, 알림은 상단 종 아이콘, 프로필·설정은 내 활동에서 연결. 온보딩·대화방에서는 하단 탭 숨김.</div></div>
     <div class="sb-line"><div class="sb-label">현재 구현</div><div class="sb-value">관심 분야 복수 선택 + 고민 키워드 → 실제 공개 방 추천. 선택값·방 활동 기준이며 연령대·피부 타입·톤은 현재 추천에 반영하지 않음.</div></div>
-    <div class="sb-line"><div class="sb-label">후속 기획안</div><div class="sb-value">1/3 관심과 고민 → 2/3 선택형 연령대·피부 정보 → 3/3 추천방. 잘 모르겠어요·건너뛰기 제공. 구현 변경안: 연령대·피부 타입은 선택 입력·기기 내 저장. 연령대는 추천에 사용하지 않고, 건성·지성만 관련 고민의 보조 순위에 반영. 새 빌드 실기기 검증 대기.</div></div>
-    <p>새 변경안은 스플래시를 단계에서 제외하고 1/3부터 시작한다. 21.1은 기존 표시이며 새 빌드 검증 대기. 방 추천은 강제 배정이 아니며 전체 방 탐색·자유 생성 원칙을 유지한다.</p>
+    <div class="sb-line"><div class="sb-label">후속 기획안</div><div class="sb-value">1/3 관심과 고민 → 2/3 선택형 연령대·피부 정보 → 3/3 추천방. 잘 모르겠어요·건너뛰기 제공. 구현 변경안: 연령대·피부 타입은 선택 입력·기기 내 저장. 연령대는 추천에 사용하지 않고, 건성·지성만 관련 고민의 보조 순위에 반영. 22.1 업로드 성공, 실기기 검증 대기.</div></div>
+    <p>새 변경안은 스플래시를 단계에서 제외하고 1/3부터 시작한다. 21.1은 기존 표시이며 22.1에서 반영. 방 추천은 강제 배정이 아니며 전체 방 탐색·자유 생성 원칙을 유지한다.</p>
     <p><strong>P0 · 사용자 확인 대기:</strong> 사용자가 하단 탭이 3개가 아니라고 제보함. 설치된 앱·빌드 번호와 실제 화면 확인 전 해결 완료로 표시하지 않는다.</p>
     <small>아래 기존 시뮬레이션은 검토 자료이며 최신 출시 상태는 이 카드와 개발 탭을 따른다. KPI 목표·개선 효과는 미측정.</small></div>
 
@@ -362,19 +362,19 @@
     </div>
   </section>
   <section class="sb-panel" id="sb-dev" role="tabpanel" aria-labelledby="sb-dev-tab" hidden>
-  <div class="card" id="sb-dev-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 증거 기준 수동 업데이트</span><h3>Seoul Beauty 1.0 (21.1) · 업로드 성공</h3>
-  <p>최종 업로드 커밋 <code>10493c2</code>. PR #127의 3탭·레이아웃·상품 표면·아바타 숨김, <code>921a6ea</code>의 좌우 전환 제거, PR #129의 표시 이름 Seoul Beauty 포함. 번들 ID <code>com.yohan4477.seoulbeauty</code>. 기존 Alimi 앱과 분리.</p>
-  <div class="sb-line"><div class="sb-label">검증 증거</div><div class="sb-value">JS 단위 테스트 126/126 및 Web checks #95 성공. 배포 커밋 5efa85e의 GitHub Vercel status success 확인. TestFlight #21의 빌드·서명·App Store Connect 업로드 모두 성공.</div></div>
-  <div class="sb-line"><div class="sb-label">출시 확인 범위</div><div class="sb-value">Apple 처리 완료·테스터 그룹 배정·사용자 기기의 21.1 설치는 미확인. 이전 5탭 화면 제보가 있어 설치 버전과 화면을 대조해야 함. 업로드 성공만으로 실기기 완료 처리하지 않음.</div></div>
-  <div class="sb-line"><div class="sb-label">미반영</div><div class="sb-value">새 변경안 구현: 온보딩 1/3 시작·선택형 정보, 대화방 만들기 상시 노출, 상품→브랜드→원래 대화 첨부, 공유 웹 링크의 앱에서 열기. 21.1 미포함, 새 CI·배포·실기기 검증 대기.</div></div>
-  <p><a href="https://github.com/yohan4477/Alimi/actions/runs/39261337516" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #21 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39260313253" target="_blank" rel="noopener noreferrer">Web checks #95 ↗</a> · <a href="https://github.com/yohan4477/Alimi/blob/main/docs/RELEASE_STATUS_2026-10-19.md" target="_blank" rel="noopener noreferrer">출시 상태·남은 작업 ↗</a></p></div>
+  <div class="card" id="sb-dev-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 증거 기준 수동 업데이트</span><h3>Seoul Beauty 1.0 (22.1) · 업로드 성공</h3>
+  <p>최종 업로드 커밋 <code>6e31dc7</code> (PR #130). 아래 기존 변경에 간단한 고객여정 보완을 추가했다. PR #127의 3탭·레이아웃·상품 표면·아바타 숨김, <code>921a6ea</code>의 좌우 전환 제거, PR #129의 표시 이름 Seoul Beauty 포함. 번들 ID <code>com.yohan4477.seoulbeauty</code>. 기존 Alimi 앱과 분리.</p>
+  <div class="sb-line"><div class="sb-label">검증 증거</div><div class="sb-value">JS 단위 테스트 127/127 및 Web checks #99 성공. 배포 커밋 6e31dc7의 GitHub Vercel status success 확인. TestFlight #22의 빌드·서명·App Store Connect 업로드 모두 성공.</div></div>
+  <div class="sb-line"><div class="sb-label">출시 확인 범위</div><div class="sb-value">Apple 처리 완료·테스터 그룹 배정·사용자 기기의 22.1 설치는 미확인. 이전 5탭 화면 제보가 있어 설치 버전과 화면을 대조해야 함. 업로드 성공만으로 실기기 완료 처리하지 않음.</div></div>
+  <div class="sb-line"><div class="sb-label">후속 반영</div><div class="sb-value">새 변경안 구현: 온보딩 1/3 시작·선택형 정보, 대화방 만들기 상시 노출, 상품→브랜드→원래 대화 첨부, 공유 웹 링크의 앱에서 열기. 22.1에 포함. 웹 검사 #99·Vercel 배포·TestFlight #22 업로드 성공. iPhone XCTest 전체 완료와 실기기 검증은 미확인.</div></div>
+  <p><a href="https://github.com/yohan4477/Alimi/actions/runs/39267027856" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #22 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39266571562" target="_blank" rel="noopener noreferrer">Web checks #99 ↗</a> · <a href="https://github.com/yohan4477/Alimi/blob/main/docs/RELEASE_STATUS_2026-10-19.md" target="_blank" rel="noopener noreferrer">출시 상태·남은 작업 ↗</a></p></div>
 
   <div class="sb-dev-kicker">ENGINEERING / RELEASE READINESS <span>2026.10.19 · 수동 리뷰</span></div>
   <div class="sb-dev-hero">
     <div><p class="sb-dev-eyebrow">SeoulBeauty · 개발 검토</p><h2>기획에서 실제 동작까지.</h2><p>전략·기획·디자인의 결정을 <strong>코드 → 테스트 → 배포 → 실측</strong>으로 연결하는 실행 대시보드입니다. 소비자 UI나 기존 관리 화면은 변경하지 않습니다.</p>
       <div class="sb-dev-jumps"><button type="button" data-dev-jump="sb-strategy-tab">전략 ↗</button><button type="button" data-dev-jump="sb-plan-tab">서비스 기획 ↗</button><button type="button" data-dev-jump="sb-design-tab">디자인 리뷰 ↗</button></div>
     </div>
-    <aside class="sb-dev-blocker"><small>P0 · 사용자 제보 확인</small><strong>설치 화면의 탭 수 불일치</strong><p>업로드한 21.1 소스는 3탭이지만 사용자는 다른 화면을 보고 있음. 설치된 앱·빌드와 탭 화면을 확인해야 한다. 과거 a09117e의 build-rate-limit 실패는 이력이며 최신 5efa85e 웹 배포는 성공했다.</p><a href="https://github.com/yohan4477/Alimi/actions/runs/39261337516" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #21 ↗</a></aside>
+    <aside class="sb-dev-blocker"><small>P0 · 사용자 제보 확인</small><strong>설치 화면의 탭 수 불일치</strong><p>업로드한 21.1 소스는 3탭이지만 사용자는 다른 화면을 보고 있음. 설치된 앱·빌드와 탭 화면을 확인해야 한다. 과거 a09117e의 build-rate-limit 실패는 이력이며 최신 5efa85e 웹 배포는 성공했다.</p><a href="https://github.com/yohan4477/Alimi/actions/runs/39267027856" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #22 ↗</a></aside>
   </div>
   <div class="sb-dev-summary" aria-label="개발 상태 요약">
     <div><span>온보딩·방 추천</span><strong>코드 반영</strong><small>관심사·고민 기반 실제 방 추천</small></div>
