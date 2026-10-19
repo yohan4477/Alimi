@@ -1248,10 +1248,6 @@
     "ko": "캐릭터",
     "en": "Character"
   },
-  "avatar.color": {
-    "ko": "배경 테두리 색",
-    "en": "Background ring"
-  },
   "avatar.option": {
     "ko": "캐릭터 {n}",
     "en": "Character {n}"
@@ -1271,26 +1267,6 @@
   "avatar.failed": {
     "ko": "저장하지 못했어요. 다시 시도하거나 닫아주세요.",
     "en": "Could not save. Please try again or close this screen."
-  },
-  "avatar.color0": {
-    "ko": "파랑",
-    "en": "Blue"
-  },
-  "avatar.color1": {
-    "ko": "라벤더",
-    "en": "Lavender"
-  },
-  "avatar.color2": {
-    "ko": "피치",
-    "en": "Peach"
-  },
-  "avatar.color3": {
-    "ko": "민트",
-    "en": "Mint"
-  },
-  "avatar.color4": {
-    "ko": "회색",
-    "en": "Gray"
   },
   "avatar.nudge": {
     "ko": "대화에서 쓸 캐릭터를 골라 볼까요?",
