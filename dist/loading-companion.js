@@ -1,8 +1,15 @@
-// Lightweight, decorative pixel guide for *real* asynchronous loading only.
-// No timers, fake progress, user profiling or network requests. 10 costumes share one 4.8 KB sprite.
+// Decorative pixel character during *real* asynchronous requests only.
+// The first outfit alternates between requests; long requests cycle all 10 looks.
+// No fake progress, skin-based inference, timers, or additional network calls.
 import {esc} from './util.js';
 
-export const loadingMarkup = label => `<div class="sb-loading-status" role="status" aria-live="polite">
-  <span class="sb-loading-sprite" aria-hidden="true"></span>
-  <span class="sb-loading-label">${esc(label)}</span>
-</div>`;
+let nextLook = 0;
+export const loadingMarkup = label => {
+  const look = nextLook++ % 10;
+  const phase = (-2.2 * look).toFixed(1) + 's';
+  const x = -64 * (look % 5), y = -96 * Math.floor(look / 5);
+  return `<div class="sb-loading-status" role="status" aria-live="polite">
+    <span class="sb-loading-sprite" aria-hidden="true" style="--sb-look-offset:${phase};--sb-static-x:${x}px;--sb-static-y:${y}px"></span>
+    <span class="sb-loading-label">${esc(label)}</span>
+  </div>`;
+};
