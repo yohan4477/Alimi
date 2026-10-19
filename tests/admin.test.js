@@ -78,7 +78,24 @@ test('origin is canonical and cannot be configured to a path or insecure product
 });
 test('no dashboard content resides in public assets; routing includes server-only HTML',async()=>{
   const conf=JSON.parse(await readFile(new URL('../vercel.json',import.meta.url),'utf8'));
-  assert.equal(conf.outputDirectory,'dist');assert.ok(conf.rewrites.some(x=>x.source==='/admin'&&x.destination==='/api/admin'));assert.equal(conf.functions['api/admin.js'].includeFiles,'server/admin-page.html');
+  assert.equal(conf.outputDirectory,'dist');assert.ok(conf.rewrites.some(x=>x.source==='/admin'&&x.destination==='/api/admin'));assert.equal(conf.functions['api/admin.js'].includeFiles,'server/admin-*.html');
   const css=await readFile(new URL('../dist/admin.css',import.meta.url),'utf8'),js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');assert.doesNotMatch(css+js,/한국 뷰티에 대해 이야기하고|초기 고객|미국의 K뷰티/);
   const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');assert.equal((html.match(/role="tabpanel"/g)||[]).length,4);assert.match(html,/미측정/);
+});
+
+test('planning review is authenticated and keeps original interactive UI isolated', async () => {
+  const anonymous = await request({url:'/api/admin?view=planning-review'});
+  assert.equal(anonymous.statusCode,401);
+  assert.doesNotMatch(anonymous.body,/sb-reference-review/);
+  const denied = await request({url:'/api/admin?view=planning-review',headers:cookie,fetchImpl:async()=>response({...admin,app_metadata:{}})});
+  assert.equal(denied.statusCode,403);
+  const allowed = await request({url:'/api/admin?view=planning-review',headers:cookie});
+  assert.equal(allowed.statusCode,200);
+  assert.match(allowed.body,/sb-reference-review/);
+  assert.match(allowed.body,/data:image\/jpeg;base64/);
+  assert.match(allowed.headers['content-security-policy'],/script-src 'sha256-/);
+  assert.match(allowed.headers['content-security-policy'],/frame-ancestors 'self'/);
+  assert.match(allowed.headers['cache-control'],/no-store/);
+  const page = await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
+  assert.match(page,/src="\/api\/admin\?view=planning-review"/);
 });

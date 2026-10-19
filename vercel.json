@@ -9,7 +9,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/admin.js": {
-      "includeFiles": "server/admin-page.html",
+      "includeFiles": "server/admin-*.html",
       "maxDuration": 30
     }
   },

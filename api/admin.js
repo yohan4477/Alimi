@@ -1,7 +1,9 @@
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {adminOrigin, sameOrigin, readToken, sessionCookie, clearCookie, authRequest, verifiedAdmin} from '../server/admin-auth.js';
 
 const pageFile = new URL('../server/admin-page.html', import.meta.url);
+const reviewFile = new URL('../server/admin-planning-review.html', import.meta.url);
 const headers = {
   'Content-Type': 'text/html; charset=utf-8',
   'Cache-Control': 'private, no-store, max-age=0',
@@ -9,7 +11,7 @@ const headers = {
   'Pragma': 'no-cache', 'Vary': 'Cookie',
   'X-Robots-Tag': 'noindex, nofollow, noarchive',
   'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin',
-  'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+  'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'; frame-src 'self'"
 };
 function loginPage(message = '관리자로 지정된 계정으로 로그인하세요.') {
   // Only fixed, server-owned messages are passed here; never interpolate user input.
@@ -35,7 +37,7 @@ async function credentials(req) {
   const email = body.email.trim(), password = body.password;
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length > 0 && password.length <= 1024 ? {email, password} : null;
 }
-export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), env = process.env} = {}) {
+export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), env = process.env} = {}) {
   return async function admin(req, res) {
     for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
     const send = (status, body) => { res.statusCode = status; res.end(body); };
@@ -77,6 +79,15 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
       const result = await verifiedAdmin(token, fetchImpl);
       if (!result.user) { res.setHeader('Set-Cookie', clearCookie()); return send(401, loginPage('로그인이 만료되었습니다. 다시 로그인하세요.')); }
       if (!result.allowed) { res.setHeader('Set-Cookie', clearCookie()); return send(403, loginPage('이 계정에는 관리자 접근 권한이 없습니다.')); }
+      if (url.searchParams.get('view') === 'planning-review') {
+        const review = await readReview();
+        const scriptHashes = [...review.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+          .map(([, script]) => "'sha256-" + createHash('sha256').update(script).digest('base64') + "'").join(' ');
+        // The unchanged review uses dynamic style attributes for screenshot crops.
+        // Permit these only in the authenticated, isolated review document.
+        res.setHeader('Content-Security-Policy', `default-src 'none'; script-src ${scriptHashes}; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
+        return send(200, review);
+      }
       return send(200, await readPage());
     } catch {
       return send(503, loginPage('일시적으로 접근을 확인할 수 없습니다. 잠시 후 다시 시도하세요.'));

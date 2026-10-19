@@ -20,8 +20,19 @@ if (root) {
       if (next !== null) { event.preventDefault(); select(tabs[next], true); }
     });
   }
+  const review = document.getElementById('sb-planning-review');
+  let reviewObserver;
+  review?.addEventListener('load', () => {
+    reviewObserver?.disconnect();
+    const body = review.contentDocument?.body;
+    if (!body) return;
+    const fit = () => { review.style.height = Math.ceil(body.getBoundingClientRect().height + 16) + 'px'; };
+    reviewObserver = new ResizeObserver(fit);
+    reviewObserver.observe(body);
+    fit();
+  });
   let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
-  select(tabs.find(t => t.id === saved) || tabs[0]);
+  select(tabs.find(t => t.id === (location.hash === '#sb-plan' ? 'sb-plan-tab' : saved)) || tabs[0]);
   document.getElementById('admin-logout').addEventListener('submit', () => { root.hidden = true; try { sessionStorage.removeItem('sb-admin-tab'); } catch {} });
   // Do not show a protected snapshot from the browser back/forward cache after logout.
   addEventListener('pagehide', () => { root.hidden = true; });
