@@ -87,6 +87,6 @@
 - [PR #132](https://github.com/yohan4477/Alimi/pull/132) main 반영: 3d684bc654d62d305ba02bd3811067881ac483eb.
 - JS 단위 테스트 130/130 및 [Web checks #101](https://github.com/yohan4477/Alimi/actions/runs/39275815822) 전체 성공. 3d684bc의 Vercel 배포 success 확인.
 - **Seoul Beauty 1.0 (24.1)**: [TestFlight #24](https://github.com/yohan4477/Alimi/actions/runs/39276209550) 빌드·서명·App Store Connect 업로드 전체 성공.
-- [iOS CI #263](https://github.com/yohan4477/Alimi/actions/runs/39275815867): 빌드 성공, XCTest 진행 중. 전체 통과로 표시하지 않는다.
+- [iOS CI #263](https://github.com/yohan4477/Alimi/actions/runs/39275815867): 빌드·XCTest·앱 실행·화면 캡처 전체 성공.
 - Apple 처리·테스터 노출·실기기 설치 상태는 확인하지 않았다.
 - 이전 #23도 업로드에 성공했지만 모든 공유 로딩 이미지 교체는 **24.1부터 포함**된다. 이 기록이 이전 대기·미반영 기록보다 우선한다.
