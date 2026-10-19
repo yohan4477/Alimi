@@ -168,8 +168,45 @@ if (root) {
     });
     renderGuide();
   }
+
+  // Development tab reads a manual snapshot: filters never mutate GitHub/issues or telemetry.
+  const devPanel = document.getElementById('sb-dev');
+  if (devPanel) {
+    const cards = [...devPanel.querySelectorAll('[data-dev-item]')];
+    const buttons = [...devPanel.querySelectorAll('[data-dev-filter]')];
+    const state = {priority:'all',platform:'all'};
+    const count = document.getElementById('sb-dev-result-count');
+    const empty = document.getElementById('sb-dev-empty');
+    const refresh = () => {
+      let shown = 0;
+      for (const card of cards) {
+        const matchPriority = state.priority === 'all' || card.dataset.devPriority === state.priority;
+        const matchPlatform = state.platform === 'all' || (card.dataset.devPlatform || '').split(' ').includes(state.platform);
+        card.hidden = !(matchPriority && matchPlatform);
+        if (!card.hidden) shown++;
+      }
+      count.textContent = '표시 ' + shown + '개 / 전체 ' + cards.length + '개 · 수동 리뷰';
+      empty.hidden = shown !== 0;
+    };
+    for (const button of buttons) button.addEventListener('click', () => {
+      const type = button.dataset.devFilter;
+      state[type] = button.dataset.devValue;
+      for (const choice of buttons.filter(item => item.dataset.devFilter === type))
+        choice.setAttribute('aria-pressed', String(choice === button));
+      refresh();
+    });
+    devPanel.addEventListener('click', event => {
+      const jump = event.target.closest('[data-dev-jump]');
+      if (!jump || !devPanel.contains(jump)) return;
+      const tab = document.getElementById(jump.dataset.devJump);
+      if (tab) select(tab, true);
+    });
+    refresh();
+  }
+
   let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
-  select(tabs.find(t => t.id === (location.hash === '#sb-plan' ? 'sb-plan-tab' : saved)) || tabs[0]);
+  const deepLink = {'#sb-plan':'sb-plan-tab','#sb-dev':'sb-dev-tab'}[location.hash];
+  select(tabs.find(t => t.id === (deepLink || saved)) || tabs[0]);
   document.getElementById('admin-logout').addEventListener('submit', () => { root.hidden = true; try { sessionStorage.removeItem('sb-admin-tab'); } catch {} });
   // Do not show a protected snapshot from the browser back/forward cache after logout.
   addEventListener('pagehide', () => { root.hidden = true; });
