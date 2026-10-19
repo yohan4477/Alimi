@@ -6,6 +6,7 @@
     <button class="nav-link active" id="sb-strategy-tab" type="button" role="tab" aria-controls="sb-strategy" aria-selected="true">전략</button>
     <button class="nav-link" id="sb-plan-tab" type="button" role="tab" aria-controls="sb-plan" aria-selected="false">서비스 기획</button>
     <button class="nav-link" id="sb-design-tab" type="button" role="tab" aria-controls="sb-design" aria-selected="false">디자인 리뷰</button>
+    <button class="nav-link" id="sb-dev-tab" type="button" role="tab" aria-controls="sb-dev" aria-selected="false">개발</button>
     <button class="nav-link" id="sb-roadmap-tab" type="button" role="tab" aria-controls="sb-roadmap" aria-selected="false">실행 로드맵</button>
     <button class="nav-link" id="sb-dashboard-tab" type="button" role="tab" aria-controls="sb-dashboard" aria-selected="false">관리 대시보드</button>
   </div>
@@ -338,6 +339,103 @@
       <div><strong>기존 자산은 그대로</strong><p>현재 하단 탭 3개, 채팅방 Posts/Live, 상품 첨부, Search, My Activity, 관리자 기존 탭은 유지. 이 보드는 기획 리뷰이며 앱 적용·배포·실측 완료를 의미하지 않는다.</p></div>
       <div class="sb-links"><a href="https://github.com/yohan4477/Alimi/blob/main/docs/DESIGN_REVIEW.md" target="_blank" rel="noopener noreferrer">디자인 리뷰 원문 ↗</a><a href="https://www.nngroup.com/articles/mobile-app-onboarding/" target="_blank" rel="noopener noreferrer">온보딩 UX 근거 ↗</a><a href="https://www.nngroup.com/articles/get-started/" target="_blank" rel="noopener noreferrer">가입 전 가치 제시 ↗</a><a href="/api/admin?view=planning-review" target="_blank" rel="noopener noreferrer">기존 UI 구성 보기 ↗</a></div>
     </div>
+  </section>
+  <section class="sb-panel" id="sb-dev" role="tabpanel" aria-labelledby="sb-dev-tab" hidden>
+  <div class="sb-dev-kicker">ENGINEERING / RELEASE READINESS <span>2026.10.19 · 수동 리뷰</span></div>
+  <div class="sb-dev-hero">
+    <div><p class="sb-dev-eyebrow">SeoulBeauty · 개발 검토</p><h2>기획에서 실제 동작까지.</h2><p>전략·기획·디자인의 결정을 <strong>코드 → 테스트 → 배포 → 실측</strong>으로 연결하는 실행 대시보드입니다. 소비자 UI나 기존 관리 화면은 변경하지 않습니다.</p>
+      <div class="sb-dev-jumps"><button type="button" data-dev-jump="sb-strategy-tab">전략 ↗</button><button type="button" data-dev-jump="sb-plan-tab">서비스 기획 ↗</button><button type="button" data-dev-jump="sb-design-tab">디자인 리뷰 ↗</button></div>
+    </div>
+    <aside class="sb-dev-blocker"><small>우선 확인할 출시 차단</small><strong>웹 배포 실패</strong><p>2026.10.19 기준 main <code>5cdb7d6</code>의 GitHub Vercel status: failure (build-rate-limit). 코드 병합을 운영 반영으로 표시하면 안 됩니다.</p><a href="https://github.com/yohan4477/Alimi/commit/5cdb7d62ff4267f20153bd87074b84f01070ffca" target="_blank" rel="noopener noreferrer">GitHub 증거 ↗</a></aside>
+  </div>
+  <div class="sb-dev-summary" aria-label="개발 상태 요약">
+    <div><span>온보딩·방 추천</span><strong>기획 시안</strong><small>실제 방 연동 없음</small></div>
+    <div><span>로딩 캐릭터 10종</span><strong>코드 반영</strong><small>실기기 검증 별도</small></div>
+    <div><span>제휴 승인 순수익</span><strong>미측정</strong><small>주문·정산 미연결</small></div>
+    <div><span>웹 운영 배포</span><strong>차단</strong><small>기준 SHA status 실패</small></div>
+  </div>
+  <h3 class="sb-dev-heading">팀 간 연결 구조</h3>
+  <div class="sb-dev-flow">
+    <div><b>01 전략</b><span>커뮤니티 유용성<br>승인 순수수료</span></div>
+    <div><b>02 기획</b><span>스킨·메이크업 복수 선택<br>추천 + 자유 방 생성</span></div>
+    <div><b>03 디자인</b><span>기존 3탭 유지<br>로딩·온보딩 캐릭터</span></div>
+    <div><b>04 개발·QA</b><span>실제 데이터·테스트<br>릴리즈 게이트</span></div>
+  </div>
+  <div class="sb-dev-heading-row"><div><h3 class="sb-dev-heading">개발 실행 백로그</h3><p>우선순위는 개발 검토 제안이며 GitHub Issue·PR의 실시간 상태가 아닙니다.</p></div><small id="sb-dev-result-count" role="status" aria-live="polite">전체 10개 · 수동 검토</small></div>
+  <div class="sb-dev-filter-row">
+    <div class="sb-dev-filters" role="group" aria-label="개발 우선순위"><button type="button" data-dev-filter="priority" data-dev-value="all" aria-pressed="true">전체</button><button type="button" data-dev-filter="priority" data-dev-value="P0" aria-pressed="false">P0</button><button type="button" data-dev-filter="priority" data-dev-value="P1" aria-pressed="false">P1</button></div>
+    <div class="sb-dev-filters" role="group" aria-label="개발 플랫폼"><button type="button" data-dev-filter="platform" data-dev-value="all" aria-pressed="true">전체 플랫폼</button><button type="button" data-dev-filter="platform" data-dev-value="web" aria-pressed="false">Web</button><button type="button" data-dev-filter="platform" data-dev-value="ios" aria-pressed="false">iOS</button><button type="button" data-dev-filter="platform" data-dev-value="backend" aria-pressed="false">Backend</button></div>
+  </div>
+  <div class="sb-dev-board" id="sb-dev-board"><article class="sb-dev-ticket" data-dev-item="D01" data-dev-priority="P0" data-dev-platform="web ios backend">
+<div class="sb-dev-ticket-meta"><span>P0 · D01</span><span>WEB · IOS · BACKEND</span></div>
+<h4>선택형 온보딩 → 기존 방 추천</h4><p>스킨케어+메이크업 및 분야별 고민 복수 선택, 건너뛰기. 실제 공개 방 중 관련 대화를 추천하되, 누구나 전체 탐색·자유 방 생성을 할 수 있어야 한다.</p><p class="sb-dev-ticket-status">현재 · 기획 미리보기만 구현 / 소비자 추천 미검증</p>
+<details><summary>개발 수용 기준</summary><p>실제 방 조회, 관심사 미선택·빈 결과·에러, 추천 이유·최근 활동, ko/en, iPhone·모바일, 첫 발화 이벤트 확인</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/SERVICE_PLAN.md" target="_blank" rel="noopener noreferrer">서비스 명세 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D02" data-dev-priority="P0" data-dev-platform="web backend">
+<div class="sb-dev-ticket-meta"><span>P0 · D02</span><span>WEB · BACKEND</span></div>
+<h4>웹 배포 복구 · 운영 SHA 확인</h4><p>Vercel의 build-rate-limit 실패 원인을 해결하고 main·배포 URL의 코드 버전과 관리자 접근 제어를 확인한다.</p><p class="sb-dev-ticket-status">현재 · 기준 main Vercel status 실패</p>
+<details><summary>개발 수용 기준</summary><p>READY 배포 SHA 일치, 기존 앱 3탭 보존, /admin 비로그인 401·일반인 403·관리자 200, 캐시·보안·모바일 검증</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/ADMIN_CONSOLE.md" target="_blank" rel="noopener noreferrer">보안·배포 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D03" data-dev-priority="P0" data-dev-platform="web ios backend">
+<div class="sb-dev-ticket-meta"><span>P0 · D03</span><span>WEB · IOS · BACKEND</span></div>
+<h4>화면 이동·실사용 퍼널 계측</h4><p>유입→고민 선택/스킵→추천·검색·자유 생성→방 읽기·질문·답변→상품·제휴 클릭을 경로별로 추적한다.</p><p class="sb-dev-ticket-status">현재 · 이벤트 코드 일부 / 실제 수신·집계 미검증</p>
+<details><summary>개발 수용 기준</summary><p>이벤트 중복·운영자/봇 제외, 웹/iOS 경로·시간·분모 통일, 신규 대화 참여·D7, 보고 누락 검증</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/FUNNEL_KPI_REVIEW.md" target="_blank" rel="noopener noreferrer">KPI·이벤트 정의 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D04" data-dev-priority="P0" data-dev-platform="web ios">
+<div class="sb-dev-ticket-meta"><span>P0 · D04</span><span>WEB · IOS</span></div>
+<h4>커뮤니티 ↔ 상품 실제 환경 회귀</h4><p>Community / Search / My Activity와 사용자 생성 방, Posts/Live, 상품 카드·옵션·브랜드·상세·뒤로가기를 연결해 검증한다.</p><p class="sb-dev-ticket-status">현재 · 관련 코드·CI 일부 / 최신 실제 iPhone 미확인</p>
+<details><summary>개발 수용 기준</summary><p>읽기·발화·첨부·검색·상품 복귀 및 공유, 에러·오프라인, 320/390/1024px, iPhone 실제 설치·탐색</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/issues/68" target="_blank" rel="noopener noreferrer">커뮤니티 #68 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D05" data-dev-priority="P0" data-dev-platform="backend web">
+<div class="sb-dev-ticket-meta"><span>P0 · D05</span><span>BACKEND · WEB</span></div>
+<h4>승인 제휴 수수료 데이터 연결</h4><p>링크 클릭과 주문을 분리하고 제휴사 주문 귀속·취소·반품·승인 순수수료를 대조한다. 민감한 피부 선택 정보는 전송하지 않는다.</p><p class="sb-dev-ticket-status">현재 · 클릭 일부 / 주문·정산 연동 미검증</p>
+<details><summary>개발 수용 기준</summary><p>클릭→귀속 주문→승인 수수료 검증, 순방문자 1000명당 수익 분모 일치, 데이터 없을 땐 미측정</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/issues/12" target="_blank" rel="noopener noreferrer">제휴 #12 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D06" data-dev-priority="P0" data-dev-platform="web backend">
+<div class="sb-dev-ticket-meta"><span>P0 · D06</span><span>WEB · BACKEND</span></div>
+<h4>방 생성 자유도 · 신고/스팸 방어</h4><p>추천방이 없어도 직접 방을 만들고 첫 타인 참여를 유도한다. 방 제목·태그와 개인정보·스팸 대응도 점검한다.</p><p class="sb-dev-ticket-status">현재 · 주제 생성 코드 일부 / 안전성·실사용 미검증</p>
+<details><summary>개발 수용 기준</summary><p>방 생성부터 첫 발화까지, 신고·중복·남용·빈 방, 권한과 공개 범위, 사용자 프로필 추정 없음</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/pull/107" target="_blank" rel="noopener noreferrer">대화 시작 PR ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D07" data-dev-priority="P1" data-dev-platform="web ios">
+<div class="sb-dev-ticket-meta"><span>P1 · D07</span><span>WEB · IOS</span></div>
+<h4>로딩 캐릭터 10종 실기기 QA</h4><p>400ms 이후만 노출하고 2.2초마다 의상을 바꾸되 요청 완료 시 즉시 종료한다.</p><p class="sb-dev-ticket-status">현재 · 웹/iOS 코드 반영 / 운영 동작 미확인</p>
+<details><summary>개발 수용 기준</summary><p>10종 순환·초기 의상 다양화·Reduce Motion·VoiceOver·실패/재시도·이미지 캐시·성능</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/DESIGN_REVIEW.md" target="_blank" rel="noopener noreferrer">디자인 검토 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D08" data-dev-priority="P1" data-dev-platform="web ios">
+<div class="sb-dev-ticket-meta"><span>P1 · D08</span><span>WEB · IOS</span></div>
+<h4>선택형 아바타 · 사용자 공개 범위</h4><p>가이드 캐릭터와 아바타는 별도. 한복·패션 의상은 개인 정보를 추정하지 않는 선택형 프로필 후보로 둔다.</p><p class="sb-dev-ticket-status">현재 · 일부 의상·PR #105 / 최종 출시 미확인</p>
+<details><summary>개발 수용 기준</summary><p>권리·파일 크기·변경/초기화·익명성 검증; 성별·피부/인종·나이를 아바타로 판단하지 않기</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/pull/105" target="_blank" rel="noopener noreferrer">아바타 PR #105 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D09" data-dev-priority="P1" data-dev-platform="web ios">
+<div class="sb-dev-ticket-meta"><span>P1 · D09</span><span>WEB · IOS</span></div>
+<h4>채팅 초대·상품 공유 딥링크</h4><p>친구에게 대화방을 초대하거나 제품을 공유한 뒤 해당 화면과 원래 대화로 되돌아오도록 한다.</p><p class="sb-dev-ticket-status">현재 · 공유 PR #102 열림 / 실제 배포 미확인</p>
+<details><summary>개발 수용 기준</summary><p>비로그인·앱 설치 여부·링크 오류·상품 옵션·공유 전환·최초 참여, URL 내 민감정보 제외</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/pull/102" target="_blank" rel="noopener noreferrer">공유 PR #102 ↗</a>
+</article>
+<article class="sb-dev-ticket" data-dev-item="D10" data-dev-priority="P1" data-dev-platform="web ios">
+<div class="sb-dev-ticket-meta"><span>P1 · D10</span><span>WEB · IOS</span></div>
+<h4>한영·접근성·320px 전수 확인</h4><p>기존 3탭과 새 기능의 문구·빈 화면·오류·알림·캐릭터 모션을 전체 화면에서 점검한다.</p><p class="sb-dev-ticket-status">현재 · UX 체크리스트 존재 / 전체 실사용 검증 전</p>
+<details><summary>개발 수용 기준</summary><p>ko/en 키·탭 포커스·스크린리더·모션 감소·320/390/1024px overflow와 느린 네트워크</p></details>
+<a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/DESIGN_REVIEW.md" target="_blank" rel="noopener noreferrer">UX 검토 ↗</a>
+</article></div>
+  <p class="sb-dev-empty" id="sb-dev-empty" hidden>해당 조건의 개발 항목이 없습니다. 필터를 바꿔주세요.</p>
+  <h3 class="sb-dev-heading">릴리즈 게이트</h3>
+  <div class="sb-dev-gates">
+    <div><b>01 · 코드</b><p>최신 main 코드 리뷰·회귀·관리자 인증</p><small>부분 검증</small></div>
+    <div><b>02 · 배포</b><p>Vercel READY·SHA 일치 / iOS CI·TestFlight 빌드 대조</p><small>웹 차단</small></div>
+    <div><b>03 · 실기기</b><p>자유 방 생성·온보딩·실제 채팅·상품/공유·접근성</p><small>미검증</small></div>
+    <div><b>04 · 계측</b><p>퍼널 수신·D7·승인된 제휴 수수료 정산 원장 대조</p><small>미측정</small></div>
+  </div>
+  <footer class="sb-dev-footer"><strong>증거와 상태는 구분합니다.</strong><p>2026.10.19 확인한 수동 스냅샷입니다. 이 화면은 실시간 모니터링이나 배포 제어가 아니며, PR 병합·CI 통과·실기기·운영 배포·실측은 각각 따로 검증합니다. 수치가 없으면 0이 아닌 미측정으로 표시합니다. 소비자 가격 추적·목표가·푸시 알림은 현재 범위에서 제외합니다.</p>
+  <div><a href="https://github.com/yohan4477/Alimi/blob/main/docs/PRODUCT_STATUS.md" target="_blank" rel="noopener noreferrer">현재 상태 원장 ↗</a><a href="https://github.com/yohan4477/Alimi/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener noreferrer">실행 로드맵 ↗</a><a href="https://github.com/yohan4477/Alimi/blob/main/docs/FEATURE_REGISTER.md" target="_blank" rel="noopener noreferrer">기능 인덱스 ↗</a><a href="https://github.com/yohan4477/Alimi/actions" target="_blank" rel="noopener noreferrer">CI 기록 ↗</a></div></footer>
   </section>
   <section class="sb-panel" id="sb-roadmap" role="tabpanel" aria-labelledby="sb-roadmap-tab" hidden>
     <h3>대화의 가치를 먼저 확인하는 순서</h3>
