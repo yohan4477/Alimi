@@ -143,3 +143,39 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
 }
 @media(prefers-reduced-motion:reduce){.sb-loading-sprite{animation:sb-sprite-appear .01s linear .4s forwards;opacity:0;background-position:var(--sb-static-x,0px) var(--sb-static-y,0px)}}
 @media(max-width:360px){.sb-loading-status{gap:6px;padding:4px 8px}}
+
+
+/* Seoul Beauty journey reference: visual foundation, 2026-10-19.
+   Non-destructive layer: keep existing community/search/activity routing. */
+:root{
+  --ink:#17233d;
+  --muted:#74829a;
+  --line:#e6eef9;
+  --blue:#1463e8;
+  --red:#ef5d77;
+  --sb-surface:#f1f6ff;
+  --sb-border:#dce8f8;
+  --sb-radius:16px;
+}
+body{color:var(--ink);background:#fff}
+.logo{color:#104eaf;letter-spacing:-1.1px}
+header{border-bottom:1px solid #edf2f9}
+.searchbar,.search-open{background:#f1f6ff;border-radius:13px}
+.notice{background:#f1f6ff;color:#526988}
+.hero{background:linear-gradient(125deg,#f3f7ff,#eaf3ff 70%,#fff);border:1px solid var(--sb-border);border-radius:20px}
+.hero button{background:#1463e8;color:white;border-radius:11px;padding:12px 18px}
+.chip.active{color:#1463e8;border-bottom-color:#1463e8}
+.visual{background:#f7faff;border-radius:15px;overflow:hidden}
+.card{border-radius:15px}
+.card:focus-within{outline:2px solid #1463e8;outline-offset:3px}
+button:focus-visible,input:focus-visible{outline-color:#1463e8}
+#tabbar{background:#fff;border-top:1px solid #e6eef9;box-shadow:0 -4px 22px rgba(16,52,105,.045)}
+#tabbar button.active{color:#1463e8}
+#tabbar button svg{stroke:currentColor}
+.chat-item{border-radius:12px}
+@media(max-width:600px){
+  header{padding:14px 18px}
+  main{padding-left:16px;padding-right:16px}
+  .hero{border-radius:18px}
+  .logo{font-size:25px}
+}
