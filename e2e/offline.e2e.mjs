@@ -139,6 +139,10 @@ try {
     await page.fill('#chat-text', 'Yes, it is light');
     await page.click('#chat-form .chat-send');
     await page.waitForSelector('.chat-msg >> text=Yes, it is light');
+    assert.equal(await page.locator('dialog.avatar-dialog[open]').count(), 0, 'joining and sending never wait on the avatar picker');
+    await page.waitForSelector('.avatar-nudge [data-avatar-edit]');
+    await page.click('.avatar-nudge-close');
+    assert.equal(await page.locator('.avatar-nudge').count(), 0);
     await page.click('[data-chat-menu="11"]');
     await page.click('[data-chat-action="block"]');
     assert.equal(await page.locator('.chat-msg >> text=Anyone tried snail?').count(), 0);

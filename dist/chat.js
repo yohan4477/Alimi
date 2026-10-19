@@ -1,6 +1,6 @@
 import {loadingMarkup} from './loading-companion.js';
 import {share, shareUrl} from './share.js';
-import {chooseAvatar, avatarMarkup} from './avatar.js';
+import {avatarMarkup, readAvatar} from './avatar.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
 // and Live chat, kept in separate views. Product cards are the shared link: the same card in a post,
 // comment or chat message opens the same product sheet and carries the source as Awin clickref.
@@ -165,7 +165,6 @@ export async function renderMyConversations(box) {
 }
 
 function askJoin(room, then) {
-  const proceed = then; then = () => chooseAvatar({onboarding:true}).then(proceed);
   if (hasAgreed(storage)) { then(); return; }
   const dlg = $('#chat-join');
   dlg.innerHTML = `<h2>${esc(t('chat.joinTitle', {room: roomTitle(room)}))}</h2><p class="chat-intro">${esc(roomIntro(room))}</p><p class="chat-rules">${esc(t('chat.rules'))}</p><div class="chat-join-actions"><button data-chat-action="join-cancel">${esc(t('cancel'))}</button><button class="primary" data-chat-action="join-ok">${esc(t('chat.join'))}</button></div>`;
@@ -314,10 +313,17 @@ async function send() {
     const m = await postMessage(secret, chat.room.id, text, chat.item, chat.replyTo);
     if (!chat.messages.some(x => x.id === m.id)) chat.messages.push(m);
     track('chat_send', null, {room: chat.room.id, item: chat.item ? 1 : 0, reply: chat.replyTo ? 1 : 0});
-    box.value = ''; chat.item = null; chat.replyTo = null; renderContext(); renderLog(true);
+    box.value = ''; chat.item = null; chat.replyTo = null; renderContext(); renderLog(true); nudgeAvatar();
   } catch (e) { toast(t(errorKey(e.message))); }
   finally { chat.sending = false; }
 }
+// After the first message, offer the character picker once without blocking the conversation.
+const NUDGED = 'seoulbeauty-avatar-nudged';
+function nudgeAvatar() {
+  try { if (readAvatar(storage) || storage.getItem(NUDGED)) return; storage.setItem(NUDGED, '1'); } catch { return; }
+  $('.chat-composer')?.insertAdjacentHTML('afterbegin', `<div class="avatar-nudge" role="status">${avatarMarkup()}<span>${esc(t('avatar.nudge'))}</span><button type="button" data-avatar-edit>${esc(t('avatar.pick'))}</button><button type="button" class="avatar-nudge-close" aria-label="${esc(t('close'))}">×</button></div>`);
+}
+document.addEventListener('click', e => { if (e.target.closest('.avatar-nudge-close, .avatar-nudge [data-avatar-edit]')) document.querySelector('.avatar-nudge')?.remove(); });
 function startPolling() {
   stopPolling();
   chat.poll = setInterval(async () => {

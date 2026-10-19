@@ -1747,5 +1747,13 @@
   "avatar.color4": {
     "ko": "회색",
     "en": "Gray"
+  },
+  "avatar.nudge": {
+    "ko": "대화에서 쓸 캐릭터를 골라 볼까요?",
+    "en": "Want to pick a character for your chats?"
+  },
+  "avatar.pick": {
+    "ko": "고르기",
+    "en": "Pick"
   }
 }

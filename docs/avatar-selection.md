@@ -2,7 +2,7 @@
 
 Five completed female character assets, with varied appearances and five ring colors. Images total 53 KB. Character IDs are opaque display choices, not demographic fields.
 
-Entry: first topic participation (after community rules), or My activity / Settings → My character. Selection and color have a live preview. Save persists locally; cancel discards the draft; Choose later stores a neutral icon and prevents repeated onboarding. Korean and English strings are shared with the iOS bundle.
+Entry: My activity / Settings → My character, or a one-time, non-blocking prompt above the composer after the first chat message (joining a topic never waits on the picker). Selection and color have a live preview. Save persists locally; cancel discards the draft; Choose later stores a neutral icon and prevents repeated onboarding. Korean and English strings are shared with the iOS bundle.
 
 This is a **device-local UI pilot**. Only the owner sees their selection in My activity, settings, and their own live-chat messages. It does not claim to sync to other participants, other devices or native iOS screens. Existing server-generated anonymous nicknames remain. Backend access was unavailable during implementation, so shared profile persistence and nickname editing are not included. Do not call this a complete public avatar launch.
 
