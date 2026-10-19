@@ -9,6 +9,8 @@ struct Interests: Codable, Equatable {
     var skincare = false
     var makeup = false
     var concerns: [String] = []
+    var ageRange: String?
+    var skinType: String?
     var done = false
     static let groups = ["skincare", "makeup"]
     // Stable ids shared with the web guide and the user_rooms migration; only labels are translated.
@@ -66,7 +68,7 @@ enum Recommend {
                 let tags = concerns(of: room)
                 let matched = chosen.filter { tags.contains($0) }
                 if matched.isEmpty && group == nil { continue }
-                picked.append((RoomPick(room: room, matched: matched, popular: false), matched.count * 2 + (group == nil ? 0 : 1)))
+                picked.append((RoomPick(room: room, matched: matched, popular: false), matched.count * 4 + (group == nil ? 0 : 2) + (sel.skincare && ((sel.skinType == "dry" && tags.contains("dry")) || (sel.skinType == "oily" && tags.contains("sebum"))) ? 1 : 0)))
             }
             picked.sort { $0.score != $1.score ? $0.score > $1.score : busier($0.pick.room, $1.pick.room) }
             if !picked.isEmpty { return Array(picked.prefix(limit).map(\.pick)) }
@@ -331,6 +333,8 @@ struct CommunityHome: View {
                 VStack(alignment: .leading, spacing: 10) {
                     header
                     tabs
+                    Button { creating = true } label: { InlineActionLabel(title: L("room.new"), icon: "plus").frame(maxWidth: .infinity, minHeight: 44) }
+                        .buttonStyle(.borderedProminent).accessibilityIdentifier("create-room")
                     content
                     if model.loading { LoadingCompanion(compact: true) }
                     if model.failed {
@@ -437,7 +441,7 @@ struct CommunityHome: View {
     }
     @ViewBuilder private var allRooms: some View {
         SectionHead(title: L("home.topics"), sub: L("home.askHint")) {
-            if model.canCreateRooms { Button { creating = true } label: { InlineActionLabel(title: L("room.new"), icon: "plus").frame(minHeight: 44) }.font(.footnote.weight(.semibold)) }
+            EmptyView()
         }
         ForEach(model.topics) { room in roomLink(room, note: room.intro) }
     }

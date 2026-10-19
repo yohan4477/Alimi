@@ -67,3 +67,16 @@ test('room creation is offered only once the server lists room concerns', () => 
   assert.equal(canCreateRooms(rooms), false);
   assert.equal(canCreateRooms([...rooms, room('u-1', 'talk', {concerns: []})]), true);
 });
+
+
+test('optional profile preserves old choices and age does not rank rooms', () => {
+  const old = {version:1, skincare:true, makeup:false, concerns:[], done:true};
+  assert.deepEqual(normalize(old),old);
+  const typed = normalize({...old, ageRange:'18–24', skinType:'dry'});
+  assert.equal(typed.skinType,'dry');
+  const list = [room('oily','skin',{concerns:['sebum']}), room('dry','skin',{concerns:['dry']})];
+  assert.equal(recommendRooms(list,typed)[0].room.id,'dry');
+  assert.deepEqual(recommendRooms(list,typed),recommendRooms(list,{...typed,ageRange:'45+'}));
+  const explicit = {...typed,concerns:['sebum']};
+  assert.equal(recommendRooms(list,explicit)[0].room.id,'oily');
+});

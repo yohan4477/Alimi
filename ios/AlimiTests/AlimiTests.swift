@@ -191,6 +191,18 @@ final class AlimiTests: XCTestCase {
         Interests(skincare: true, makeup: true, concerns: ["dry", "cushion"], done: true).save(defaults)
         XCTAssertEqual(Interests.load(defaults)?.concerns, ["dry", "cushion"])
     }
+    func testOptionalProfileKeepsOldSavedInterestsReadable() throws {
+        let data = Data(#"{"skincare":true,"makeup":false,"concerns":["dry"],"done":true}"#.utf8)
+        let decoded = try JSONDecoder().decode(Interests.self, from: data)
+        XCTAssertNil(decoded.ageRange)
+        XCTAssertEqual(decoded.concerns, ["dry"])
+        var profile = decoded
+        profile.skinType = "oily"
+        profile.ageRange = "18–24"
+        let young = Recommend.rooms(seedRooms, profile).map(\.room.id)
+        profile.ageRange = "45+"
+        XCTAssertEqual(young, Recommend.rooms(seedRooms, profile).map(\.room.id))
+    }
     func testRecommendationsMatchConcernsAndKeepFieldsApart() {
         let skin = Recommend.rooms(seedRooms, Interests(skincare: true, concerns: ["dry", "sensitive"]))
         XCTAssertEqual(skin.first?.room.id, "dry-sensitive")

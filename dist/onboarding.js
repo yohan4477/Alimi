@@ -19,7 +19,7 @@ export function normalize(p) {
   const skincare = p.skincare === true, makeup = p.makeup === true;
   const allowed = new Set(visibleConcerns({skincare, makeup}).map(c => c.id));
   const concerns = CONCERNS.map(c => c.id).filter(id => allowed.has(id) && Array.isArray(p.concerns) && p.concerns.includes(id));
-  return {version: 1, skincare, makeup, concerns, done: p.done === true};
+  return {version: 1, skincare, makeup, concerns, done: p.done === true, ...(p.ageRange ? {ageRange: ['<18','18–24','25–34','35–44','45+'].includes(p.ageRange) ? p.ageRange : null} : {}), ...(p.skinType ? {skinType: ['dry','oily','combination','normal'].includes(p.skinType) ? p.skinType : null} : {})};
 }
 export function readInterests(storage = deviceStorage()) {
   try { return normalize(JSON.parse(storage?.getItem(KEY))); } catch { return null; }
@@ -46,7 +46,7 @@ export function recommendRooms(rooms, sel, limit = 3) {
     const tags = concernsOf(room);
     const matched = chosen.filter(id => tags.includes(id));
     if (!matched.length && !group) return [];
-    return [{room, matched, score: matched.length * 2 + (group ? 1 : 0)}];
+    return [{room, matched, score: matched.length * 4 + (group ? 2 : 0) + (sel.skincare && ((sel.skinType === 'dry' && tags.includes('dry')) || (sel.skinType === 'oily' && tags.includes('sebum'))) ? 1 : 0)}];
   }).sort((a, b) => b.score - a.score || byActivity(a, b)) : [];
   if (picked.length) return picked.slice(0, limit).map(({room, matched}) => ({room, matched}));
   return topics.map(room => ({room, matched: [], popular: true})).sort(byActivity).slice(0, limit);
@@ -101,12 +101,17 @@ function drawFlow() {
   }
   if (step === 'choose') {
     const concerns = visibleConcerns(draft), field = draft.skincare || draft.makeup;
-    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q0'))}</h1><p class="ob-sub">${esc(t('onb.s0'))}</p><h2>${esc(t('onb.fields'))}</h2><div class="ob-fields">${GROUPS.map(g => `<button type="button" data-onb-group="${g}" aria-pressed="${draft[g]}" class="${draft[g] ? 'on' : ''}">${draft[g] ? icon.check : ''}${icon[g]}<span>${esc(t('onb.g.' + g))}</span></button>`).join('')}</div><h2>${esc(t('onb.keywords'))}</h2>${concerns.length ? `<div class="ob-keywords">${concerns.map(c => { const on = draft.concerns.includes(c.id); return `<button type="button" data-onb-concern="${c.id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${on ? icon.check : ''}<span>${esc(t('onb.c.' + c.id))}</span></button>`; }).join('')}</div>` : `<p class="ob-hint">${esc(t('onb.pickField'))}</p>`}</div><div class="ob-foot"><button type="button" class="ob-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button>${stepBar(2)}</div></div>`;
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q0'))}</h1><p class="ob-sub">${esc(t('onb.s0'))}</p><h2>${esc(t('onb.fields'))}</h2><div class="ob-fields">${GROUPS.map(g => `<button type="button" data-onb-group="${g}" aria-pressed="${draft[g]}" class="${draft[g] ? 'on' : ''}">${draft[g] ? icon.check : ''}${icon[g]}<span>${esc(t('onb.g.' + g))}</span></button>`).join('')}</div><h2>${esc(t('onb.keywords'))}</h2>${concerns.length ? `<div class="ob-keywords">${concerns.map(c => { const on = draft.concerns.includes(c.id); return `<button type="button" data-onb-concern="${c.id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${on ? icon.check : ''}<span>${esc(t('onb.c.' + c.id))}</span></button>`; }).join('')}</div>` : `<p class="ob-hint">${esc(t('onb.pickField'))}</p>`}</div><div class="ob-foot"><button type="button" class="ob-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button>${stepBar(1)}</div></div>`;
+    return;
+  }
+  if (step === 'profile') {
+    const options = (values, current, label) => `<option value="">${esc(t('onb.unknown'))}</option>` + values.map(v => `<option value="${esc(v)}" ${v === current ? 'selected' : ''}>${esc(label(v))}</option>`).join('');
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><label class="ob-profile-field">${esc(t('onb.age'))}<select data-onb-profile="ageRange">${options(['<18','18–24','25–34','35–44','45+'],draft.ageRange,v=>v)}</select></label>${draft.skincare ? `<label class="ob-profile-field">${esc(t('onb.skin'))}<select data-onb-profile="skinType">${options(['dry','oily','combination','normal'],draft.skinType,v=>t('onb.skin.'+v))}</select></label>` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.next'))}</button>${stepBar(2)}</div></div>`;
     return;
   }
   const chosen = visibleConcerns(draft).map(c => c.id).filter(id => draft.concerns.includes(id));
   const list = filtered();
-  box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q1'))}</h1><p class="ob-sub">${esc(t('onb.s1'))}</p><div class="ob-filters">${FILTERS.map(f => `<button type="button" data-onb-filter="${f}" aria-pressed="${flow.filter === f}" class="${flow.filter === f ? 'on' : ''}">${f === 'skincare' ? icon.leaf : f === 'makeup' ? icon.makeup : f === 'all' ? icon.grid : ''}<span>${esc(t('onb.filter.' + f))}</span></button>`).join('')}</div><div class="ob-rooms">${list.map(r => pickCard(r, {image: flow.pictures.get(r.id), highlight: chosen, attrs: `data-onb-room="${esc(r.id)}"`})).join('')}${!flow.rooms.length ? `<p class="ob-hint">${esc(t('loading'))}</p>` : ''}</div></div><div class="ob-foot">${stepBar(3)}</div></div>`;
+  box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q1'))}</h1><p class="ob-sub">${esc(t('onb.s1'))}</p><div class="ob-filters">${FILTERS.map(f => `<button type="button" data-onb-filter="${f}" aria-pressed="${flow.filter === f}" class="${flow.filter === f ? 'on' : ''}">${f === 'skincare' ? icon.leaf : f === 'makeup' ? icon.makeup : f === 'all' ? icon.grid : ''}<span>${esc(t('onb.filter.' + f))}</span></button>`).join('')}</div><div class="ob-rooms">${list.map(r => pickCard(r, {image: flow.pictures.get(r.id), highlight: chosen, attrs: `data-onb-room="${esc(r.id)}"`})).join('')}${!flow.rooms.length ? `<p class="ob-hint">${esc(t('loading'))}</p>` : ''}</div></div><div class="ob-foot"><button class="text-link" data-onb="create">+ ${esc(t('room.new'))}</button>${stepBar(3)}</div></div>`;
 }
 globalThis.document?.addEventListener('click', e => {
   if (!flow) return;
@@ -114,8 +119,10 @@ globalThis.document?.addEventListener('click', e => {
   if (!b || !document.getElementById('onboarding')?.contains(b)) return;
   const a = b.dataset.onb, d = flow.draft;
   if (a === 'splash') flow.step = 'choose';
-  else if (a === 'back') { if (flow.step === 'rooms') flow.step = 'choose'; else { closeFlow(null); return; } }
-  else if (a === 'next') { if (!d.skincare && !d.makeup) { closeFlow(null); return; } flow.step = 'rooms'; }
+  else if (a === 'back') { if (flow.step === 'rooms') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow(null); return; } }
+  else if (a === 'next') { if (!d.skincare && !d.makeup) { closeFlow(null); return; } flow.step = 'profile'; }
+  else if (a === 'profile-next') flow.step = 'rooms';
+  else if (a === 'create') { closeFlow(null); document.dispatchEvent(new CustomEvent('seoulbeauty-create-room')); return; }
   else if (b.dataset.onbGroup) { const g = b.dataset.onbGroup; d[g] = !d[g]; flow.draft = normalize(d); }
   else if (b.dataset.onbConcern) { const id = b.dataset.onbConcern; d.concerns = d.concerns.includes(id) ? d.concerns.filter(c => c !== id) : [...d.concerns, id]; }
   else if (b.dataset.onbFilter) flow.filter = b.dataset.onbFilter;
@@ -125,3 +132,5 @@ globalThis.document?.addEventListener('click', e => {
   document.querySelector('#onboarding ' + sel)?.focus?.();
 });
 globalThis.document?.addEventListener('keydown', e => { if (flow?.step === 'splash' && (e.key === 'Enter' || e.key === ' ')) { flow.step = 'choose'; drawFlow(); } });
+
+globalThis.document?.addEventListener('change', e => { if (flow && e.target.matches('[data-onb-profile]')) flow.draft[e.target.dataset.onbProfile] = e.target.value || null; });

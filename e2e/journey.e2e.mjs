@@ -5,7 +5,7 @@ const browser=await chromium.launch(process.env.CHROME_PATH ? {executablePath:pr
 const base=process.argv[2]??'http://localhost:3000/';
 const item={family_key:'tint03',retailer:'Shop',market:'US',sku:'03',brand:'TEST',brand_ko:'테스트',name:'Soft tint 03',price_minor:1200,image_url:null,currency:'USD',size_label:'4g',option_label:'03',url:'https://example.com/tint',affiliate_url:null,category:'립'};
 const room={id:'tint',title_en:'Tint talk',title_ko:'틴트 이야기',intro_en:'Shades',intro_ko:'발색',kind:'topic',tag:'makeup',sort:1,members:5,messages_24h:1,last_message_at:new Date().toISOString(),concerns:['lip']};
-const messages=[{id:1,room_id:'tint',author_tag:'abc',nickname:'Maya',body:'Which shade?',item:null,reply_to:null,likes:0,created_at:new Date().toISOString()}];
+const messages=[{id:1,room_id:'tint',author_tag:'abc',nickname:'Maya',body:'Which shade?',item,reply_to:null,likes:0,created_at:new Date().toISOString()}];
 async function open(url,setup=async()=>{}){
  const ctx=await browser.newContext({viewport:{width:390,height:844},permissions:['clipboard-read','clipboard-write']});
  const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -13,6 +13,7 @@ async function open(url,setup=async()=>{}){
   if(r==='chat_room_list')return route.fulfill({json:[room]});
   if(r==='chat_messages')return route.fulfill({json:u.searchParams.has('id')?[]:messages});
   if(r==='join_chat')return route.fulfill({json:'Jade'});
+  if(r==='catalog_families')return route.fulfill({json:[{family_key:'tint03',brand:'TEST',base_name:'Soft tint',min_price_minor:1200,max_price_minor:1200,variants:1,category:'립',image_url:null}]});
   if(r==='catalog_items')return route.fulfill({json:[item]});
   if(r==='app_events')return route.fulfill({status:204});
   return route.fulfill({json:[]});});
@@ -36,6 +37,13 @@ try {
   assert.equal(await page.locator('#room-join').count(),0,'join button gone once joined');
   assert.equal(await page.locator('.msg-avatar').count(),0);
   assert.equal(await page.locator('.chat-nick').first().innerText(),'Maya');
+  await page.locator('#chat-log [data-family="tint03"]').first().click();
+  await page.locator('[data-family-brand="TEST"]').click();
+  await page.locator('#brand [data-family="tint03"]').first().click();
+  await page.locator('[data-family-attach]').click();
+  assert.equal(await page.locator('#chat').isVisible(),true,'return to original chat');
+  assert.match(await page.locator('#chat-context').innerText(),/Soft tint/);
+  assert.equal(await page.locator('.room-top h1').innerText(),'틴트 이야기');
   assert.deepEqual(errors,[]);await ctx.close();
  }
  // Not yet a member: the header offers join, which asks for the rules first and then opens live chat.

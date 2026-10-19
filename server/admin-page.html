@@ -37,8 +37,8 @@
     <div class="card" id="sb-plan-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 최신 기획 상태</span><h3>3개 고객 여정 · 하단 3탭 확정</h3>
     <div class="sb-line"><div class="sb-label">하단 탐색</div><div class="sb-value">커뮤니티 / 탐색 / 내 활동. 참여한 방은 내 활동, 알림은 상단 종 아이콘, 프로필·설정은 내 활동에서 연결. 온보딩·대화방에서는 하단 탭 숨김.</div></div>
     <div class="sb-line"><div class="sb-label">현재 구현</div><div class="sb-value">관심 분야 복수 선택 + 고민 키워드 → 실제 공개 방 추천. 선택값·방 활동 기준이며 연령대·피부 타입·톤은 현재 추천에 반영하지 않음.</div></div>
-    <div class="sb-line"><div class="sb-label">후속 기획안</div><div class="sb-value">1/3 관심과 고민 → 2/3 선택형 연령대·피부 정보 → 3/3 추천방. 잘 모르겠어요·건너뛰기 제공. 이 3단계 재구성과 연령대 입력은 미구현이며, 필드·추천 활용·저장·공개 범위 확정이 필요함.</div></div>
-    <p>현재 첫 입력 화면의 2/3 표시는 스플래시를 1단계로 센 기존 구현이다. 수정 필요. 방 추천은 강제 배정이 아니며 전체 방 탐색·자유 생성 원칙을 유지한다.</p>
+    <div class="sb-line"><div class="sb-label">후속 기획안</div><div class="sb-value">1/3 관심과 고민 → 2/3 선택형 연령대·피부 정보 → 3/3 추천방. 잘 모르겠어요·건너뛰기 제공. 구현 변경안: 연령대·피부 타입은 선택 입력·기기 내 저장. 연령대는 추천에 사용하지 않고, 건성·지성만 관련 고민의 보조 순위에 반영. 새 빌드 실기기 검증 대기.</div></div>
+    <p>새 변경안은 스플래시를 단계에서 제외하고 1/3부터 시작한다. 21.1은 기존 표시이며 새 빌드 검증 대기. 방 추천은 강제 배정이 아니며 전체 방 탐색·자유 생성 원칙을 유지한다.</p>
     <p><strong>P0 · 사용자 확인 대기:</strong> 사용자가 하단 탭이 3개가 아니라고 제보함. 설치된 앱·빌드 번호와 실제 화면 확인 전 해결 완료로 표시하지 않는다.</p>
     <small>아래 기존 시뮬레이션은 검토 자료이며 최신 출시 상태는 이 카드와 개발 탭을 따른다. KPI 목표·개선 효과는 미측정.</small></div>
 
@@ -197,7 +197,7 @@
     <div class="card" id="sb-design-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 최신 디자인 결정</span><h3>기존 시안 유지 · 흰 상품 배경 · 익명 닉네임 중심</h3>
     <div class="sb-line"><div class="sb-label">상품 표면</div><div class="sb-value">상품 카드·이미지 영역의 테두리·그림자 제거, 흰 배경 유지. 상품 사진·브랜드 로고는 유지하고 사용자 아바타는 임시 숨김. 빠진 여백을 정리한다.</div></div>
     <div class="sb-line"><div class="sb-label">모바일 배치</div><div class="sb-value">팔로우의 +와 문구는 한 줄, 상태바 안전 영역 확보, 브랜드 배너 전체 표시, 상품명 줄바꿈·태그 배치·터치 영역 보정. 사용자 제공 Journey 1·2·3의 시각 요소 유지.</div></div>
-    <div class="sb-line"><div class="sb-label">화면 전환</div><div class="sb-value">온보딩 다음·이전의 좌우 슬라이드 제거. 화면은 제자리에서 교체한다. 단계 번호 2/3 시작 문제는 아직 수정 전이다.</div></div>
+    <div class="sb-line"><div class="sb-label">화면 전환</div><div class="sb-value">온보딩 다음·이전의 좌우 슬라이드 제거. 화면은 제자리에서 교체한다. 새 변경안은 1/3 관심·고민, 2/3 선택형 정보, 3/3 추천. 기존 디자인 유지, 주 행동 하나 원칙.</div></div>
     <p>아바타 꾸미기와 캐릭터 안내·로딩은 서로 다른 기능이다. 아래 아바타 관련 검토안보다 현재의 사용자 아바타 숨김 결정을 우선한다.</p>
     <small>웹 자동 검사 통과·TestFlight 업로드 성공은 픽셀 단위 일치나 실기기 디자인 승인과 다르다. 하단 3탭 제보와 한영·작은 화면 검수는 미완료.</small></div>
 
@@ -366,7 +366,7 @@
   <p>최종 업로드 커밋 <code>10493c2</code>. PR #127의 3탭·레이아웃·상품 표면·아바타 숨김, <code>921a6ea</code>의 좌우 전환 제거, PR #129의 표시 이름 Seoul Beauty 포함. 번들 ID <code>com.yohan4477.seoulbeauty</code>. 기존 Alimi 앱과 분리.</p>
   <div class="sb-line"><div class="sb-label">검증 증거</div><div class="sb-value">JS 단위 테스트 126/126 및 Web checks #95 성공. 배포 커밋 5efa85e의 GitHub Vercel status success 확인. TestFlight #21의 빌드·서명·App Store Connect 업로드 모두 성공.</div></div>
   <div class="sb-line"><div class="sb-label">출시 확인 범위</div><div class="sb-value">Apple 처리 완료·테스터 그룹 배정·사용자 기기의 21.1 설치는 미확인. 이전 5탭 화면 제보가 있어 설치 버전과 화면을 대조해야 함. 업로드 성공만으로 실기기 완료 처리하지 않음.</div></div>
-  <div class="sb-line"><div class="sb-label">미반영</div><div class="sb-value">온보딩 번호 재구성, 선택형 연령대·피부 정보 화면, 해당 정보의 추천 연결. 현재 입력 화면 2/3·추천방 3/3 표시는 남아 있음.</div></div>
+  <div class="sb-line"><div class="sb-label">미반영</div><div class="sb-value">새 변경안 구현: 온보딩 1/3 시작·선택형 정보, 대화방 만들기 상시 노출, 상품→브랜드→원래 대화 첨부, 공유 웹 링크의 앱에서 열기. 21.1 미포함, 새 CI·배포·실기기 검증 대기.</div></div>
   <p><a href="https://github.com/yohan4477/Alimi/actions/runs/39261337516" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #21 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39260313253" target="_blank" rel="noopener noreferrer">Web checks #95 ↗</a> · <a href="https://github.com/yohan4477/Alimi/blob/main/docs/RELEASE_STATUS_2026-10-19.md" target="_blank" rel="noopener noreferrer">출시 상태·남은 작업 ↗</a></p></div>
 
   <div class="sb-dev-kicker">ENGINEERING / RELEASE READINESS <span>2026.10.19 · 수동 리뷰</span></div>

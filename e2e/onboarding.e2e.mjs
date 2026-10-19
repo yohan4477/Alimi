@@ -34,12 +34,13 @@ try {
   await ob.locator('[data-onb-group="makeup"]').click();
   assert.equal(await ob.locator('[data-onb-group="skincare"]').getAttribute('aria-pressed'),'true');
   assert.equal(await ob.locator('[data-onb-concern]').count(),14);
-  assert.equal(await ob.locator('.ob-step').getAttribute('aria-valuenow'),'2');
+  assert.equal(await ob.locator('.ob-step').getAttribute('aria-valuenow'),'1');
   await ob.locator('[data-onb-concern="dry"]').click();
   await ob.locator('[data-onb-concern="cushion"]').click();
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`no horizontal overflow at ${width}`);
   // 3/3: matching rooms; back keeps the choices; filters.
   await ob.locator('[data-onb="next"]').click();
+  await ob.locator('[data-onb="profile-next"]').click();
   assert.equal(await ob.locator('.ob-step').getAttribute('aria-valuenow'),'3');
   const recs=await ob.locator('[data-onb-room]').evaluateAll(l=>l.map(b=>b.dataset.onbRoom));
   assert.ok(recs.includes('dry-sensitive')&&recs.includes('makeup'),'skin and makeup rooms recommended together: '+recs);
@@ -48,8 +49,11 @@ try {
   await ob.locator('[data-onb-filter="all"]').click();
   assert.equal(await ob.locator('[data-onb-room]').count(),rooms.length);
   await ob.locator('[data-onb="back"]').click();
+  assert.equal(await ob.locator('.ob-step').getAttribute('aria-valuenow'),'2');
+  await ob.locator('[data-onb="back"]').click();
   assert.equal(await ob.locator('[data-onb-concern="dry"]').getAttribute('aria-pressed'),'true');
   await ob.locator('[data-onb="next"]').click();
+  await ob.locator('[data-onb="profile-next"]').click();
   // Picking a room closes the flow and opens that room (readable, nothing sent).
   await ob.locator('[data-onb-room="dry-sensitive"]').click();
   assert.equal(await ob.isHidden(),true);
@@ -64,6 +68,7 @@ try {
   await ob.locator('[data-onb-group="makeup"]').click();
   assert.equal(await ob.locator('[data-onb-concern="cushion"]').count(),0,'deselected field hides its concerns');
   await ob.locator('[data-onb="next"]').click();
+  await ob.locator('[data-onb="profile-next"]').click();
   assert.ok(!(await ob.locator('[data-onb-room]').evaluateAll(l=>l.map(b=>b.dataset.onbRoom))).includes('makeup'),'makeup room gone after deselecting makeup');
   // Skip on a fresh device: back on step 2 closes the flow for good.
   await page.evaluate(k=>localStorage.removeItem(k),KEY);await page.reload();
@@ -87,7 +92,7 @@ try {
     list.push(room('u-new123','makeup',100,{title_en:body.p_title,title_ko:body.p_title,intro_ko:body.p_intro,intro_en:body.p_intro,concerns:body.p_concerns,user_created:true}));return route.fulfill({json:'u-new123'});});
   }});
   await page.locator('[data-home-tab="rooms"][role="tab"]').click();
-  await page.locator('#community-home [data-chat-action="create-room"]').click();
+  await page.locator('#community-create').click();
   const dlg=page.locator('#room-create');
   assert.equal(await dlg.locator('[data-room-tag="makeup"]').getAttribute('aria-pressed'),'true','field prefilled from interests');
   assert.equal(await dlg.locator('[data-room-concern="lip"]').getAttribute('aria-pressed'),'true','concern prefilled from interests');
@@ -104,5 +109,5 @@ try {
   assert.deepEqual(errors,[]);
   await page.close();
  }
- console.log('ok - journey 1: splash, interests 2/3, rooms 3/3 with filters, room opens, persistence, edit, skip, 320/390px, ko/en, no writes; room creation errors and success');
+ console.log('ok - journey 1: splash, interests 1/3, optional profile 2/3, rooms 3/3 with filters, room opens, persistence, edit, skip, 320/390px, ko/en, no writes; room creation errors and success');
 } finally { await browser.close(); }
