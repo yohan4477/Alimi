@@ -92,7 +92,7 @@ try {
     list.push(room('u-new123','makeup',100,{title_en:body.p_title,title_ko:body.p_title,intro_ko:body.p_intro,intro_en:body.p_intro,concerns:body.p_concerns,user_created:true}));return route.fulfill({json:'u-new123'});});
   }});
   await page.locator('[data-home-tab="rooms"][role="tab"]').click();
-  await page.locator('#community-home [data-chat-action="create-room"]').click();
+  await page.locator('#community-create').click();
   const dlg=page.locator('#room-create');
   assert.equal(await dlg.locator('[data-room-tag="makeup"]').getAttribute('aria-pressed'),'true','field prefilled from interests');
   assert.equal(await dlg.locator('[data-room-concern="lip"]').getAttribute('aria-pressed'),'true','concern prefilled from interests');

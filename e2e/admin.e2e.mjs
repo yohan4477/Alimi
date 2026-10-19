@@ -72,6 +72,8 @@ try {
   await guide.waitFor();
   assert.equal(await guide.locator('[data-guide-locale="ko"][data-guide-stage="0"]').isVisible(),true);
   const sprite=guide.locator('img');
+  await sprite.scrollIntoViewIfNeeded();
+  await sprite.evaluate(img=>img.decode());
   assert.ok(await sprite.evaluate(img=>img.complete&&img.naturalWidth>0),'pixel guide asset resolves');
   assert.equal((await page.request.get(base+'/assets/hanbok-guide-pixel.svg')).status(),200);
   await guide.locator('[data-guide-locale="ko"][data-guide-stage="0"] [data-guide-interest="skin"]').click();
