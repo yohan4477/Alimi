@@ -1807,5 +1807,125 @@
   "brand.noReviews": {
     "ko": "아직 이 브랜드 후기가 없어요.",
     "en": "No reviews of this brand yet."
+  },
+  "tab2.home": {
+    "ko": "홈",
+    "en": "Home"
+  },
+  "tab2.rooms": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "tab2.discover": {
+    "ko": "발견",
+    "en": "Discover"
+  },
+  "tab2.alerts": {
+    "ko": "알림",
+    "en": "Alerts"
+  },
+  "tab2.my": {
+    "ko": "마이",
+    "en": "My"
+  },
+  "rooms.mine": {
+    "ko": "내가 참여한 대화방",
+    "en": "Rooms I joined"
+  },
+  "activity.tab.recent": {
+    "ko": "최근 본 상품",
+    "en": "Recently viewed"
+  },
+  "activity.recentEmpty": {
+    "ko": "아직 본 상품이 없어요.",
+    "en": "No products viewed yet."
+  },
+  "alerts.title": {
+    "ko": "알림",
+    "en": "Alerts"
+  },
+  "alerts.filter.all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "alerts.filter.room": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "alerts.filter.product": {
+    "ko": "상품",
+    "en": "Products"
+  },
+  "alerts.filter.service": {
+    "ko": "서비스",
+    "en": "Service"
+  },
+  "alerts.empty": {
+    "ko": "새 알림이 없어요. 대화방에 참여하거나 상품을 저장하면 여기에 모여요.",
+    "en": "No new alerts. Join rooms or save products to see activity here."
+  },
+  "alerts.emptyService": {
+    "ko": "서비스 알림이 없어요.",
+    "en": "No service alerts."
+  },
+  "alert.newMessages": {
+    "ko": "‘{room}’에 새 메시지 {n}개",
+    "en": "{n} new messages in ‘{room}’"
+  },
+  "alert.newCount": {
+    "ko": "새로운 메시지 {n}개",
+    "en": "{n} new messages"
+  },
+  "alert.whoMany": {
+    "ko": "{name}님 외 {n}명",
+    "en": "{name} and {n} others"
+  },
+  "alert.replies": {
+    "ko": "{who}이 답글을 남겼어요!",
+    "en": "{who} replied to you!"
+  },
+  "alert.repliesBody": {
+    "ko": "‘{room}’ 대화방에서 내 메시지에 답글이 {n}개 달렸어요.",
+    "en": "{n} replies to your messages in ‘{room}’."
+  },
+  "alert.savedTalk": {
+    "ko": "저장한 상품 관련 대화가 새롭게 올라왔어요!",
+    "en": "New talk about a product you saved!"
+  },
+  "alert.savedTalkBody": {
+    "ko": "‘{name}’ 이야기가 이번 주 {n}개 올라왔어요.",
+    "en": "{n} posts about ‘{name}’ this week."
+  },
+  "share.hubNav": {
+    "ko": "공유",
+    "en": "Share"
+  },
+  "share.hubTitle": {
+    "ko": "친구와 함께 더 즐거운 뷰티 이야기",
+    "en": "Beauty talk is better with friends"
+  },
+  "share.hubSub": {
+    "ko": "좋은 정보는 함께할 때 더 특별해요!",
+    "en": "Good finds are better shared!"
+  },
+  "share.roomSub": {
+    "ko": "지금 이야기하는 대화방을 친구에게 공유해보세요",
+    "en": "Share a room you are talking in"
+  },
+  "share.productSub": {
+    "ko": "마음에 드는 상품을 친구에게 알려주세요",
+    "en": "Tell a friend about a product you like"
+  },
+  "share.invite": {
+    "ko": "친구 초대",
+    "en": "Invite friends"
+  },
+  "share.inviteSub": {
+    "ko": "함께할수록 더 예쁜 Seoul Beauty를 시작해보세요",
+    "en": "Start Seoul Beauty together"
+  },
+  "share.inviteMessage": {
+    "ko": "Seoul Beauty에서 K-뷰티 이야기 같이 해요!",
+    "en": "Talk K-beauty with me on Seoul Beauty!"
   }
 }

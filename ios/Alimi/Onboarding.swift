@@ -61,7 +61,8 @@ struct SplashScreen: View {
         }
         .contentShape(Rectangle())
         .onTapGesture(perform: next)
-        .task { try? await Task.sleep(for: .seconds(1.8)); next() }
+        // UI tests hold the splash (-holdSplash) to capture it, then tap through.
+        .task { guard !ProcessInfo.processInfo.arguments.contains("-holdSplash") else { return }; try? await Task.sleep(for: .seconds(1.8)); next() }
         .accessibilityElement(children: .contain).accessibilityIdentifier("splash")
     }
 }

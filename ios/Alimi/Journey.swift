@@ -321,6 +321,8 @@ struct CommunityHome: View {
     @Binding var openRoom: ChatRoom?
     var onEditInterests: () -> Void = {}
     var onSearch: () -> Void = {}
+    var onMyRooms: () -> Void = {}
+    @StateObject private var revisit = RevisitModel()
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
@@ -342,7 +344,7 @@ struct CommunityHome: View {
                 if let post = model.posts.first(where: { $0.id == id }) { CommunityPostView(post: post) }
             }
             .toolbar(.hidden, for: .navigationBar)
-            .task { if model.rooms.isEmpty { await model.load(store: store) }; EventLogger.shared.log(.communityOpen) }
+            .task { if model.rooms.isEmpty { await model.load(store: store) }; await revisit.load(store: store); EventLogger.shared.log(.communityOpen) }
             .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
             .sheet(isPresented: $creating, onDismiss: { Task { await model.load(store: store) } }) {
                 CreateRoomSheet(interests: Interests.load()) { room in creating = false; path.append(room) }
@@ -384,7 +386,14 @@ struct CommunityHome: View {
         }
     }
     @ViewBuilder private var recommended: some View {
-        if !model.joined.isEmpty { welcomeBack }
+        if !revisit.activity.isEmpty {
+            WelcomeBanner().padding(.top, 14)
+            BigHead(title: L("rooms.mine"), sub: "", more: onMyRooms)
+            ForEach(revisit.activity.prefix(2)) { act in
+                NavigationLink(value: act.room) { JoinedRoomCard(act: act, fallback: model.pictures[act.room.id]) }
+                    .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + act.room.id)
+            }
+        }
         if !model.hot.isEmpty {
             BigHead(title: L("home.trending"), sub: L("home.trendingSub")) { tab = .rooms }
             ScrollView(.horizontal, showsIndicators: false) {
@@ -409,23 +418,19 @@ struct CommunityHome: View {
                     .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
             }
         }
+        NavigationLink { ShareHubView() } label: {
+            HStack(spacing: 14) {
+                Image("ShareFriends").resizable().scaledToFill().frame(width: 92, height: 64).clipShape(RoundedRectangle(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L("share.hubTitle")).font(.system(size: 16, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
+                    Text(L("share.hubSub")).font(.system(size: 13)).foregroundStyle(Color.sbGray).lineLimit(1)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }.padding(12).background(Color.sbTagBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 18))
+        }.buttonStyle(.plain).padding(.top, 18).accessibilityIdentifier("share-hub")
         Button(L(interests?.chosenGroup == true ? "onb.edit" : "onb.manage"), action: onEditInterests).font(.footnote).padding(.top, 4)
             .accessibilityIdentifier("edit-interests")
-    }
-    private var welcomeBack: some View {
-        let seen = Seen.all()
-        return VStack(alignment: .leading, spacing: 8) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(L("home.welcome")).font(.headline).foregroundStyle(Color.sbInk)
-                Text(L("home.welcomeSub")).font(.caption).foregroundStyle(.secondary)
-            }.frame(maxWidth: .infinity, alignment: .leading).padding(16)
-                .background(LinearGradient(colors: [Color(rgb: 0xF3F7FF), Color(rgb: 0xEAF3FF)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityElement(children: .contain).accessibilityIdentifier("welcome-back")
-            SectionHead(title: L("activity.chats"))
-            ForEach(model.joined.prefix(2)) { j in
-                roomLink(j.room, note: j.last?.body ?? j.room.intro, fresh: Seen.hasNew(j.last?.createdAt, since: seen[j.room.id]))
-            }
-        }.padding(.top, 8)
     }
     @ViewBuilder private var allRooms: some View {
         SectionHead(title: L("home.topics"), sub: L("home.askHint")) {
@@ -495,7 +500,7 @@ struct BigHead: View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title).font(.system(size: 25, weight: .heavy)).foregroundStyle(Color.sbNavy)
-                Text(sub).font(.system(size: 16)).foregroundStyle(Color.sbGray)
+                if !sub.isEmpty { Text(sub).font(.system(size: 16)).foregroundStyle(Color.sbGray) }
             }
             Spacer()
             Button(action: more) {

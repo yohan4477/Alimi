@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum MainTab: Hashable { case home, saved, search, chat }
+enum MainTab: Hashable { case home, saved, search, chat, rooms, alerts }
 
 // Pure layout rules for the Saved tab: the grid is padded to three slots and the headline depends on the count.
 enum SavedLayout {
@@ -19,41 +19,80 @@ struct SavedView: View {
     @EnvironmentObject var store: AlimiStore
     @Binding var tab: MainTab
     var editInterests: () -> Void = {}
+    var onSearch: () -> Void = {}
     @State private var section = "saved"
     @State private var joined: [JoinedRoom] = []
+    @State private var recent: [ProductFamily] = []
+    @State private var openFamily: ProductFamily?
     private var items: [Product] { store.products.filter { store.saved.favorites.contains($0.id) } }
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: 3)
+    // 내 활동 of journey 3: saved products / joined rooms / recently viewed, each as photo rows.
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text(L("saved.title")).font(.largeTitle.bold())
-                    interestsRow
-                    Picker(L("nav.activity"), selection: $section) {
-                        Text(L("activity.tab.saved")).tag("saved"); Text(L("activity.tab.rooms")).tag("rooms")
-                    }.pickerStyle(.segmented).accessibilityIdentifier("activity-tabs")
-                    if section == "rooms" { rooms } else {
-                        SavedCommunityPosts()
-                        headline
-                        LazyVGrid(columns: columns, spacing: 16) {
-                            ForEach(items) { SavedCard(product: $0) }
-                            ForEach(0..<SavedLayout.emptySlots(items.count), id: \.self) { i in
-                                AddSlot(highlighted: i == 0) { tab = .search }
-                            }
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 18) {
+                        Image("SeoulBeautyLogo").resizable().scaledToFit().frame(height: 50).accessibilityLabel("Seoul Beauty")
+                        Spacer()
+                        Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("search.title"))
+                        Button { tab = .alerts } label: { Image(systemName: "bell").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("alerts.title"))
+                        NavigationLink { SettingsView() } label: { Image(systemName: "gearshape").font(.system(size: 21, weight: .medium)) }
+                            .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
+                    }.foregroundStyle(Color.sbNavy)
+                    Text(L("nav.activity")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy).accessibilityIdentifier("saved-title")
+                    HStack(spacing: 4) {
+                        ForEach(["saved", "rooms", "recent"], id: \.self) { s in
+                            Button { section = s; if s == "recent" { recent = RecentViews.all() } } label: {
+                                Text(L("activity.tab." + s)).font(.system(size: 16, weight: section == s ? .bold : .medium)).lineLimit(1).minimumScaleFactor(0.8)
+                                    .foregroundStyle(section == s ? Color.white : Color(rgb: 0x3B4A63))
+                                    .frame(maxWidth: .infinity, minHeight: 50).background(section == s ? Color.sbBlue : Color.clear, in: RoundedRectangle(cornerRadius: 14))
+                            }.buttonStyle(.plain).accessibilityIdentifier("activity-tab-" + s).accessibilityAddTraits(section == s ? .isSelected : [])
                         }
+                    }.padding(4).background(Color(rgb: 0xEEF3FB), in: RoundedRectangle(cornerRadius: 18))
+                    switch section {
+                    case "rooms": rooms
+                    case "recent": recentList
+                    default: savedList
                     }
+                    interestsRow.padding(.top, 8)
+                    NavigationLink { ShareHubView() } label: {
+                        HStack {
+                            Image(systemName: "heart.text.square").font(.system(size: 22)).foregroundStyle(Color.sbBlue)
+                            Text(L("share.hubTitle")).font(.subheadline.bold()).foregroundStyle(Color.sbNavy)
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                        }.padding(14).background(Color.sbTagBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
+                    }.buttonStyle(.plain).accessibilityIdentifier("share-hub")
                 }.padding(20)
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink { SettingsView() } label: { Image(systemName: "gearshape") }
-                        .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
+            .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
         }
     }
-    // Interests chosen in the community guide; tapping reopens the guide there.
+    @ViewBuilder private var savedList: some View {
+        if items.isEmpty {
+            Text(L("saved.hint")).font(.subheadline).foregroundStyle(Color.sbGray)
+            AddSlot(highlighted: true, action: onSearch)
+        }
+        ForEach(items) { SavedRow(product: $0) }
+        SavedCommunityPosts()
+    }
+    @ViewBuilder private var recentList: some View {
+        if recent.isEmpty { Text(L("activity.recentEmpty")).font(.subheadline).foregroundStyle(Color.sbGray) }
+        ForEach(recent) { f in
+            Button { openFamily = f } label: {
+                HStack(spacing: 18) {
+                    RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(width: 104, height: 104).background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(f.brandLabel + " " + f.baseName).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
+                        if let c = f.category { Text(L10n.category(c)).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
+                        Text(f.priceText).font(.system(size: 20, weight: .heavy)).foregroundStyle(Color(rgb: 0xF0335A))
+                    }
+                    Spacer(minLength: 0)
+                }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(rgb: 0xE6EAF1)))
+            }.buttonStyle(.plain)
+        }
+    }
+    // Interests chosen in the guide; tapping reopens it.
     private var interestsRow: some View {
         let p = Interests.load()
         let list = p.map { i in Interests.groups.filter { i.has($0) }.map { L("onb.g." + $0) } + i.concerns.map(Interests.label) } ?? []
@@ -66,7 +105,7 @@ struct SavedView: View {
                 Spacer()
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
             }.contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityIdentifier("interests-row")
+        }.buttonStyle(.plain).foregroundStyle(Color.sbNavy).accessibilityIdentifier("interests-row")
     }
     @ViewBuilder private var rooms: some View {
         let seen = Seen.all()
@@ -81,9 +120,34 @@ struct SavedView: View {
             joined = mine.map { JoinedRoom(room: $0.room, last: $0.last) }
         }
     }
-    private var headline: some View {
-        let h = SavedLayout.headline(items.count)
-        return Text(L(h.key, h.vars)).font(.headline).foregroundStyle(.secondary)
+}
+
+// Saved product row (journey 3): photo, name, size/category, price, bookmark to unsave.
+struct SavedRow: View {
+    @EnvironmentObject var store: AlimiStore
+    let product: Product
+    @State private var photoLoaded = false
+    var body: some View {
+        HStack(spacing: 18) {
+            NavigationLink { ProductDetail(product: product) } label: {
+                HStack(spacing: 18) {
+                    ProductArt(product: product) { photoLoaded = $0 }.frame(width: 104, height: 104)
+                        .background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(product.brandLabel + " " + product.name).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
+                        Text([product.size, L10n.category(product.category)].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 15)).foregroundStyle(Color.sbGray).lineLimit(2)
+                        Text(usd(product.price)).font(.system(size: 20, weight: .heavy)).foregroundStyle(Color(rgb: 0xF0335A))
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+            .buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)")
+            .accessibilityValue(photoLoaded ? "photo-loaded" : "photo-missing")
+            Button { store.toggle(product.id) } label: {
+                Image(systemName: "bookmark.fill").font(.system(size: 24)).foregroundStyle(Color.sbBlue).frame(width: 44, height: 44)
+            }.buttonStyle(.plain).accessibilityIdentifier("favorite-\(product.id)").accessibilityLabel(L("favorite.saved"))
+        }
+        .padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(rgb: 0xE6EAF1)))
     }
 }
 struct SavedCard: View {
