@@ -159,7 +159,7 @@ export async function renderMyConversations(box) {
     const tag = chat.myTag || await tagOf(secret);
     const [rooms, joined] = await Promise.all([chat.rooms.length ? chat.rooms : fetchRooms(), fetchMyRooms(tag)]);
     if (!box.isConnected) return;
-    box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2>${joined.length ? joined.map(j => { const r=rooms.find(r=>r.id===j.room_id);return r ? `<button class="conversation-row" data-open-room="${esc(r.id)}"><span><b>${esc(roomTitle(r))}</b><p>${esc(j.last?.body || roomIntro(r))}</p></span></button>` : ''; }).join('') : `<p class="home-note">${esc(t('chat.mineEmpty'))}</p>`}`;
+    box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2>${joined.length ? joined.map(j => { const r=rooms.find(r=>r.id===j.room_id);return r ? roomListCard(r, {image: home?.images.get(r.id), note: j.last?.body || roomIntro(r), fresh: hasNewSince(j.last, readSeen()[r.id]), attrs: `data-open-room="${esc(r.id)}"`}) : ''; }).join('') : `<p class="home-note">${esc(t('chat.mineEmpty'))}</p>`}`;
   } catch { if(box.isConnected)box.innerHTML = `<p class="home-note">${esc(t('home.retry'))}</p>`; }
 }
 

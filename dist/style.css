@@ -254,3 +254,4 @@ button:focus-visible,input:focus-visible{outline-color:#1463e8}
 .welcome-back{background:linear-gradient(125deg,#f3f7ff,#eaf3ff);border:1px solid var(--sb-border);border-radius:16px;padding:16px;margin:8px 0 4px}.welcome-back b{display:block;font-size:17px;color:var(--ink)}.welcome-back p{margin:4px 0 0;font-size:13px;color:var(--muted)}
 .new-badge{display:inline-block;vertical-align:middle;margin-left:4px;font-size:11px;font-weight:700;color:#fff;background:var(--blue);border-radius:999px;padding:1px 7px}
 .activity-tabs{position:static;margin:12px 0 8px}
+.section-head>div{flex:1;min-width:0}
