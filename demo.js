@@ -10,13 +10,16 @@
   const FAMILIES = {
     toner: 'anua|heartleaf 77 soothing toner', oil: 'anua|heartleaf pore control cleansing oil', cosrx: 'cosrx|ac collection calming foam cleanser renewal',
     skin1004: 'skin1004|madagascar centella tone brightening capsule ampoule', balm: 'beauty of joseon|radiance cleansing balm',
-    soybean: 'round lab|soybean panthenol ampoule', sun: 'anua|heartleaf silky moisture sun cream spf50 pa', cream: 'anua|3 ceramide panthenol moisture barrier cream'};
+    soybean: 'round lab|soybean panthenol ampoule', sun: 'anua|heartleaf silky moisture sun cream spf50 pa', cream: 'anua|3 ceramide panthenol moisture barrier cream',
+    snail: 'cosrx|advanced snail 96 mucin power essence', relief: 'beauty of joseon|relief sun aqua fresh rice b5 spf50 pa', pad: 'medicube|zero pore pad double set',
+    torriden: 'torriden|dive in low molecule hyaluronic acid serum', stick: 'round lab|birch juice moisturizing sun stick spf50 pa', aplb: 'aplb|aha bha pha centella ampoule serum',
+    glow: 'beauty of joseon|glow deep serum rice alpha arbutin', tint: 'espoir|couture lip tint fitting blur'};
   const itemsReady = realFetch(BASE + '/rest/v1/catalog_items?' + new URLSearchParams({
     select: 'retailer,market,sku,brand,brand_ko,name,price_minor,image_url,family_key',
     family_key: 'in.(' + Object.values(FAMILIES).map(f => '"' + f + '"').join(',') + ')', order: 'price_minor.desc'}), {headers: {apikey: KEY}})
     .then(r => r.ok ? r.json() : []).catch(() => []).then(rows => {
       const by = {};
-      for (const [k, f] of Object.entries(FAMILIES)) by[k] = rows.find(r => r.family_key === f) ?? null;
+      for (const [k, f] of Object.entries(FAMILIES)) by[k] = rows.find(r => r.family_key === f && r.image_url) ?? rows.find(r => r.family_key === f) ?? null;
       return by;
     });
 
@@ -39,9 +42,9 @@
         {likes: 14, reasons: ['texture', 'color'], used_for: 'months', skin_type: 'combination', skin_tone: 'deep', undertone: 'neutral', climate: 'humid', bought_where: 'Stylevana', bought_price_minor: 1530, bought_currency: 'USD', ship_country: 'GB', ship_days: 11}),
       post(6, 'sunscreen', 2, 'question', 'Reapplying over makeup — what do you use?', 'Office job, near a window all day. Stick, cushion or mist?', null, 1440, {likes: 3}),
       post(7, 'new-to-kbeauty', 6, 'question', 'First K-beauty routine under $50?', 'Total beginner. Normal skin, a bit dull. Where do I start?', null, 60, {likes: 5, reasons: ['price']}),
-      post(8, 'routine', 7, 'recommend', 'Double cleanse combo that works for me', 'Cleansing balm first, then a low-pH gel. Takes off sunscreen without stripping.', I.balm, 2000, {likes: 7, reasons: ['texture']}),
+      post(8, 'routine', 7, 'recommend', 'Double cleanse combo that works for me', 'Cleansing balm first, then a low-pH gel. Takes off sunscreen without stripping.', I.balm, 400, {likes: 7, reasons: ['texture']}),
       post(9, 'korea-shopping', 0, 'question', 'Going to Seoul next month — Olive Young or duty free?', 'Mostly skincare, some makeup. Is the tax refund worth the hassle?', null, 240, {likes: 8}),
-      post(10, 'dry-sensitive', 3, 'review', 'Heartleaf toner after two months', 'Very watery, almost like nothing. Redness around my nose is less obvious. Smell is mild and herbal.', I.toner, 4000,
+      post(10, 'dry-sensitive', 3, 'review', 'Heartleaf toner after two months', 'Very watery, almost like nothing. Redness around my nose is less obvious. Smell is mild and herbal.', I.toner, 500,
         {likes: 11, reasons: ['skin_type', 'scent'], used_for: 'months', skin_type: 'sensitive', skin_tone: 'fair', undertone: 'cool', climate: 'dry', bought_where: 'Stylevana', bought_price_minor: 1785, bought_currency: 'USD', ship_country: 'CA', ship_days: 12}),
       post(11, 'everyone', 4, 'recommend', 'Underrated ampoule for dark spots', 'Takes patience. I saw a difference after about six weeks, used with sunscreen every day.', I.skin1004, 800, {likes: 5, reasons: ['ingredients']}),
     ];
@@ -78,9 +81,28 @@
       msg('sunscreen', 2, 'Saving this, thanks', null, 290),
       msg('korea-shopping', 4, 'Myeongdong or Hongdae Olive Young — which is less crowded?', null, 25),
       msg('korea-shopping', 0, 'Hongdae on weekday mornings was okay for me', null, 20, 1),
+      msg('everyone', 1, 'Snail essence restock finally!', I.snail, 95, 2),
+      msg('everyone', 4, 'Same, I go through a bottle every two months', I.snail, 90),
+      msg('everyone', 7, 'Rice sunscreen is my daily pick, no pilling', I.relief, 80, 3),
+      msg('everyone', 3, 'Relief Sun gang', I.relief, 78, 1),
+      msg('acne', 2, 'Toner pads in the morning help my oily T-zone', I.pad, 35, 1),
+      msg('acne', 6, 'Do the pads sting? My skin is reactive', I.pad, 30),
+      msg('acne', 5, 'AHA BHA ampoule twice a week calmed my bumps', I.aplb, 22, 2),
+      msg('dry-sensitive', 1, 'Hyaluronic serum on damp skin, then cream', I.torriden, 140, 2),
+      msg('dry-sensitive', 7, 'Torriden is so light, love it', I.torriden, 130),
+      msg('dry-sensitive', 0, 'Soybean ampoule for winter dryness', I.soybean, 120, 1),
+      msg('sunscreen', 4, 'Sun stick for reapplying over makeup', I.stick, 260, 2),
+      msg('sunscreen', 6, 'Stick works for me too, no mess in the bag', I.stick, 250),
+      msg('sunscreen', 7, 'Relief Sun if you like a dewy look', I.relief, 240, 1),
+      msg('makeup', 5, 'Blurring lip tint that does not dry out?', null, 55),
+      msg('makeup', 2, 'This one, berry shades are pretty', I.tint, 50, 3),
+      msg('makeup', 3, 'Agree, lasts through lunch', I.tint, 45),
+      msg('routine', 1, 'Dark spot serum + sunscreen, every day', I.glow, 75, 2),
+      msg('routine', 4, 'Glow Deep serum is affordable and gentle', I.glow, 68),
       msg('routine', 6, 'Heartleaf oil vs Beauty of Joseon balm?', I.oil, 70),
       msg('routine', 3, 'Oil rinses cleaner, balm feels richer', I.balm, 65, 2),
     ];
+    db.messages.sort((a, b) => a.created_at.localeCompare(b.created_at)).forEach(m => { m.id = db.nextId++; });
   });
 
   const tagOf = async secret => {
