@@ -8,6 +8,7 @@ const base = process.argv[2] ?? 'http://localhost:3000/';
 const withLang = l => { const u = new URL(base); u.searchParams.set('lang', l); return u.href; };
 const browser = await chromium.launch(process.env.CHROME_PATH ? {executablePath: process.env.CHROME_PATH} : {channel: 'chrome'});
 const page = await browser.newPage({viewport: {width: 390, height: 844}});
+await page.addInitScript(()=>localStorage.setItem('seoulbeauty-interests-v1',JSON.stringify({version:1,skincare:false,makeup:false,concerns:[],done:true}))); // returning visitor: no first-visit flow
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
 await page.route('**/rest/v1/app_events', r => r.fulfill({status: 201, body: ''})); // keep test traffic out of metrics
@@ -100,12 +101,12 @@ try {
     assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
     await page.click('[data-home-tab="rooms"][role="tab"]');
     await page.click('.room-list-card[data-chat-room="acne"]');
-    await page.waitForSelector('#chat-join[open] .chat-rules');
-    await page.click('[data-chat-action="join-ok"]');
-    await page.waitForSelector('#post-list >> text=아직 글이 없어요');
-    await page.click('[data-topic-mode="live"]');
+    // Opens on the chat, readable; the join bar shows the rules and unlocks the composer.
     await page.waitForSelector('.chat-msg >> text=추천 좀 해주세요');
-    assert.equal(await page.getAttribute('#chat-text', 'placeholder'), 'Dewy Panda(으)로 대화');
+    assert.match(await page.textContent('.join-bar .chat-rules'), /.+/);
+    await page.click('#join-live');
+    await page.waitForSelector('#chat-text');
+    assert.equal(await page.getAttribute('#chat-text', 'placeholder'), '메시지를 입력하세요...');
     await page.click('[data-chat-menu="1"]');
     await page.click('[data-chat-action="reply"]');
     await page.click('[data-chat-action="attach"]');
@@ -137,6 +138,7 @@ try {
     await page.click('#tabbar [data-screen="chat"]');
     await page.click('[data-home-tab="rooms"][role="tab"]');
     await page.click('.room-list-card[data-chat-room="acne"]');
+    await page.click('.room-notice[data-topic-mode="posts"]');
     await page.click('[data-chat-action="write"]');
     await page.click('[data-write-kind="question"]');
     await page.fill('#write-title', '끈적이지 않는 선크림 추천해 주세요');

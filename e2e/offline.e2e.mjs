@@ -55,6 +55,7 @@ const step = async (name, fn) => { await fn(); console.log('ok -', name); };
 
 try {
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
+  await page.addInitScript(()=>localStorage.setItem('seoulbeauty-interests-v1',JSON.stringify({version:1,skincare:false,makeup:false,concerns:[],done:true}))); // returning visitor: no first-visit flow
   const errors = [], calls = [];
   page.on('pageerror', e => errors.push(e.message));
   await mock(page, calls);
@@ -112,6 +113,8 @@ try {
     await page.click('#tabbar [data-screen="chat"]');
     await page.click('#chat [data-home-tab="rooms"][role="tab"]');
     await page.click('#chat .room-list-card[data-chat-room="acne"]');
+    // Rooms open on the chat; the notice banner leads to the posts board.
+    await page.click('#chat .room-notice');
     await page.waitForSelector('#post-list .post-row');
     await page.click('#post-list [data-post="7"]');
     await page.waitForSelector('.comment .chat-item');
@@ -134,8 +137,10 @@ try {
   });
   await step('live chat: send, then block hides the author', async () => {
     await page.click('[data-chat-action="topic"]');
-    await page.click('[data-topic-mode="live"]');
+    await page.click('.room-notice[data-topic-mode="live"]');
     await page.waitForSelector('.chat-msg >> text=Anyone tried snail?');
+    if (await page.isVisible('#join-live')) await page.click('#join-live');
+    await page.waitForSelector('#chat-text');
     await page.fill('#chat-text', 'Yes, it is light');
     await page.click('#chat-form .chat-send');
     await page.waitForSelector('.chat-msg >> text=Yes, it is light');

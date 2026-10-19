@@ -11,8 +11,8 @@ const rooms = [
 const memory = () => { const m = new Map(); return {getItem: k => m.get(k) ?? null, setItem: (k, v) => m.set(k, v)}; };
 
 test('concern ids keep the planned skincare/makeup split', () => {
-  assert.deepEqual(CONCERNS.filter(c => c.group === 'skincare').map(c => c.id), ['acne', 'sensitive', 'dry', 'pores']);
-  assert.deepEqual(CONCERNS.filter(c => c.group === 'makeup').map(c => c.id), ['cushion', 'lip', 'longwear', 'shade']);
+  assert.deepEqual(CONCERNS.filter(c => c.group === 'skincare').map(c => c.id), ['acne', 'dry', 'sensitive', 'pores', 'spots', 'firmness', 'sebum', 'toneup', 'trouble']);
+  assert.deepEqual(CONCERNS.filter(c => c.group === 'makeup').map(c => c.id), ['lip', 'base', 'cushion', 'longwear', 'shade']);
 });
 
 test('normalize drops unknown ids and concerns of an unselected field', () => {
@@ -32,14 +32,14 @@ test('choices survive a round trip through storage and tolerate broken storage',
 });
 
 test('only concerns of selected fields are offered', () => {
-  assert.deepEqual(visibleConcerns({skincare: false, makeup: true}).map(c => c.id), ['cushion', 'lip', 'longwear', 'shade']);
+  assert.deepEqual(visibleConcerns({skincare: false, makeup: true}).map(c => c.id), ['lip', 'base', 'cushion', 'longwear', 'shade']);
   assert.equal(visibleConcerns({skincare: false, makeup: false}).length, 0);
 });
 
 test('skincare-only concerns recommend matching skin rooms, never brand rooms', () => {
   const recs = recommendRooms(rooms, {skincare: true, makeup: false, concerns: ['dry', 'sensitive']});
   assert.equal(recs[0].room.id, 'dry-sensitive');
-  assert.deepEqual(recs[0].matched, ['sensitive', 'dry']);
+  assert.deepEqual(recs[0].matched, ['dry', 'sensitive']);
   assert.ok(recs.every(r => r.room.kind !== 'brand'));
   assert.ok(recs.every(r => r.room.tag !== 'makeup'), 'makeup rooms do not leak into a skincare-only result');
 });

@@ -1,7 +1,7 @@
 import Foundation
 
 // UI text shared with the web app (strings.json is a copy of dist/strings.json; tests keep them identical).
-// Korean when the device's preferred language is Korean, English otherwise.
+// Korean by default (Korean build); English when chosen in Settings.
 enum L10n {
     static var deviceLanguage: String { Locale.preferredLanguages.first?.lowercased().hasPrefix("ko") == true ? "ko" : "en" }
     // Settings can override the device language ("ko" or "en").
@@ -12,7 +12,7 @@ enum L10n {
     }
     private static var stored: String {
         if let o = UserDefaults.standard.string(forKey: "alimi.lang"), o == "ko" || o == "en" { return o }
-        return deviceLanguage
+        return "ko"
     }
     static var locale: Locale { Locale(identifier: language == "ko" ? "ko_KR" : "en_US") }
     private static let table: [String: [String: String]] = {

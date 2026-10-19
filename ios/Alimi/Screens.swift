@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum MainTab: Hashable { case home, saved, search, chat }
+enum MainTab: Hashable { case home, saved, search, chat, rooms, alerts }
 
 // Pure layout rules for the Saved tab: the grid is padded to three slots and the headline depends on the count.
 enum SavedLayout {
@@ -18,35 +18,136 @@ enum SavedLayout {
 struct SavedView: View {
     @EnvironmentObject var store: AlimiStore
     @Binding var tab: MainTab
+    var editInterests: () -> Void = {}
+    var onSearch: () -> Void = {}
+    @State private var section = "saved"
+    @State private var joined: [JoinedRoom] = []
+    @State private var recent: [ProductFamily] = []
+    @State private var openFamily: ProductFamily?
     private var items: [Product] { store.products.filter { store.saved.favorites.contains($0.id) } }
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: 3)
+    // 내 활동 of journey 3: saved products / joined rooms / recently viewed, each as photo rows.
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text(L("saved.title")).font(.largeTitle.bold())
-                    SavedCommunityPosts()
-                    headline
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(items) { SavedCard(product: $0) }
-                        ForEach(0..<SavedLayout.emptySlots(items.count), id: \.self) { i in
-                            AddSlot(highlighted: i == 0) { tab = .search }
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 18) {
+                        Image("SeoulBeautyLogo").resizable().scaledToFit().frame(height: 50).accessibilityLabel("Seoul Beauty")
+                        Spacer()
+                        Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("search.title"))
+                        Button { tab = .alerts } label: { Image(systemName: "bell").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("alerts.title"))
+                        NavigationLink { SettingsView() } label: { Image(systemName: "gearshape").font(.system(size: 21, weight: .medium)) }
+                            .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
+                    }.foregroundStyle(Color.sbNavy)
+                    Text(L("nav.activity")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy).accessibilityIdentifier("saved-title")
+                    HStack(spacing: 4) {
+                        ForEach(["saved", "rooms", "recent"], id: \.self) { s in
+                            Button { section = s; if s == "recent" { recent = RecentViews.all() } } label: {
+                                Text(L("activity.tab." + s)).font(.system(size: 16, weight: section == s ? .bold : .medium)).lineLimit(1).minimumScaleFactor(0.8)
+                                    .foregroundStyle(section == s ? Color.white : Color(rgb: 0x3B4A63))
+                                    .frame(maxWidth: .infinity, minHeight: 50).background(section == s ? Color.sbBlue : Color.clear, in: RoundedRectangle(cornerRadius: 14))
+                            }.buttonStyle(.plain).accessibilityIdentifier("activity-tab-" + s).accessibilityAddTraits(section == s ? .isSelected : [])
                         }
+                    }.padding(4).background(Color(rgb: 0xEEF3FB), in: RoundedRectangle(cornerRadius: 18))
+                    switch section {
+                    case "rooms": rooms
+                    case "recent": recentList
+                    default: savedList
                     }
+                    interestsRow.padding(.top, 8)
+                    NavigationLink { ShareHubView() } label: {
+                        HStack {
+                            Image(systemName: "heart.text.square").font(.system(size: 22)).foregroundStyle(Color.sbBlue)
+                            Text(L("share.hubTitle")).font(.subheadline.bold()).foregroundStyle(Color.sbNavy)
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                        }.padding(14).background(Color.sbTagBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
+                    }.buttonStyle(.plain).accessibilityIdentifier("share-hub")
                 }.padding(20)
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink { SettingsView() } label: { Image(systemName: "gearshape") }
-                        .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
+            .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
         }
     }
-    private var headline: some View {
-        let h = SavedLayout.headline(items.count)
-        return Text(L(h.key, h.vars)).font(.headline).foregroundStyle(.secondary)
+    @ViewBuilder private var savedList: some View {
+        if items.isEmpty {
+            Text(L("saved.hint")).font(.subheadline).foregroundStyle(Color.sbGray)
+            AddSlot(highlighted: true, action: onSearch)
+        }
+        ForEach(items) { SavedRow(product: $0) }
+        SavedCommunityPosts()
+    }
+    @ViewBuilder private var recentList: some View {
+        if recent.isEmpty { Text(L("activity.recentEmpty")).font(.subheadline).foregroundStyle(Color.sbGray) }
+        ForEach(recent) { f in
+            Button { openFamily = f } label: {
+                HStack(spacing: 18) {
+                    RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(width: 104, height: 104).background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(f.brandLabel + " " + f.baseName).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
+                        if let c = f.category { Text(L10n.category(c)).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
+                        Text(f.priceText).font(.system(size: 20, weight: .heavy)).foregroundStyle(Color(rgb: 0xF0335A))
+                    }
+                    Spacer(minLength: 0)
+                }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(rgb: 0xE6EAF1)))
+            }.buttonStyle(.plain)
+        }
+    }
+    // Interests chosen in the guide; tapping reopens it.
+    private var interestsRow: some View {
+        let p = Interests.load()
+        let list = p.map { i in Interests.groups.filter { i.has($0) }.map { L("onb.g." + $0) } + i.concerns.map(Interests.label) } ?? []
+        return Button(action: editInterests) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("onb.manage")).font(.subheadline.bold())
+                    Text(list.isEmpty ? L("onb.none") : list.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }.contentShape(Rectangle())
+        }.buttonStyle(.plain).foregroundStyle(Color.sbNavy).accessibilityIdentifier("interests-row")
+    }
+    @ViewBuilder private var rooms: some View {
+        let seen = Seen.all()
+        if joined.isEmpty { Text(L("chat.mineEmpty")).font(.subheadline).foregroundStyle(.secondary) }
+        ForEach(joined) { j in
+            NavigationLink { CommunityTopic(room: j.room, member: true) } label: {
+                RoomListCard(room: j.room, note: j.last?.body ?? j.room.intro, fresh: Seen.hasNew(j.last?.createdAt, since: seen[j.room.id]))
+            }.buttonStyle(.plain).accessibilityIdentifier("my-room-" + j.room.id)
+        }
+        Color.clear.frame(height: 1).task(id: section) {
+            guard let all = try? await ChatAPI.rooms(), let mine = try? await ChatAPI.myRooms(all: all) else { return }
+            joined = mine.map { JoinedRoom(room: $0.room, last: $0.last) }
+        }
+    }
+}
+
+// Saved product row (journey 3): photo, name, size/category, price, bookmark to unsave.
+struct SavedRow: View {
+    @EnvironmentObject var store: AlimiStore
+    let product: Product
+    @State private var photoLoaded = false
+    var body: some View {
+        HStack(spacing: 18) {
+            NavigationLink { ProductDetail(product: product) } label: {
+                HStack(spacing: 18) {
+                    ProductArt(product: product) { photoLoaded = $0 }.frame(width: 104, height: 104)
+                        .background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(product.brandLabel + " " + product.name).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
+                        Text([product.size, L10n.category(product.category)].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 15)).foregroundStyle(Color.sbGray).lineLimit(2)
+                        Text(usd(product.price)).font(.system(size: 20, weight: .heavy)).foregroundStyle(Color(rgb: 0xF0335A))
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+            .buttonStyle(.plain).accessibilityIdentifier("product-\(product.id)")
+            .accessibilityValue(photoLoaded ? "photo-loaded" : "photo-missing")
+            Button { store.toggle(product.id) } label: {
+                Image(systemName: "bookmark.fill").font(.system(size: 24)).foregroundStyle(Color.sbBlue).frame(width: 44, height: 44)
+            }.buttonStyle(.plain).accessibilityIdentifier("favorite-\(product.id)").accessibilityLabel(L("favorite.saved"))
+        }
+        .padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(rgb: 0xE6EAF1)))
     }
 }
 struct SavedCard: View {
@@ -93,48 +194,151 @@ struct AddSlot: View {
 
 struct BrandView: View {
     @EnvironmentObject var store: AlimiStore
+    @Environment(\.dismiss) private var dismiss
     let brand: CatalogBrand
     @State private var families: [ProductFamily] = []
     @State private var done = false
     @State private var loading = false
     @State private var failed = false
     @State private var openFamily: ProductFamily?
+    @State private var tab = "products"
+    @State private var showAll = false
+    @State private var reviews: [CommunityPost] = []
+    @State private var following = false
+    // Brand page of journey 2: banner from the brand's own product photo, logo, product count, follow (this device),
+    // categories it sells, then 대표 상품 / 리뷰 (community reviews of this brand).
+    private let grid = Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: 3)
+    private var categories: [String] { Array(Set(families.compactMap(\.category))).sorted().prefix(4).map { $0 } }
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 12) {
-                header
-                list
-                if loading { LoadingCompanion(compact: true) }
-                else if failed {
-                    VStack(spacing: 8) {
-                        Text(L("loadFailed")).font(.caption).foregroundStyle(.secondary)
-                        Button(L("retry")) { Task { await loadMore() } }.accessibilityIdentifier("brand-retry")
-                    }.frame(maxWidth: .infinity)
+            LazyVStack(alignment: .leading, spacing: 0) {
+                banner
+                header.padding(.horizontal, 20)
+                if !categories.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(categories, id: \.self) { c in
+                                Text("#" + L10n.category(c).replacingOccurrences(of: " ", with: "")).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color.sbBlue)
+                                    .padding(.horizontal, 14).padding(.vertical, 8).background(Color.sbTagBg, in: Capsule())
+                            }
+                        }.padding(.horizontal, 20)
+                    }.padding(.top, 16)
                 }
-                else if families.isEmpty && done {
-                    Text(L("brand.empty")).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("brand-empty")
-                }
-            }.padding(20)
+                tabs.padding(.top, 22)
+                if tab == "products" { products } else { reviewList }
+            }.padding(.bottom, 24)
         }
-        .navigationTitle(brand.label).navigationBarTitleDisplayMode(.inline)
-        .task { await loadMore() }
+        .ignoresSafeArea(edges: .top)
+        .toolbar(.hidden, for: .navigationBar)
+        .task { await loadMore(); following = BrandFollow.isFollowing(brand.brand) }
         .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
     }
-    private var header: some View {
-        HStack(spacing: 16) {
-            BrandBadge(brand: brand, size: 84, showLabel: false)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(brand.label).font(.title2.bold()).lineLimit(2).accessibilityIdentifier("brand-header-title")
-                if brand.families > 0 { Text(L("count", ["n": brand.families])).font(.subheadline).foregroundStyle(.secondary) }
-            }
-            Spacer()
-        }.padding(.bottom, 8)
+    private var banner: some View {
+        ZStack(alignment: .top) {
+            Color(rgb: 0xF6DADB)
+            if let url = families.first?.imageUrl { RemoteThumb(url: url).opacity(0.9) }
+            HStack {
+                roundButton("chevron.left") { dismiss() }.accessibilityLabel(L("back"))
+                Spacer()
+                ShareLink(item: ShareLinks.site, subject: Text(brand.label)) {
+                    Image(systemName: "square.and.arrow.up").font(.system(size: 18, weight: .medium)).foregroundStyle(Color.sbNavy)
+                        .frame(width: 48, height: 48).background(Color.white.opacity(0.85), in: Circle())
+                }
+            }.padding(.horizontal, 16).padding(.top, 60)
+        }.frame(height: 240).clipped()
     }
-    private var list: some View {
-        ForEach(families) { family in
-            FamilyRow(family: family) { openFamily = family }
-                .onAppear { if family.id == families.last?.id { Task { await loadMore() } } }
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .bottom, spacing: 16) {
+                BrandBadge(brand: brand, size: 108, showLabel: false)
+                    .padding(4).background(Color.white, in: Circle()).offset(y: -44).padding(.bottom, -44)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(brand.label).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.7)
+                        .accessibilityIdentifier("brand-header-title")
+                    if brand.families > 0 { Text(L("count", ["n": brand.families])).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
+                }
+                Spacer(minLength: 4)
+                Button {
+                    following.toggle(); BrandFollow.set(brand.brand, following)
+                } label: {
+                    Text(following ? L("brand.following") : "+ " + L("brand.follow")).font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(following ? Color.sbGray : Color.sbBlue)
+                        .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbTagBg, in: Capsule())
+                }.buttonStyle(.plain).accessibilityIdentifier("brand-follow")
+            }.padding(.top, 12)
+            Text(L("brand.headline", ["brand": brand.label])).font(.system(size: 22, weight: .heavy)).foregroundStyle(Color.sbNavy)
+            Text(L("brand.followNote")).font(.system(size: 14)).foregroundStyle(Color.sbGray)
         }
+    }
+    private var tabs: some View {
+        HStack(spacing: 0) {
+            ForEach(["products", "reviews"], id: \.self) { t in
+                Button { tab = t; if t == "reviews" { Task { await loadReviews() } } } label: {
+                    VStack(spacing: 10) {
+                        Text(L("brand.tab." + t)).font(.system(size: 17, weight: tab == t ? .bold : .regular)).foregroundStyle(tab == t ? Color.sbBlue : Color.sbGray)
+                        Rectangle().fill(tab == t ? Color.sbBlue : Color.clear).frame(height: 3)
+                    }.frame(maxWidth: .infinity)
+                }.buttonStyle(.plain)
+            }
+        }.overlay(alignment: .bottom) { Rectangle().fill(Color(rgb: 0xE6EAF1)).frame(height: 1) }
+    }
+    @ViewBuilder private var products: some View {
+        LazyVGrid(columns: grid, spacing: 16) {
+            ForEach(showAll ? families : Array(families.prefix(3))) { f in
+                VStack(alignment: .leading, spacing: 6) {
+                    Button { openFamily = f } label: {
+                        RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 120).background(Color(rgb: 0xF7E9EA))
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }.buttonStyle(.plain)
+                    Text(f.baseName).font(.system(size: 14)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                    HStack {
+                        Text(f.priceText).font(.system(size: 16, weight: .bold)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.8)
+                        Spacer(minLength: 2)
+                        Button { openFamily = f } label: {
+                            Image(systemName: "cart").font(.system(size: 15)).foregroundStyle(Color.sbBlue).frame(width: 34, height: 34).background(Color.sbTagBg, in: Circle())
+                        }.buttonStyle(.plain).accessibilityLabel(L("variant.buy"))
+                    }
+                }
+                .onAppear { if showAll && f.id == families.last?.id { Task { await loadMore() } } }
+            }
+        }.padding(.horizontal, 20).padding(.top, 18)
+        if !showAll && families.count > 3 {
+            Button { showAll = true } label: {
+                HStack {
+                    Image(systemName: "square.grid.2x2").font(.system(size: 18))
+                    Text(L("brand.allProducts")).font(.system(size: 16))
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(Color.sbGray)
+                }.foregroundStyle(Color.sbNavy).padding(.horizontal, 18).frame(minHeight: 54)
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(rgb: 0xE6EAF1)))
+            }.buttonStyle(.plain).padding(.horizontal, 20).padding(.top, 16).accessibilityIdentifier("brand-all")
+        }
+        if loading { LoadingCompanion(compact: true) }
+        else if failed {
+            VStack(spacing: 8) {
+                Text(L("loadFailed")).font(.caption).foregroundStyle(.secondary)
+                Button(L("retry")) { Task { await loadMore() } }.accessibilityIdentifier("brand-retry")
+            }.frame(maxWidth: .infinity).padding(.top, 12)
+        } else if families.isEmpty && done {
+            Text(L("brand.empty")).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 20).padding(.top, 16).accessibilityIdentifier("brand-empty")
+        }
+    }
+    @ViewBuilder private var reviewList: some View {
+        if reviews.isEmpty { Text(L("brand.noReviews")).font(.subheadline).foregroundStyle(Color.sbGray).padding(20) }
+        ForEach(reviews) { p in
+            NavigationLink { CommunityPostView(post: p) } label: { CommunityPostRow(post: p).padding(.horizontal, 20).padding(.vertical, 8) }.buttonStyle(.plain)
+            Divider().padding(.horizontal, 20)
+        }
+    }
+    private func roundButton(_ icon: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.system(size: 18, weight: .medium)).foregroundStyle(Color.sbNavy)
+                .frame(width: 48, height: 48).background(Color.white.opacity(0.85), in: Circle())
+        }.buttonStyle(.plain)
+    }
+    private func loadReviews() async {
+        let posts = (try? await CommunityAPI.posts()) ?? []
+        reviews = posts.filter { $0.item?.brand == brand.brand }
     }
     private func loadMore() async {
         guard !loading, !done else { return }
@@ -148,6 +352,16 @@ struct BrandView: View {
     }
 }
 
+// Followed brands live on this device only (no account, nothing sent).
+enum BrandFollow {
+    static let key = "seoulbeauty.brands.followed.v1"
+    static func all(_ d: UserDefaults = .standard) -> Set<String> { Set(d.stringArray(forKey: key) ?? []) }
+    static func isFollowing(_ brand: String, _ d: UserDefaults = .standard) -> Bool { all(d).contains(brand) }
+    static func set(_ brand: String, _ on: Bool, _ d: UserDefaults = .standard) {
+        var s = all(d); if on { s.insert(brand) } else { s.remove(brand) }
+        d.set(Array(s).sorted(), forKey: key)
+    }
+}
 // MARK: Search
 
 struct SearchView: View {

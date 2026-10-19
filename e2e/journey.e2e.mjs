@@ -23,16 +23,18 @@ try {
  // Shared room link opens the room; header shows real members, join for non-members, and share copies a clean link.
  {
   const {ctx,page,errors}=await open(base+'?room=tint&lang=ko',async p=>p.addInitScript(()=>localStorage.setItem('alimi-chat-agreed','1')));
-  await page.locator('.room-bar h1').waitFor();
-  assert.equal(await page.locator('.room-bar h1').innerText(),'틴트 이야기');
-  assert.match(await page.locator('.room-bar small').innerText(),/5/);
+  await page.locator('.room-top h1').waitFor();
+  assert.equal(await page.locator('.room-top h1').innerText(),'틴트 이야기');
+  assert.match(await page.locator('.room-top small').innerText(),/5/);
+  await page.locator('[data-chat-action="room-more"]').click();
   await page.locator('[data-chat-action="share-room"]').click();
   await page.waitForFunction(()=>document.querySelector('#toast')?.classList.contains('show'));
   assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),new URL('?room=tint',base).href);
-  await page.locator('[data-topic-mode="live"]').click();
   await page.locator('#chat-log .chat-msg').first().waitFor();
+  await page.locator('#join-live').click();
+  await page.locator('#chat-text').waitFor();
   assert.equal(await page.locator('#room-join').count(),0,'join button gone once joined');
-  assert.equal(await page.locator('.chat-avatar').first().innerText(),'M');
+  assert.match(await page.locator('.msg-avatar').first().getAttribute('src'),/^avatars\/avatar-[1-5]\.webp$/);
   assert.deepEqual(errors,[]);await ctx.close();
  }
  // Not yet a member: the header offers join, which asks for the rules first and then opens live chat.
@@ -40,9 +42,9 @@ try {
   const {ctx,page,errors}=await open(base+'?lang=en');
   await page.locator('[data-home-tab="rooms"][role="tab"]').click();
   await page.locator('.room-list-card[data-chat-room="tint"]').click();
-  await page.locator('[data-chat-action="join-ok"]').click();
-  await page.locator('#room-join').waitFor();
   await page.locator('#room-join').click();
+  await page.locator('[data-chat-action="join-ok"]').click();
+  await page.locator('#chat-text').waitFor();
   await page.locator('#chat-log .chat-msg').first().waitFor();
   assert.equal(await page.locator('#room-join').count(),0);
   assert.deepEqual(errors,[]);await ctx.close();
@@ -61,14 +63,14 @@ try {
    await p.addInitScript(()=>localStorage.setItem('seoulbeauty-seen-v1',JSON.stringify({tint:'2000-01-01T00:00:00Z'})));
   });
   await page.locator('.welcome-back').waitFor();
-  assert.equal(await page.locator('.room-list-card[data-chat-room="tint"] .new-badge').first().innerText(),'새 메시지');
-  // Reading the room records it as seen; back home the badge is gone.
-  await page.locator('.room-list-card[data-chat-room="tint"]').first().click();
-  const ok=page.locator('[data-chat-action="join-ok"]');if(await ok.isVisible().catch(()=>false))await ok.click();
+  await page.locator('.joined-card[data-chat-room="tint"] .count-badge').waitFor();
+  assert.equal(await page.locator('.joined-card[data-chat-room="tint"] .count-badge').innerText(),'1');
+  // Reading the room records it as seen; back home the count is gone.
+  await page.locator('.joined-card[data-chat-room="tint"]').first().click();
   await page.locator('#chat-log .chat-msg').first().waitFor();
   await page.locator('[data-chat-action="rooms"]').first().click();
   await page.locator('.welcome-back').waitFor();
-  assert.equal(await page.locator('.new-badge').count(),0);
+  assert.equal(await page.locator('.count-badge').count(),0);
   // My activity: saved products and joined rooms as tabs.
   await page.locator('#tabbar [data-screen="saved"]').click();
   assert.equal(await page.locator('[data-activity-tab="saved"]').getAttribute('aria-selected'),'true');

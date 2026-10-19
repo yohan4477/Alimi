@@ -6,8 +6,9 @@ import {share, shareUrl} from './share.js';
 // Live chat polls every few seconds while open.
 import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
-import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures} from './room-card.js';
-import {renderGuide, handleGuideClick, readInterests, recommendRooms, CONCERNS, canCreateRooms} from './onboarding.js';
+import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine} from './room-card.js';
+import {loadRevisit, welcomeBanner, joinedCard, ago as timeAgo} from './revisit.js';
+import {readInterests, recommendRooms, CONCERNS, canCreateRooms} from './onboarding.js';
 import {track} from './events.js';
 import {t, locale} from './i18n.js';
 import {searchCatalog, brandLabel, usd, brandInitials, brandColor, fetchBrands, fetchFamiliesPage} from './live.js';
@@ -37,7 +38,7 @@ export async function openChat(opts = {}) {
   chat.myTag ||= await tagOf(secret);
   track('community_open', null);
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
-  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { askJoin(r, () => openTopic(r, 'live')); return; } }
+  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   renderHome();
 }
 // Called when the user switches to another tab: stop polling until the community screen is opened again.
@@ -98,7 +99,7 @@ async function loadCatalogPictures(rooms) {
 async function renderHome() {
   const version = ++homeVersion;
   stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="page-head community-head"><div><h1 class="wordmark">Seoul Beauty</h1><p>${esc(t('community.sub'))}</p></div><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`);
+  shell(`<div class="logo-head center"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`);
   let posts = [], joined = [], postsFailed = false;
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
@@ -112,19 +113,15 @@ async function renderHome() {
   home = {hot, topics, recent, previews, partial, joined, images: roomImages(entries), products: mentionedProducts(entries, readBlocked(storage))};
   homeJoined = joined;
   drawHome();
+  loadRevisit().then(r => { if (version === homeVersion && home) { home.revisit = r; drawHome(); } }, () => {});
   loadCatalogPictures(chat.rooms).then(pics => {
     if (version !== homeVersion || !home) return;
     home.images = topicPictures([...hot, ...topics], pics.byCategory, roomImages(entries)); home.popular = pics.popular;
     drawHome();
   }, () => {});
 }
-const trendCard = r => `<button class="trend-card" data-chat-room="${esc(r.id)}" data-live="1"><span class="trend-img">${home.images.get(r.id) ? `<img src="${esc(home.images.get(r.id))}" alt="" loading="lazy">` : roomThumb(r)}</span><b>${esc(roomTitle(r))}</b><small>${esc(t('home.msgShort', {n: r.messages_24h}))}</small></button>`;
-function welcomeBack(joined, images) {
-  const seen = readSeen();
-  const cards = joined.map(j => ({j, r: chat.rooms.find(r => r.id === j.room_id)})).filter(x => x.r).slice(0, 2)
-    .map(({j, r}) => roomListCard(r, {image: images.get(r.id), note: j.last?.body || roomIntro(r), fresh: hasNewSince(j.last, seen[r.id]), attrs: `data-chat-room="${esc(r.id)}" data-live="1"`})).join('');
-  return `<section class="welcome-back"><b>${esc(t('home.welcome'))}</b><p>${esc(t('home.welcomeSub'))}</p></section>${sectionHead(t('activity.chats'), '', `<button class="text-link resume-conversation" data-chat-action="resume">${esc(t('home.seeAll'))} ›</button>`)}${cards}`;
-}
+const trendCard = r => `<button class="trend-card" data-chat-room="${esc(r.id)}" data-live="1"><span class="trend-img">${home.images.get(r.id) ? `<img src="${esc(home.images.get(r.id))}" alt="" loading="lazy">` : roomThumb(r)}</span><b>${esc(roomTitle(r))}</b><small>${esc(t('room.newToday', {n: r.messages_24h}))}</small></button>`;
+const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big-head-row"><div><h2 class="big-head">${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div><button class="text-link" ${more}>${esc(t('home.seeAll'))} ›</button></div>`;
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
 function drawHome() {
   const box = $('#community-home'); if (!box || !home) return;
@@ -133,8 +130,9 @@ function drawHome() {
   if (homeTab === 'rec') {
     const interests = readInterests();
     const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (hot.length ? hot : topics).slice(0, 4);
-    box.innerHTML = `<section id="onboard-guide" class="onboard" aria-live="polite"></section>${joined.length ? welcomeBack(joined, images) : ''}${hot.length ? sectionHead(t('home.trending'), t('home.trendingSub')) + `<div class="trend-grid">${hot.slice(0, 3).map(trendCard).join('')}</div>` : ''}${sectionHead(t('home.recRooms'), t('home.recRoomsSub'), `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || '', attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}`;
-    renderGuide($('#onboard-guide'), chat.rooms, images);
+    const mine = home.revisit?.activity?.length ? welcomeBanner() + bigHead(t('rooms.mine'), '', 'data-screen="rooms"') + home.revisit.activity.slice(0, 2).map(a => joinedCard(a, images.get(a.room.id))).join('') : '';
+    const trend = hot.length ? bigHead(t('home.trending'), t('home.trendingSub')) + `<div class="trend-row">${hot.map(trendCard).join('')}</div>` : '';
+    box.innerHTML = `${mine}${trend}${bigHead(t('home.recRooms'), t('home.recRoomsSub'))}${picks.map(r => pickCard(r, {image: images.get(r.id), intro: false, highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
   } else if (homeTab === 'rooms') {
     box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'), canCreateRooms(chat.rooms) ? `<button class="text-link" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
   } else if (homeTab === 'discover') {
@@ -172,10 +170,12 @@ function askJoin(room, then) {
 let joinThen = () => {};
 
 // Topic: header + Posts / Live chat switch. The two never share one stream.
-function openTopic(room, mode = view.mode) {
+const joinedRooms = new Set();
+function openTopic(room, mode = 'live') {
   stopPolling(); chat.room = room; view.mode = mode; view.post = null;
   const member = homeJoined.some(j => j.room_id === room.id);
-  shell(`<div class="page-bar room-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-bar-text"><h1>${esc(roomTitle(room))}</h1><small>${esc(t('chat.members', {n: room.members ?? 0}))}</small></div>${member ? '' : `<button class="room-join" id="room-join" data-chat-action="join-room">+ ${esc(t('room.join'))}</button>`}<button class="icon-btn" data-chat-action="share-room" aria-label="${esc(t('share.room'))}">${icon.share}</button></div><div class="topic-head"><p>${esc(roomIntro(room))}</p><div class="seg topic-seg"><button data-topic-mode="posts" class="${mode === 'posts' ? 'on' : ''}">${esc(t('community.posts'))}</button><button data-topic-mode="live" class="${mode === 'live' ? 'on' : ''}">${esc(t('community.live'))}</button></div></div><div id="topic-body"></div>`);
+  const canPost = hasAgreed(storage) && (member || joinedRooms.has(room.id)), other = mode === 'posts' ? 'live' : 'posts';
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small>${esc(memberLine(room))}</small></div>${canPost ? '' : `<button class="room-join" id="room-join" data-chat-action="join-room">+ ${esc(t('room.join'))}</button>`}<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
@@ -265,15 +265,18 @@ async function submitPost() {
 // Live chat inside a topic.
 async function startLive(room) {
   chat.messages = []; chat.item = null; chat.replyTo = null;
-  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
-  $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
-  $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
+  const canPost = hasAgreed(storage) && (joinedRooms.has(room.id) || homeJoined.some(j => j.room_id === room.id));
+  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div>${canPost ? `<form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>` : `<div class="join-bar"><p class="chat-rules">${esc(t('chat.rules'))}</p><button class="primary" id="join-live" data-chat-action="join-live">${esc(t('room.joinTalk'))}</button></div>`}`);
+  if (canPost) {
+    $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
+    $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
+  }
   try {
-    chat.nickname = await joinRoom(secret, room.id);
-    if (!homeJoined.some(j => j.room_id === room.id)) homeJoined = [{room_id: room.id, last: null}, ...homeJoined];
-    $('#room-join')?.remove();
-    track('chat_join', null, {room: room.id});
-    $('#chat-text').placeholder = t('chat.placeholder', {name: chat.nickname});
+    if (canPost) {
+      chat.nickname = await joinRoom(secret, room.id);
+      if (!homeJoined.some(j => j.room_id === room.id)) homeJoined = [{room_id: room.id, last: null}, ...homeJoined];
+      track('chat_join', null, {room: room.id});
+    }
     chat.messages = await fetchMessages(room.id);
   } catch { $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
   renderLog(true);
@@ -294,7 +297,8 @@ function renderLog(scroll) {
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
   log.innerHTML = list.length ? list.map(m => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
-    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine ? '' : `<small class="chat-nick"><i class="chat-avatar" style="background:${avatarColor(m.author_tag)}" aria-hidden="true">${esc([...(m.nickname || '?')][0])}</i>${esc(m.nickname)}</small>`}<div class="chat-bubble-row"><div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><span class="chat-side"><time>${esc(time(m.created_at))}</time><button class="chat-like" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♡ ${m.likes || ''}</button><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></span></div></article>`;
+    const replies = list.filter(x => x.reply_to === m.id).length;
+    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine ? '' : `<img class="msg-avatar" src="avatars/avatar-${avatarIndex(m.author_tag)}.webp" alt="" width="52" height="52">`}<div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<time>${esc(timeAgo(m.created_at))}</time><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}${m.likes || replies ? `<div class="msg-pills"><button class="pill${m.likes ? ' on' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♥ ${m.likes || 0}</button>${replies ? `<button class="pill" data-chat-reply="${m.id}" aria-label="${esc(t('chat.reply'))}">💬 ${replies}</button>` : ''}</div>` : ''}</div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   if (scroll || near) log.scrollTop = log.scrollHeight;
 }
@@ -358,7 +362,7 @@ let menuTarget = null;
 function openMenu(id) {
   chat.menuFor = chat.messages.find(m => m.id === id); if (!chat.menuFor) return;
   const mine = chat.menuFor.author_tag === chat.myTag; menuTarget = {type: 'chat', id};
-  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button>${mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
+  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-like="${id}">${esc(t('chat.like'))}</button>${mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
   $('#chat-menu').showModal();
 }
 function openCommunityMenu(spec) {
@@ -426,9 +430,10 @@ async function submitRoom() {
     chat.rooms = await fetchRooms().catch(() => chat.rooms);
     $('#room-create').close(); toast(t('room.created'));
     const room = chat.rooms.find(r => r.id === id);
-    if (room) { chat.room = room; askJoin(room, () => openTopic(room, 'posts')); } else renderHome();
+    if (room) { chat.room = room; joinedRooms.add(room.id); openTopic(room, 'live'); } else renderHome();
   } catch (e) { newRoom.busy = false; newRoom.error = t(errorKey(e.message)); renderCreateRoom(); }
 }
+const avatarIndex = tag => [0xF4A3A8, 0x9CC3F5, 0xF7C873, 0x9FD8B8, 0xC8B5F2, 0xF5B38A][[...String(tag ?? '')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 6] % 5 + 1;
 const AVATAR_COLORS = ['#f4a3a8', '#9cc3f5', '#f7c873', '#9fd8b8', '#c8b5f2', '#f5b38a'];
 const avatarColor = tag => AVATAR_COLORS[[...String(tag ?? '')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % AVATAR_COLORS.length];
 let pendingPost = null;
@@ -438,13 +443,15 @@ export const openRoomNext = id => { pendingRoom = id; };
 
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (handleGuideClick(b, $('#onboard-guide'), chat.rooms)) return;
   const a = b.dataset.chatAction;
   if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (b.hasAttribute('data-home-brands-retry')) { homeBrands = null; drawHome(); }
   else if (b.dataset.homeTab) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
-  else if (a === 'join-room') askJoin(chat.room, () => openTopic(chat.room, 'live'));
+  else if (a === 'join-room') { const r = chat.room; if (hasAgreed(storage)) { joinedRooms.add(r.id); openTopic(r, 'live'); } else askJoin(r, () => { joinedRooms.add(r.id); openTopic(r, 'live'); }); }
+  else if (a === 'join-live') { agree(storage); joinedRooms.add(chat.room.id); openTopic(chat.room, 'live'); }
+  else if (a === 'room-more') { const m = $('#room-menu'); if (m) { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); } }
+  else if (b.dataset.chatReply) { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
   else if (a === 'share-room' && chat.room) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
   else if (a === 'find-topic') openStart();
   else if (a === 'create-room') openCreateRoom();
@@ -489,7 +496,7 @@ document.addEventListener('click', async e => {
       toast(t('chat.reported'));
     } catch { toast(t('chat.err.other')); }
   }
-  else if (b.dataset.chatRoom) { const r = chat.rooms.find(x => x.id === b.dataset.chatRoom); if (r) askJoin(r, () => openTopic(r, b.dataset.live ? 'live' : 'posts')); }
+  else if (b.dataset.chatRoom) { const r = chat.rooms.find(x => x.id === b.dataset.chatRoom); if (r) openTopic(r, 'live'); }
   else if (b.dataset.post && $('#chat') && !$('#chat').hidden) openPost(+b.dataset.post);
   else if (b.dataset.chatPick) picked1(+b.dataset.chatPick);
   else if (b.dataset.chatMenu) openMenu(+b.dataset.chatMenu);
@@ -497,6 +504,7 @@ document.addEventListener('click', async e => {
   else if (b.dataset.communitySave && view.post) { toggleSavedPost(view.post); renderPost(); }
   else if (b.dataset.chatLike) {
     const id = +b.dataset.chatLike;
+    if ($('#chat-menu')?.open) $('#chat-menu').close();
     try { const n = await likeMessage(secret, id); const m = chat.messages.find(x => x.id === id); if (m) m.likes = n; renderLog(false); } catch {}
   }
   else if (b.dataset.communityLike) {
@@ -504,3 +512,11 @@ document.addEventListener('click', async e => {
     try { const n = await likeCommunity(secret, type, +id); const x = type === 'post' ? view.post : view.comments.find(c => c.id === +id); if (x) x.likes = n; renderPost(); } catch {}
   }
 });
+
+// Rooms and their pictures for the first-visit flow (onboarding.js).
+export async function onboardingData() {
+  const rooms = chat.rooms.length ? chat.rooms : (chat.rooms = await fetchRooms());
+  const pics = await loadCatalogPictures(rooms).catch(() => null);
+  return {rooms, pictures: pics ? topicPictures(rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map()};
+}
+export const openRoomById = id => { pendingRoom = id; };

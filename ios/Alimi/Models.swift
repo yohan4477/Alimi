@@ -181,6 +181,12 @@ struct CatalogBrand: Codable, Identifiable, Hashable {
     let logoUrl: URL?
     var id: String { brand }
     var label: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
+    // Logos shipped in the app (same files as dist/brand-logos), so they show instantly and offline.
+    var bundledLogoName: String {
+        let slug = logoUrl?.deletingPathExtension().lastPathComponent
+            ?? brand.lowercased().replacingOccurrences(of: "&", with: "").split(whereSeparator: { !$0.isLetter && !$0.isNumber }).joined(separator: "-")
+        return "BrandLogo-" + slug
+    }
     var initials: String {
         let words = brand.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
         let s = words.count > 1 ? String(words[0].prefix(1)) + String(words[1].prefix(1)) : String((words.first ?? "?").prefix(2))
@@ -277,6 +283,7 @@ final class AlimiStore: ObservableObject {
         self.session = session
         // UI tests start from an empty device state and the bundled snapshot only (no network dependency).
         if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") { defaults.removeObject(forKey: "alimi.live.v1"); defaults.removeObject(forKey: "seoulbeauty.catalog-saves.v1") }
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") { UserDefaults.standard.removeObject(forKey: Interests.key); UserDefaults.standard.removeObject(forKey: Seen.key); UserDefaults.standard.removeObject(forKey: "alimi.chat.blocked") }
         saved = defaults.data(forKey: "alimi.live.v1").flatMap { try? JSONDecoder().decode(SavedState.self, from: $0) } ?? SavedState()
         if let products {
             self.products = products; source = .none

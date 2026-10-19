@@ -6,6 +6,7 @@ const base=process.argv[2]??'http://localhost:3000/';
 try {
  for(const lang of ['en','ko']) {
   const page=await browser.newPage({viewport:{width:390,height:844}}), errors=[];
+  await page.addInitScript(()=>localStorage.setItem('seoulbeauty-interests-v1',JSON.stringify({version:1,skincare:false,makeup:false,concerns:[],done:true}))); // returning visitor: no first-visit flow
   page.on('pageerror',e=>errors.push(e.message));
   const item={family_key:'tint03',retailer:'Shop',market:'US',sku:'03',brand:'TEST',brand_ko:'테스트',name:'Soft tint 03',price_minor:1200,image_url:null,currency:'USD',size_label:'4g',option_label:'03',url:'https://example.com/tint',affiliate_url:null};
   const room={id:'tint',title_en:'Tint talk',title_ko:'틴트 이야기',intro_en:'Shades and experiences',intro_ko:'발색 경험을 나눠요',kind:'topic',sort:1,members:2,messages_24h:2,last_message_at:new Date().toISOString()};
@@ -20,21 +21,23 @@ try {
    return route.fulfill({json:[]});
   });
   await page.goto(base+'?lang='+lang);
-  await page.locator('.room-list-card[data-live]').first().waitFor();
-  assert.equal(await page.locator('#tabbar button').count(),3);
+  await page.locator('.pick-card[data-live]').first().waitFor();
+  assert.equal(await page.locator('#tabbar button').count(),5);
   assert.equal(await page.locator('#chat').isVisible(),true);
   assert.equal(await page.locator('#browse').isVisible(),false);
   // 추천 tab: trending card and recommended room; user-authored text stays verbatim in either UI language.
   assert.equal(await page.locator('.trend-card[data-chat-room="tint"]').count(),1);
-  assert.equal(await page.locator('.room-list-card[data-live] em').first().innerText(),messages[0].body);
   // 발견 tab: products mentioned in conversations.
   await page.locator('[data-home-tab="discover"][role="tab"]').click();
   assert.equal(await page.locator('.mentioned-products article').count(),1);
   assert.match(await page.locator('#community-home').innerText(),lang==='en'?/Products in the conversation/:/대화에 나온 제품/);
   await page.locator('[data-home-tab="rec"][role="tab"]').click();
-  await page.locator('.room-list-card[data-live]').first().click();
-  await page.locator('[data-chat-action="join-ok"]').click();
+  await page.locator('.pick-card[data-live]').first().click();
+  // Readable before joining; the join bar shows the rules and unlocks the composer.
   await page.locator('#chat-log .chat-item').waitFor();
+  assert.equal(await page.locator('#chat-log .chat-bubble p').first().innerText(),messages[0].body);
+  await page.locator('#join-live').click();
+  await page.locator('#chat-text').waitFor();
   await page.locator('#chat-log .chat-item').click();
   await page.locator('#family-dialog[open] .variant-row').waitFor();
   assert.equal(await page.locator('.analysis-section').count(),0);

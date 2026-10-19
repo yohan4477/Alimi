@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{channel:'chrome'});
 try {
  const page=await browser.newPage({viewport:{width:390,height:844}});
+ await page.addInitScript(()=>localStorage.setItem('seoulbeauty-interests-v1',JSON.stringify({version:1,skincare:false,makeup:false,concerns:[],done:true}))); // returning visitor: no first-visit flow
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  let stripFails=true,releaseOld,oldStarted,failB=true;
  const started=new Promise(r=>oldStarted=r), gate=new Promise(r=>releaseOld=r);
