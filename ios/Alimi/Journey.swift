@@ -55,17 +55,17 @@ enum Recommend {
     static func concerns(of room: ChatRoom) -> [String] { room.concerns ?? roomConcerns[room.id] ?? [] }
     // Matched concerns first, then the chosen field, then recent activity; nothing chosen → busiest topics.
     static func rooms(_ rooms: [ChatRoom], _ sel: Interests?, limit: Int = 3) -> [RoomPick] {
-        let topics = rooms.filter { !$0.isBrand }
+        let topics = rooms.filter { !$0.isBrand && !$0.isClosed }
         let order = Dictionary(topics.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { a, _ in a })
         func active(_ r: ChatRoom) -> Int { min(r.messages24h, 50) }
         func busier(_ a: ChatRoom, _ b: ChatRoom) -> Bool { active(a) != active(b) ? active(a) > active(b) : (order[a.id] ?? 0) < (order[b.id] ?? 0) }
         if let sel {
-            let chosen = sel.visibleConcerns.filter { sel.concerns.contains($0) }
+            let chosen = RoomTopics.canonical(sel.visibleConcerns.filter { sel.concerns.contains($0) })
             var picked: [(pick: RoomPick, score: Int)] = []
             for room in topics {
                 let group = room.tag.flatMap { tagGroup[$0] }
                 if let group, !sel.has(group) { continue }
-                let tags = concerns(of: room)
+                let tags = RoomTopics.canonical(concerns(of: room))
                 let matched = chosen.filter { tags.contains($0) }
                 if matched.isEmpty && group == nil { continue }
                 picked.append((RoomPick(room: room, matched: matched, popular: false), matched.count * 4 + (group == nil ? 0 : 2) + (sel.skincare && ((sel.skinType == "dry" && tags.contains("dry")) || (sel.skinType == "oily" && tags.contains("sebum"))) ? 1 : 0)))
@@ -388,6 +388,7 @@ struct CommunityHome: View {
             }
             .onChange(of: openRoom) { _, room in if let room { tab = .rec; path.append(room); openRoom = nil } }
             .onAppear { interests = Interests.load() }
+            .onReceive(NotificationCenter.default.publisher(for: .roomMembershipChanged)) { _ in Task { await model.load(store: store); await revisit.load(store: store) } }
         }
     }
     private var header: some View {
@@ -556,16 +557,18 @@ struct CreateRoomSheet: View {
     @State private var concerns: [String] = []
     @State private var error = ""
     @State private var busy = false
+    @State private var moreTags = false
+    @FocusState private var editing: Bool
     private var offered: [String] {
-        Interests.catalog.filter { tag == "skin" ? $0.group == "skincare" : tag == "makeup" ? $0.group == "makeup" : true }.map(\.id)
+        RoomTopics.offered(tag)
     }
     var body: some View {
         NavigationStack {
             Form {
                 Section { Text(L("room.newHint")).font(.caption).foregroundStyle(.secondary) }
                 Section {
-                    TextField(L("room.titlePh"), text: $title).accessibilityIdentifier("room-title")
-                    TextField(L("room.introPh"), text: $intro, axis: .vertical).lineLimit(2...3)
+                    TextField(L("room.titlePh"), text: $title).focused($editing).accessibilityIdentifier("room-title")
+                    TextField(L("room.introPh"), text: $intro, axis: .vertical).lineLimit(2...3).focused($editing)
                 }
                 Section(L("room.field")) {
                     Picker(L("room.field"), selection: $tag) { ForEach(["talk", "skin", "makeup"], id: \.self) { Text(L("room.tag." + $0)).tag($0) } }
@@ -573,36 +576,55 @@ struct CreateRoomSheet: View {
                         .onChange(of: tag) { _, _ in concerns = concerns.filter { offered.contains($0) } }
                 }
                 Section(L("room.concerns")) {
-                    FlowLayout {
-                        ForEach(offered, id: \.self) { id in
-                            ChoiceChip(label: Interests.label(id), on: concerns.contains(id)) {
-                                if let i = concerns.firstIndex(of: id) { concerns.remove(at: i) } else { concerns.append(id) }
+                    let visible = moreTags ? offered : offered.filter { ["acne", "dry", "sensitive", "pores", "shade", "longwear", "lip", "base"].contains($0) || concerns.contains($0) }
+                    ForEach(["skin", "makeup", "product"], id: \.self) { group in
+                        let ids = visible.filter { id in RoomTopics.catalog.contains { $0.id == id && $0.group == group } }
+                        if !ids.isEmpty {
+                            Text(L("room.group." + group)).font(.caption).foregroundStyle(.secondary)
+                            FlowLayout {
+                                ForEach(ids, id: \.self) { id in
+                                    ChoiceChip(label: L("room.topic." + id), on: concerns.contains(id)) {
+                                        if let i = concerns.firstIndex(of: id) { concerns.remove(at: i) }
+                                        else if concerns.count < 3 { concerns.append(id) }
+                                        else { error = L("chat.err.tags") }
+                                    }.disabled(busy)
+                                }
                             }
                         }
                     }
+                    if offered.count > 8 { Button(L(moreTags ? "room.lessTags" : "room.moreTags")) { moreTags.toggle() } }
                 }
                 Section {
                     Text(L("room.note")).font(.caption).foregroundStyle(.secondary)
                     if !error.isEmpty { Text(error).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("room-error") }
-                    Button(L("room.create")) { Task { await submit() } }.disabled(busy).accessibilityIdentifier("room-submit")
+                    Button(L(busy ? "room.creating" : "room.create")) { editing = false; Task { await submit() } }.disabled(busy).accessibilityIdentifier("room-submit")
                 }
             }
+            .disabled(busy)
             .navigationTitle(L("room.new")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
             .onAppear {
-                if let i = interests { tag = i.skincare && !i.makeup ? "skin" : i.makeup && !i.skincare ? "makeup" : "talk"; concerns = i.concerns.filter { offered.contains($0) } }
+                if let i = interests { tag = i.skincare && !i.makeup ? "skin" : i.makeup && !i.skincare ? "makeup" : "talk"; concerns = Array(RoomTopics.canonical(i.concerns).filter { offered.contains($0) }.prefix(3)) }
             }
         }
     }
     private func submit() async {
+        guard !busy else { return }
         let clean = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard clean.count >= 3 else { error = L("chat.err.short"); return }
+        guard clean.count <= 40 && intro.count <= 120 else { error = L("chat.err.long"); return }
+        guard concerns.count <= 3 else { error = L("chat.err.tags"); return }
         busy = true; error = ""
         defer { busy = false }
         do {
             let id = try await ChatAPI.createRoom(title: clean, intro: intro, tag: tag, concerns: concerns)
             let room = (try? await ChatAPI.rooms())?.first { $0.id == id }
-            if let room { created(room) } else { dismiss() }
-        } catch { self.error = L(ChatAPI.errorKey("\(error)")) }
+            created(room ?? ChatRoom(id: id, titleEn: clean, titleKo: clean, introEn: intro, introKo: intro,
+                                     members: 1, messages24h: 0, kind: "topic", tag: tag, concerns: concerns))
+        } catch {
+            let key = ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? error.localizedDescription)
+            self.error = L(key == "chat.err.other" ? "chat.err.create" : key)
+        }
     }
 }
+

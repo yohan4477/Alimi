@@ -1,16 +1,52 @@
 {
-  "onb.optional": {"ko": "내 정보 (선택)", "en": "About me (optional)"},
-  "onb.private": {"ko": "이 기기에만 저장돼요. 연령대는 추천에 사용하지 않아요.", "en": "Saved on this device only. Age is not used for recommendations."},
-  "onb.age": {"ko": "연령대", "en": "Age range"},
-  "onb.skin": {"ko": "피부 타입", "en": "Skin type"},
-  "onb.unknown": {"ko": "선택 안 함 / 잘 모르겠어요", "en": "Skip / not sure"},
-  "onb.skin.dry": {"ko": "건성", "en": "Dry"},
-  "onb.skin.oily": {"ko": "지성", "en": "Oily"},
-  "onb.skin.combination": {"ko": "복합성", "en": "Combination"},
-  "onb.skin.normal": {"ko": "중성", "en": "Normal"},
-  "onb.empty": {"ko": "맞는 방이 없나요? 직접 만들어보세요.", "en": "No room for you? Start one."},
-  "share.openApp": {"ko": "앱에서 열기", "en": "Open in app"},
-  "nav.explore": {"ko": "탐색", "en": "Explore"},
+  "onb.optional": {
+    "ko": "내 정보 (선택)",
+    "en": "About me (optional)"
+  },
+  "onb.private": {
+    "ko": "이 기기에만 저장돼요. 연령대는 추천에 사용하지 않아요.",
+    "en": "Saved on this device only. Age is not used for recommendations."
+  },
+  "onb.age": {
+    "ko": "연령대",
+    "en": "Age range"
+  },
+  "onb.skin": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "onb.unknown": {
+    "ko": "선택 안 함 / 잘 모르겠어요",
+    "en": "Skip / not sure"
+  },
+  "onb.skin.dry": {
+    "ko": "건성",
+    "en": "Dry"
+  },
+  "onb.skin.oily": {
+    "ko": "지성",
+    "en": "Oily"
+  },
+  "onb.skin.combination": {
+    "ko": "복합성",
+    "en": "Combination"
+  },
+  "onb.skin.normal": {
+    "ko": "중성",
+    "en": "Normal"
+  },
+  "onb.empty": {
+    "ko": "맞는 방이 없나요? 직접 만들어보세요.",
+    "en": "No room for you? Start one."
+  },
+  "share.openApp": {
+    "ko": "앱에서 열기",
+    "en": "Open in app"
+  },
+  "nav.explore": {
+    "ko": "탐색",
+    "en": "Explore"
+  },
   "_note": "Single source of UI text for web (dist/) and iOS (copied to ios/Alimi/strings.json; tests keep them identical). Korean shows when the device language is Korean, English otherwise. {name} placeholders are filled at runtime.",
   "all": {
     "ko": "전체",
@@ -1557,8 +1593,8 @@
     "en": "Makeup"
   },
   "room.concerns": {
-    "ko": "고민 태그 (선택)",
-    "en": "Concern tags (optional)"
+    "ko": "대화 주제 태그 (선택 · 최대 3개)",
+    "en": "Topic tags (optional · up to 3)"
   },
   "room.note": {
     "ko": "공개 방이라 누구나 볼 수 있어요. 링크와 부적절한 표현은 쓸 수 없고, 하루에 3개까지 만들 수 있어요.",
@@ -1944,6 +1980,228 @@
     "ko": "Seoul Beauty에서 K-뷰티 이야기 같이 해요!",
     "en": "Talk K-beauty with me on Seoul Beauty!"
   },
-  "chat.copy": {"ko": "메시지 복사", "en": "Copy message"},
-  "chat.newMessages": {"ko": "새 메시지 {n}개 ↓", "en": "{n} new messages ↓"}
+  "chat.copy": {
+    "ko": "메시지 복사",
+    "en": "Copy message"
+  },
+  "chat.newMessages": {
+    "ko": "새 메시지 {n}개 ↓",
+    "en": "{n} new messages ↓"
+  },
+  "onb.c.redness": {
+    "ko": "홍조",
+    "en": "Redness"
+  },
+  "onb.c.flakes": {
+    "ko": "각질",
+    "en": "Flaking"
+  },
+  "onb.c.caking": {
+    "ko": "들뜸·끼임",
+    "en": "Caking & creasing"
+  },
+  "onb.c.coverage": {
+    "ko": "커버력",
+    "en": "Coverage"
+  },
+  "onb.c.color": {
+    "ko": "색조 조합",
+    "en": "Color combinations"
+  },
+  "onb.c.eye": {
+    "ko": "아이",
+    "en": "Eyes"
+  },
+  "onb.c.cheek": {
+    "ko": "치크",
+    "en": "Cheeks"
+  },
+  "onb.c.sun": {
+    "ko": "선케어",
+    "en": "Sun care"
+  },
+  "room.moreTags": {
+    "ko": "더 보기",
+    "en": "Show more"
+  },
+  "room.lessTags": {
+    "ko": "접기",
+    "en": "Show less"
+  },
+  "room.group.skin": {
+    "ko": "피부 고민",
+    "en": "Skin concerns"
+  },
+  "room.group.makeup": {
+    "ko": "메이크업 고민",
+    "en": "Makeup concerns"
+  },
+  "room.group.product": {
+    "ko": "제품·부위",
+    "en": "Products & areas"
+  },
+  "room.leave": {
+    "ko": "방 나가기",
+    "en": "Leave room"
+  },
+  "room.delete": {
+    "ko": "방 삭제",
+    "en": "Delete room"
+  },
+  "room.leaveConfirm": {
+    "ko": "이 방에서 나갈까요? 내가 쓴 대화는 남고, 다시 참여할 수 있어요.",
+    "en": "Leave this room? Your messages stay and you can rejoin."
+  },
+  "room.deleteConfirm": {
+    "ko": "이 방을 삭제할까요? 목록과 공유 링크에서 더 이상 열 수 없어요.",
+    "en": "Delete this room? It will no longer open from lists or shared links."
+  },
+  "room.closed": {
+    "ko": "운영자가 폐쇄한 방이에요. 새 대화를 쓸 수 없어요.",
+    "en": "This room is closed. New messages are disabled."
+  },
+  "room.actionsFailed": {
+    "ko": "방 관리 정보를 불러오지 못했어요. 다시 시도해 주세요.",
+    "en": "Could not load room controls. Try again."
+  },
+  "room.manage": {
+    "ko": "방 관리",
+    "en": "Manage room"
+  },
+  "room.left": {
+    "ko": "방에서 나왔어요.",
+    "en": "You left the room."
+  },
+  "room.deleted": {
+    "ko": "방을 삭제했어요.",
+    "en": "Room deleted."
+  },
+  "room.creating": {
+    "ko": "만드는 중…",
+    "en": "Creating…"
+  },
+  "chat.delete": {
+    "ko": "메시지 삭제",
+    "en": "Delete message"
+  },
+  "chat.deleteConfirm": {
+    "ko": "이 메시지를 삭제할까요? 답글은 그대로 남아요.",
+    "en": "Delete this message? Replies will remain."
+  },
+  "chat.deleted": {
+    "ko": "삭제된 메시지",
+    "en": "Deleted message"
+  },
+  "chat.err.unavailable": {
+    "ko": "서버에 이 기능이 아직 반영되지 않았어요. 업데이트 후 다시 시도해 주세요.",
+    "en": "This feature is not available on the server yet. Try again after the update."
+  },
+  "chat.err.tags": {
+    "ko": "대화 주제 태그는 최대 3개까지 선택해 주세요.",
+    "en": "Choose up to 3 topic tags."
+  },
+  "chat.err.tag": {
+    "ko": "태그 목록이 바뀌었어요. 태그를 다시 선택해 주세요.",
+    "en": "The tag list changed. Choose your tags again."
+  },
+  "chat.err.room": {
+    "ko": "닫혔거나 삭제된 방이에요. 방 목록을 새로고침해 주세요.",
+    "en": "This room is closed or deleted. Refresh the room list."
+  },
+  "chat.err.owner": {
+    "ko": "내가 만든 방이나 메시지만 삭제할 수 있어요.",
+    "en": "You can only delete your own room or message."
+  },
+  "chat.err.participated": {
+    "ko": "다른 사람이 참여했던 방은 삭제할 수 없어요. 방 나가기를 이용해 주세요.",
+    "en": "A room others have participated in cannot be deleted. You can leave it."
+  },
+  "chat.err.secret": {
+    "ko": "이 기기의 대화 정보가 올바르지 않아요. 앱을 다시 열어 주세요.",
+    "en": "This device’s chat identity is invalid. Reopen the app."
+  },
+  "chat.err.network": {
+    "ko": "연결을 확인해 주세요. 입력한 내용은 유지돼요.",
+    "en": "Check your connection. Your draft is kept."
+  },
+  "chat.err.create": {
+    "ko": "방을 만들지 못했어요. 입력한 내용은 유지돼요. 다시 시도해 주세요.",
+    "en": "Could not create the room. Your draft is kept. Try again."
+  },
+  "room.topic.acne": {
+    "ko": "여드름·트러블",
+    "en": "Acne & breakouts"
+  },
+  "room.topic.dry": {
+    "ko": "건조·속당김",
+    "en": "Dryness & tightness"
+  },
+  "room.topic.sensitive": {
+    "ko": "민감·자극",
+    "en": "Sensitivity & irritation"
+  },
+  "room.topic.pores": {
+    "ko": "모공",
+    "en": "Pores"
+  },
+  "room.topic.sebum": {
+    "ko": "피지·번들거림",
+    "en": "Oil & shine"
+  },
+  "room.topic.redness": {
+    "ko": "홍조",
+    "en": "Redness"
+  },
+  "room.topic.spots": {
+    "ko": "잡티·흔적",
+    "en": "Spots & marks"
+  },
+  "room.topic.flakes": {
+    "ko": "각질",
+    "en": "Flaking"
+  },
+  "room.topic.firmness": {
+    "ko": "탄력",
+    "en": "Firmness"
+  },
+  "room.topic.shade": {
+    "ko": "호수·언더톤",
+    "en": "Shade & undertone"
+  },
+  "room.topic.caking": {
+    "ko": "들뜸·끼임",
+    "en": "Caking & creasing"
+  },
+  "room.topic.longwear": {
+    "ko": "지속력·무너짐",
+    "en": "Wear & fading"
+  },
+  "room.topic.coverage": {
+    "ko": "커버력",
+    "en": "Coverage"
+  },
+  "room.topic.color": {
+    "ko": "색조 조합",
+    "en": "Color combinations"
+  },
+  "room.topic.lip": {
+    "ko": "립",
+    "en": "Lips"
+  },
+  "room.topic.base": {
+    "ko": "베이스·쿠션",
+    "en": "Base & cushion"
+  },
+  "room.topic.eye": {
+    "ko": "아이",
+    "en": "Eyes"
+  },
+  "room.topic.cheek": {
+    "ko": "치크",
+    "en": "Cheeks"
+  },
+  "room.topic.sun": {
+    "ko": "선케어",
+    "en": "Sun care"
+  }
 }

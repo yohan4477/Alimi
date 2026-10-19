@@ -26,7 +26,7 @@ test('blocked authors disappear locally; agreement is remembered', () => {
 test('server error codes map to friendly text keys', () => {
   assert.equal(errorKey('chat:slow'), 'chat.err.slow');
   assert.equal(errorKey('chat:link'), 'chat.err.link');
-  assert.equal(errorKey('chat:secret'), 'chat.err.other');
+  assert.equal(errorKey('chat:secret'), 'chat.err.secret');
   assert.equal(errorKey('HTTP 500'), 'chat.err.other');
 });
 
@@ -98,7 +98,7 @@ test('room creation errors map to their own messages', () => {
   assert.equal(errorKey('chat:duplicate'), 'chat.err.duplicate');
   assert.equal(errorKey('chat:slow'), 'chat.err.slow');
   // Server without the migration yet: PostgREST reports a missing function.
-  assert.equal(errorKey('Could not find the function public.create_room'), 'chat.err.other');
+  assert.equal(errorKey('Could not find the function public.create_room'), 'chat.err.unavailable');
 });
 
 test('the latest concern migration only accepts concern ids the web guide knows', async () => {
@@ -108,3 +108,4 @@ test('the latest concern migration only accepts concern ids the web guide knows'
   assert.equal(lists.length, 2, 'column check and create_room filter');
   for (const list of lists) assert.deepEqual(JSON.parse(list[0].slice(5).replace(/'/g, '"')), CONCERNS.map(c => c.id));
 });
+
