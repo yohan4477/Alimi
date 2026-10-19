@@ -136,6 +136,7 @@ struct CommunityPostRow: View {
 struct CommunityTopic: View {
     @EnvironmentObject var store: AlimiStore
     let room: ChatRoom
+    var member = false
     @State private var mode = "posts"
     @State private var posts: [CommunityPost] = []
     @State private var composing = false
@@ -159,6 +160,21 @@ struct CommunityTopic: View {
                 }.refreshable { await load() }.task { await load() }
             }
         }.navigationTitle(room.title).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 0) {
+                        Text(room.title).font(.headline).lineLimit(1)
+                        Text(L("chat.members", ["n": room.members])).font(.caption2).foregroundStyle(.secondary)
+                    }.accessibilityIdentifier("room-header")
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    if !member && mode == "posts" {
+                        Button("+ " + L("room.join")) { mode = "live" }.fontWeight(.bold).accessibilityIdentifier("room-join")
+                    }
+                    ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) { Image(systemName: "square.and.arrow.up") }
+                        .accessibilityLabel(L("share.room")).accessibilityIdentifier("room-share")
+                }
+            }
             .sheet(isPresented: $composing, onDismiss: { Task { await load() } }) { CommunityComposer(room: room).environmentObject(store) }
     }
     private func load() async { do { posts = try await CommunityAPI.posts(room: room.id); failed = false } catch { failed = true } }

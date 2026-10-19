@@ -14,11 +14,13 @@ struct ChatRoom: Codable, Identifiable, Hashable {
     var brand: String? = nil
     var logoUrl: URL? = nil
     var lastMessageAt: String? = nil
+    // Concern tags (user_rooms migration); nil on servers without it, which also hides room creation.
+    var concerns: [String]? = nil
     var isBrand: Bool { kind == "brand" }
     var title: String { L10n.language == "ko" ? titleKo : titleEn }
     var intro: String { L10n.language == "ko" ? introKo : introEn }
     enum CodingKeys: String, CodingKey {
-        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h", kind, tag, brand, logoUrl = "logo_url", lastMessageAt = "last_message_at"
+        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h", kind, tag, brand, logoUrl = "logo_url", lastMessageAt = "last_message_at", concerns
     }
 }
 struct ChatItem: Codable, Hashable {
@@ -72,7 +74,7 @@ enum ChatAPI {
     // Server errors are "chat:<code>"; anything else is a network / unknown failure.
     static func errorKey(_ message: String) -> String {
         let code = message.range(of: #"chat:(\w+)"#, options: .regularExpression).map { String(message[$0].dropFirst(5)) }
-        return ["slow", "link", "blocked", "banned", "long"].contains(code ?? "") ? "chat.err." + code! : "chat.err.other"
+        return ["slow", "link", "blocked", "banned", "long", "short", "duplicate"].contains(code ?? "") ? "chat.err." + code! : "chat.err.other"
     }
     static func messagesURL(room: String, after: Int = 0, limit: Int = 60) -> URL {
         var c = URLComponents(url: URL(string: "/rest/v1/chat_messages", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
@@ -128,6 +130,13 @@ enum ChatAPI {
                                                            replyTo: nil, likes: 2, createdAt: "2026-10-18T10:00:00Z")] }
         let rows = try JSONDecoder().decode([ChatMessage].self, from: try await send(messagesURL(room: room, after: after)))
         return after > 0 ? rows : rows.reversed()
+    }
+    // Anyone can open a public topic room; the server checks length, links, words, duplicates and rate.
+    static func createRoom(title: String, intro: String, tag: String, concerns: [String]) async throws -> String {
+        if offline { return "acne" }
+        let body: [String: Any?] = ["p_secret": secret, "p_title": title.trimmingCharacters(in: .whitespacesAndNewlines),
+                                    "p_intro": intro.trimmingCharacters(in: .whitespacesAndNewlines), "p_tag": tag, "p_concerns": concerns]
+        return try JSONDecoder().decode(String.self, from: try await rpc("create_room", body))
     }
     static func join(room: String) async throws -> String {
         if offline { return "Dewy Panda" }
@@ -442,12 +451,14 @@ struct ChatRoomView: View {
             nickname = try await ChatAPI.join(room: room.id)
             EventLogger.shared.log(.chatJoin, props: ["room": room.id])
             messages = try await ChatAPI.messages(room: room.id)
+            Seen.mark(room.id, messages.last?.createdAt)
         } catch { notice = L("chat.loadFailed") }
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(4))
             guard let fresh = try? await ChatAPI.messages(room: room.id, after: messages.last?.id ?? 0) else { continue }
             let known = Set(messages.map(\.id))
             messages += fresh.filter { !known.contains($0.id) }
+            Seen.mark(room.id, messages.last?.createdAt)
         }
     }
     private func send() async {
@@ -483,6 +494,13 @@ struct Chip: View {
 }
 
 // Long-press a bubble for reply / like / report / block, like the reference chat app.
+// Same palette and hash as the web chat avatars.
+func avatarColor(_ tag: String) -> UInt32 {
+    let palette: [UInt32] = [0xF4A3A8, 0x9CC3F5, 0xF7C873, 0x9FD8B8, 0xC8B5F2, 0xF5B38A]
+    var h: UInt32 = 7
+    for c in tag.utf16 { h = h &* 31 &+ UInt32(c) }
+    return palette[Int(h % UInt32(palette.count))]
+}
 struct MessageRow: View {
     let message: ChatMessage
     let parent: ChatMessage?
@@ -495,7 +513,13 @@ struct MessageRow: View {
     var savePost: (() -> Void)? = nil
     var body: some View {
         VStack(alignment: mine ? .trailing : .leading, spacing: 4) {
-            if !mine { Text(message.nickname).font(.caption).foregroundStyle(.orange) }
+            if !mine {
+                HStack(spacing: 6) {
+                    Text(String(message.nickname.prefix(1))).font(.caption.bold()).foregroundStyle(.white)
+                        .frame(width: 26, height: 26).background(Color(rgb: avatarColor(message.authorTag)), in: Circle()).accessibilityHidden(true)
+                    Text(message.nickname).font(.caption).foregroundStyle(.secondary)
+                }
+            }
             HStack(alignment: .bottom, spacing: 6) {
                 if mine { Spacer(minLength: 40); side }
                 bubble.contextMenu { menu }

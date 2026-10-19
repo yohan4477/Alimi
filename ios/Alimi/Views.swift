@@ -3,14 +3,15 @@ import UIKit
 
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
-    @State private var tab = MainTab.home
+    @State private var tab = MainTab.chat
+    @State private var editInterests = false
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
+            CommunityHome(editRequest: $editInterests).tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
             BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
-            SavedView(tab: $tab).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
+            SavedView(tab: $tab, editInterests: { editInterests = true; tab = .chat }).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
-            CommunityTab().tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
         }.id(lang).task { await store.refresh(); await AuthSession.shared.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }
@@ -359,7 +360,13 @@ struct FamilySheet: View {
                     if let variants { VariantList(variants: variants, ref: ref) } else { LoadingCompanion(compact: true) }
                 }.padding(20)
             }
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } }
+                ToolbarItem(placement: .primaryAction) {
+                    ShareLink(item: ShareLinks.product(family.familyKey), subject: Text(family.baseName)) { Image(systemName: "square.and.arrow.up") }
+                        .accessibilityLabel(L("share.product")).accessibilityIdentifier("product-share")
+                }
+            }
             .task {
                 variants = await store.family(family.familyKey) ?? []
                 EventLogger.shared.log(.productView, props: ["family": family.familyKey, "variants": String(variants?.count ?? 0)])

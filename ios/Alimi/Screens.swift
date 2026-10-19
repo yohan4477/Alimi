@@ -18,6 +18,9 @@ enum SavedLayout {
 struct SavedView: View {
     @EnvironmentObject var store: AlimiStore
     @Binding var tab: MainTab
+    var editInterests: () -> Void = {}
+    @State private var section = "saved"
+    @State private var joined: [JoinedRoom] = []
     private var items: [Product] { store.products.filter { store.saved.favorites.contains($0.id) } }
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: 3)
     var body: some View {
@@ -25,12 +28,18 @@ struct SavedView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     Text(L("saved.title")).font(.largeTitle.bold())
-                    SavedCommunityPosts()
-                    headline
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(items) { SavedCard(product: $0) }
-                        ForEach(0..<SavedLayout.emptySlots(items.count), id: \.self) { i in
-                            AddSlot(highlighted: i == 0) { tab = .search }
+                    interestsRow
+                    Picker(L("nav.activity"), selection: $section) {
+                        Text(L("activity.tab.saved")).tag("saved"); Text(L("activity.tab.rooms")).tag("rooms")
+                    }.pickerStyle(.segmented).accessibilityIdentifier("activity-tabs")
+                    if section == "rooms" { rooms } else {
+                        SavedCommunityPosts()
+                        headline
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(items) { SavedCard(product: $0) }
+                            ForEach(0..<SavedLayout.emptySlots(items.count), id: \.self) { i in
+                                AddSlot(highlighted: i == 0) { tab = .search }
+                            }
                         }
                     }
                 }.padding(20)
@@ -42,6 +51,34 @@ struct SavedView: View {
                         .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
                 }
             }
+        }
+    }
+    // Interests chosen in the community guide; tapping reopens the guide there.
+    private var interestsRow: some View {
+        let p = Interests.load()
+        let list = p.map { i in Interests.groups.filter { i.has($0) }.map { L("onb.g." + $0) } + i.concerns.map(Interests.label) } ?? []
+        return Button(action: editInterests) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("onb.manage")).font(.subheadline.bold())
+                    Text(list.isEmpty ? L("onb.none") : list.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }.contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityIdentifier("interests-row")
+    }
+    @ViewBuilder private var rooms: some View {
+        let seen = Seen.all()
+        if joined.isEmpty { Text(L("chat.mineEmpty")).font(.subheadline).foregroundStyle(.secondary) }
+        ForEach(joined) { j in
+            NavigationLink { CommunityTopic(room: j.room, member: true) } label: {
+                RoomListCard(room: j.room, note: j.last?.body ?? j.room.intro, fresh: Seen.hasNew(j.last?.createdAt, since: seen[j.room.id]))
+            }.buttonStyle(.plain).accessibilityIdentifier("my-room-" + j.room.id)
+        }
+        Color.clear.frame(height: 1).task(id: section) {
+            guard let all = try? await ChatAPI.rooms(), let mine = try? await ChatAPI.myRooms(all: all) else { return }
+            joined = mine.map { JoinedRoom(room: $0.room, last: $0.last) }
         }
     }
     private var headline: some View {

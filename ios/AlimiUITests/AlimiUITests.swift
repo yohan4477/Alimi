@@ -15,6 +15,8 @@ final class AlimiUITests: XCTestCase {
         app.launch()
     }
 
+    // Community is the first tab; product flows start from Home.
+    private func openHome(_ label: String = "홈") { app.tabBars.buttons[label].tap() }
     private func attach(_ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = name
@@ -35,6 +37,7 @@ final class AlimiUITests: XCTestCase {
     }
 
     func testFavoriteAppearsWithPhotoInFavoritesTab() {
+        openHome()
         let product = "laneige-lip-sleeping-mask-ex-berry"
         XCTAssertTrue(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.waitForExistence(timeout: 15), "home should list tracked products")
         let heart = reveal(app.buttons["favorite-\(product)"].firstMatch)
@@ -77,6 +80,7 @@ final class AlimiUITests: XCTestCase {
     }
 
     func testCategoryTabsFilterTrackedProducts() {
+        openHome()
         XCTAssertTrue(app.buttons["product-cosrx-snail-96-100ml"].firstMatch.waitForExistence(timeout: 15))
 
         tapCategory("립")
@@ -96,6 +100,7 @@ final class AlimiUITests: XCTestCase {
 
     // Purchase path works without saving: the detail page leads with the retailer button, the price alert comes last.
     func testDetailOffersRetailerWithoutPriceTracking() {
+        openHome()
         let card = app.buttons["product-cosrx-snail-96-100ml"].firstMatch
         XCTAssertTrue(card.waitForExistence(timeout: 15))
         reveal(card).tap()
@@ -107,6 +112,7 @@ final class AlimiUITests: XCTestCase {
         attach("detail-purchase-flow")
     }
     func testTappingBrandOpensItsPage() {
+        openHome()
         let cosrx = app.buttons["brand-COSRX"]
         XCTAssertTrue(cosrx.waitForExistence(timeout: 10), "popular-brand badges on home")
         attach("brand-strip")
@@ -136,6 +142,7 @@ final class AlimiUITests: XCTestCase {
     }
     func testChatJoinSendAndBlock() {
         app.tabBars.buttons["커뮤니티"].tap()
+        app.buttons["home-tab-rooms"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
@@ -160,6 +167,30 @@ final class AlimiUITests: XCTestCase {
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["추천 좀 해주세요"])
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "blocked author's messages are hidden")
     }
+    // Journey 1: first visit opens the community guide; choices lead to matching rooms and show up in My activity.
+    func testCommunityGuideRecommendsRoomsAndRemembersChoices() {
+        let skincare = app.buttons["onb-group-skincare"]
+        XCTAssertTrue(skincare.waitForExistence(timeout: 15), "guide on first visit")
+        attach("guide-choose")
+        skincare.tap()
+        app.buttons["onb-concern-acne"].tap()
+        app.buttons["onb-next"].tap()
+        XCTAssertTrue(app.buttons["onb-finish"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["chat-room-acne"].firstMatch.exists, "acne room recommended for acne")
+        attach("guide-recommendations")
+        app.buttons["onb-finish"].tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["onb-next"])
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "guide closes when finished")
+        XCTAssertTrue(app.otherElements["welcome-back"].exists || app.staticTexts["다시 오신 걸 환영해요!"].exists, "joined rooms greet a returning visitor")
+        attach("community-home")
+        app.tabBars.buttons["관심 상품"].tap()
+        let row = app.buttons["interests-row"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertTrue(row.label.contains("스킨케어") && row.label.contains("트러블"), "choices listed in My activity: \(row.label)")
+        app.segmentedControls.buttons["참여한 대화방"].tap()
+        XCTAssertTrue(app.buttons["my-room-acne"].waitForExistence(timeout: 10))
+        attach("activity-rooms")
+    }
     func testEnglishForUSUsers() {
         app.terminate()
         app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
@@ -167,6 +198,7 @@ final class AlimiUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Saved"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.tabBars.buttons["Home"].exists)
+        openHome("Home")
         XCTAssertTrue(app.staticTexts["Explore products"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["가격을 지켜보는 상품"].firstMatch.exists)
         attach("english-home")

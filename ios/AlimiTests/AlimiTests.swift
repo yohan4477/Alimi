@@ -172,4 +172,58 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(BrandStrip.twoRowOrder([1]), [1])
         XCTAssertEqual(BrandStrip.twoRowOrder([Int]()), [])
     }
+
+    // MARK: Journey (same rules as tests/onboarding.test.js and tests/room-card.test.js)
+    private func room(_ id: String, tag: String?, messages: Int = 0, concerns: [String]? = nil, kind: String = "topic") -> ChatRoom {
+        ChatRoom(id: id, titleEn: id, titleKo: id, introEn: "", introKo: "", members: 1, messages24h: messages, kind: kind, tag: tag, concerns: concerns)
+    }
+    private var seedRooms: [ChatRoom] {
+        [room("everyone", tag: "talk"), room("acne", tag: "skin"), room("dry-sensitive", tag: "skin"), room("makeup", tag: "makeup"),
+         room("routine", tag: "skin"), room("deals", tag: "deals"), room("olive", tag: "talk", kind: "brand")]
+    }
+    func testInterestsDropConcernsOfUnselectedFields() {
+        let n = Interests(skincare: true, makeup: false, concerns: ["acne", "lip", "nope", "acne"], done: true).normalized()
+        XCTAssertEqual(n.concerns, ["acne"])
+        XCTAssertEqual(Interests(makeup: true).visibleConcerns, ["cushion", "lip", "longwear", "shade"])
+        let defaults = UserDefaults(suiteName: "AlimiTests.interests.\(UUID().uuidString)")!
+        XCTAssertNil(Interests.load(defaults))
+        Interests(skincare: true, makeup: true, concerns: ["dry", "cushion"], done: true).save(defaults)
+        XCTAssertEqual(Interests.load(defaults)?.concerns, ["dry", "cushion"])
+    }
+    func testRecommendationsMatchConcernsAndKeepFieldsApart() {
+        let skin = Recommend.rooms(seedRooms, Interests(skincare: true, concerns: ["dry", "sensitive"]))
+        XCTAssertEqual(skin.first?.room.id, "dry-sensitive")
+        XCTAssertEqual(skin.first?.matched, ["sensitive", "dry"])
+        XCTAssertFalse(skin.contains { $0.room.tag == "makeup" || $0.room.isBrand })
+        let both = Recommend.rooms(seedRooms, Interests(skincare: true, makeup: true, concerns: ["acne", "cushion"])).map(\.room.id)
+        XCTAssertTrue(both.contains("acne") && both.contains("makeup"))
+        let tagged = seedRooms + [room("u-1", tag: "talk", messages: 3, concerns: ["acne", "cushion"])]
+        XCTAssertEqual(Recommend.rooms(tagged, Interests(skincare: true, makeup: true, concerns: ["acne", "cushion"])).first?.room.id, "u-1")
+        let busy = seedRooms.map { $0.id == "routine" ? room("routine", tag: "skin", messages: 9) : $0 }
+        XCTAssertEqual(Recommend.rooms(busy, Interests(skincare: true)).first?.room.id, "routine")
+        let popular = Recommend.rooms(busy, nil)
+        XCTAssertTrue(popular.allSatisfy { $0.popular && $0.matched.isEmpty })
+        XCTAssertEqual(popular.first?.room.id, "routine")
+    }
+    func testRoomPicturesAreNeverReused() {
+        let lip1 = URL(string: "https://x/lip1")!, lip2 = URL(string: "https://x/lip2")!, top1 = URL(string: "https://x/top1")!
+        let pics = RoomPictures.assign([room("makeup", tag: "makeup"), room("u-1", tag: "talk", concerns: ["lip"]), room("everyone", tag: "talk")],
+                                       byCategory: ["립": [lip1, lip2], "전체": [top1, lip1]])
+        XCTAssertEqual(pics["makeup"], lip1)
+        XCTAssertEqual(pics["u-1"], lip2)
+        XCTAssertEqual(pics["everyone"], top1)
+    }
+    func testNewMessagesOnlyAfterThisDeviceLooked() {
+        XCTAssertTrue(Seen.hasNew("2026-10-19T10:00", since: "2026-10-19T09:00"))
+        XCTAssertFalse(Seen.hasNew("2026-10-19T08:00", since: "2026-10-19T09:00"))
+        XCTAssertFalse(Seen.hasNew("2026-10-19T10:00", since: nil), "never seen: no claim")
+        let d = UserDefaults(suiteName: "AlimiTests.seen.\(UUID().uuidString)")!
+        Seen.mark("acne", "2026-10-19T10:00", d); Seen.mark("acne", "2026-10-19T09:00", d)
+        XCTAssertEqual(Seen.all(d)["acne"], "2026-10-19T10:00")
+    }
+    func testShareLinksOpenTheWebScreen() {
+        XCTAssertEqual(ShareLinks.room("acne").absoluteString, "https://alimi-omega.vercel.app/?room=acne")
+        XCTAssertEqual(ShareLinks.product("anua|oil").absoluteString, "https://alimi-omega.vercel.app/?product=anua%7Coil")
+        XCTAssertEqual(ChatAPI.errorKey("Failure(message: \"chat:duplicate\")"), "chat.err.duplicate")
+    }
 }
