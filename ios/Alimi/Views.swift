@@ -359,7 +359,14 @@ struct FamilySheet: View {
                     if let variants { VariantList(variants: variants, ref: ref) } else { ProgressView().frame(maxWidth: .infinity) }
                 }.padding(20)
             }
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } }
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: CommunityShareURL.family(family.familyKey), subject: Text(L("share.productTitle")), message: Text(L("share.productMessage", ["product": family.baseName]))) {
+                        Image(systemName: "square.and.arrow.up")
+                    }.accessibilityLabel(L("share.productButton"))
+                }
+            }
             .task {
                 variants = await store.family(family.familyKey) ?? []
                 EventLogger.shared.log(.productView, props: ["family": family.familyKey, "variants": String(variants?.count ?? 0)])
@@ -422,6 +429,15 @@ struct ProductDetail: View {
                 if let key = product.familyKey { ProductDiscussion(familyKey: key) }
             }.padding(20)
         }.navigationTitle(L("detail.title")).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if let key = product.familyKey {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ShareLink(item: CommunityShareURL.family(key), subject: Text(L("share.productTitle")), message: Text(L("share.productMessage", ["product": product.name]))) {
+                            Image(systemName: "square.and.arrow.up")
+                        }.accessibilityLabel(L("share.productButton"))
+                    }
+                }
+            }
             .onAppear { EventLogger.shared.log(.productView, productID: product.id) }
             .safeAreaInset(edge: .bottom) { bottomBar }
     }
