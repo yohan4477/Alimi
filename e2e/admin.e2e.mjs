@@ -103,9 +103,24 @@ try {
   assert.ok(await preview.getByText('이 방은 기획 시안에서만 열립니다.',{exact:false}).isVisible());
   await page.getByRole('tab',{name:'디자인 리뷰',exact:true}).click();
   assert.ok(await page.getByText('맞춤 추천을 추가하되,',{exact:false}).first().isVisible());
-  assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),7);
+  assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),8);
+  // Design loader controls and bundled art are accessible only as demo controls.
+  const loader = page.locator('#sb-loading-design-review');
+  await loader.waitFor();
+  const atlas = await page.request.get(base+'/assets/loading-characters-sprite.png');
+  assert.equal(atlas.status(),200);
+  assert.match(atlas.headers()['content-type'],/image\/png/);
+  assert.ok((await atlas.body()).byteLength < 10_000);
+  await loader.locator('[data-loader-pause]').click();
+  assert.equal(await loader.locator('[data-loader-pause]').getAttribute('aria-pressed'),'true');
+  const before = await loader.locator('.sb-design-loader-character').evaluate(node => getComputedStyle(node).backgroundPosition);
+  await loader.locator('[data-loader-next]').click();
+  const after = await loader.locator('.sb-design-loader-character').evaluate(node => getComputedStyle(node).backgroundPosition);
+  assert.notEqual(after,before,'manual outfit selection advances the sprite');
+  await loader.locator('[data-loader-pause]').click();
+  assert.equal(await loader.locator('[data-loader-pause]').getAttribute('aria-pressed'),'false');
   await page.locator('#sb-design [data-design-filter="P0"]').click();
-  assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),3);
+  assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),4);
   await page.locator('#sb-design [data-design-filter="P1"]').click();
   assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),4);
   await page.locator('#sb-design [data-design-filter="all"]').click();
