@@ -5,6 +5,7 @@
   <div class="nav nav-pills" role="tablist" aria-label="SeoulBeauty 관리 영역">
     <button class="nav-link active" id="sb-strategy-tab" type="button" role="tab" aria-controls="sb-strategy" aria-selected="true">전략</button>
     <button class="nav-link" id="sb-plan-tab" type="button" role="tab" aria-controls="sb-plan" aria-selected="false">서비스 기획</button>
+    <button class="nav-link" id="sb-design-tab" type="button" role="tab" aria-controls="sb-design" aria-selected="false">디자인 리뷰</button>
     <button class="nav-link" id="sb-roadmap-tab" type="button" role="tab" aria-controls="sb-roadmap" aria-selected="false">실행 로드맵</button>
     <button class="nav-link" id="sb-dashboard-tab" type="button" role="tab" aria-controls="sb-dashboard" aria-selected="false">관리 대시보드</button>
   </div>
@@ -47,6 +48,132 @@
     <details><summary class="cursor-interaction">언어·개인정보·후속 확장</summary><ul><li>한국어/영어 시스템 UI를 완전히 분리하고, 사용자 작성 메시지는 원문을 유지</li><li>피부 타입·고민은 개인화 추천을 위한 선택 입력으로 설계했으며 실제 적용·동의·보존은 검증 전</li><li>사진의 발색 설명 효용, 피부 톤·아바타·확대 번역·리워드는 별도 판단</li><li>기존 코드 존재와 실제 검증·출시 상태는 구분</li></ul></details>
     <div class="sb-links"><a href="https://github.com/yohan4477/Alimi/blob/main/docs/SERVICE_PLAN.md" target="_blank" rel="noopener noreferrer">서비스 기획 원문 ↗</a></div>
     </details>
+  </section>
+
+  <section class="sb-panel" id="sb-design" role="tabpanel" aria-labelledby="sb-design-tab" hidden>
+    <div class="sb-design-kicker"><span class="sb-design-dot"></span> UX / PRODUCT DESIGN REVIEW <span class="sb-design-date">2026.10.19 · 정성 평가</span></div>
+    <div class="sb-design-hero">
+      <div>
+        <p class="sb-design-eyebrow">서울뷰티 · 디자인 의사결정 보드</p>
+        <h2>맞춤 추천을 추가하되,<br>첫 대화까지의 거리는 줄인다.</h2>
+        <p>기존 Community · Search · My Activity 탭과 상품 첨부를 유지한다. 신규 피부 선택은 <strong>가치를 보여주는 선택형 진입</strong>으로 제안하고, 실제 이용자 테스트로 결정한다.</p>
+      </div>
+      <div class="sb-design-verdict"><span>디자인 판단</span><strong>조건부 추천</strong><small>실제 디자이너 인터뷰·사용자 테스트 결과가 아닌, 현행 코드와 UX 원칙 기반 휴리스틱 리뷰</small></div>
+    </div>
+    <div class="sb-design-stats" aria-label="디자인 리뷰 요약">
+      <div><span>유지할 기본 탭</span><strong>3개</strong><small>구조 전면 교체 없음</small></div>
+      <div><span>우선 수정 P0</span><strong>3건</strong><small>온보딩 · 추천 설명 · 언어</small></div>
+      <div><span>후속 개선 P1</span><strong>4건</strong><small>대화 · 연결 · 신뢰 · 재방문</small></div>
+      <div><span>신규 KPI 검증</span><strong>미측정</strong><small>실측 성과 수치 아님</small></div>
+    </div>
+
+    <h3 class="sb-design-heading">디자인 직군별로 보면</h3>
+    <div class="sb-design-roles">
+      <article><span class="sb-design-role-name">UX 리서처 관점</span><h4>“질문보다 가치를 먼저”</h4><p>피부 정보를 입력하기 전에 채팅이 어떤 도움을 주는지 보여줘야 해. 스킵한 사용자도 유용한 주제에 바로 접근할 수 있어야 한다.</p><span class="sb-design-action">제안 · 선택형 온보딩, A/B 검증</span></article>
+      <article><span class="sb-design-role-name">인터랙션 디자이너 관점</span><h4>“추천이 끝이 아니야”</h4><p>추천 카드에서 입장한 뒤 같은 맥락의 질문·대화가 보여야 한다. 빈 채팅방과 별도 가입 관문은 첫 참여를 막는다.</p><span class="sb-design-action">제안 · 입장→첫 읽기→첫 발화 연결</span></article>
+      <article><span class="sb-design-role-name">UI 디자이너 관점</span><h4>“기존 화면을 보존하자”</h4><p>새 탭이나 전면 개편 대신 홈 상단 추천 모듈만 추가한다. 카드 밀도·버튼·타이포·한영 줄바꿈을 동일한 규칙으로 맞춘다.</p><span class="sb-design-action">제안 · 디자인 토큰·모바일 검수</span></article>
+      <article><span class="sb-design-role-name">콘텐츠·신뢰 디자이너 관점</span><h4>“피부 정보는 내 선택”</h4><p>선택값과 공개 프로필을 분리한다. 피부 타입이 같아도 제품 효과가 같다는 뜻은 아니며, 사용자 작성 대화는 원문을 유지한다.</p><span class="sb-design-action">제안 · 동의·표시 범위·문구 점검</span></article>
+    </div>
+
+    <h3 class="sb-design-heading">추천 UI 방향 · 간단 시안</h3>
+    <p class="text-small text-muted">기존 실제 앱 스크린샷이 아닌 화면 구성 제안이다. 한국어/English 버튼으로 시스템 문구 분리를 미리 확인할 수 있다.</p>
+    <div class="sb-design-lang" role="group" aria-label="디자인 시안 언어">
+      <button type="button" class="active" data-design-lang="ko" aria-pressed="true">한국어</button>
+      <button type="button" data-design-lang="en" aria-pressed="false">English</button>
+    </div>
+    <div class="sb-design-frames">
+      <div class="sb-design-frame-col">
+        <span class="sb-design-cap">A. 첫 방문 / 필수 설문 대신 선택형 진입</span>
+        <div class="sb-design-phone">
+          <div class="sb-design-phone-top"><strong>SeoulBeauty</strong><span>•••</span></div>
+          <div data-design-locale="ko">
+            <div class="sb-design-phone-intro"><b>나와 비슷한 고민을 나눠요</b><small>피부 관심사를 고르면 관련 채팅방을 찾아드려요.</small></div>
+            <div class="sb-design-prompt">내 피부 타입 <small>선택 사항</small></div>
+            <div class="sb-design-chips"><span>건성</span><span>지성</span><span class="selected">복합성</span><span>민감성</span><span>잘 모르겠어요</span></div>
+            <div class="sb-design-prompt">궁금한 피부 고민</div>
+            <div class="sb-design-chips"><span class="selected">트러블</span><span>모공</span><span>건조함</span></div>
+            <div class="sb-design-phone-primary">관련 대화 찾아보기 →</div>
+            <div class="sb-design-phone-secondary">먼저 둘러보기</div>
+          </div>
+          <div data-design-locale="en" hidden>
+            <div class="sb-design-phone-intro"><b>Find your people</b><small>Choose interests to discover relevant conversations.</small></div>
+            <div class="sb-design-prompt">Skin type <small>Optional</small></div>
+            <div class="sb-design-chips"><span>Dry</span><span>Oily</span><span class="selected">Combination</span><span>Sensitive</span><span>Not sure</span></div>
+            <div class="sb-design-prompt">Skin concerns</div>
+            <div class="sb-design-chips"><span class="selected">Breakouts</span><span>Pores</span><span>Dryness</span></div>
+            <div class="sb-design-phone-primary">Find conversations →</div>
+            <div class="sb-design-phone-secondary">Explore first</div>
+          </div>
+        </div>
+      </div>
+      <div class="sb-design-frame-col">
+        <span class="sb-design-cap">B. Community 홈 / 기존 영역 위에 추천 삽입</span>
+        <div class="sb-design-phone">
+          <div class="sb-design-phone-top"><strong>SeoulBeauty</strong><span>⌕</span></div>
+          <div data-design-locale="ko">
+            <div class="sb-design-phone-intro"><b>커뮤니티</b><small>내 고민과 연결된 대화부터 시작해요.</small></div>
+            <div class="sb-design-home-card">
+              <strong>나에게 맞는 채팅방</strong>
+              <div class="sb-design-room"><b>트러블 고민방 ↗</b><small>트러블 고민 일치 · 최근 대화 있음</small></div>
+              <div class="sb-design-room"><b>복합성 피부 이야기 ↗</b><small>피부 타입 일치 · 실제 질문 확인</small></div>
+            </div>
+            <div class="sb-design-home-existing"><b>참여한 대화</b><small>기존 이어보기 유지</small></div>
+            <div class="sb-design-home-existing"><b>지금 활발한 대화</b><small>기존 목록 유지</small></div>
+            <div class="sb-design-home-existing"><b>언급된 상품 · 최근 질문</b><small>기존 상품 카드와 주제 유지</small></div>
+            <div class="sb-design-bottom">커뮤니티　　검색　　내 활동</div>
+          </div>
+          <div data-design-locale="en" hidden>
+            <div class="sb-design-phone-intro"><b>Community</b><small>Start with conversations about your concerns.</small></div>
+            <div class="sb-design-home-card">
+              <strong>For you</strong>
+              <div class="sb-design-room"><b>Breakouts Talk ↗</b><small>Concern match · recent activity</small></div>
+              <div class="sb-design-room"><b>Combination Skin ↗</b><small>Skin type match · active questions</small></div>
+            </div>
+            <div class="sb-design-home-existing"><b>Your conversations</b><small>Keep existing resume list</small></div>
+            <div class="sb-design-home-existing"><b>Active conversations</b><small>Keep current discussions</small></div>
+            <div class="sb-design-home-existing"><b>Products · recent questions</b><small>Keep existing content</small></div>
+            <div class="sb-design-bottom">Community　　Search　　My Activity</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sb-design-heading">화면별 UX 리스크 · 개선 백로그</h3>
+    <div class="sb-design-filter" role="group" aria-label="디자인 개선 우선순위 필터">
+      <button type="button" data-design-filter="all" aria-pressed="true">전체 7</button>
+      <button type="button" data-design-filter="P0" aria-pressed="false">P0 · 우선 3</button>
+      <button type="button" data-design-filter="P1" aria-pressed="false">P1 · 후속 4</button>
+    </div>
+    <div class="sb-design-issues">
+      <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 첫 방문</span><h4>피부 선택 전에 이탈</h4><p>가치를 모르는 상태에서 2단계 입력을 강제하면 피로가 생길 수 있다.</p><div><b>변경</b> 추천 예시 먼저 노출 · 1화면 선택 · 건너뛰기 · ‘모름’ 제공</div><small>확인 KPI · 첫 화면→대화 열람 전환, 스킵 이후 첫 참여</small></article>
+      <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 추천 신뢰</span><h4>방은 추천되지만 들어갈 이유가 없음</h4><p>추천 이유·최근 대화·읽을 만한 질문이 없으면 빈방처럼 보인다.</p><div><b>변경</b> 고민 일치 이유 + 실제 활성 신호 + 질문 미리보기</div><small>확인 KPI · 추천 노출→방 입장, 방 입장→첫 유의미 행동</small></article>
+      <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 언어</span><h4>한영 혼용이 신뢰를 약화</h4><p>버튼·채팅방 제목·에러·빈 상태 문구가 서로 다른 언어로 남지 않게 한다.</p><div><b>변경</b> ko/en 공통 키, 전체 화면·오류·알림까지 양언어 점검</div><small>확인 KPI · 언어별 첫 참여율, 미번역 문자열 건수</small></article>
+      <article data-design-priority="P1"><span class="sb-design-tag">P1 · 채팅방</span><h4>첫 발화가 어려움</h4><p>익명 커뮤니티에서도 시작할 말이 없으면 읽고 떠나기 쉽다.</p><div><b>변경</b> 해당 고민 질문 목록과 ‘나도 궁금해요’/질문 작성 진입 제공</div><small>확인 KPI · 방 입장→첫 질문·댓글·채팅 비율</small></article>
+      <article data-design-priority="P1"><span class="sb-design-tag">P1 · 상품 연결</span><h4>상품 확인 후 대화로 돌아가기 어려움</h4><p>채팅에서 상품을 열고 이탈하면 커뮤니티의 강점이 사라진다.</p><div><b>변경</b> 상품 상세의 관련 대화와 원래 채팅 복귀 링크 개선</div><small>확인 KPI · 대화→상품→대화 복귀율</small></article>
+      <article data-design-priority="P1"><span class="sb-design-tag">P1 · 신뢰</span><h4>피부 관심사를 공개 정보로 오해</h4><p>아바타·피부 타입 선택이 성별·인종·효능 판단으로 읽히지 않게 한다.</p><div><b>변경</b> 추천용 비공개 기본값, 언제든 수정·초기화, 효능 보장 표현 금지</div><small>확인 KPI · 정보 입력 스킵률, 프라이버시 관련 문의·신고</small></article>
+      <article data-design-priority="P1"><span class="sb-design-tag">P1 · 재방문</span><h4>내가 참여한 대화를 찾기 어려움</h4><p>새 추천보다 이전 질문에 답이 왔는지 아는 것이 더 중요할 수 있다.</p><div><b>변경</b> 참여 대화 이어보기를 추천보다 앞에 두고 My Activity 경로 유지</div><small>확인 KPI · 참여 대화 재방문률, 질문자·답변자 D7</small></article>
+    </div>
+
+    <h3 class="sb-design-heading">고객 여정별 평가 · 성공 신호</h3>
+    <div class="sb-design-journey">
+      <div><span>01 · 도착</span><b>“여기서 뭘 얻지?”</b><p>서비스 가치 설명 + 둘러보기</p><small>첫 대화 열람률</small></div>
+      <div><span>02 · 선택</span><b>“내 정보를 왜 물어봐?”</b><p>선택 이유·비공개·건너뛰기</p><small>선택 완료 / 스킵</small></div>
+      <div><span>03 · 추천</span><b>“왜 이 방이지?”</b><p>일치 근거와 최근 대화</p><small>추천방 진입률</small></div>
+      <div><span>04 · 참여</span><b>“어떻게 말을 걸지?”</b><p>관련 질문·간단 작성</p><small>첫 유의미 참여율</small></div>
+      <div><span>05 · 발견</span><b>“이 제품이 맞을까?”</b><p>상품 옵션·후기·대화 연결</p><small>상품↔대화 이동률</small></div>
+      <div><span>06 · 복귀</span><b>“답변 왔을까?”</b><p>내 대화 이어보기·친구 공유</p><small>질문자/답변자 D7</small></div>
+    </div>
+
+    <h3 class="sb-design-heading">검증 설계 · 화면만 예쁘게 만들지 않기</h3>
+    <div class="sb-design-experiment">
+      <div><span class="sb-design-tag">A/B 제안 · 미실행</span><h4>A: 처음에 피부 선택 / B: 커뮤니티 먼저 + 선택 카드</h4><p>동일 유입 조건에서 첫 대화 열람률과 첫 참여율을 비교. 완료율만으로 판단하지 않음. 표본·할당·기간은 실제 실험 전에 확정.</p></div>
+      <div><span class="sb-design-tag">핵심 목표</span><h4>첫 유의미 대화 참여</h4><p><strong>분자:</strong> 첫 방문 후 정해진 관찰 기간 내 실제 질문·댓글·채팅을 남긴 신규 이용자 / <strong>분모:</strong> 동일 기간 신규 이용자. 언어·플랫폼별 구분.</p></div>
+      <div><span class="sb-design-tag">가드레일</span><h4>답변 품질과 안전</h4><p>유용한 답변 비율, 답변 대기시간, 무응답 질문, 신고·차단, 번역 실패, 온보딩 이탈. 클릭 수만 개선되는 변화는 성공이 아님.</p></div>
+    </div>
+    <div class="sb-design-footer">
+      <div><strong>기존 자산은 그대로</strong><p>현재 하단 탭 3개, 채팅방 Posts/Live, 상품 첨부, Search, My Activity, 관리자 기존 탭은 유지. 이 보드는 기획 리뷰이며 앱 적용·배포·실측 완료를 의미하지 않는다.</p></div>
+      <div class="sb-links"><a href="https://www.nngroup.com/articles/mobile-app-onboarding/" target="_blank" rel="noopener noreferrer">온보딩 UX 근거 ↗</a><a href="https://www.nngroup.com/articles/get-started/" target="_blank" rel="noopener noreferrer">가입 전 가치 제시 ↗</a><a href="/api/admin?view=planning-review" target="_blank" rel="noopener noreferrer">기존 UI 구성 보기 ↗</a></div>
+    </div>
   </section>
   <section class="sb-panel" id="sb-roadmap" role="tabpanel" aria-labelledby="sb-roadmap-tab" hidden>
     <h3>대화의 가치를 먼저 확인하는 순서</h3>
