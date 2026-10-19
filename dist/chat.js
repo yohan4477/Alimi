@@ -2,6 +2,7 @@
 // and Live chat, kept in separate views. Product cards are the shared link: the same card in a post,
 // comment or chat message opens the same product sheet and carries the source as Awin clickref.
 // Live chat polls every few seconds while open.
+import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
 import {track} from './events.js';
 import {t, locale} from './i18n.js';
@@ -158,7 +159,7 @@ async function sendComment() {
 
 // Write a post (optionally from one of my chat messages: "Save as post").
 function openWrite(draft = {}) {
-  view.draft = {kind: 'question', title: '', body: '', item: null, reasons: [], fromMessage: null, usedFor: '', skinType: '', skinTone: '', undertone: '', climate: '', goal: '', photos: [], where: '', price: '', shipCountry: '', shipDays: '', sponsored: false, ...draft};
+  view.draft = {kind: 'question', title: '', body: '', item: null, reasons: [], fromMessage: null, usedFor: '', skinType: '', skinTone: '', undertone: '', climate: '', goal: '', photos: [], where: '', price: '', shipCountry: '', shipDays: '', sponsored: false, saveProfile: false, ...reviewPrefill(), ...draft};
   renderWrite(); $('#post-write').showModal();
 }
 function renderWrite() {
@@ -168,11 +169,11 @@ function renderWrite() {
 }
 // One optional single-choice row in the review form (tap again to clear).
 const chipRow = (label, values, prefix, current, field) => `<p class="write-label">${esc(t(label))}</p><div class="chat-chips">${values.map(v => `<button type="button" data-write-field="${field}" data-value="${v}" class="${current === v ? 'on' : ''}">${esc(t(prefix + '.' + v))}</button>`).join('')}</div>`;
-const reviewFields = d => `${d.item ? '' : `<p class="write-warn">${esc(t('review.needItem'))}</p>`}<p class="write-label">${esc(t('review.usedFor'))}</p><div class="chat-chips">${USED_FOR.map(u => `<button type="button" data-write-used="${u}" class="${d.usedFor === u ? 'on' : ''}">${esc(t('review.used.' + u))}</button>`).join('')}</div><p class="write-note">${esc(t('review.showMine'))}</p>${chipRow('review.skin', SKIN_TYPES, 'skin', d.skinType, 'skinType')}${chipRow('review.tone', SKIN_TONES, 'tone', d.skinTone, 'skinTone')}${chipRow('review.undertone', UNDERTONES, 'under', d.undertone, 'undertone')}${chipRow('review.climate', CLIMATES, 'climate', d.climate, 'climate')}<input id="write-goal" maxlength="60" placeholder="${esc(t('review.goal'))}" value="${esc(d.goal)}"><p class="write-label">${esc(t('review.photos'))}</p><p class="write-note">${esc(t('review.photoNote'))}</p><div class="write-photos">${d.photos.map((ph, i) => `<span><img src="${esc(photoUrl(ph))}" alt=""><button type="button" data-write-photo-remove="${i}" aria-label="${esc(t('close'))}">×</button></span>`).join('')}${d.photos.length < 4 ? `<label class="photo-add">＋<input id="write-photo" type="file" accept="image/*" hidden><span>${esc(t('review.addPhoto'))}</span></label>` : ''}</div><p class="write-label">${esc(t('review.purchase'))}</p><div class="write-grid"><input id="write-where" maxlength="60" placeholder="${esc(t('review.where'))}" value="${esc(d.where)}"><input id="write-price" inputmode="decimal" placeholder="${esc(t('review.price'))}" value="${esc(d.price)}"><input id="write-country" maxlength="2" placeholder="${esc(t('review.shipCountry'))}" value="${esc(d.shipCountry)}"><input id="write-days" inputmode="numeric" placeholder="${esc(t('review.shipDays'))}" value="${esc(d.shipDays)}"></div><label class="write-check"><input id="write-sponsored" type="checkbox" ${d.sponsored ? 'checked' : ''}> ${esc(t('review.sponsored'))}</label>`;
+const reviewFields = d => `${d.item ? '' : `<p class="write-warn">${esc(t('review.needItem'))}</p>`}<p class="write-label">${esc(t('review.usedFor'))}</p><div class="chat-chips">${USED_FOR.map(u => `<button type="button" data-write-used="${u}" class="${d.usedFor === u ? 'on' : ''}">${esc(t('review.used.' + u))}</button>`).join('')}</div><p class="write-note">${esc(t('review.showMine'))}</p>${chipRow('review.skin', SKIN_TYPES, 'skin', d.skinType, 'skinType')}${chipRow('review.tone', SKIN_TONES, 'tone', d.skinTone, 'skinTone')}${chipRow('review.undertone', UNDERTONES, 'under', d.undertone, 'undertone')}${chipRow('review.climate', CLIMATES, 'climate', d.climate, 'climate')}<label class="profile-check"><input type="checkbox" id="write-save-profile" ${d.saveProfile ? 'checked' : ''}><span><b>${esc(t('profile.saveFromReview'))}</b></span></label><input id="write-goal" maxlength="60" placeholder="${esc(t('review.goal'))}" value="${esc(d.goal)}"><p class="write-label">${esc(t('review.photos'))}</p><p class="write-note">${esc(t('review.photoNote'))}</p><div class="write-photos">${d.photos.map((ph, i) => `<span><img src="${esc(photoUrl(ph))}" alt=""><button type="button" data-write-photo-remove="${i}" aria-label="${esc(t('close'))}">×</button></span>`).join('')}${d.photos.length < 4 ? `<label class="photo-add">＋<input id="write-photo" type="file" accept="image/*" hidden><span>${esc(t('review.addPhoto'))}</span></label>` : ''}</div><p class="write-label">${esc(t('review.purchase'))}</p><div class="write-grid"><input id="write-where" maxlength="60" placeholder="${esc(t('review.where'))}" value="${esc(d.where)}"><input id="write-price" inputmode="decimal" placeholder="${esc(t('review.price'))}" value="${esc(d.price)}"><input id="write-country" maxlength="2" placeholder="${esc(t('review.shipCountry'))}" value="${esc(d.shipCountry)}"><input id="write-days" inputmode="numeric" placeholder="${esc(t('review.shipDays'))}" value="${esc(d.shipDays)}"></div><label class="write-check"><input id="write-sponsored" type="checkbox" ${d.sponsored ? 'checked' : ''}> ${esc(t('review.sponsored'))}</label>`;
 const keepDraftText = () => {
   if (!$('#write-title')) return; const d = view.draft;
   d.title = $('#write-title').value; d.body = $('#write-body').value;
-  if ($('#write-goal')) { d.goal = $('#write-goal').value; d.where = $('#write-where').value; d.price = $('#write-price').value; d.shipCountry = $('#write-country').value; d.shipDays = $('#write-days').value; d.sponsored = $('#write-sponsored').checked; }
+  if ($('#write-goal')) { d.goal = $('#write-goal').value; d.where = $('#write-where').value; d.price = $('#write-price').value; d.shipCountry = $('#write-country').value; d.shipDays = $('#write-days').value; d.sponsored = $('#write-sponsored').checked; d.saveProfile = !!$('#write-save-profile')?.checked; }
 };
 // Re-encode in the browser before upload: drops EXIF (location, device) and shrinks to <= 1600px JPEG.
 async function reencode(file) {
@@ -195,6 +196,7 @@ async function submitPost() {
   try {
     const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
     track('post_create', null, {room: chat.room.id, kind: d.kind, item: d.item ? 1 : 0, from_chat: d.fromMessage ? 1 : 0, photos: d.photos.length, reasons: d.reasons.join(',')});
+    if (d.kind === 'review' && d.saveProfile) saveFromReview(d).catch(() => {});
     $('#post-write').close();
     if (d.fromMessage) toast(t('community.savedAsPost'));
     openTopic(chat.room, 'posts'); openPost(p.id);
@@ -314,7 +316,10 @@ function drawTalk() {
   if (!talkState) return; const {box, talk} = talkState;
   const all = visiblePosts(talk.reviews), reviews = filterReviews(all, talkFilter), posts = visiblePosts(talk.posts);
   const chips = (key, prefix) => [...new Set(all.map(r => r[key]).filter(Boolean))].map(v => `<button data-review-filter="${key}:${v}" class="${talkFilter[key] === v ? 'on' : ''}">${esc(t(prefix + '.' + v))}</button>`).join('');
-  const filters = chips('skin_type', 'skin') + chips('skin_tone', 'tone');
+  const me = cachedProfile(), mine = me && (me.skin_type || me.skin_tone);
+  // "People like me" applies the person's own self-reported skin; without a profile it invites them to add one.
+  const similar = !all.length ? '' : mine ? `<button data-review-similar class="${talkFilter.skin_type === (me.skin_type ?? '') && talkFilter.skin_tone === (me.skin_tone ?? '') ? 'on' : ''}">${esc(t('profile.similar'))}</button>` : `<button data-profile-open>${esc(t('profile.similarAdd'))}</button>`;
+  const filters = similar + chips('skin_type', 'skin') + chips('skin_tone', 'tone');
   box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))} ${all.length ? `<em>${all.length}</em>` : ''}</h3>${filters ? `<div class="chat-chips review-filter">${filters}</div><p class="similar-note">${esc(t('product.similarNote'))}</p>` : ''}${reviews.length ? reviews.map(postRow).join('') : `<p class="empty talk-empty">${esc(t('product.reviewsEmpty'))}</p>`}<h3 class="chat-section">${esc(t('product.related'))}</h3>${posts.map(postRow).join('')}${talk.chatMentions ? `<p class="talk-chat">${esc(t('product.inChat'))} · ${talk.chatMentions}</p>` : ''}${!posts.length && !talk.chatMentions ? `<p class="empty talk-empty">${esc(t('product.talkEmpty'))}</p>` : ''}`;
 }
 // A post tapped outside the community (product sheet, detail page) opens there next time the screen opens.
@@ -336,6 +341,7 @@ document.addEventListener('click', async e => {
   else if (a === 'write') askJoin(chat.room, () => openWrite());
   else if (b.dataset.writeUsed) { keepDraftText(); view.draft.usedFor = view.draft.usedFor === b.dataset.writeUsed ? '' : b.dataset.writeUsed; renderWrite(); }
   else if (b.dataset.writeField) { keepDraftText(); const f = b.dataset.writeField; view.draft[f] = view.draft[f] === b.dataset.value ? '' : b.dataset.value; renderWrite(); }
+  else if (b.hasAttribute('data-review-similar')) { const me = cachedProfile() ?? {}, on = talkFilter.skin_type === (me.skin_type ?? '') && talkFilter.skin_tone === (me.skin_tone ?? ''); talkFilter.skin_type = on ? '' : me.skin_type ?? ''; talkFilter.skin_tone = on ? '' : me.skin_tone ?? ''; drawTalk(); }
   else if (b.dataset.reviewFilter) { const [k, v] = b.dataset.reviewFilter.split(':'); talkFilter[k] = talkFilter[k] === v ? '' : v; drawTalk(); }
   else if (b.dataset.writePhotoRemove) { keepDraftText(); view.draft.photos.splice(+b.dataset.writePhotoRemove, 1); renderWrite(); }
   else if (b.dataset.writeKind) { keepDraftText(); view.draft.kind = b.dataset.writeKind; renderWrite(); }
