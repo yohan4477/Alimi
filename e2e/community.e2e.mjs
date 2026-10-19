@@ -20,26 +20,36 @@ try {
    return route.fulfill({json:[]});
   });
   await page.goto(base+'?lang='+lang);
-  await page.locator('.conversation-row[data-live]').first().waitFor();
+  await page.locator('.room-list-card[data-live]').first().waitFor();
   assert.equal(await page.locator('#tabbar button').count(),3);
   assert.equal(await page.locator('#chat').isVisible(),true);
   assert.equal(await page.locator('#browse').isVisible(),false);
+  // 추천 tab: trending card and recommended room; user-authored text stays verbatim in either UI language.
+  assert.equal(await page.locator('.trend-card[data-chat-room="tint"]').count(),1);
+  assert.equal(await page.locator('.room-list-card[data-live] em').first().innerText(),messages[0].body);
+  // 발견 tab: products mentioned in conversations.
+  await page.locator('[data-home-tab="discover"][role="tab"]').click();
   assert.equal(await page.locator('.mentioned-products article').count(),1);
   assert.match(await page.locator('#community-home').innerText(),lang==='en'?/Products in the conversation/:/대화에 나온 제품/);
-  // User-authored conversation stays verbatim in either UI language.
-  assert.equal(await page.locator('.conversation-row p').first().innerText(),messages[0].body);
-  await page.locator('.conversation-row[data-live]').first().click();
+  await page.locator('[data-home-tab="rec"][role="tab"]').click();
+  await page.locator('.room-list-card[data-live]').first().click();
   await page.locator('[data-chat-action="join-ok"]').click();
   await page.locator('#chat-log .chat-item').waitFor();
   await page.locator('#chat-log .chat-item').click();
   await page.locator('#family-dialog[open] .variant-row').waitFor();
   assert.equal(await page.locator('.analysis-section').count(),0);
   assert.equal(await page.locator('.target-section').count(),0);
-  await page.locator('#family-dialog .close-dialog').click();
+  // Opened from a live room: 대화에 첨부 puts the product into the composer.
+  assert.equal(await page.locator('#family-dialog .family-attach').count(),1);
+  await page.locator('#family-dialog .family-attach').click();
+  assert.equal(await page.locator('#family-dialog').evaluate(d=>d.open),false);
+  assert.match(await page.locator('#chat-form').innerText(),/Soft tint 03/);
+  assert.equal(await page.locator('#chat-text').evaluate(e=>e===document.activeElement),true);
   assert.equal(await page.locator('#chat-log').isVisible(),true);
   assert.equal(await page.locator('#chat-log .chat-msg').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
   await page.locator('#tabbar [data-screen="saved"]').click();
+  await page.locator('[data-activity-tab="rooms"]').click();
   await page.locator('#activity-conversations h2').waitFor();
   assert.match(await page.locator('#saved h1').innerText(),lang==='en'?/My activity/:/내 활동/);
   assert.deepEqual(errors,[]);

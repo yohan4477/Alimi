@@ -1407,5 +1407,281 @@
   "profile.doNotSellDone": {
     "ko": "판매·공유 거부를 기록했어요.",
     "en": "Your opt-out of sale and sharing is recorded."
+  },
+  "onb.step": {
+    "ko": "{n}/3단계",
+    "en": "Step {n} of 3"
+  },
+  "onb.q0": {
+    "ko": "어떤 뷰티에 관심이 있으신가요?",
+    "en": "What beauty topics are you into?"
+  },
+  "onb.s0": {
+    "ko": "관심 사항을 선택해 주세요 (복수 선택 가능). 피부 타입은 묻지 않아요.",
+    "en": "Pick what interests you — choose as many as you like. We won't ask for your skin type."
+  },
+  "onb.q1": {
+    "ko": "내 고민에 맞는 대화방 추천",
+    "en": "Rooms that match your concerns"
+  },
+  "onb.s1": {
+    "ko": "지금, 비슷한 고민을 가진 사람들과 이야기해 보세요!",
+    "en": "Talk with people who have the same questions right now!"
+  },
+  "onb.g.skincare": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "onb.g.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "onb.c.acne": {
+    "ko": "트러블·여드름",
+    "en": "Acne & breakouts"
+  },
+  "onb.c.sensitive": {
+    "ko": "민감성·자극",
+    "en": "Sensitive skin"
+  },
+  "onb.c.dry": {
+    "ko": "건조함",
+    "en": "Dryness"
+  },
+  "onb.c.pores": {
+    "ko": "모공·피부결",
+    "en": "Pores & texture"
+  },
+  "onb.c.cushion": {
+    "ko": "쿠션 호수",
+    "en": "Cushion shades"
+  },
+  "onb.c.lip": {
+    "ko": "틴트·립",
+    "en": "Lip tints"
+  },
+  "onb.c.longwear": {
+    "ko": "메이크업 지속력",
+    "en": "Makeup longevity"
+  },
+  "onb.c.shade": {
+    "ko": "컬러 매칭",
+    "en": "Color matching"
+  },
+  "onb.next": {
+    "ko": "다음으로",
+    "en": "Next"
+  },
+  "onb.browse": {
+    "ko": "그냥 둘러볼게요",
+    "en": "Just browse"
+  },
+  "onb.browseAll": {
+    "ko": "전체 대화 둘러보기",
+    "en": "Browse all rooms"
+  },
+  "onb.skip": {
+    "ko": "건너뛰기",
+    "en": "Skip"
+  },
+  "onb.matched": {
+    "ko": "맞는 고민: {list}",
+    "en": "Matches: {list}"
+  },
+  "onb.popular": {
+    "ko": "지금 인기 있는 대화",
+    "en": "Popular right now"
+  },
+  "onb.forYou": {
+    "ko": "나에게 맞는 대화",
+    "en": "Rooms for you"
+  },
+  "onb.edit": {
+    "ko": "관심사 바꾸기",
+    "en": "Change interests"
+  },
+  "onb.manage": {
+    "ko": "관심 분야·고민",
+    "en": "Interests & concerns"
+  },
+  "onb.none": {
+    "ko": "아직 고르지 않았어요",
+    "en": "Not chosen yet"
+  },
+  "room.new": {
+    "ko": "새 대화방 만들기",
+    "en": "Create a room"
+  },
+  "room.newHint": {
+    "ko": "어떤 주제든 괜찮아요. 분야와 고민 태그는 선택이고, 다른 사람이 방을 찾는 데만 쓰여요.",
+    "en": "Any topic is welcome. Field and concern tags are optional and only help others find your room."
+  },
+  "room.titlePh": {
+    "ko": "방 이름 (3~40자)",
+    "en": "Room name (3–40 characters)"
+  },
+  "room.introPh": {
+    "ko": "어떤 이야기를 나누고 싶나요? (선택)",
+    "en": "What would you like to talk about? (optional)"
+  },
+  "room.field": {
+    "ko": "분야",
+    "en": "Field"
+  },
+  "room.tag.talk": {
+    "ko": "자유 주제",
+    "en": "Anything"
+  },
+  "room.tag.skin": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "room.tag.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "room.concerns": {
+    "ko": "고민 태그 (선택)",
+    "en": "Concern tags (optional)"
+  },
+  "room.note": {
+    "ko": "공개 방이라 누구나 볼 수 있어요. 링크와 부적절한 표현은 쓸 수 없고, 하루에 3개까지 만들 수 있어요.",
+    "en": "Rooms are public. Links and abusive words aren't allowed, and you can create up to 3 rooms a day."
+  },
+  "room.create": {
+    "ko": "방 만들기",
+    "en": "Create room"
+  },
+  "room.created": {
+    "ko": "방을 만들었어요",
+    "en": "Room created"
+  },
+  "chat.err.short": {
+    "ko": "3자 이상 입력해 주세요.",
+    "en": "Please enter at least 3 characters."
+  },
+  "chat.err.duplicate": {
+    "ko": "같은 이름의 방이 이미 있어요. 그 방에서 이야기해 보세요.",
+    "en": "A room with this name already exists. Try talking there."
+  },
+  "onb.fields": {
+    "ko": "관심 분야",
+    "en": "Interests"
+  },
+  "onb.keywords": {
+    "ko": "고민 키워드",
+    "en": "Concerns"
+  },
+  "onb.pickField": {
+    "ko": "관심 분야를 고르면 고민 키워드가 나와요.",
+    "en": "Pick an interest to see related concerns."
+  },
+  "room.liveNow": {
+    "ko": "지금 활발한 대화 중",
+    "en": "Active now"
+  },
+  "home.tab.rec": {
+    "ko": "추천",
+    "en": "For you"
+  },
+  "home.tab.rooms": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "home.tab.discover": {
+    "ko": "발견",
+    "en": "Discover"
+  },
+  "home.tab.brands": {
+    "ko": "브랜드",
+    "en": "Brands"
+  },
+  "home.trending": {
+    "ko": "지금 뜨는 이야기",
+    "en": "Trending now"
+  },
+  "home.trendingSub": {
+    "ko": "최근 24시간 가장 많이 이야기한 대화방이에요.",
+    "en": "Rooms with the most messages in the last 24 hours."
+  },
+  "home.recRooms": {
+    "ko": "추천 대화방",
+    "en": "Recommended rooms"
+  },
+  "home.recRoomsSub": {
+    "ko": "고른 관심사와 지금 활동을 기준으로 골랐어요.",
+    "en": "Picked from your interests and recent activity."
+  },
+  "home.seeAll": {
+    "ko": "전체보기",
+    "en": "See all"
+  },
+  "home.msgShort": {
+    "ko": "오늘 메시지 {n}개",
+    "en": "{n} messages today"
+  },
+  "home.brandsFailed": {
+    "ko": "브랜드 목록을 불러오지 못했어요.",
+    "en": "Couldn't load brands."
+  },
+  "home.noBrands": {
+    "ko": "아직 보여줄 브랜드가 없어요.",
+    "en": "No brands to show yet."
+  },
+  "home.popular": {
+    "ko": "많이 찾는 제품",
+    "en": "Popular products"
+  },
+  "home.popularSub": {
+    "ko": "카탈로그에서 지금 많이 찾는 제품이에요. 대화에서 추천받은 제품과는 달라요.",
+    "en": "Popular in the catalog right now — not the same as products recommended in conversations."
+  },
+  "family.attach": {
+    "ko": "대화에 첨부",
+    "en": "Attach to chat"
+  },
+  "family.attached": {
+    "ko": "대화에 상품을 첨부했어요",
+    "en": "Product attached to your message"
+  },
+  "room.join": {
+    "ko": "참여",
+    "en": "Join"
+  },
+  "share.room": {
+    "ko": "대화방 공유",
+    "en": "Share room"
+  },
+  "share.product": {
+    "ko": "상품 공유",
+    "en": "Share product"
+  },
+  "share.copied": {
+    "ko": "링크를 복사했어요",
+    "en": "Link copied"
+  },
+  "share.failed": {
+    "ko": "공유하지 못했어요",
+    "en": "Couldn't share"
+  },
+  "activity.tab.saved": {
+    "ko": "저장한 상품",
+    "en": "Saved"
+  },
+  "activity.tab.rooms": {
+    "ko": "참여한 대화방",
+    "en": "My rooms"
+  },
+  "home.welcome": {
+    "ko": "다시 오신 걸 환영해요!",
+    "en": "Welcome back!"
+  },
+  "home.welcomeSub": {
+    "ko": "참여한 대화방에서 이야기를 이어가 보세요.",
+    "en": "Pick up where you left off in your rooms."
+  },
+  "home.newMessages": {
+    "ko": "새 메시지",
+    "en": "New"
   }
 }

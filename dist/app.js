@@ -4,8 +4,10 @@ import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-ca
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
 import {profileCard,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
-import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations} from './chat.js';
+import {openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat} from './chat.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
+import {readInterests,editInterests} from './onboarding.js';
+import {share,shareUrl,sharedTarget} from './share.js';
 import {buyUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
 import {$,esc} from './util.js';
 let storage;try{storage=localStorage}catch{}
@@ -36,10 +38,12 @@ function variantRows(list,ref=null){
   const tracked=new Map(products.map(p=>[p.sku,p.id]));
   return list.map(v=>{const id=tracked.get(v.sku),href=buyUrl(v,ref);return `<article class="variant-row"><div><strong>${esc([v.size_label,v.option_label].filter(Boolean).join(' · ')||t('family.default'))}</strong>${v.bestValue?`<span class="best-tag">${esc(t('badge.bestValue'))}</span>`:''}<small>${v.unitPrice!=null?esc(t('unit.price',{v:usd(v.unitPrice),u:unitName(v.unit)})):''}</small></div><b>${usd(v.price)}</b>${href?`<a class="variant-buy observed-buy" href="${esc(href)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(v.sku)}" data-ref="${esc(ref??'')}">${esc(t('variant.buy'))}</a>`:''}${id?`<button class="variant-heart" data-favorite="${esc(id)}" aria-pressed="${state.favorites.includes(id)}" aria-label="${esc(t('favorites'))}">${state.favorites.includes(id)?'♥':'♡'}</button>`:`<button class="variant-heart" data-catalog-save="${esc(remember(v))}" data-retailer="${esc(v.retailer)}" data-market="${esc(v.market)}" aria-label="${esc(t('save.action'))}">♡</button>`}</article>`}).join('');
 }
+// Product sheet (journey reference): photo first, then options; 대화에 첨부 when opened from a live room.
+let familyHead=null;
 async function openFamily(key,ref=null){
   const dlg=$('#family-dialog');$('#family-body').innerHTML=`${loadingMarkup(t('loading'))}`;$('#family-talk').innerHTML='';dlg.showModal();
   try{const list=await fetchFamily(key);const head=list[0];$('#family-title').textContent=head?brandLabel(head):'';
-    $('#family-name').textContent=head?.name?.split(' - ')[0]??'';$('#family-body').innerHTML='<div id="family-description"></div>'+variantRows(list,ref);if(head)renderProductInfo($('#family-description'),head);track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});renderProductTalk($('#family-talk'),key)}
+    $('#family-name').textContent=head?.name?.split(' - ')[0]??'';familyHead=head??null;$('#family-body').innerHTML=(head?.image_url?`<div class="family-hero"><img src="${esc(head.image_url)}" alt="${esc(brandLabel(head)+' '+(head.name?.split(' - ')[0]??''))}"></div>`:'')+(head&&canAttachToChat()?`<button class="primary family-attach" data-family-attach>${esc(t('family.attach'))}</button>`:'')+(head?`<button class="family-share" data-family-share="${esc(key)}">${esc(t('share.product'))}</button>`:'')+'<div id="family-description"></div>'+variantRows(list,ref);if(head)renderProductInfo($('#family-description'),head);track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});renderProductTalk($('#family-talk'),key)}
   catch{$('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`}
 }
 async function loadOtherSizes(p){
@@ -103,11 +107,14 @@ async function loadBrandPage(){
 }
 // Saved (관심상품): favorites in a 3-column grid, padded with "+ Add" slots until there are three.
 const savedCard=p=>`<article class="saved-card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><strong>${usd(p.price)}</strong></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="true">♥</button></article>`;
+// Interests chosen in the community guide; tapping reopens the guide there to change or clear them.
+function interestRow(){const p=readInterests(),list=p?[...['skincare','makeup'].filter(g=>p[g]).map(g=>t('onb.g.'+g)),...p.concerns.map(c=>t('onb.c.'+c))]:[];return `<button class="interest-row" data-onb-manage><span><b>${esc(t('onb.manage'))}</b><small>${esc(list.length?list.join(' · '):t('onb.none'))}</small></span><span aria-hidden="true">›</span></button>`}
+let activityTab='saved';
 function renderSaved(){
   const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
   const hint=n===0?t('saved.hint'):n<3?t('saved.hintMore',{n:3-n}):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('nav.activity'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div>${profileCard()}<section id="activity-conversations"></section><h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`;
-  renderMyConversations($('#activity-conversations'));
+  $('#saved').innerHTML=`<div class="page-head"><h1>${esc(t('nav.activity'))}</h1><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></div>${profileCard()}${interestRow()}<div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':`<h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${Array.from({length:Math.max(0,3-n)},(_,i)=>`<button class="add-slot${i===0?' first':''}" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>`;
+  if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
@@ -202,9 +209,16 @@ function closeDetail(){detailOpen=false;show(detailReturn)}
 function openDetail(id){selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
 
 localizePage();
+// A shared link opens its room or product on arrival.
+const arrival=sharedTarget();if(arrival?.room)openRoomNext(arrival.room);
 show('chat');
+if(arrival?.product)openFamily(arrival.product);
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.openRoom){openRoomNext(b.dataset.openRoom);show('chat');return}
+  if(b.dataset.familyShare){share({title:$('#family-name').textContent,url:shareUrl({product:b.dataset.familyShare})},toast);return}
+  if('familyAttach' in b.dataset){$('#family-dialog').close();if(attachToChat(familyHead))toast(t('family.attached'));return}
+  if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`).focus();return}
+  if('onbManage' in b.dataset){editInterests();show('chat');return}
   if(b.dataset.catalogSave){saveCatalogSelection(b);return}
   if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null);return}
   if(b.dataset.post&&screen!=='chat'){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);show('chat');return}

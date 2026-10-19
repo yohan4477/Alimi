@@ -83,3 +83,28 @@ test('review payload keeps only valid optional facts', async () => {
   assert.deepEqual(reviewPayload({usedFor: 'forever', skinType: 'alien', price: 'abc', shipCountry: 'USA', shipDays: '-1'}), {});
   assert.match(photoUrl('v1/a.jpg'), /\/storage\/v1\/object\/public\/review-photos\/v1\/a\.jpg$/);
 });
+
+test('creating a room sends trimmed text, the field tag and concern ids to create_room', async () => {
+  const {createRoom} = await import('../dist/chat-api.js');
+  let sent;
+  const fetchImpl = async (url, opts) => { sent = {url, body: JSON.parse(opts.body)}; return {ok: true, status: 200, json: async () => 'u-abc123'}; };
+  assert.equal(await createRoom('s', {title: '  Cushion for oily skin ', intro: ' lasts? ', tag: 'makeup', concerns: ['cushion']}, fetchImpl), 'u-abc123');
+  assert.match(sent.url, /\/rpc\/create_room$/);
+  assert.deepEqual(sent.body, {p_secret: 's', p_title: 'Cushion for oily skin', p_intro: 'lasts?', p_tag: 'makeup', p_concerns: ['cushion']});
+});
+
+test('room creation errors map to their own messages', () => {
+  assert.equal(errorKey('chat:short'), 'chat.err.short');
+  assert.equal(errorKey('chat:duplicate'), 'chat.err.duplicate');
+  assert.equal(errorKey('chat:slow'), 'chat.err.slow');
+  // Server without the migration yet: PostgREST reports a missing function.
+  assert.equal(errorKey('Could not find the function public.create_room'), 'chat.err.other');
+});
+
+test('the user room migration only accepts concern ids the web guide knows', async () => {
+  const {CONCERNS} = await import('../dist/onboarding.js');
+  const sql = readFileSync(new URL('../supabase/migrations/20261019050000_user_rooms.sql', import.meta.url), 'utf8');
+  const lists = [...sql.matchAll(/array\['acne', 'sensitive'[^\]]*\]/g)];
+  assert.equal(lists.length, 2, 'column check and create_room filter');
+  for (const list of lists) assert.deepEqual(JSON.parse(list[0].slice(5).replace(/'/g, '"')), CONCERNS.map(c => c.id));
+});

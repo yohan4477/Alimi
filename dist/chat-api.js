@@ -31,7 +31,7 @@ export const visible = (messages, blocked) => messages.filter(m => !blocked.incl
 // Server errors are "chat:<code>"; anything else is a network / unknown failure.
 export const errorKey = message => {
   const code = /chat:(\w+)/.exec(String(message ?? ''))?.[1];
-  return ['slow', 'link', 'blocked', 'banned', 'long', 'item', 'photo'].includes(code) ? 'chat.err.' + code : 'chat.err.other';
+  return ['slow', 'link', 'blocked', 'banned', 'long', 'item', 'photo', 'short', 'duplicate'].includes(code) ? 'chat.err.' + code : 'chat.err.other';
 };
 
 export const roomsUrl = () => SUPABASE_URL + '/rest/v1/chat_room_list?' + new URLSearchParams({select: '*', order: 'sort'});
@@ -64,6 +64,10 @@ export const joinRoom = (secret, room, fetchImpl = fetch) => rpc('join_chat', {p
 export const postMessage = (secret, room, body, item = null, replyTo = null, fetchImpl = fetch) => rpc('post_chat', {
   p_secret: secret, p_room: room, p_body: body,
   p_retailer: item?.retailer ?? null, p_market: item?.market ?? null, p_sku: item?.sku ?? null, p_reply_to: replyTo
+}, fetchImpl);
+// Anyone can open a public topic room; the server checks length, links, words, duplicates and rate.
+export const createRoom = (secret, {title, intro = '', tag = 'talk', concerns = []}, fetchImpl = fetch) => rpc('create_room', {
+  p_secret: secret, p_title: String(title ?? '').trim(), p_intro: String(intro ?? '').trim(), p_tag: tag, p_concerns: concerns
 }, fetchImpl);
 export const likeMessage = (secret, id, fetchImpl = fetch) => rpc('like_chat', {p_secret: secret, p_message: id}, fetchImpl);
 export const reportMessage = (secret, id, reason, fetchImpl = fetch) => rpc('report_chat', {p_secret: secret, p_message: id, p_reason: reason}, fetchImpl);
