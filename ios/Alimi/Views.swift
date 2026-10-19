@@ -114,7 +114,7 @@ struct BrowseView: View {
                         Text(L("hero.subApp")).font(.subheadline).foregroundStyle(.secondary)
                         Button(L("community.homeCTA"), action: onCommunity).buttonStyle(.borderedProminent)
                     }.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
-                    if brandsLoading { ProgressView(L("loading")).frame(maxWidth: .infinity) }
+                    if brandsLoading { LoadingCompanion() }
                     else if brandsFailed {
                         VStack(alignment: .leading) {
                             Text(L("brands.title")).font(.title3.bold())
@@ -267,7 +267,7 @@ extension BrowseView {
                 FamilyRow(family: family) { openFamily = family }
                     .onAppear { if family.id == browse.last?.id { Task { await loadMore() } } }
             }
-            if browseLoading { ProgressView().frame(maxWidth: .infinity) }
+            if browseLoading { LoadingCompanion(compact: true) }
             else if browseDone && browse.isEmpty { Text(L("empty.products")).font(.caption).foregroundStyle(.secondary) }
         }.padding(.top, 12)
     }
@@ -356,7 +356,7 @@ struct FamilySheet: View {
                     Text(family.brandLabel).font(.caption).foregroundStyle(.secondary)
                     Text(family.baseName).font(.title3.bold())
                     Text(L("family.buyHint")).font(.caption).foregroundStyle(.secondary)
-                    if let variants { VariantList(variants: variants, ref: ref) } else { ProgressView().frame(maxWidth: .infinity) }
+                    if let variants { VariantList(variants: variants, ref: ref) } else { LoadingCompanion(compact: true) }
                 }.padding(20)
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
