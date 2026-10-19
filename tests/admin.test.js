@@ -97,5 +97,15 @@ test('planning review is authenticated and keeps original interactive UI isolate
   assert.match(allowed.headers['content-security-policy'],/frame-ancestors 'self'/);
   assert.match(allowed.headers['cache-control'],/no-store/);
   const page = await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
-  assert.match(page,/src="\/api\/admin\?view=planning-review"/);
+  assert.match(page,/data-src="\/api\/admin\?view=planning-review"/);
+});
+
+test('review loads only after its tab is visible and responds to width changes', async () => {
+  const page = await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
+  const frame = page.match(/<iframe[^>]*id="sb-planning-review"[^>]*>/)[0];
+  assert.doesNotMatch(frame, /\ssrc=/);
+  assert.match(frame,/data-src=/);
+  const review = await readFile(new URL('../server/admin-planning-review.html',import.meta.url),'utf8');
+  assert.match(review,/new ResizeObserver/);
+  assert.match(review,/width > 0 && width !== lastWidth/);
 });

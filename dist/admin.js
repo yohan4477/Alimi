@@ -1,6 +1,7 @@
 // Presentation state only. Authorization is performed on every server request.
 const root = document.getElementById('sb-management');
 if (root) {
+  const review = document.getElementById('sb-planning-review');
   const tabs = [...root.querySelectorAll('[role="tab"]')];
   function select(tab, focus = false) {
     if (!tabs.includes(tab)) return;
@@ -9,6 +10,9 @@ if (root) {
       t.setAttribute('aria-selected', String(active)); t.tabIndex = active ? 0 : -1;
       t.classList.toggle('active', active);
       document.getElementById(t.getAttribute('aria-controls')).hidden = !active;
+    }
+    if (tab.id === 'sb-plan-tab' && review && !review.hasAttribute('src')) {
+      review.src = review.dataset.src;
     }
     if (focus) tab.focus();
     try { sessionStorage.setItem('sb-admin-tab', tab.id); } catch {}
@@ -20,7 +24,6 @@ if (root) {
       if (next !== null) { event.preventDefault(); select(tabs[next], true); }
     });
   }
-  const review = document.getElementById('sb-planning-review');
   let reviewObserver;
   review?.addEventListener('load', () => {
     reviewObserver?.disconnect();
