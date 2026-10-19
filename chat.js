@@ -323,6 +323,13 @@ function drawTalk() {
   box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))} ${all.length ? `<em>${all.length}</em>` : ''}</h3>${filters ? `<div class="chat-chips review-filter">${filters}</div><p class="similar-note">${esc(t('product.similarNote'))}</p>` : ''}${reviews.length ? reviews.map(postRow).join('') : `<p class="empty talk-empty">${esc(t('product.reviewsEmpty'))}</p>`}<h3 class="chat-section">${esc(t('product.related'))}</h3>${posts.map(postRow).join('')}${talk.chatMentions ? `<p class="talk-chat">${esc(t('product.inChat'))} · ${talk.chatMentions}</p>` : ''}${!posts.length && !talk.chatMentions ? `<p class="empty talk-empty">${esc(t('product.talkEmpty'))}</p>` : ''}`;
 }
 // A post tapped outside the community (product sheet, detail page) opens there next time the screen opens.
+// "Start a conversation": pick a topic in a sheet, then go straight to the write form for it.
+function openStart() {
+  let dlg = $('#chat-start'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'chat-start'; dlg.className = 'chat-dialog chat-start'; document.body.append(dlg); }
+  const topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a, b) => a.sort - b.sort);
+  dlg.innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('home.ask'))}</h2><p class="chat-sub">${esc(t('home.askHint'))}</p>${topics.map(r => roomRow(r).replace('data-chat-room=', 'data-chat-start=')).join('')}`;
+  dlg.showModal();
+}
 let pendingPost = null;
 async function shareRoom(room){const url=new URL(location.href);url.searchParams.delete('family');url.searchParams.set('room',room.id);url.hash='';const payload={title:t('chat.shareTitle'),text:t('chat.shareRoomMessage',{room:roomTitle(room)}),url:url.href};try{if(navigator.share){await navigator.share(payload);return}}catch(e){if(e.name==='AbortError')return}try{await navigator.clipboard.writeText(url.href);toast(t('share.linkCopied'))}catch{window.prompt(t('share.copyPrompt'),url.href)}}
 export const openPostNext = id => { pendingPost = id; };
@@ -335,7 +342,8 @@ document.addEventListener('click', async e => {
   if (a === 'rooms') renderHome();
   else if (a === 'share-room' && chat.room) await shareRoom(chat.room);
   else if (a === 'resume') renderJoined();
-  else if (a === 'find-topic') $('#home-topics')?.scrollIntoView({behavior:'smooth'});
+  else if (a === 'find-topic') openStart();
+  else if (b.dataset.chatStart) { const room = chat.rooms.find(r => r.id === b.dataset.chatStart); $('#chat-start').close(); if (room) { chat.room = room; askJoin(room, () => openWrite()); } }
   else if (a === 'topic') openTopic(chat.room, 'posts');
   else if (b.dataset.topicMode) openTopic(chat.room, b.dataset.topicMode);
   else if (a === 'join-cancel') $('#chat-join').close();
