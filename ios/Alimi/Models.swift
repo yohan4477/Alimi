@@ -283,7 +283,7 @@ final class AlimiStore: ObservableObject {
         self.session = session
         // UI tests start from an empty device state and the bundled snapshot only (no network dependency).
         if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") { defaults.removeObject(forKey: "alimi.live.v1"); defaults.removeObject(forKey: "seoulbeauty.catalog-saves.v1") }
-        if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") { UserDefaults.standard.removeObject(forKey: Interests.key); UserDefaults.standard.removeObject(forKey: Seen.key) }
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") { UserDefaults.standard.removeObject(forKey: Interests.key); UserDefaults.standard.removeObject(forKey: Seen.key); UserDefaults.standard.removeObject(forKey: "alimi.chat.blocked") }
         saved = defaults.data(forKey: "alimi.live.v1").flatMap { try? JSONDecoder().decode(SavedState.self, from: $0) } ?? SavedState()
         if let products {
             self.products = products; source = .none
