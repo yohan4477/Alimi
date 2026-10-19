@@ -181,6 +181,12 @@ struct CatalogBrand: Codable, Identifiable, Hashable {
     let logoUrl: URL?
     var id: String { brand }
     var label: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
+    // Logos shipped in the app (same files as dist/brand-logos), so they show instantly and offline.
+    var bundledLogoName: String {
+        let slug = logoUrl?.deletingPathExtension().lastPathComponent
+            ?? brand.lowercased().replacingOccurrences(of: "&", with: "").split(whereSeparator: { !$0.isLetter && !$0.isNumber }).joined(separator: "-")
+        return "BrandLogo-" + slug
+    }
     var initials: String {
         let words = brand.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
         let s = words.count > 1 ? String(words[0].prefix(1)) + String(words[1].prefix(1)) : String((words.first ?? "?").prefix(2))

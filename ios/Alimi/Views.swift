@@ -223,6 +223,7 @@ struct BrandBadge: View {
             .frame(width: size, height: size)
             .overlay(Circle().stroke(Color(.separator), lineWidth: 0.5))
             .task(id: brand.logoUrl) {
+                if let bundled = UIImage(named: brand.bundledLogoName) { logoImage = bundled; return }
                 logoImage = nil
                 guard let url = brand.logoUrl else { return }
                 let image = await ImageCache.shared.load(url)
