@@ -336,9 +336,9 @@ extension SectionHead where Trailing == EmptyView {
     init(title: String, sub: String? = nil) { self.init(title: title, sub: sub) { EmptyView() } }
 }
 
-// MARK: Community home (추천 / 대화방 / 발견 / 브랜드)
+// MARK: Community home (추천 / 대화방 / 발견)
 
-enum HomeTab: String, CaseIterable { case rec, rooms, discover, brands }
+enum HomeTab: String, CaseIterable { case rec, rooms, discover }
 
 struct CommunityHome: View {
     @EnvironmentObject var store: AlimiStore
@@ -405,7 +405,7 @@ struct CommunityHome: View {
     private var tabs: some View {
         HStack(spacing: 0) {
             ForEach(HomeTab.allCases, id: \.self) { t in
-                Button { tab = t; if t == .brands { Task { await model.loadBrands(store: store) } } } label: {
+                Button { tab = t } label: {
                     UnderlineSectionTab(title: L("home.tab." + t.rawValue), selected: tab == t)
                 }.buttonStyle(.plain).accessibilityIdentifier("home-tab-" + t.rawValue)
                     .accessibilityAddTraits(tab == t ? .isSelected : [])
@@ -417,7 +417,6 @@ struct CommunityHome: View {
         case .rec: recommended
         case .rooms: allRooms
         case .discover: discover
-        case .brands: brands
         }
     }
     @ViewBuilder private var recommended: some View {
@@ -479,27 +478,6 @@ struct CommunityHome: View {
                 NavigationLink(value: entry.room) { Text(L("home.viewConversation")).font(.caption) }
             }.padding(.vertical, 8)
         }
-    }
-    @ViewBuilder private var brands: some View {
-        SectionHead(title: L("brands.title"))
-        if let list = model.brands {
-            if list.isEmpty { Text(L("home.noBrands")).font(.caption).foregroundStyle(.secondary) }
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
-                ForEach(list) { b in
-                    NavigationLink(value: b) {
-                        HStack(spacing: 10) {
-                            BrandBadge(brand: b, size: 40, showLabel: false)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(b.label).font(.subheadline.bold()).foregroundStyle(Color.sbInk).lineLimit(1)
-                                Text(L("count", ["n": b.families])).font(.caption2).foregroundStyle(.secondary)
-                            }
-                            Spacer(minLength: 0)
-                        }.padding(10).background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.sbBorder))
-                    }.buttonStyle(.plain).accessibilityIdentifier("home-brand-" + b.brand)
-                }
-            }
-        } else { LoadingCompanion(compact: true) }
     }
     private func roomLink(_ room: ChatRoom, note: String?, fresh: Bool = false) -> some View {
         NavigationLink(value: room) { RoomListCard(room: room, picture: model.pictures[room.id], note: note, fresh: fresh) }

@@ -104,11 +104,11 @@ const buyerInfo = p => {
 };
 export const postRow = p => `<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.' + p.kind))}</span><b>${esc(p.title)}</b><small>${esc(p.nickname)} · ${esc(ago(p.created_at))} · ${icon.comment} ${p.comments}</small></span>${p.photos?.[0] ? `<img src="${esc(photoUrl(p.photos[0]))}" alt="" loading="lazy">` : p.item?.image_url ? `<img src="${esc(p.item.image_url)}" alt="" loading="lazy">` : ''}</button>`;
 
-// Community home (journey reference): Seoul Beauty header, 추천 / 대화방 / 발견 / 브랜드 tabs.
+// Community home (journey reference): Seoul Beauty header, 추천 / 대화방 / 발견 tabs.
 // 추천: guide, trending rooms with a real product picture, recommended rooms. 발견: products and questions
 // from conversations. Every number shown is a real count from the fetched sample.
-const HOME_TABS = ['rec', 'rooms', 'discover', 'brands'];
-let homeVersion = 0, homeTab = 'rec', home = null, homeBrands = null, catalogPics = null;
+const HOME_TABS = ['rec', 'rooms', 'discover'];
+let homeVersion = 0, homeTab = 'rec', home = null, catalogPics = null;
 // Top catalog products per category (real images) to illustrate rooms; loaded once, never blocks the home.
 async function loadCatalogPictures(rooms) {
   if (catalogPics) return catalogPics;
@@ -161,9 +161,7 @@ function drawHome() {
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
     // Discovery reflects actual conversation mentions, including an honest empty state.
     box.innerHTML = `${talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
-  } else {
-    box.innerHTML = sectionHead(t('brands.title'), '') + (homeBrands === 'failed' ? `<p class="empty" role="status">${esc(t('home.brandsFailed'))}</p><button class="text-link" data-home-brands-retry>${esc(t('retry'))}</button>` : homeBrands ? homeBrands.length ? `<div class="home-brands">${homeBrands.map(b => `<button class="home-brand" data-brand="${esc(b.brand)}"><i style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}${b.logo_url ? `<img src="${esc(b.logo_url)}" alt="" loading="lazy">` : ''}</i><span><b>${esc(brandLabel(b))}</b>${b.families ? `<small>${esc(t('count', {n: b.families}))}</small>` : ''}</span></button>`).join('')}</div>` : `<p class="empty">${esc(t('home.noBrands'))}</p>` : loadingMarkup(t('loading')));
-    if (!homeBrands) fetchBrands().then(list => { homeBrands = list; }, () => { homeBrands = 'failed'; }).then(() => { if (homeTab === 'brands') drawHome(); });
+
   }
 }
 let homeJoined = [];
@@ -482,8 +480,7 @@ document.addEventListener('click', async e => {
   if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
-  else if (b.hasAttribute('data-home-brands-retry')) { homeBrands = null; drawHome(); }
-  else if (b.dataset.homeTab) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
+  else if (HOME_TABS.includes(b.dataset.homeTab)) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
   else if (a === 'room-more') { const m = $('#room-menu'); if (m) { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); } }
   else if (b.dataset.chatJump) { $('#chat-log [data-id="' + b.dataset.chatJump + '"]')?.scrollIntoView({block:'center', behavior:'smooth'}); }
   else if (a === 'copy') { try { await navigator.clipboard.writeText(chat.menuFor.body || chat.menuFor.item?.name || ''); $('#chat-menu').close(); } catch { toast(t('chat.err.other')); } }

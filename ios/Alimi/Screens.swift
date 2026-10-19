@@ -269,7 +269,7 @@ struct BrandView: View {
     }
     @ViewBuilder private var products: some View {
         LazyVGrid(columns: grid, spacing: 16) {
-            ForEach(showAll ? families : Array(families.prefix(3))) { f in
+            ForEach(showAll ? families : Array(families.prefix(10))) { f in
                 VStack(alignment: .leading, spacing: 6) {
                     Button { openFamily = f } label: {
                         RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 120).background(Color.white)
@@ -287,7 +287,7 @@ struct BrandView: View {
                 .onAppear { if showAll && f.id == families.last?.id { Task { await loadMore() } } }
             }
         }.padding(.horizontal, 20).padding(.top, 18)
-        if !showAll && families.count > 3 {
+        if !showAll && families.count > 10 {
             Button { showAll = true } label: {
                 HStack {
                     Image(systemName: "square.grid.2x2").font(.system(size: 18))
