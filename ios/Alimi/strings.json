@@ -1217,7 +1217,7 @@
     "en": "Want to look at this together?"
   },
   "share.productMessage": {
-    "ko": "{product}이야. 서울뷰티에서 본 제품인데 너도 같이 볼래?",
+    "ko": "서울뷰티에서 본 {product}, 너도 같이 볼래?",
     "en": "I found {product} on SeoulBeauty and thought you might want to see it."
   },
   "chat.inviteFriend": {
