@@ -505,11 +505,11 @@ document.addEventListener('click', async e => {
   else if (b.dataset.chatLike) {
     const id = +b.dataset.chatLike;
     if ($('#chat-menu')?.open) $('#chat-menu').close();
-    try { const n = await likeMessage(secret, id); const m = chat.messages.find(x => x.id === id); if (m) m.likes = n; renderLog(false); } catch {}
+    try { const n = await likeMessage(secret, id); const m = chat.messages.find(x => x.id === id); if (m) m.likes = n; renderLog(false); } catch { toast(t('chat.err.other')); }
   }
   else if (b.dataset.communityLike) {
     const [type, id] = b.dataset.communityLike.split(':');
-    try { const n = await likeCommunity(secret, type, +id); const x = type === 'post' ? view.post : view.comments.find(c => c.id === +id); if (x) x.likes = n; renderPost(); } catch {}
+    try { const n = await likeCommunity(secret, type, +id); const x = type === 'post' ? view.post : view.comments.find(c => c.id === +id); if (x) x.likes = n; renderPost(); } catch { toast(t('chat.err.other')); }
   }
 });
 
