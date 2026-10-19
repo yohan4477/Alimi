@@ -230,32 +230,13 @@
       <div><span class="sb-design-role-name">NEW · 캐릭터 디자인 판단</span><h4>가이드 한 명으로 시작하고, 의상 10종은 나중에</h4><p>인사 → 관심 분야 → 분야별 고민 → 실제 채팅방 발견까지만 안내. 80~110px 소형 표현, 스킵 가능, KO/EN 대사 분리. 실제 사람과의 대화가 시작되면 캐릭터는 물러난다.</p><small>검증: 같은 UI의 캐릭터 있음/없음 A/B · 첫 실제 발화·D7 우선. 프로필 꾸미기는 P1.</small></div>
     </div>
 
-    <section id="sb-loading-design-review" class="sb-design-loading" aria-label="캐릭터 로딩 UX 디자인 리뷰">
-      <div class="sb-design-loading-head">
-        <div><span class="sb-design-role-name">NEW · 대기 중에도 함께하는 캐릭터</span><h3>데이터를 기다리는 동안 의상이 바뀌어요</h3><p>10종을 번갈아 보여주되, 빠른 로딩은 방해하지 않고 실제 데이터가 도착하면 즉시 사라지는 방식.</p></div>
-        <span class="viz-badge">웹/iPhone 로딩 코드 반영 · 배포 검증 전</span>
-      </div>
-      <div class="sb-design-loading-grid">
-        <div class="sb-design-loader-demo">
-          <div class="sb-design-loader-stage" role="group" aria-label="캐릭터 로딩 동작 미리보기">
-            <div class="sb-design-loader-character" aria-hidden="true"></div>
-            <p data-design-locale="ko">같은 고민의 대화를 찾는 중...</p>
-            <p data-design-locale="en" hidden>Finding conversations like yours...</p>
-            <small>디자인 시연 · 실제 API 요청이나 로딩시간 측정 아님</small>
-          </div>
-          <div class="sb-design-loader-controls">
-            <button type="button" data-loader-pause aria-pressed="false">일시정지</button>
-            <button type="button" data-loader-next>다음 의상 보기 →</button>
-          </div>
-          <p class="text-small text-muted">자동 재생은 약 2.2초마다 다음 캐릭터. 실제 앱의 400ms 미만 짧은 로딩에는 등장하지 않는다.</p>
-        </div>
-        <div class="sb-design-loader-rules">
-          <div><span>0~0.4초</span><strong>텍스트·기본 로딩 표시</strong><small>캐릭터가 번쩍 나타났다 사라지는 현상 방지</small></div>
-          <div><span>0.4초 이후</span><strong>작은 2D 픽셀 캐릭터 등장</strong><small>한복 5벌 → 패션 의상 5벌 순환, 이름 표시 없음</small></div>
-          <div><span>로딩 계속</span><strong>2.2초마다 의상 변경</strong><small>10장을 따로 내려받지 않고 경량 1장 스프라이트 재사용</small></div>
-          <div><span>완료 · 오류</span><strong>즉시 본문 또는 재시도 안내</strong><small>가짜 진행률 금지, 모션 줄이기·앱 백그라운드 순환 중지</small></div>
-          <div class="sb-design-loader-kpis"><strong>디자인 KPI · 미측정</strong><small>실제 로딩 시간 p50/p95, 로딩 중 이탈·재시도, 캐릭터 노출 후 첫 대화 열람·참여</small></div>
-        </div>
+    <section id="sb-loading-design-review" class="sb-design-loading" aria-label="첫 화면 이미지 로딩 디자인 리뷰">
+      <div class="sb-design-loading-head"><div><span class="sb-design-role-name">2026.10.20 · 사용자 결정</span><h3>모든 로딩에 첫 화면 이미지 사용</h3><p>검색·상품·대화 로딩의 작은 픽셀 캐릭터를 제거하고 기존 Seoul Beauty 로고·인물 사진을 재사용한다.</p></div><span class="viz-badge">웹/iPhone 공통 구현 · 배포 검증 전</span></div>
+      <div class="sb-design-loader-stage" role="group" aria-label="로고와 인물 사진 로딩 미리보기">
+        <img src="/assets/seoul-beauty-logo.webp" width="128" height="38" alt="Seoul Beauty">
+        <img src="/assets/splash-photo.webp" width="96" height="134" alt="">
+        <p data-design-locale="ko">불러오는 중…</p><p data-design-locale="en" hidden>Loading…</p>
+        <small>디자인 시연 · 실제 API 대기시간 측정 아님. 400ms 이후 이미지 표시, 요청 완료·실패 시 즉시 종료. 의상 순환 없음.</small>
       </div>
     </section>
     <h3 class="sb-design-heading">추천 UI 방향 · 간단 시안</h3>
@@ -333,7 +314,7 @@
       <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 첫 방문</span><h4>관심사 입력 전에 이탈</h4><p>가치를 모르는 상태에서 2단계 입력을 강제하면 피로가 생길 수 있다.</p><div><b>변경</b> 스킨케어·메이크업 복수 선택 · 고민 다중 선택 · 건너뛰기·전체 방 탐색·자유 생성 제공</div><small>확인 KPI · 첫 화면→대화 열람 전환, 스킵 이후 첫 참여</small></article>
       <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 추천 신뢰</span><h4>방은 추천되지만 들어갈 이유가 없음</h4><p>추천 이유·최근 대화·읽을 만한 질문이 없으면 빈방처럼 보인다.</p><div><b>변경</b> 고민 일치 이유 + 실제 활성 신호 + 질문 미리보기</div><small>확인 KPI · 추천 노출→방 입장, 방 입장→첫 유의미 행동</small></article>
       <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 언어</span><h4>한영 혼용이 신뢰를 약화</h4><p>버튼·채팅방 제목·에러·빈 상태 문구가 서로 다른 언어로 남지 않게 한다.</p><div><b>변경</b> ko/en 공통 키, 전체 화면·오류·알림까지 양언어 점검</div><small>확인 KPI · 언어별 첫 참여율, 미번역 문자열 건수</small></article>
-      <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 로딩 경험</span><h4>느린 로딩에서 브랜드 경험 단절</h4><p>텍스트·스피너만 반복되면 기다림이 지루하고, 반대로 캐릭터를 강제로 오래 보여주면 본래 목적이 가려진다.</p><div><b>변경</b> 실제 요청 중 400ms 뒤 캐릭터 등장 → 2.2초 간격 10종 순환. 완료 즉시 종료, 실패 시 재시도. 모션 감소·스크린리더 대응.</div><small>확인 KPI · 로딩 p95, 로딩 이탈/오류, 첫 대화 열람·실제 참여</small></article>
+      <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 로딩 경험</span><h4>느린 로딩에서 브랜드 경험 단절</h4><p>텍스트·스피너만 반복되면 기다림이 지루하고, 반대로 캐릭터를 강제로 오래 보여주면 본래 목적이 가려진다.</p><div><b>변경</b> 실제 요청 중 400ms 뒤 기존 로고·인물 사진 표시. 픽셀 캐릭터·의상 순환 제거. 완료 즉시 종료, 실패 시 재시도. 모션 감소·스크린리더 대응.</div><small>확인 KPI · 로딩 p95, 로딩 이탈/오류, 첫 대화 열람·실제 참여</small></article>
       <article data-design-priority="P1"><span class="sb-design-tag">P1 · 채팅방</span><h4>첫 발화가 어려움</h4><p>익명 커뮤니티에서도 시작할 말이 없으면 읽고 떠나기 쉽다.</p><div><b>변경</b> 해당 고민 질문 목록과 ‘나도 궁금해요’/질문 작성 진입 제공</div><small>확인 KPI · 방 입장→첫 질문·댓글·채팅 비율</small></article>
       <article data-design-priority="P1"><span class="sb-design-tag">P1 · 상품 연결</span><h4>상품 확인 후 대화로 돌아가기 어려움</h4><p>채팅에서 상품을 열고 이탈하면 커뮤니티의 강점이 사라진다.</p><div><b>변경</b> 상품 상세의 관련 대화와 원래 채팅 복귀 링크 개선</div><small>확인 KPI · 대화→상품→대화 복귀율</small></article>
       <article data-design-priority="P1"><span class="sb-design-tag">P1 · 신뢰</span><h4>피부 관심사를 공개 정보로 오해</h4><p>아바타·피부 타입 선택이 성별·인종·효능 판단으로 읽히지 않게 한다.</p><div><b>변경</b> 추천용 비공개 기본값, 언제든 수정·초기화, 효능 보장 표현 금지</div><small>확인 KPI · 정보 입력 스킵률, 프라이버시 관련 문의·신고</small></article>
@@ -378,7 +359,7 @@
   </div>
   <div class="sb-dev-summary" aria-label="개발 상태 요약">
     <div><span>온보딩·방 추천</span><strong>코드 반영</strong><small>관심사·고민 기반 실제 방 추천</small></div>
-    <div><span>로딩 캐릭터 10종</span><strong>코드 반영</strong><small>실기기 검증 별도</small></div>
+    <div><span>첫 화면 이미지 로딩</span><strong>코드 반영</strong><small>실기기 검증 별도</small></div>
     <div><span>제휴 승인 순수익</span><strong>미측정</strong><small>주문·정산 미연결</small></div>
     <div><span>웹 운영 배포</span><strong>성공 확인</strong><small>5efa85e Vercel status success</small></div>
   </div>
@@ -386,7 +367,7 @@
   <div class="sb-dev-flow">
     <div><b>01 전략</b><span>커뮤니티 유용성<br>승인 순수수료</span></div>
     <div><b>02 기획</b><span>스킨·메이크업 복수 선택<br>추천 + 자유 방 생성</span></div>
-    <div><b>03 디자인</b><span>기존 3탭 유지<br>로딩·온보딩 캐릭터</span></div>
+    <div><b>03 디자인</b><span>기존 3탭 유지<br>로고·인물 사진 로딩</span></div>
     <div><b>04 개발·QA</b><span>실제 데이터·테스트<br>릴리즈 게이트</span></div>
   </div>
   <div class="sb-dev-heading-row"><div><h3 class="sb-dev-heading">개발 실행 백로그</h3><p>우선순위는 개발 검토 제안이며 GitHub Issue·PR의 실시간 상태가 아닙니다.</p></div><small id="sb-dev-result-count" role="status" aria-live="polite">전체 10개 · 수동 검토</small></div>
@@ -432,13 +413,13 @@
 </article>
 <article class="sb-dev-ticket" data-dev-item="D07" data-dev-priority="P1" data-dev-platform="web ios">
 <div class="sb-dev-ticket-meta"><span>P1 · D07</span><span>WEB · IOS</span></div>
-<h4>로딩 캐릭터 10종 실기기 QA</h4><p>400ms 이후만 노출하고 2.2초마다 의상을 바꾸되 요청 완료 시 즉시 종료한다.</p><p class="sb-dev-ticket-status">현재 · 웹/iOS 코드 반영 / 운영 동작 미확인</p>
-<details><summary>개발 수용 기준</summary><p>10종 순환·초기 의상 다양화·Reduce Motion·VoiceOver·실패/재시도·이미지 캐시·성능</p></details>
+<h4>첫 화면 이미지 로딩 실기기 QA</h4><p>검색·상품·대화의 작은 캐릭터 제거. 400ms 이후 기존 로고·인물 사진을 표시하고 요청 완료 시 즉시 종료한다.</p><p class="sb-dev-ticket-status">현재 · 웹/iOS 코드 반영 / 운영 동작 미확인</p>
+<details><summary>개발 수용 기준</summary><p>이미지 동일성·VoiceOver·실패/재시도·이미지 캐시·성능</p></details>
 <a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/DESIGN_REVIEW.md" target="_blank" rel="noopener noreferrer">디자인 검토 ↗</a>
 </article>
 <article class="sb-dev-ticket" data-dev-item="D08" data-dev-priority="P1" data-dev-platform="web ios">
 <div class="sb-dev-ticket-meta"><span>P1 · D08</span><span>WEB · IOS</span></div>
-<h4>선택형 아바타 · 사용자 공개 범위</h4><p>가이드·로딩 캐릭터와 사용자 아바타는 별도. 현재 사용자 아바타는 숨기며 닉네임과 본문을 유지한다. 의상 선택은 보류한다.</p><p class="sb-dev-ticket-status">현재 · 사용자 결정으로 아바타 임시 숨김 / 재활성화는 후속 검토</p>
+<h4>선택형 아바타 · 사용자 공개 범위</h4><p>사용자 아바타는 숨기며 닉네임과 본문을 유지한다. 로딩의 작은 캐릭터도 제거하고 첫 화면의 로고·인물 사진으로 교체한다.</p><p class="sb-dev-ticket-status">현재 · 사용자 결정으로 아바타 임시 숨김 / 재활성화는 후속 검토</p>
 <details><summary>개발 수용 기준</summary><p>권리·파일 크기·변경/초기화·익명성 검증; 성별·피부/인종·나이를 아바타로 판단하지 않기</p></details>
 <a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/pull/105" target="_blank" rel="noopener noreferrer">아바타 PR #105 ↗</a>
 </article>
