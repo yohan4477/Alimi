@@ -9,6 +9,7 @@
 | [제품 비전](docs/PRODUCT_VISION.md) | 무엇을 위해 만드는가? |
 | [전략](docs/STRATEGY.md) | 누구의 어떤 문제를 풀고 어디에 집중하는가? |
 | [서비스 기획](docs/SERVICE_PLAN.md) | 어떤 화면과 행동으로 가치를 제공하는가? |
+| [픽셀 한복 가이드 온보딩](docs/PIXEL_GUIDE_ONBOARDING.md) | 첫 방문 3단계 캐릭터 가이드·한영·KPI·의상 10종 후속 원칙 |
 | [실행 로드맵](docs/ROADMAP.md) | 무엇을 먼저 검증하고 추진하는가? |
 | [기획박스 #26](https://github.com/yohan4477/Alimi/issues/26) | 기존 아이디어·상세 Issue는 어디에 연결되는가? |
 | [관리 대시보드](docs/PRODUCT_STATUS.md) | 현재 우선순위·구현/검증/배포·커뮤니티와 구매 성과는? |
