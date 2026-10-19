@@ -21,6 +21,10 @@ import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, 
 import {$, esc} from './util.js';
 let storage; try { storage = localStorage; } catch {}
 const secret = chatSecret(storage);
+const likedKey = 'seoulbeauty-chat-hearts-' + secret;
+let liked; try { liked = new Set(JSON.parse(storage.getItem(likedKey)) || []); } catch { liked = new Set(); }
+const liking = new Set();
+let unreadMessages = 0;
 const chat = {rooms: [], room: null, messages: [], nickname: '', myTag: '', item: null, replyTo: null, menuFor: null, poll: null, sending: false};
 const view = {mode: 'posts', post: null, comments: [], commentItem: null, draft: null};
 let onClose = () => {}, toast = () => {}, pickFor = 'chat';
@@ -146,7 +150,7 @@ function drawHome() {
     const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (hot.length ? hot : topics).slice(0, 4);
     const mine = home.revisit?.activity?.length ? welcomeBanner() + bigHead(t('rooms.mine'), '', 'data-screen="rooms"') + home.revisit.activity.slice(0, 2).map(a => joinedCard(a, images.get(a.room.id))).join('') : '';
     const trend = hot.length ? bigHead(t('home.trending'), t('home.trendingSub')) + `<div class="trend-row">${hot.map(trendCard).join('')}</div>` : '';
-    box.innerHTML = `${mine}${trend}${bigHead(t('home.recRooms'), t('home.recRoomsSub'))}${picks.map(r => pickCard(r, {image: images.get(r.id), intro: false, highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
+    box.innerHTML = `${mine}${trend}${sectionHead(t('home.recRooms'), t('home.recRoomsSub'), `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
   } else if (homeTab === 'rooms') {
     box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'))}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
   } else if (homeTab === 'discover') {
@@ -189,7 +193,7 @@ function openTopic(room, mode = 'live') {
   stopPolling(); chat.room = room; view.mode = mode; view.post = null;
   const member = homeJoined.some(j => j.room_id === room.id);
   const canPost = hasAgreed(storage) && (member || joinedRooms.has(room.id)), other = mode === 'posts' ? 'live' : 'posts';
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small>${esc(memberLine(room))}</small></div>${canPost ? '' : `<button class="room-join" id="room-join" data-chat-action="join-room">+ ${esc(t('room.join'))}</button>`}<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div>${canPost ? '' : `<button class="room-join" id="room-join" data-chat-action="join-room">+ ${esc(t('room.join'))}</button>`}<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
@@ -278,9 +282,9 @@ async function submitPost() {
 
 // Live chat inside a topic.
 async function startLive(room) {
-  chat.messages = []; chat.item = null; chat.replyTo = null;
+  chat.messages = []; chat.item = null; chat.replyTo = null; unreadMessages = 0;
   const canPost = hasAgreed(storage) && (joinedRooms.has(room.id) || homeJoined.some(j => j.room_id === room.id));
-  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div>${canPost ? `<form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>` : `<div class="join-bar"><p class="chat-rules">${esc(t('chat.rules'))}</p><button class="primary" id="join-live" data-chat-action="join-live">${esc(t('room.joinTalk'))}</button></div>`}`);
+  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button>${canPost ? `<form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>` : `<div class="join-bar"><p class="chat-rules">${esc(t('chat.rules'))}</p><button class="primary" id="join-live" data-chat-action="join-live">${esc(t('room.joinTalk'))}</button></div>`}`);
   if (canPost) {
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
@@ -309,17 +313,28 @@ function renderLog(scroll) {
   const list = visible(chat.messages, readBlocked(storage));
   if (chat.room && chat.messages.length) markSeen(chat.room.id, chat.messages.at(-1).created_at);
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
+  let previousDay = '';
   log.innerHTML = list.length ? list.map(m => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
-    const replies = list.filter(x => x.reply_to === m.id).length;
-    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}"><div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<time>${esc(timeAgo(m.created_at))}</time><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}${m.likes || replies ? `<div class="msg-pills"><button class="pill${m.likes ? ' on' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♥ ${m.likes || 0}</button>${replies ? `<button class="pill" data-chat-reply="${m.id}" aria-label="${esc(t('chat.reply'))}">💬 ${replies}</button>` : ''}</div>` : ''}</div></article>`;
+    const day = new Intl.DateTimeFormat(locale(), {year:'numeric', month:'long', day:'numeric'}).format(new Date(m.created_at));
+    const divider = day !== previousDay ? `<div class="chat-date"><span>${esc(day)}</span></div>` : '';
+    previousDay = day;
+    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}"><div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<time class="msg-time">${esc(time(m.created_at))}</time></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
-  if (scroll || near) log.scrollTop = log.scrollHeight;
+  log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
+  let press;
+  log.onpointerdown = e => { if (e.target.closest('button')) return; const row = e.target.closest('.chat-msg'); if (row) press = setTimeout(() => openMenu(+row.dataset.id), 550); };
+  log.onpointerup = log.onpointercancel = log.onpointermove = () => clearTimeout(press);
+
+  if (scroll || near) { log.scrollTop = log.scrollHeight; unreadMessages = 0; }
+  const latest = $('#chat-latest');
+  if (latest) { latest.hidden = unreadMessages === 0; latest.textContent = t('chat.newMessages', {n: unreadMessages}); }
+  log.onscroll = () => { if (log.scrollHeight - log.scrollTop - log.clientHeight < 120) { unreadMessages = 0; if (latest) latest.hidden = true; } };
 }
 function renderContext() {
   const box = $('#chat-context'); if (!box) return;
   const reply = chat.replyTo ? chat.messages.find(m => m.id === chat.replyTo) : null;
-  box.innerHTML = (reply ? `<div class="chat-chip">${esc(t('chat.replyingTo', {name: reply.nickname}))}<button type="button" data-chat-action="reply-cancel" aria-label="${esc(t('close'))}">×</button></div>` : '') +
+  box.innerHTML = (reply ? `<div class="chat-chip"><span>${esc(t('chat.replyingTo', {name: reply.nickname}))}<small>${esc(reply.body || reply.item?.name || '')}</small></span><button type="button" data-chat-action="reply-cancel" aria-label="${esc(t('close'))}">×</button></div>` : '') +
     (chat.item ? `<div class="chat-chip">${esc(brandLabel(chat.item))} · ${esc(chat.item.name)}<button type="button" data-chat-action="item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : '');
 }
 async function send() {
@@ -341,7 +356,7 @@ function startPolling() {
     const last = chat.messages.at(-1)?.id ?? 0;
     try {
       const fresh = (await fetchMessages(chat.room.id, last)).filter(m => !chat.messages.some(x => x.id === m.id));
-      if (fresh.length) { chat.messages.push(...fresh); renderLog(false); }
+      if (fresh.length) { unreadMessages += fresh.length; chat.messages.push(...fresh); renderLog(false); }
     } catch {}
   }, 4000);
 }
@@ -376,7 +391,7 @@ let menuTarget = null;
 function openMenu(id) {
   chat.menuFor = chat.messages.find(m => m.id === id); if (!chat.menuFor) return;
   const mine = chat.menuFor.author_tag === chat.myTag; menuTarget = {type: 'chat', id};
-  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-like="${id}">${esc(t('chat.like'))}</button>${mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
+  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button>${mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
   $('#chat-menu').showModal();
 }
 function openCommunityMenu(spec) {
@@ -455,13 +470,16 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
-  if (a === 'rooms') renderHome();
+  if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
+  else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (b.hasAttribute('data-home-brands-retry')) { homeBrands = null; drawHome(); }
   else if (b.dataset.homeTab) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
   else if (a === 'join-room') { const r = chat.room; if (hasAgreed(storage)) { joinedRooms.add(r.id); openTopic(r, 'live'); } else askJoin(r, () => { joinedRooms.add(r.id); openTopic(r, 'live'); }); }
   else if (a === 'join-live') { agree(storage); joinedRooms.add(chat.room.id); openTopic(chat.room, 'live'); }
   else if (a === 'room-more') { const m = $('#room-menu'); if (m) { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); } }
+  else if (b.dataset.chatJump) { $('#chat-log [data-id="' + b.dataset.chatJump + '"]')?.scrollIntoView({block:'center', behavior:'smooth'}); }
+  else if (a === 'copy') { try { await navigator.clipboard.writeText(chat.menuFor.body || chat.menuFor.item?.name || ''); $('#chat-menu').close(); } catch { toast(t('chat.err.other')); } }
   else if (b.dataset.chatReply) { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
   else if (a === 'share-room' && chat.room) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
   else if (a === 'find-topic') openStart();
@@ -516,7 +534,15 @@ document.addEventListener('click', async e => {
   else if (b.dataset.chatLike) {
     const id = +b.dataset.chatLike;
     if ($('#chat-menu')?.open) $('#chat-menu').close();
-    try { const n = await likeMessage(secret, id); const m = chat.messages.find(x => x.id === id); if (m) m.likes = n; renderLog(false); } catch { toast(t('chat.err.other')); }
+    if (liking.has(id)) return;
+    liking.add(id); b.disabled = true;
+    try {
+      const n = await likeMessage(secret, id);
+      const m = chat.messages.find(x => x.id === id); if (m) m.likes = n;
+      if (liked.has(id)) liked.delete(id); else liked.add(id);
+      try { storage.setItem(likedKey, JSON.stringify([...liked])); } catch {}
+    } catch { toast(t('chat.err.other')); }
+    finally { liking.delete(id); renderLog(false); }
   }
   else if (b.dataset.communityLike) {
     const [type, id] = b.dataset.communityLike.split(':');
