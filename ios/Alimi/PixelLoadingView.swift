@@ -23,7 +23,9 @@ import UIKit
 /// The task is automatically cancelled when the loading view disappears.
 struct PixelLoadingView: View {
     var compact = false
+    var message: String? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @State private var visible = false
     @State private var characterIndex = 0
 
@@ -39,11 +41,11 @@ struct PixelLoadingView: View {
                 ProgressView().accessibilityHidden(true)
                     .frame(width: compact ? 32 : 48, height: compact ? 48 : 72)
             }
-            Text(L("loading")).font(.caption).foregroundStyle(.secondary)
+            Text(message ?? L("loading")).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(L("loading")))
+        .accessibilityLabel(Text(message ?? L("loading")))
         .task {
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled else { return }
@@ -51,9 +53,9 @@ struct PixelLoadingView: View {
             visible = true
             guard !reduceMotion else { return }
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(1700))
+                try? await Task.sleep(for: .milliseconds(2200))
                 guard !Task.isCancelled else { return }
-                characterIndex = LoadingPixelSprites.next()
+                if scenePhase == .active { characterIndex = LoadingPixelSprites.next() }
             }
         }
     }
