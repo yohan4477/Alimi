@@ -268,3 +268,26 @@
 #sb-dev .sb-dev-footer a{font-size:.74rem;font-weight:700;color:var(--dev-blue)}
 @media(max-width:710px){#sb-dev .sb-dev-hero{grid-template-columns:1fr}#sb-dev .sb-dev-summary,#sb-dev .sb-dev-flow{grid-template-columns:repeat(2,minmax(0,1fr))}#sb-dev .sb-dev-board{grid-template-columns:1fr}#sb-dev .sb-dev-heading-row{flex-direction:column;align-items:flex-start}}
 @media(max-width:400px){#sb-dev .sb-dev-hero{padding:17px}#sb-dev .sb-dev-summary>div{padding:12px 9px}#sb-dev .sb-dev-flow>div{padding:10px 9px}#sb-dev .sb-dev-gates>div{grid-template-columns:1fr;gap:5px}}
+
+/* Commerce KPI: matches the compact 2x2 cards and horizontal funnel review UI. */
+#sb-dashboard .sb-commerce{border:1px solid var(--border);border-radius:18px;padding:20px;margin:22px 0;background:var(--background)}
+#sb-dashboard .sb-commerce-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+#sb-dashboard .sb-commerce-heading h3{font-size:1.06rem;font-weight:700;margin:0}
+#sb-dashboard .sb-commerce-badge{font-size:.75rem;border-radius:99px;background:var(--accent);padding:4px 10px;color:var(--muted-foreground)}
+#sb-dashboard .sb-commerce-caption,#sb-dashboard .sb-commerce-note{color:var(--muted-foreground);font-size:.76rem;line-height:1.55;margin:10px 0 14px}
+#sb-dashboard .sb-commerce-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#sb-dashboard .sb-commerce-card{border-radius:12px;background:var(--card);padding:15px 14px;min-width:0;display:flex;flex-direction:column;gap:5px}
+#sb-dashboard .sb-commerce-card>span{font-size:.76rem;color:var(--muted-foreground)}
+#sb-dashboard .sb-commerce-card strong{font-size:1.4rem;font-weight:700;line-height:1.3;letter-spacing:-.035em}
+#sb-dashboard .sb-commerce-card small{font-size:.68rem;color:var(--muted-foreground);line-height:1.5}
+#sb-dashboard .sb-commerce-divider{height:1px;background:var(--border);margin:20px 0 14px}
+#sb-dashboard .sb-commerce h4{font-size:.93rem;margin:0 0 12px}
+#sb-dashboard .sb-commerce-funnel{display:grid;gap:13px}
+#sb-dashboard .sb-commerce-stage>div:first-child{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:.83rem;margin-bottom:5px}
+#sb-dashboard .sb-commerce-stage strong{font-size:.79rem;font-weight:600}
+#sb-dashboard .sb-commerce-track{height:12px;border-radius:99px;background:var(--accent);overflow:hidden}
+#sb-dashboard .sb-commerce-fill{height:100%;border-radius:99px;background:#687dce}
+#sb-dashboard .sb-commerce-empty{height:18px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--border);background:transparent}
+#sb-dashboard .sb-commerce-empty span{font-size:.59rem;color:var(--muted-foreground);line-height:1}
+#sb-dashboard .sb-commerce-note{margin:15px 0 0}
+@media(max-width:480px){#sb-dashboard .sb-commerce{padding:15px}#sb-dashboard .sb-commerce-card{padding:12px 10px}#sb-dashboard .sb-commerce-card strong{font-size:1.15rem}}
