@@ -513,6 +513,9 @@ struct Chip: View {
 }
 
 // Long-press a bubble for reply / like / report / block, like the reference chat app.
+// Temporarily disabled for the anonymous SeoulBeauty community.
+private let showUserAvatars = false
+
 // Same palette and hash as the web chat avatars.
 func avatarColor(_ tag: String) -> UInt32 {
     let palette: [UInt32] = [0xF4A3A8, 0x9CC3F5, 0xF7C873, 0x9FD8B8, 0xC8B5F2, 0xF5B38A]
@@ -533,7 +536,7 @@ struct MessageRow: View {
     var savePost: (() -> Void)? = nil
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            if mine { Spacer(minLength: 48) } else { ChatAvatar(tag: message.authorTag) }
+            if mine { Spacer(minLength: 48) } else if showUserAvatars { ChatAvatar(tag: message.authorTag) }
             VStack(alignment: mine ? .trailing : .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     if !mine { Text(message.nickname).font(.system(size: 16, weight: .semibold)).foregroundStyle(Color(rgb: 0x5B6475)) }
@@ -608,7 +611,7 @@ struct ChatProductCard: View {
         Button { if let f = item.family { open(f) } } label: {
             HStack(spacing: 16) {
                 RemoteImage(url: item.imageUrl, label: item.brandLabel).frame(width: 96, height: 96)
-                    .background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 12))
+                    .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
                 VStack(alignment: .leading, spacing: 6) {
                     Text(item.brandLabel).font(.system(size: 17, weight: .bold)).foregroundStyle(Color.sbNavy)
                     Text(item.name).font(.system(size: 15)).foregroundStyle(Color.sbNavy).lineLimit(2).multilineTextAlignment(.leading)
@@ -617,7 +620,7 @@ struct ChatProductCard: View {
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.system(size: 15)).foregroundStyle(Color.sbGray)
             }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 18)).overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(rgb: 0xE3E7EE)))
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
         }.buttonStyle(.plain).accessibilityLabel(L("chat.sharedPrice", ["v": usd(Double(item.priceMinor) / 100)]) + " " + item.name)
     }
 }

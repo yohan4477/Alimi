@@ -1,3 +1,5 @@
+// Temporarily disabled for the anonymous SeoulBeauty community.
+const SHOW_USER_AVATARS = false;
 import {loadingMarkup} from './loading-companion.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
@@ -298,7 +300,7 @@ function renderLog(scroll) {
   log.innerHTML = list.length ? list.map(m => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
     const replies = list.filter(x => x.reply_to === m.id).length;
-    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine ? '' : `<img class="msg-avatar" src="avatars/avatar-${avatarIndex(m.author_tag)}.webp" alt="" width="52" height="52">`}<div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<time>${esc(timeAgo(m.created_at))}</time><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}${m.likes || replies ? `<div class="msg-pills"><button class="pill${m.likes ? ' on' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♥ ${m.likes || 0}</button>${replies ? `<button class="pill" data-chat-reply="${m.id}" aria-label="${esc(t('chat.reply'))}">💬 ${replies}</button>` : ''}</div>` : ''}</div></article>`;
+    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine || !SHOW_USER_AVATARS ? '' : `<img class="msg-avatar" src="avatars/avatar-${avatarIndex(m.author_tag)}.webp" alt="" width="52" height="52">`}<div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<time>${esc(timeAgo(m.created_at))}</time><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}${m.likes || replies ? `<div class="msg-pills"><button class="pill${m.likes ? ' on' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♥ ${m.likes || 0}</button>${replies ? `<button class="pill" data-chat-reply="${m.id}" aria-label="${esc(t('chat.reply'))}">💬 ${replies}</button>` : ''}</div>` : ''}</div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   if (scroll || near) log.scrollTop = log.scrollHeight;
 }

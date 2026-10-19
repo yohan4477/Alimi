@@ -81,14 +81,14 @@ struct SavedView: View {
         ForEach(recent) { f in
             Button { openFamily = f } label: {
                 HStack(spacing: 12) {
-                    RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(width: 80, height: 80).background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
+                    RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(width: 80, height: 80).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
                     VStack(alignment: .leading, spacing: 6) {
                         Text(f.brandLabel + " " + f.baseName).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
                         if let c = f.category { Text(L10n.category(c)).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
                         Text(f.priceText).font(.system(size: 20, weight: .heavy)).foregroundStyle(Color(rgb: 0xF0335A))
                     }
                     Spacer(minLength: 0)
-                }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(rgb: 0xE6EAF1)))
+                }.padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20))
             }.buttonStyle(.plain)
         }
     }
@@ -132,7 +132,7 @@ struct SavedRow: View {
             NavigationLink { ProductDetail(product: product) } label: {
                 HStack(spacing: 12) {
                     ProductArt(product: product) { photoLoaded = $0 }.frame(width: 80, height: 80)
-                        .background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
+                        .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 14))
                     VStack(alignment: .leading, spacing: 6) {
                         Text(product.brandLabel + " " + product.name).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
                         Text([product.size, L10n.category(product.category)].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 15)).foregroundStyle(Color.sbGray).lineLimit(2)
@@ -147,7 +147,7 @@ struct SavedRow: View {
                 Image(systemName: "bookmark.fill").font(.system(size: 24)).foregroundStyle(Color.sbBlue).frame(width: 44, height: 44)
             }.buttonStyle(.plain).accessibilityIdentifier("favorite-\(product.id)").accessibilityLabel(L("favorite.saved"))
         }
-        .padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20)).overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(rgb: 0xE6EAF1)))
+        .padding(14).background(Color.white, in: RoundedRectangle(cornerRadius: 20))
     }
 }
 struct SavedCard: View {
@@ -286,7 +286,7 @@ struct BrandView: View {
             ForEach(showAll ? families : Array(families.prefix(3))) { f in
                 VStack(alignment: .leading, spacing: 6) {
                     Button { openFamily = f } label: {
-                        RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 120).background(Color(rgb: 0xF7E9EA))
+                        RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 120).background(Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                     }.buttonStyle(.plain)
                     Text(f.baseName).font(.system(size: 14)).foregroundStyle(Color.sbNavy).lineLimit(2).frame(minHeight: 36, alignment: .top)

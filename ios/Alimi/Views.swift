@@ -269,7 +269,7 @@ struct BrandBadge: View {
                 }
             }
             .frame(width: size, height: size)
-            .overlay(Circle().stroke(Color(.separator), lineWidth: 0.5))
+
             .task(id: brand.logoUrl) {
                 if let bundled = UIImage(named: brand.bundledLogoName) { logoImage = bundled; return }
                 logoImage = nil
@@ -462,7 +462,7 @@ struct FamilySheet: View {
     }
     private var hero: some View {
         ZStack(alignment: .top) {
-            Color(rgb: 0xF7E9EA)
+            Color.white
             TabView(selection: $selected) {
                 ForEach(Array(photos.enumerated()), id: \.offset) { i, url in
                     RemoteImage(url: url, label: family.brandLabel).padding(28).tag(i)
@@ -490,7 +490,8 @@ struct FamilySheet: View {
                 ForEach(Array(photos.enumerated()), id: \.offset) { i, url in
                     Button { withAnimation { selected = i } } label: {
                         RemoteThumb(url: url).frame(width: 68, height: 68).clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(i == selected ? Color.sbBlue : Color(rgb: 0xE6EAF1), lineWidth: i == selected ? 2 : 1))
+                            .opacity(i == selected ? 1 : 0.55)
+                            .accessibilityAddTraits(i == selected ? .isSelected : [])
                     }.buttonStyle(.plain)
                 }
             }.padding(.horizontal, 20)
@@ -529,7 +530,7 @@ struct FamilySheet: View {
                 }.frame(maxWidth: .infinity).padding(.vertical, 16)
             }
         }
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 18)).overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(rgb: 0xE6EAF1)))
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
         .accessibilityElement(children: .combine).accessibilityIdentifier("product-facts")
     }
     @ViewBuilder private var cta: some View {

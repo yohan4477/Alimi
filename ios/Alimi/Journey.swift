@@ -450,7 +450,6 @@ struct CommunityHome: View {
                         VStack(alignment: .leading, spacing: 2) {
                             RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 100)
                                 .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.sbBorder))
                             Text(f.brandLabel).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                             Text(f.baseName).font(.caption).foregroundStyle(Color.sbInk).lineLimit(2)
                             Text(f.priceText).font(.caption.bold()).foregroundStyle(Color.sbInk)

@@ -56,6 +56,7 @@ try {
   assert.equal(await page.locator('#chat-log').isVisible(),true);
   assert.equal(await page.locator('#chat-log .chat-msg').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+  await page.locator('.room-back').click();
   await page.locator('#tabbar [data-screen="saved"]').click();
   await page.locator('[data-activity-tab="rooms"]').click();
   await page.locator('#activity-conversations h2').waitFor();
