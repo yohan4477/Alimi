@@ -122,3 +122,24 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
 .profile-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:#edf2ff;border:0;border-radius:14px;padding:14px 16px;margin:4px 0 14px;color:#1f3a73}.profile-card>span:first-child{flex:1;min-width:0}.profile-card b{display:block;font-size:15px}.profile-card small{display:block;font-size:12px;color:#4b5f86;line-height:1.5;margin-top:3px}.profile-card>span:last-child{font-size:22px;color:#6b7ea6}.profile-dialog{max-height:88vh;overflow:auto}.profile-lead,.profile-note{font-size:12px;color:#6b7178;line-height:1.55}.profile-check{display:flex;gap:10px;align-items:flex-start;margin:14px 0 6px;font-size:14px}.profile-check input{margin-top:3px;width:18px;height:18px;flex:none}.profile-check b{display:block;font-weight:650}.profile-check small{display:block;font-size:12px;color:#6b7178;line-height:1.5;margin-top:2px}.profile-check.off{opacity:.6}.profile-status{color:var(--red);font-size:13px;min-height:1em}.profile-save{width:100%;height:46px;border:0;border-radius:10px;background:var(--blue);color:#fff;font-size:15px;font-weight:700}.profile-save:disabled{background:#e2e7ef;color:#8490a2}.profile-delete{width:100%;margin-top:8px;height:42px;border:0;background:none;color:#b3261e;font-size:14px}
 .profile-dialog .chat-chips{flex-wrap:wrap;overflow:visible;white-space:normal;gap:6px}.profile-dialog .chat-chips button{flex:none}
 .chat-start{max-height:85vh;overflow:auto}.chat-start .room-row{width:100%}
+
+/* Loading-only companion: existing content remains interactive; no artificial wait is added.
+   Atlas is 5 columns x 2 rows of 32x48 pixels, scaled x2 for pixel-perfect display. */
+.sb-loading-status{display:flex;align-items:center;justify-content:center;gap:10px;min-height:94px;padding:4px 16px;color:var(--muted,#6b7280);font-size:13px;text-align:left}
+.sb-loading-label{max-width:220px;line-height:1.5;overflow-wrap:anywhere}
+.sb-loading-sprite{display:block;flex:none;width:64px;height:96px;background-image:url('/assets/loading-characters-sprite.png');background-size:320px 192px;background-repeat:no-repeat;image-rendering:pixelated;opacity:0;animation:sb-sprite-appear .01s linear .4s forwards,sb-sprite-change 22s steps(1,end) .4s infinite}
+@keyframes sb-sprite-appear{to{opacity:1}}
+@keyframes sb-sprite-change{
+  0%,9.999%{background-position:0 0}
+  10%,19.999%{background-position:-64px 0}
+  20%,29.999%{background-position:-128px 0}
+  30%,39.999%{background-position:-192px 0}
+  40%,49.999%{background-position:-256px 0}
+  50%,59.999%{background-position:0 -96px}
+  60%,69.999%{background-position:-64px -96px}
+  70%,79.999%{background-position:-128px -96px}
+  80%,89.999%{background-position:-192px -96px}
+  90%,100%{background-position:-256px -96px}
+}
+@media(prefers-reduced-motion:reduce){.sb-loading-sprite{animation:none;opacity:1;background-position:0 0}}
+@media(max-width:360px){.sb-loading-status{gap:6px;padding:4px 8px}}
