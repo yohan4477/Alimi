@@ -66,6 +66,13 @@ try {
     await page.waitForSelector('#tabbar [data-screen="chat"].active');
     await page.waitForSelector('#chat [data-chat-room="acne"]');
   });
+  await step('start a conversation opens a topic sheet, then the write form for that topic', async () => {
+    await page.click('[data-chat-action="find-topic"]');
+    await page.click('#chat-start [data-chat-start="acne"]');
+    await page.waitForSelector('#post-write[open] #write-title');
+    assert.match(await page.locator('#post-write h2').innerText(), /Acne/);
+    await page.click('#post-write .close-dialog');
+  });
   await step('search finds catalog items', async () => {
     await page.click('#tabbar [data-screen="search"]');
     await page.fill('#search', 'snail');
