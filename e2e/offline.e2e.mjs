@@ -110,7 +110,8 @@ try {
   });
   await step('community: topic posts, post detail with comment card carrying clickref', async () => {
     await page.click('#tabbar [data-screen="chat"]');
-    await page.click('#chat .room-row[data-chat-room="acne"]');
+    await page.click('#chat [data-home-tab="rooms"][role="tab"]');
+    await page.click('#chat .room-list-card[data-chat-room="acne"]');
     await page.waitForSelector('#post-list .post-row');
     await page.click('#post-list [data-post="7"]');
     await page.waitForSelector('.comment .chat-item');

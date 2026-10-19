@@ -1627,5 +1627,13 @@
   "home.noBrands": {
     "ko": "아직 보여줄 브랜드가 없어요.",
     "en": "No brands to show yet."
+  },
+  "home.popular": {
+    "ko": "많이 찾는 제품",
+    "en": "Popular products"
+  },
+  "home.popularSub": {
+    "ko": "카탈로그에서 지금 많이 찾는 제품이에요. 대화에서 추천받은 제품과는 달라요.",
+    "en": "Popular in the catalog right now — not the same as products recommended in conversations."
   }
 }

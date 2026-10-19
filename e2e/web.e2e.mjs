@@ -98,7 +98,8 @@ try {
     await page.click('#tabbar [data-screen="chat"]');
     await page.route('**/rest/v1/community_posts*', r => r.fulfill({json: []}));
     assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
-    await page.click('.room-row[data-chat-room="acne"]');
+    await page.click('[data-home-tab="rooms"][role="tab"]');
+    await page.click('.room-list-card[data-chat-room="acne"]');
     await page.waitForSelector('#chat-join[open] .chat-rules');
     await page.click('[data-chat-action="join-ok"]');
     await page.waitForSelector('#post-list >> text=아직 글이 없어요');
@@ -134,7 +135,8 @@ try {
     await page.route('**/rest/v1/community_comments*', r => r.fulfill({json: []}));
     await page.route('**/rest/v1/rpc/add_comment', r => { commented = r.request().postDataJSON(); r.fulfill({json: {id: 9, post_id: 41, author_tag: 'me', nickname: 'Dewy Panda', body: commented.p_body, item: null, likes: 0, created_at: new Date().toISOString()}}); });
     await page.click('#tabbar [data-screen="chat"]');
-    await page.click('.room-row[data-chat-room="acne"]');
+    await page.click('[data-home-tab="rooms"][role="tab"]');
+    await page.click('.room-list-card[data-chat-room="acne"]');
     await page.click('[data-chat-action="write"]');
     await page.click('[data-write-kind="question"]');
     await page.fill('#write-title', '끈적이지 않는 선크림 추천해 주세요');

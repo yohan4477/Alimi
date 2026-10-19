@@ -27,6 +27,21 @@ export const roomStats = room => [t('chat.members', {n: room.members ?? 0}), roo
 export const roomListCard = (room, {image = null, note = '', highlight = [], attrs = `data-chat-room="${esc(room.id)}"`} = {}) =>
   `<button class="room-list-card" ${attrs}>${roomThumb(room, image)}<span class="room-list-text"><b>${esc(roomTitle(room))}</b><small>${esc(roomStats(room))}</small>${note ? `<em>${esc(note)}</em>` : ''}${(room.concerns ?? []).length ? `<span class="room-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
 
+// Catalog category that illustrates a room when nobody has mentioned a product there yet.
+const ROOM_CATEGORY = {acne: '에센스·세럼', 'dry-sensitive': '크림·로션', routine: '토너·패드', sunscreen: '선케어', makeup: '립', 'korea-shopping': '마스크팩'};
+const CONCERN_CATEGORY = {acne: '에센스·세럼', sensitive: '토너·패드', dry: '크림·로션', pores: '토너·패드', cushion: '베이스메이크업', lip: '립', longwear: '베이스메이크업', shade: '베이스메이크업'};
+export const roomCategory = room => ROOM_CATEGORY[room.id] ?? CONCERN_CATEGORY[(room.concerns ?? [])[0]]
+  ?? (room.tag === 'skin' ? '에센스·세럼' : room.tag === 'makeup' ? '베이스메이크업' : null);
+// Distinct catalog pictures per category, handed out in room order; mentioned products keep priority.
+export function topicPictures(rooms, byCategory, mentioned = new Map()) {
+  const out = new Map(mentioned), taken = new Set(out.values());
+  for (const room of rooms) {
+    if (out.has(room.id)) continue;
+    const pic = [...(byCategory.get(roomCategory(room) ?? '전체') ?? []), ...(byCategory.get('전체') ?? [])].find(u => !taken.has(u));
+    if (pic) { out.set(room.id, pic); taken.add(pic); }
+  }
+  return out;
+}
 // Latest product image mentioned per room, from messages / posts the home screen already fetched.
 export function roomImages(entries) {
   const map = new Map();
