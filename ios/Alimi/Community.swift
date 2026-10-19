@@ -161,28 +161,30 @@ struct CommunityTopic: View {
         .sheet(isPresented: $showBoard) { CommunityBoard(room: room).environmentObject(store) }
     }
     private var topBar: some View {
-        HStack(spacing: 12) {
+        VStack(alignment: .trailing, spacing: 8) {
+          HStack(spacing: 8) {
             Button { dismiss() } label: {
-                Image(systemName: "chevron.left").font(.system(size: 24, weight: .regular)).foregroundStyle(Color.sbNavy).frame(width: 36, height: 48)
+                Image(systemName: "chevron.left").font(.system(size: 24, weight: .regular)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 48)
             }.buttonStyle(.plain).accessibilityLabel(L("back"))
-            RoomThumb(room: room, picture: picture, size: 56).clipShape(Circle())
+            RoomThumb(room: room, picture: picture, size: 40).clipShape(Circle())
             VStack(alignment: .leading, spacing: 3) {
-                Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
                 Text(RoomText.memberLine(room)).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1)
             }.accessibilityElement(children: .combine).accessibilityIdentifier("room-header")
             Spacer(minLength: 4)
-            if !canPost {
-                Button(action: join) {
-                    Text("+ " + L("room.join")).font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
-                        .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
-                }.buttonStyle(.plain).accessibilityIdentifier("room-join")
-            }
             Menu {
                 ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) { Label(L("share.room"), systemImage: "square.and.arrow.up") }
                 Button { showBoard = true } label: { Label(L("community.posts"), systemImage: "list.bullet.rectangle") }
             } label: {
-                Image(systemName: "ellipsis").rotationEffect(.degrees(90)).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.sbNavy).frame(width: 28, height: 48)
+                Image(systemName: "ellipsis").rotationEffect(.degrees(90)).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 48)
             }.accessibilityLabel(L("chat.more")).accessibilityIdentifier("room-more")
+          }
+            if !canPost {
+                Button(action: join) {
+                    InlineActionLabel(title: L("room.join"), icon: "plus").font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
+                        .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
+                }.buttonStyle(.plain).accessibilityIdentifier("room-join")
+            }
         }.padding(.horizontal, 16).padding(.top, 6).padding(.bottom, 8)
     }
     // The rules are on screen next to the button, so tapping it is the agreement.

@@ -30,11 +30,11 @@ struct SavedView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 18) {
+                    HStack(spacing: 12) {
                         Spacer()
-                        Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("search.title"))
-                        Button { tab = .alerts } label: { Image(systemName: "bell").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("alerts.title"))
-                        NavigationLink { SettingsView() } label: { Image(systemName: "gearshape").font(.system(size: 21, weight: .medium)) }
+                        Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium)).frame(width: 44, height: 44) }.accessibilityLabel(L("search.title"))
+                        Button { tab = .alerts } label: { Image(systemName: "bell").font(.system(size: 23, weight: .medium)).frame(width: 44, height: 44) }.accessibilityLabel(L("alerts.title"))
+                        NavigationLink { SettingsView() } label: { Image(systemName: "gearshape").font(.system(size: 21, weight: .medium)).frame(width: 44, height: 44) }
                             .accessibilityLabel(L("settings.open")).accessibilityIdentifier("settings-button")
                     }.foregroundStyle(Color.sbNavy)
                     Text(L("nav.activity")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy).accessibilityIdentifier("saved-title")
@@ -79,8 +79,8 @@ struct SavedView: View {
         if recent.isEmpty { Text(L("activity.recentEmpty")).font(.subheadline).foregroundStyle(Color.sbGray) }
         ForEach(recent) { f in
             Button { openFamily = f } label: {
-                HStack(spacing: 18) {
-                    RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(width: 104, height: 104).background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
+                HStack(spacing: 12) {
+                    RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(width: 80, height: 80).background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
                     VStack(alignment: .leading, spacing: 6) {
                         Text(f.brandLabel + " " + f.baseName).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
                         if let c = f.category { Text(L10n.category(c)).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
@@ -127,10 +127,10 @@ struct SavedRow: View {
     let product: Product
     @State private var photoLoaded = false
     var body: some View {
-        HStack(spacing: 18) {
+        HStack(spacing: 12) {
             NavigationLink { ProductDetail(product: product) } label: {
-                HStack(spacing: 18) {
-                    ProductArt(product: product) { photoLoaded = $0 }.frame(width: 104, height: 104)
+                HStack(spacing: 12) {
+                    ProductArt(product: product) { photoLoaded = $0 }.frame(width: 80, height: 80)
                         .background(Color(rgb: 0xF5F7FA)).clipShape(RoundedRectangle(cornerRadius: 14))
                     VStack(alignment: .leading, spacing: 6) {
                         Text(product.brandLabel + " " + product.name).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
@@ -206,7 +206,7 @@ struct BrandView: View {
     @State private var following = false
     // Brand page of journey 2: banner from the brand's own product photo, logo, product count, follow (this device),
     // categories it sells, then 대표 상품 / 리뷰 (community reviews of this brand).
-    private let grid = Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: 3)
+    private let grid = [GridItem(.adaptive(minimum: 145), spacing: 12, alignment: .top)]
     private var categories: [String] { Array(Set(families.compactMap(\.category))).sorted().prefix(4).map { $0 } }
     var body: some View {
         ScrollView {
@@ -227,15 +227,14 @@ struct BrandView: View {
                 if tab == "products" { products } else { reviewList }
             }.padding(.bottom, 24)
         }
-        .ignoresSafeArea(edges: .top)
         .toolbar(.hidden, for: .navigationBar)
         .task { await loadMore(); following = BrandFollow.isFollowing(brand.brand) }
         .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
     }
     private var banner: some View {
         ZStack(alignment: .top) {
-            Color(rgb: 0xF6DADB)
-            if let url = families.first?.imageUrl { RemoteThumb(url: url).opacity(0.9) }
+            Color.white
+            if let url = families.first?.imageUrl { RemoteImage(url: url, label: brand.label).padding(16) }
             HStack {
                 roundButton("chevron.left") { dismiss() }.accessibilityLabel(L("back"))
                 Spacer()
@@ -243,7 +242,7 @@ struct BrandView: View {
                     Image(systemName: "square.and.arrow.up").font(.system(size: 18, weight: .medium)).foregroundStyle(Color.sbNavy)
                         .frame(width: 48, height: 48).background(Color.white.opacity(0.85), in: Circle())
                 }
-            }.padding(.horizontal, 16).padding(.top, 60)
+            }.padding(.horizontal, 16).padding(.top, 8)
         }.frame(height: 240).clipped()
     }
     private var header: some View {
@@ -251,20 +250,20 @@ struct BrandView: View {
             HStack(alignment: .bottom, spacing: 16) {
                 BrandBadge(brand: brand, size: 108, showLabel: false)
                     .padding(4).background(Color.white, in: Circle()).offset(y: -44).padding(.bottom, -44)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(brand.label).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.7)
-                        .accessibilityIdentifier("brand-header-title")
-                    if brand.families > 0 { Text(L("count", ["n": brand.families])).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
-                }
                 Spacer(minLength: 4)
                 Button {
                     following.toggle(); BrandFollow.set(brand.brand, following)
                 } label: {
-                    Text(following ? L("brand.following") : "+ " + L("brand.follow")).font(.system(size: 17, weight: .bold))
+                    InlineActionLabel(title: L(following ? "brand.following" : "brand.follow"), icon: following ? "checkmark" : "plus").font(.system(size: 17, weight: .bold))
                         .foregroundStyle(following ? Color.sbGray : Color.sbBlue)
                         .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbTagBg, in: Capsule())
                 }.buttonStyle(.plain).accessibilityIdentifier("brand-follow")
             }.padding(.top, 12)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(brand.label).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("brand-header-title")
+                if brand.families > 0 { Text(L("count", ["n": brand.families])).font(.system(size: 15)).foregroundStyle(Color.sbGray) }
+            }
             Text(L("brand.headline", ["brand": brand.label])).font(.system(size: 22, weight: .heavy)).foregroundStyle(Color.sbNavy)
             Text(L("brand.followNote")).font(.system(size: 14)).foregroundStyle(Color.sbGray)
         }
@@ -289,12 +288,12 @@ struct BrandView: View {
                         RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 120).background(Color(rgb: 0xF7E9EA))
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                     }.buttonStyle(.plain)
-                    Text(f.baseName).font(.system(size: 14)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                    Text(f.baseName).font(.system(size: 14)).foregroundStyle(Color.sbNavy).lineLimit(2).frame(minHeight: 36, alignment: .top)
                     HStack {
                         Text(f.priceText).font(.system(size: 16, weight: .bold)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.8)
                         Spacer(minLength: 2)
                         Button { openFamily = f } label: {
-                            Image(systemName: "cart").font(.system(size: 15)).foregroundStyle(Color.sbBlue).frame(width: 34, height: 34).background(Color.sbTagBg, in: Circle())
+                            Image(systemName: "cart").font(.system(size: 15)).foregroundStyle(Color.sbBlue).frame(width: 44, height: 44).background(Color.sbTagBg, in: Circle())
                         }.buttonStyle(.plain).accessibilityLabel(L("variant.buy"))
                     }
                 }
