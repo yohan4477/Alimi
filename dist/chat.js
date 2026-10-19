@@ -28,6 +28,12 @@ let unreadMessages = 0;
 const chat = {rooms: [], room: null, messages: [], nickname: '', myTag: '', item: null, replyTo: null, menuFor: null, poll: null, sending: false};
 const view = {mode: 'posts', post: null, comments: [], commentItem: null, draft: null};
 let onClose = () => {}, toast = () => {}, pickFor = 'chat';
+// Keep unsent content in memory while moving between rooms; never send it to analytics.
+const roomDrafts = new Map();
+function rememberDraft(){
+  if(chat.room&&$('#chat-text'))roomDrafts.set(chat.room.id,{text:$('#chat-text').value,item:chat.item,replyTo:chat.replyTo});
+}
+
 
 async function tagOf(s) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -35,7 +41,7 @@ async function tagOf(s) {
 }
 const time = iso => new Intl.DateTimeFormat(locale(), {hour: '2-digit', minute: '2-digit'}).format(new Date(iso));
 // ref = where the card was seen ("post-12", "comment-4", "chat-88"); passed on to the product sheet / Awin.
-const itemCard = (it, ref = '') => `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}"` : `data-track="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
+const itemCard = (it, ref = '') => `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}" data-sku="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"` : `data-track="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
 const shell = inner => { $('#chat').innerHTML = inner; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
@@ -57,7 +63,7 @@ export async function openChat(opts = {}) {
   try { await renderHome(); } finally { finish(); }
 }
 // Called when the user switches to another tab: stop polling until the community screen is opened again.
-export function leaveChat() { communityOpenVersion++; finishStartup(); stopPolling(); chat.room = null; }
+export function leaveChat() { rememberDraft(); communityOpenVersion++; finishStartup(); stopPolling(); chat.room = null; }
 // Product sheet "대화에 첨부": only while a live room's composer is on screen.
 export const canAttachToChat = () => Boolean(chat.room && $('#chat-text'));
 export function attachToChat(it) {
@@ -113,7 +119,7 @@ async function loadCatalogPictures(rooms) {
 }
 async function renderHome() {
   const version = ++homeVersion;
-  stopPolling(); chat.room = null; view.post = null;
+  rememberDraft(); stopPolling(); chat.room = null; view.post = null;
   shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`);
   let posts = [], joined = [], postsFailed = false;
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
@@ -140,9 +146,6 @@ const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
 function drawHome() {
   const box = $('#community-home'); if (!box || !home) return;
-  let create = document.getElementById('community-create');
-  if (!create) { create = document.createElement('button'); create.id = 'community-create'; create.className = 'primary'; create.dataset.chatAction = 'create-room'; box.before(create); }
-  create.textContent = '+ ' + t('room.new');
   box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
   const {hot, topics, recent, previews, partial, joined, images, products} = home;
   if (homeTab === 'rec') {
@@ -154,11 +157,10 @@ function drawHome() {
   } else if (homeTab === 'rooms') {
     box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'))}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
   } else if (homeTab === 'discover') {
-    const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p>`;
-    const popular = home.popular?.length ? sectionHead(t('home.popular'), t('home.popularSub')) + `<div class="popular-grid">${home.popular.map(f => `<button class="popular-item" data-family="${esc(f.family_key)}" data-ref="discover"><span class="popular-img"><img src="${esc(f.image_url)}" alt="" loading="lazy"></span><small>${esc(brandLabel(f))}</small><b>${esc(f.base_name)}</b>${f.minPrice ? `<em>${esc(usd(f.minPrice))}</em>` : ''}</button>`).join('')}</div>` : '';
+    const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
-    // Conversation mentions lead when there are any; otherwise the catalog fills the screen first.
-    box.innerHTML = `${products.length ? talk + popular : popular + talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
+    // Discovery reflects actual conversation mentions, including an honest empty state.
+    box.innerHTML = `${talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
   } else {
     box.innerHTML = sectionHead(t('brands.title'), '') + (homeBrands === 'failed' ? `<p class="empty" role="status">${esc(t('home.brandsFailed'))}</p><button class="text-link" data-home-brands-retry>${esc(t('retry'))}</button>` : homeBrands ? homeBrands.length ? `<div class="home-brands">${homeBrands.map(b => `<button class="home-brand" data-brand="${esc(b.brand)}"><i style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}${b.logo_url ? `<img src="${esc(b.logo_url)}" alt="" loading="lazy">` : ''}</i><span><b>${esc(brandLabel(b))}</b>${b.families ? `<small>${esc(t('count', {n: b.families}))}</small>` : ''}</span></button>`).join('')}</div>` : `<p class="empty">${esc(t('home.noBrands'))}</p>` : loadingMarkup(t('loading')));
     if (!homeBrands) fetchBrands().then(list => { homeBrands = list; }, () => { homeBrands = 'failed'; }).then(() => { if (homeTab === 'brands') drawHome(); });
@@ -190,7 +192,7 @@ let joinThen = () => {};
 // Topic: header + Posts / Live chat switch. The two never share one stream.
 const joinedRooms = new Set();
 function openTopic(room, mode = 'live') {
-  stopPolling(); chat.room = room; view.mode = mode; view.post = null;
+  rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null;
   const member = homeJoined.some(j => j.room_id === room.id);
   const canPost = hasAgreed(storage) && (member || joinedRooms.has(room.id)), other = mode === 'posts' ? 'live' : 'posts';
   shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div>${canPost ? '' : `<button class="room-join" id="room-join" data-chat-action="join-room">+ ${esc(t('room.join'))}</button>`}<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
@@ -225,13 +227,13 @@ function renderPost() {
 async function sendComment() {
   const box = $('#comment-text'), text = box.value.trim();
   if (chat.sending || (!text && !view.commentItem)) return;
-  chat.sending = true;
+  chat.sending = true;box.disabled=true;
   try {
     const c = await addComment(secret, view.post.id, text, view.commentItem);
     view.comments.push(c); view.post.comments++; track('comment_create', null, {post: view.post.id, item: view.commentItem ? 1 : 0});
     view.commentItem = null; renderPost();
   } catch (e) { toast(t(errorKey(e.message))); }
-  finally { chat.sending = false; }
+  finally { chat.sending = false;box.disabled=false; }
 }
 
 // Write a post (optionally from one of my chat messages: "Save as post").
@@ -282,10 +284,12 @@ async function submitPost() {
 
 // Live chat inside a topic.
 async function startLive(room) {
-  chat.messages = []; chat.item = null; chat.replyTo = null; unreadMessages = 0;
+  const draft=roomDrafts.get(room.id);
+  chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
   const canPost = hasAgreed(storage) && (joinedRooms.has(room.id) || homeJoined.some(j => j.room_id === room.id));
   body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button>${canPost ? `<form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>` : `<div class="join-bar"><p class="chat-rules">${esc(t('chat.rules'))}</p><button class="primary" id="join-live" data-chat-action="join-live">${esc(t('room.joinTalk'))}</button></div>`}`);
   if (canPost) {
+    $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
   }
@@ -295,8 +299,11 @@ async function startLive(room) {
       if (!homeJoined.some(j => j.room_id === room.id)) homeJoined = [{room_id: room.id, last: null}, ...homeJoined];
       track('chat_join', null, {room: room.id});
     }
-    chat.messages = await fetchMessages(room.id);
-  } catch { $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
+    const messages = await fetchMessages(room.id);
+    if(chat.room?.id!==room.id||!$('#chat-log'))return;
+    chat.messages = messages;
+  } catch { if(chat.room?.id!==room.id||!$('#chat-log'))return; $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
+  track('chat_open',null,{room:room.id});
   renderLog(true);
   startPolling();
 }
@@ -311,7 +318,8 @@ function renderLog(scroll) {
   const log = $('#chat-log'); if (!log) return;
   const near = log.scrollHeight - log.scrollTop - log.clientHeight < 120;
   const list = visible(chat.messages, readBlocked(storage));
-  if (chat.room && chat.messages.length) markSeen(chat.room.id, chat.messages.at(-1).created_at);
+  const oldTop=log.scrollTop;
+  if ((scroll||near) && chat.room && chat.messages.length) markSeen(chat.room.id, chat.messages.at(-1).created_at);
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
   let previousDay = '';
   log.innerHTML = list.length ? list.map(m => {
@@ -327,9 +335,10 @@ function renderLog(scroll) {
   log.onpointerup = log.onpointercancel = log.onpointermove = () => clearTimeout(press);
 
   if (scroll || near) { log.scrollTop = log.scrollHeight; unreadMessages = 0; }
+  else { log.scrollTop = oldTop; }
   const latest = $('#chat-latest');
   if (latest) { latest.hidden = unreadMessages === 0; latest.textContent = t('chat.newMessages', {n: unreadMessages}); }
-  log.onscroll = () => { if (log.scrollHeight - log.scrollTop - log.clientHeight < 120) { unreadMessages = 0; if (latest) latest.hidden = true; } };
+  log.onscroll = () => { if (log.scrollHeight - log.scrollTop - log.clientHeight < 120) { unreadMessages = 0; if(chat.room&&chat.messages.length)markSeen(chat.room.id,chat.messages.at(-1).created_at); if (latest) latest.hidden = true; } };
 }
 function renderContext() {
   const box = $('#chat-context'); if (!box) return;
@@ -338,24 +347,27 @@ function renderContext() {
     (chat.item ? `<div class="chat-chip">${esc(brandLabel(chat.item))} · ${esc(chat.item.name)}<button type="button" data-chat-action="item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : '');
 }
 async function send() {
-  const box = $('#chat-text'); const text = box.value.trim();
+  const box = $('#chat-text'); if(!box||!chat.room)return;const text = box.value.trim(),roomId=chat.room.id,item=chat.item,replyTo=chat.replyTo;
   if (chat.sending || (!text && !chat.item)) return;
-  chat.sending = true;
+  chat.sending = true;box.disabled=true;
   try {
-    const m = await postMessage(secret, chat.room.id, text, chat.item, chat.replyTo);
+    const m = await postMessage(secret, roomId, text, item, replyTo);
+    roomDrafts.delete(roomId);
+    track('chat_send', null, {room:roomId,item:item?1:0,reply:replyTo?1:0});
+    if(chat.room?.id!==roomId||!box.isConnected)return;
     if (!chat.messages.some(x => x.id === m.id)) chat.messages.push(m);
-    track('chat_send', null, {room: chat.room.id, item: chat.item ? 1 : 0, reply: chat.replyTo ? 1 : 0});
     box.value = ''; chat.item = null; chat.replyTo = null; renderContext(); renderLog(true);
   } catch (e) { toast(t(errorKey(e.message))); }
-  finally { chat.sending = false; }
+  finally { chat.sending = false;box.disabled=false; }
 }
 function startPolling() {
   stopPolling();
   chat.poll = setInterval(async () => {
     if (!chat.room || document.hidden || view.mode !== 'live') return;
-    const last = chat.messages.at(-1)?.id ?? 0;
+    const roomId=chat.room.id,last = chat.messages.at(-1)?.id ?? 0;
     try {
-      const fresh = (await fetchMessages(chat.room.id, last)).filter(m => !chat.messages.some(x => x.id === m.id));
+      const fresh = (await fetchMessages(roomId, last)).filter(m => !chat.messages.some(x => x.id === m.id));
+      if(chat.room?.id!==roomId)return;
       if (fresh.length) { unreadMessages += fresh.length; chat.messages.push(...fresh); renderLog(false); }
     } catch {}
   }, 4000);
@@ -408,8 +420,10 @@ function openReport() {
 // "People talking about this" for a product sheet / detail page.
 export async function renderProductTalk(box, familyKey) {
   if (!box || !familyKey) return;
+  const request=Symbol(); box.talkRequest=request;
   box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))}</h3>${loadingMarkup(t('loading'))}`;
-  let talk; try { talk = await fetchProductTalk(familyKey); } catch { box.innerHTML = ''; return; }
+  let talk; try { talk = await fetchProductTalk(familyKey); } catch { if(box.talkRequest===request)box.innerHTML = ''; return; }
+  if(box.talkRequest!==request||!box.isConnected)return;
   talkState = {box, talk}; talkFilter = {}; drawTalk();
 }
 // Filter reviews by the conditions writers chose to show (skin type / tone); a reference, not a promise.
@@ -417,6 +431,7 @@ let talkState = null, talkFilter = {};
 function drawTalk() {
   if (!talkState) return; const {box, talk} = talkState;
   const all = visiblePosts(talk.reviews), reviews = filterReviews(all, talkFilter), posts = visiblePosts(talk.posts);
+  if(!all.length&&!posts.length&&!talk.chatMentions){box.innerHTML=`<p class="home-note">${esc(t('product.talkEmpty'))}</p>`;return;}
   const chips = (key, prefix) => [...new Set(all.map(r => r[key]).filter(Boolean))].map(v => `<button data-review-filter="${key}:${v}" class="${talkFilter[key] === v ? 'on' : ''}">${esc(t(prefix + '.' + v))}</button>`).join('');
   const me = cachedProfile(), mine = me && (me.skin_type || me.skin_tone);
   // "People like me" applies the person's own self-reported skin; without a profile it invites them to add one.

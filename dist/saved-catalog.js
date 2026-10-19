@@ -7,7 +7,7 @@ export function readCatalogSaves(storage){
 export function saveCatalogSnapshot(item,storage){
   const url=safeUrl(item.url)||safeUrl(item.affiliate_url);if(!url)throw Error('No purchase URL');
   const p={id:['catalog',item.retailer,item.market,item.sku].join('|'),sku:item.sku,brand:item.brand,brandKo:item.brandKo??item.brand_ko??null,name:item.name,
-    familyKey:item.family_key??null,category:item.category??'기타',size:item.size_label??'',retailer:item.retailer,currency:item.currency??'USD',url,affiliateUrl:safeUrl(item.affiliate_url),imageUrl:safeUrl(item.image_url),price:item.price??item.price_minor/100,
+    market:item.market??null,sourceRef:item.sourceRef??null,optionLabel:item.option_label??null,familyKey:item.family_key??null,category:item.category??'기타',size:item.size_label??'',retailer:item.retailer,currency:item.currency??'USD',url,affiliateUrl:safeUrl(item.affiliate_url),imageUrl:safeUrl(item.image_url),price:item.price??item.price_minor/100,
     delivery:null,availability:item.availability??'unknown',checkedAt:null,changedAt:null,history:[],savedAt:new Date().toISOString()};
   if(!Number.isFinite(p.price)||p.price<=0)throw Error('Invalid price');
   const rows=readCatalogSaves(storage).filter(x=>x.id!==p.id);rows.push(p);storage.setItem(KEY,JSON.stringify(rows));return p;

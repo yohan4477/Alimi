@@ -53,13 +53,13 @@ try {
   });
   await step('saved tab: add slots when empty, favorite shows up with a loaded photo', async () => {
     await page.click('#tabbar [data-screen="saved"]');
-    assert.equal(await page.locator('#saved .add-slot').count(), 3, 'three add slots when nothing is saved');
+    assert.equal(await page.locator('#saved .add-slot').count(), 1, 'one discovery action when nothing is saved');
     await page.click('#tabbar [data-screen="search"]');await page.fill('#search', '');await page.click('.explore-link');
     await page.click('[data-category="전체"]');
     await page.locator('#products > .card .heart').first().click();
     await page.click('#tabbar [data-screen="saved"]');
     await page.waitForSelector('#saved .saved-card img', {timeout: 10000});
-    assert.equal(await page.locator('#saved .add-slot').count(), 2);
+    assert.equal(await page.locator('#saved .add-slot').count(), 0);
     await page.waitForFunction(() => [...document.querySelectorAll('#saved .saved-card img')].every(i => i.complete && i.naturalWidth > 0), null, {timeout: 20000});
     await page.click('#saved [data-screen="settings"]');
     await page.waitForSelector('#settings .set-row >> text=관심상품 정리하기');

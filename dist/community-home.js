@@ -6,7 +6,7 @@ export function mentionedProducts(entries, blocked = [], now = Date.now()) {
   for (const e of entries) {
     if (!e.item || blocked.includes(e.author_tag) || now-Date.parse(e.created_at) > 86400000 || !Number.isFinite(Date.parse(e.created_at))) continue;
     const id = `${e.source}:${e.id}`; if (seen.has(id)) continue; seen.add(id);
-    const key = e.item.family_key || [e.item.retailer,e.item.market,e.item.sku].join(':');
+    const key = e.item.sku ? [e.item.retailer,e.item.market,e.item.sku].join(':') : e.item.family_key;
     if (!groups.has(key)) groups.set(key,{item:e.item,authors:new Set(),rooms:new Set(),entries:[]});
     const g=groups.get(key);g.authors.add(e.author_tag);g.rooms.add(e.room_id);g.entries.push(e);
   }

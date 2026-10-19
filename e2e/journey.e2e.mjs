@@ -26,7 +26,7 @@ try {
   const {ctx,page,errors}=await open(base+'?room=tint&lang=ko',async p=>p.addInitScript(()=>localStorage.setItem('alimi-chat-agreed','1')));
   await page.locator('.room-top h1').waitFor();
   assert.equal(await page.locator('.room-top h1').innerText(),'틴트 이야기');
-  assert.match(await page.locator('.room-top small').innerText(),/5/);
+  assert.match(await page.locator('.room-top .room-count').innerText(),/5/);
   await page.locator('[data-chat-action="room-more"]').click();
   await page.locator('[data-chat-action="share-room"]').click();
   await page.waitForFunction(()=>document.querySelector('#toast')?.classList.contains('show'));
