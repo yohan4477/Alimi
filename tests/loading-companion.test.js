@@ -13,6 +13,17 @@ test('loading companion preserves localized status, escapes markup and hides art
   assert.match(loadingMarkup('Finding conversations'), /Finding conversations/);
 });
 
+test('each new loader rotates its initial look instead of always starting in blue', () => {
+  const first = loadingMarkup('first load');
+  const second = loadingMarkup('second load');
+  const a = first.match(/--sb-look-offset:([^;]+)/)?.[1];
+  const b = second.match(/--sb-look-offset:([^;]+)/)?.[1];
+  assert.ok(a && b);
+  assert.notEqual(a, b, 'subsequent requests begin on different costumes');
+  assert.match(first, /--sb-static-x:/);
+  assert.match(second, /--sb-static-y:/);
+});
+
 test('the ten-character atlas is tiny, transparently encoded and the same on web and iOS', async () => {
   const web = await readFile(new URL('../dist/assets/loading-characters-sprite.png', import.meta.url));
   const ios = await readFile(new URL('../ios/Alimi/Assets.xcassets/LoadingCharacters.imageset/loading-characters-sprite.png', import.meta.url));
@@ -29,6 +40,9 @@ test('both web motion reduction and native loading delay are declared', async ()
   assert.match(css, /sb-loading-sprite/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /sb-sprite-change 22s/);
+  assert.match(css, /--sb-look-offset/);
+  assert.match(css, /--sb-static-x/);
+  assert.match(native, /LoadingCostumeSequence.take\(\)/);
   assert.match(native, /\.milliseconds\(400\)/);
   assert.match(native, /accessibilityReduceMotion/);
   assert.match(native, /\.periodic\(from: \.now, by: 2\.2\)/);
