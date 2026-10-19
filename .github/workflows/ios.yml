@@ -1,11 +1,6 @@
 name: Alimi iPhone build
 on:
   workflow_dispatch:
-    inputs:
-      full_ui:
-        description: 'Run full UI suite (default: true)'
-        type: boolean
-        default: true
   pull_request:
     paths:
       - 'ios/**'
