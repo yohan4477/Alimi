@@ -147,6 +147,7 @@ try {
     await page.click('[data-chat-menu="11"]');
     await page.click('[data-chat-action="block"]');
     assert.equal(await page.locator('.chat-msg >> text=Anyone tried snail?').count(), 0);
+    await page.click('.room-back');
     await page.click('#tabbar [data-screen="saved"]');
     await page.waitForSelector('#saved:not([hidden])');
   });
