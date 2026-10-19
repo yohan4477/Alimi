@@ -34,13 +34,21 @@
   </section>
   <section class="sb-panel" id="sb-plan" role="tabpanel" aria-labelledby="sb-plan-tab" hidden>
     <h3>화면별 고객 여정 · 구성요소 · KPI</h3>
-    <div class="card" id="sb-three-tab-decision"><span class="viz-badge">2026.10.19 22:09 · 사용자 결정 · 배포 검증 별도</span><h3>시안 화면 유지 · 하단은 커뮤니티 / 탐색 / 내 활동</h3><p>Journey 1·2·3의 이미지·카드·말풍선·색상·타이포를 기준으로 유지한다. 이전 5탭 목표는 아래 3탭 기준으로 대체한다.</p>
+    <div class="card" id="sb-plan-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 최신 기획 상태</span><h3>3개 고객 여정 · 하단 3탭 확정</h3>
+    <div class="sb-line"><div class="sb-label">하단 탐색</div><div class="sb-value">커뮤니티 / 탐색 / 내 활동. 참여한 방은 내 활동, 알림은 상단 종 아이콘, 프로필·설정은 내 활동에서 연결. 온보딩·대화방에서는 하단 탭 숨김.</div></div>
+    <div class="sb-line"><div class="sb-label">현재 구현</div><div class="sb-value">관심 분야 복수 선택 + 고민 키워드 → 실제 공개 방 추천. 선택값·방 활동 기준이며 연령대·피부 타입·톤은 현재 추천에 반영하지 않음.</div></div>
+    <div class="sb-line"><div class="sb-label">후속 기획안</div><div class="sb-value">1/3 관심과 고민 → 2/3 선택형 연령대·피부 정보 → 3/3 추천방. 잘 모르겠어요·건너뛰기 제공. 이 3단계 재구성과 연령대 입력은 미구현이며, 필드·추천 활용·저장·공개 범위 확정이 필요함.</div></div>
+    <p>현재 첫 입력 화면의 2/3 표시는 스플래시를 1단계로 센 기존 구현이다. 수정 필요. 방 추천은 강제 배정이 아니며 전체 방 탐색·자유 생성 원칙을 유지한다.</p>
+    <p><strong>P0 · 사용자 확인 대기:</strong> 사용자가 하단 탭이 3개가 아니라고 제보함. 설치된 앱·빌드 번호와 실제 화면 확인 전 해결 완료로 표시하지 않는다.</p>
+    <small>아래 기존 시뮬레이션은 검토 자료이며 최신 출시 상태는 이 카드와 개발 탭을 따른다. KPI 목표·개선 효과는 미측정.</small></div>
+
+    <div class="card" id="sb-three-tab-decision"><span class="viz-badge">2026.10.19 22:09 · 사용자 결정 · 코드 반영 / 실기기 확인 대기</span><h3>시안 화면 유지 · 하단은 커뮤니티 / 탐색 / 내 활동</h3><p>Journey 1·2·3의 이미지·카드·말풍선·색상·타이포를 기준으로 유지한다. 이전 5탭 목표는 아래 3탭 기준으로 대체한다.</p>
       <div class="sb-line"><div class="sb-label">① 신규 유입</div><div class="sb-value">온보딩 → 고민 선택 → 추천방 → 대화. 온보딩·대화방에서는 하단 탭 숨김.</div></div>
       <div class="sb-line"><div class="sb-label">② 상품 발견</div><div class="sb-value">커뮤니티 또는 탐색 → 상품·브랜드 → 대화에 첨부·구매 → 원래 대화 복귀.</div></div>
       <div class="sb-line"><div class="sb-label">③ 재방문</div><div class="sb-value">내 활동의 저장 상품·참여한 방 → 알림·공유 → 커뮤니티 복귀.</div></div>
-      <p>알림 화면은 상단 종 아이콘, 프로필·관심사·설정은 내 활동, 공유는 대화방·상품·공유 화면에서 연결한다. 원본 시안의 예시 수치·가격 하락 알림·미구현 초대 리워드는 운영 기능으로 복제하지 않는다.</p><small>화면 1:1 재현·실기기 검증·TestFlight 배포 완료를 의미하지 않는다.</small>
+      <p>알림 화면은 상단 종 아이콘, 프로필·관심사·설정은 내 활동, 공유는 대화방·상품·공유 화면에서 연결한다. 원본 시안의 예시 수치·가격 하락 알림·미구현 초대 리워드는 운영 기능으로 복제하지 않는다.</p><small>TestFlight 1.0 (21.1) 업로드 성공. 화면 1:1 재현·Apple 처리·테스터 배정·실기기 설치 확인은 별도이다.</small>
     </div>
-    <div class="card" style="margin:12px 0"><span class="viz-badge">2026.10.19 · 고객 여정 개편안 · 미구현</span><h3>스킨케어·메이크업 함께 선택 → 세부 고민 → 맞춤 대화 → 상품 발견</h3><span>기존 Community · Explore · My Activity 탭과 게시글/실시간 채팅, 상품 첨부 흐름은 유지한다. 아래는 신규 기획이며 실제 배포·계측 완료를 뜻하지 않는다.</span></div>
+    <div class="card" style="margin:12px 0"><span class="viz-badge">2026.10.19 · 관심사·고민 추천 코드 반영 / 확장안 검토 중</span><h3>스킨케어·메이크업 함께 선택 → 세부 고민 → 맞춤 대화 → 상품 발견</h3><span>기존 Community · Explore · My Activity 탭과 게시글/실시간 채팅, 상품 첨부 흐름은 유지한다. 아래 확장 기획과 데모는 실제 출시 기능과 구분한다. 퍼널 실측은 미검증이다.</span></div>
 
     <section id="sb-pixel-guide-demo" class="sb-pixel-guide-demo" aria-label="픽셀 한복 캐릭터 가이드 온보딩 기획 미리보기">
       <div class="sb-guide-titlebar">
@@ -186,6 +194,13 @@
   </section>
 
   <section class="sb-panel" id="sb-design" role="tabpanel" aria-labelledby="sb-design-tab" hidden>
+    <div class="card" id="sb-design-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 최신 디자인 결정</span><h3>기존 시안 유지 · 흰 상품 배경 · 익명 닉네임 중심</h3>
+    <div class="sb-line"><div class="sb-label">상품 표면</div><div class="sb-value">상품 카드·이미지 영역의 테두리·그림자 제거, 흰 배경 유지. 상품 사진·브랜드 로고는 유지하고 사용자 아바타는 임시 숨김. 빠진 여백을 정리한다.</div></div>
+    <div class="sb-line"><div class="sb-label">모바일 배치</div><div class="sb-value">팔로우의 +와 문구는 한 줄, 상태바 안전 영역 확보, 브랜드 배너 전체 표시, 상품명 줄바꿈·태그 배치·터치 영역 보정. 사용자 제공 Journey 1·2·3의 시각 요소 유지.</div></div>
+    <div class="sb-line"><div class="sb-label">화면 전환</div><div class="sb-value">온보딩 다음·이전의 좌우 슬라이드 제거. 화면은 제자리에서 교체한다. 단계 번호 2/3 시작 문제는 아직 수정 전이다.</div></div>
+    <p>아바타 꾸미기와 캐릭터 안내·로딩은 서로 다른 기능이다. 아래 아바타 관련 검토안보다 현재의 사용자 아바타 숨김 결정을 우선한다.</p>
+    <small>웹 자동 검사 통과·TestFlight 업로드 성공은 픽셀 단위 일치나 실기기 디자인 승인과 다르다. 하단 3탭 제보와 한영·작은 화면 검수는 미완료.</small></div>
+
     <div class="sb-design-kicker"><span class="sb-design-dot"></span> UX / PRODUCT DESIGN REVIEW <span class="sb-design-date">2026.10.19 · 정성 평가</span></div>
     <div class="sb-design-hero">
       <div>
@@ -347,18 +362,25 @@
     </div>
   </section>
   <section class="sb-panel" id="sb-dev" role="tabpanel" aria-labelledby="sb-dev-tab" hidden>
+  <div class="card" id="sb-dev-release-update"><span class="viz-badge">2026.10.19 22:47 KST · 증거 기준 수동 업데이트</span><h3>Seoul Beauty 1.0 (21.1) · 업로드 성공</h3>
+  <p>최종 업로드 커밋 <code>10493c2</code>. PR #127의 3탭·레이아웃·상품 표면·아바타 숨김, <code>921a6ea</code>의 좌우 전환 제거, PR #129의 표시 이름 Seoul Beauty 포함. 번들 ID <code>com.yohan4477.seoulbeauty</code>. 기존 Alimi 앱과 분리.</p>
+  <div class="sb-line"><div class="sb-label">검증 증거</div><div class="sb-value">JS 단위 테스트 126/126 및 Web checks #95 성공. 배포 커밋 5efa85e의 GitHub Vercel status success 확인. TestFlight #21의 빌드·서명·App Store Connect 업로드 모두 성공.</div></div>
+  <div class="sb-line"><div class="sb-label">출시 확인 범위</div><div class="sb-value">Apple 처리 완료·테스터 그룹 배정·사용자 기기의 21.1 설치는 미확인. 이전 5탭 화면 제보가 있어 설치 버전과 화면을 대조해야 함. 업로드 성공만으로 실기기 완료 처리하지 않음.</div></div>
+  <div class="sb-line"><div class="sb-label">미반영</div><div class="sb-value">온보딩 번호 재구성, 선택형 연령대·피부 정보 화면, 해당 정보의 추천 연결. 현재 입력 화면 2/3·추천방 3/3 표시는 남아 있음.</div></div>
+  <p><a href="https://github.com/yohan4477/Alimi/actions/runs/39261337516" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #21 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39260313253" target="_blank" rel="noopener noreferrer">Web checks #95 ↗</a> · <a href="https://github.com/yohan4477/Alimi/blob/main/docs/RELEASE_STATUS_2026-10-19.md" target="_blank" rel="noopener noreferrer">출시 상태·남은 작업 ↗</a></p></div>
+
   <div class="sb-dev-kicker">ENGINEERING / RELEASE READINESS <span>2026.10.19 · 수동 리뷰</span></div>
   <div class="sb-dev-hero">
     <div><p class="sb-dev-eyebrow">SeoulBeauty · 개발 검토</p><h2>기획에서 실제 동작까지.</h2><p>전략·기획·디자인의 결정을 <strong>코드 → 테스트 → 배포 → 실측</strong>으로 연결하는 실행 대시보드입니다. 소비자 UI나 기존 관리 화면은 변경하지 않습니다.</p>
       <div class="sb-dev-jumps"><button type="button" data-dev-jump="sb-strategy-tab">전략 ↗</button><button type="button" data-dev-jump="sb-plan-tab">서비스 기획 ↗</button><button type="button" data-dev-jump="sb-design-tab">디자인 리뷰 ↗</button></div>
     </div>
-    <aside class="sb-dev-blocker"><small>우선 확인할 출시 차단</small><strong>웹 배포 실패</strong><p>2026.10.19 기준 main <code>a09117e</code>의 GitHub Vercel status: failure (build-rate-limit). 코드 병합을 운영 반영으로 표시하면 안 됩니다.</p><a href="https://github.com/yohan4477/Alimi/commit/a09117e53e09bfdf769565f3cdd5dbd32e50a60f" target="_blank" rel="noopener noreferrer">GitHub 증거 ↗</a></aside>
+    <aside class="sb-dev-blocker"><small>P0 · 사용자 제보 확인</small><strong>설치 화면의 탭 수 불일치</strong><p>업로드한 21.1 소스는 3탭이지만 사용자는 다른 화면을 보고 있음. 설치된 앱·빌드와 탭 화면을 확인해야 한다. 과거 a09117e의 build-rate-limit 실패는 이력이며 최신 5efa85e 웹 배포는 성공했다.</p><a href="https://github.com/yohan4477/Alimi/actions/runs/39261337516" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #21 ↗</a></aside>
   </div>
   <div class="sb-dev-summary" aria-label="개발 상태 요약">
-    <div><span>온보딩·방 추천</span><strong>기획 시안</strong><small>실제 방 연동 없음</small></div>
+    <div><span>온보딩·방 추천</span><strong>코드 반영</strong><small>관심사·고민 기반 실제 방 추천</small></div>
     <div><span>로딩 캐릭터 10종</span><strong>코드 반영</strong><small>실기기 검증 별도</small></div>
     <div><span>제휴 승인 순수익</span><strong>미측정</strong><small>주문·정산 미연결</small></div>
-    <div><span>웹 운영 배포</span><strong>차단</strong><small>기준 SHA status 실패</small></div>
+    <div><span>웹 운영 배포</span><strong>성공 확인</strong><small>5efa85e Vercel status success</small></div>
   </div>
   <h3 class="sb-dev-heading">팀 간 연결 구조</h3>
   <div class="sb-dev-flow">
@@ -374,13 +396,13 @@
   </div>
   <div class="sb-dev-board" id="sb-dev-board"><article class="sb-dev-ticket" data-dev-item="D01" data-dev-priority="P0" data-dev-platform="web ios backend">
 <div class="sb-dev-ticket-meta"><span>P0 · D01</span><span>WEB · IOS · BACKEND</span></div>
-<h4>선택형 온보딩 → 기존 방 추천</h4><p>스킨케어+메이크업 및 분야별 고민 복수 선택, 건너뛰기. 실제 공개 방 중 관련 대화를 추천하되, 누구나 전체 탐색·자유 방 생성을 할 수 있어야 한다.</p><p class="sb-dev-ticket-status">현재 · 기획 미리보기만 구현 / 소비자 추천 미검증</p>
+<h4>선택형 온보딩 → 기존 방 추천</h4><p>스킨케어+메이크업 및 분야별 고민 복수 선택, 건너뛰기. 실제 공개 방 중 관련 대화를 추천하되, 누구나 전체 탐색·자유 방 생성을 할 수 있어야 한다.</p><p class="sb-dev-ticket-status">현재 · 관심사·고민 추천 코드 반영 / 연령대·피부 정보 확장 미구현</p>
 <details><summary>개발 수용 기준</summary><p>실제 방 조회, 관심사 미선택·빈 결과·에러, 추천 이유·최근 활동, ko/en, iPhone·모바일, 첫 발화 이벤트 확인</p></details>
 <a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/SERVICE_PLAN.md" target="_blank" rel="noopener noreferrer">서비스 명세 ↗</a>
 </article>
 <article class="sb-dev-ticket" data-dev-item="D02" data-dev-priority="P0" data-dev-platform="web backend">
 <div class="sb-dev-ticket-meta"><span>P0 · D02</span><span>WEB · BACKEND</span></div>
-<h4>웹 배포 복구 · 운영 SHA 확인</h4><p>Vercel의 build-rate-limit 실패 원인을 해결하고 main·배포 URL의 코드 버전과 관리자 접근 제어를 확인한다.</p><p class="sb-dev-ticket-status">현재 · 기준 main Vercel status 실패</p>
+<h4>웹 배포 상태 · 운영 SHA 확인</h4><p>과거 build-rate-limit 차단과 최신 배포를 구분한다. 5efa85e GitHub Vercel status success 확인, 이후 커밋도 SHA별 상태를 확인한다.</p><p class="sb-dev-ticket-status">현재 · 5efa85e 웹 배포 성공 확인 / 사용자 실기기 QA 별도</p>
 <details><summary>개발 수용 기준</summary><p>READY 배포 SHA 일치, 기존 앱 3탭 보존, /admin 비로그인 401·일반인 403·관리자 200, 캐시·보안·모바일 검증</p></details>
 <a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/blob/main/docs/ADMIN_CONSOLE.md" target="_blank" rel="noopener noreferrer">보안·배포 ↗</a>
 </article>
@@ -416,7 +438,7 @@
 </article>
 <article class="sb-dev-ticket" data-dev-item="D08" data-dev-priority="P1" data-dev-platform="web ios">
 <div class="sb-dev-ticket-meta"><span>P1 · D08</span><span>WEB · IOS</span></div>
-<h4>선택형 아바타 · 사용자 공개 범위</h4><p>가이드 캐릭터와 아바타는 별도. 한복·패션 의상은 개인 정보를 추정하지 않는 선택형 프로필 후보로 둔다.</p><p class="sb-dev-ticket-status">현재 · 일부 의상·PR #105 / 최종 출시 미확인</p>
+<h4>선택형 아바타 · 사용자 공개 범위</h4><p>가이드·로딩 캐릭터와 사용자 아바타는 별도. 현재 사용자 아바타는 숨기며 닉네임과 본문을 유지한다. 의상 선택은 보류한다.</p><p class="sb-dev-ticket-status">현재 · 사용자 결정으로 아바타 임시 숨김 / 재활성화는 후속 검토</p>
 <details><summary>개발 수용 기준</summary><p>권리·파일 크기·변경/초기화·익명성 검증; 성별·피부/인종·나이를 아바타로 판단하지 않기</p></details>
 <a class="sb-dev-ticket-link" href="https://github.com/yohan4477/Alimi/pull/105" target="_blank" rel="noopener noreferrer">아바타 PR #105 ↗</a>
 </article>
