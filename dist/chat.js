@@ -5,11 +5,11 @@ import {loadingMarkup} from './loading-companion.js';
 // Live chat polls every few seconds while open.
 import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
-import {roomImages, roomListCard} from './room-card.js';
-import {renderGuide, handleGuideClick, readInterests, CONCERNS, canCreateRooms} from './onboarding.js';
+import {roomImages, roomListCard, roomThumb} from './room-card.js';
+import {renderGuide, handleGuideClick, readInterests, recommendRooms, CONCERNS, canCreateRooms} from './onboarding.js';
 import {track} from './events.js';
 import {t, locale} from './i18n.js';
-import {searchCatalog, brandLabel, usd, brandInitials} from './live.js';
+import {searchCatalog, brandLabel, usd, brandInitials, brandColor, fetchBrands} from './live.js';
 import {chatSecret, readBlocked, block, hasAgreed, agree, roomTitle, roomIntro, visible, errorKey,
   fetchRooms, createRoom, fetchMessages, fetchMyRooms, joinRoom, postMessage, likeMessage, reportMessage} from './chat-api.js';
 import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, filterReviews, photoUrl, reviewPayload, uploadPhoto, ago, fetchPosts, fetchPost, fetchComments, fetchProductTalk, createPost, addComment, likeCommunity, reportCommunity} from './community-api.js';
@@ -73,26 +73,48 @@ const buyerInfo = p => {
 };
 export const postRow = p => `<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.' + p.kind))}</span><b>${esc(p.title)}</b><small>${esc(p.nickname)} · ${esc(ago(p.created_at))} · ${icon.comment} ${p.comments}</small></span>${p.photos?.[0] ? `<img src="${esc(photoUrl(p.photos[0]))}" alt="" loading="lazy">` : p.item?.image_url ? `<img src="${esc(p.item.image_url)}" alt="" loading="lazy">` : ''}</button>`;
 
-// Community home: topics, recent posts across topics, brand talk.
-let homeVersion = 0;
+// Community home (journey reference): Seoul Beauty header, 추천 / 대화방 / 발견 / 브랜드 tabs.
+// 추천: guide, trending rooms with a real product picture, recommended rooms. 발견: products and questions
+// from conversations. Every number shown is a real count from the fetched sample.
+const HOME_TABS = ['rec', 'rooms', 'discover', 'brands'];
+let homeVersion = 0, homeTab = 'rec', home = null, homeBrands = null;
 async function renderHome() {
   const version = ++homeVersion;
   stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="page-head community-head"><div><h1>${esc(t('community.title'))}</h1><p>${esc(t('community.sub'))}</p></div><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div>`);
+  shell(`<div class="page-head community-head"><div><h1 class="wordmark">Seoul Beauty</h1><p>${esc(t('community.sub'))}</p></div><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`);
   let posts = [], joined = [], postsFailed = false;
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
   if (version !== homeVersion || !$('#community-home')) return;
-  const recent = visiblePosts(posts), hot = activeRooms(chat.rooms), topics = [...chat.rooms].sort((a,b) => a.sort-b.sort);
+  const recent = visiblePosts(posts), hot = activeRooms(chat.rooms), topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => a.sort-b.sort);
   const entries = recent.map(p => ({...p,source:'post'}));
   let partial = postsFailed;
   const previews = new Map();
   await Promise.all(hot.map(async r => { try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, list.at(-1)?.body ?? ''); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
   if (version !== homeVersion || !$('#community-home')) return;
-  const products = mentionedProducts(entries, readBlocked(storage));
-  $('#community-home').innerHTML = `<section id="onboard-guide" class="onboard" aria-live="polite"></section>${joined.length ? `<button class="resume-conversation" data-chat-action="resume">${esc(t('home.resume'))}<span>›</span></button>` : ''}<h2 class="chat-section">${esc(t('home.active'))}</h2>${hot.length ? hot.map(r => `<button class="conversation-row" data-chat-room="${esc(r.id)}" data-live="1">${roomIcon(r)}<span><b>${esc(roomTitle(r))}</b><p>${esc(previews.get(r.id) || roomIntro(r))}</p><small>${esc(t('chat.members',{n:r.members}))} · ${esc(t('home.messages',{n:r.messages_24h}))}</small></span><i>›</i></button>`).join('') : `<p class="empty">${esc(t('home.quiet'))}</p>`}<h2 class="chat-section">${esc(t('home.mentioned'))}</h2><p class="home-note">${esc(t('home.scope'))}</p>${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>${!products.length ? `<p class="empty">${esc(t('home.noProducts'))}</p>` : ''}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}<h2 class="chat-section" id="home-topics">${esc(t('home.topics'))}</h2><p class="home-note">${esc(t('home.askHint'))}</p>${topics.map(roomRow).join('')}<button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`;
-  renderGuide($('#onboard-guide'), chat.rooms, roomImages(entries));
+  home = {hot, topics, recent, previews, partial, joined, images: roomImages(entries), products: mentionedProducts(entries, readBlocked(storage))};
   homeJoined = joined;
+  drawHome();
+}
+const trendCard = r => `<button class="trend-card" data-chat-room="${esc(r.id)}" data-live="1"><span class="trend-img">${home.images.get(r.id) ? `<img src="${esc(home.images.get(r.id))}" alt="" loading="lazy">` : roomThumb(r)}</span><b>${esc(roomTitle(r))}</b><small>${esc(t('home.msgShort', {n: r.messages_24h}))}</small></button>`;
+const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
+function drawHome() {
+  const box = $('#community-home'); if (!box || !home) return;
+  box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
+  const {hot, topics, recent, previews, partial, joined, images, products} = home;
+  if (homeTab === 'rec') {
+    const interests = readInterests();
+    const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (hot.length ? hot : topics).slice(0, 4);
+    box.innerHTML = `<section id="onboard-guide" class="onboard" aria-live="polite"></section>${joined.length ? `<button class="resume-conversation" data-chat-action="resume">${esc(t('home.resume'))}<span>›</span></button>` : ''}${hot.length ? sectionHead(t('home.trending'), t('home.trendingSub')) + `<div class="trend-grid">${hot.slice(0, 3).map(trendCard).join('')}</div>` : ''}${sectionHead(t('home.recRooms'), t('home.recRoomsSub'), `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || '', attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}`;
+    renderGuide($('#onboard-guide'), chat.rooms, images);
+  } else if (homeTab === 'rooms') {
+    box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'), canCreateRooms(chat.rooms) ? `<button class="text-link" data-chat-action="create-room">+ ${esc(t('room.new'))}</button>` : '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
+  } else if (homeTab === 'discover') {
+    box.innerHTML = `${sectionHead(t('home.mentioned'), t('home.scope'))}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>${!products.length ? `<p class="empty">${esc(t('home.noProducts'))}</p>` : ''}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
+  } else {
+    box.innerHTML = sectionHead(t('brands.title'), '') + (homeBrands === 'failed' ? `<p class="empty" role="status">${esc(t('home.brandsFailed'))}</p><button class="text-link" data-home-brands-retry>${esc(t('retry'))}</button>` : homeBrands ? homeBrands.length ? `<div class="home-brands">${homeBrands.map(b => `<button class="home-brand" data-brand="${esc(b.brand)}">${b.logo_url ? `<img src="${esc(b.logo_url)}" alt="" loading="lazy">` : `<i style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}</i>`}<span><b>${esc(brandLabel(b))}</b>${b.families ? `<small>${esc(t('count', {n: b.families}))}</small>` : ''}</span></button>`).join('')}</div>` : `<p class="empty">${esc(t('home.noBrands'))}</p>` : loadingMarkup(t('loading')));
+    if (!homeBrands) fetchBrands().then(list => { homeBrands = list; }, () => { homeBrands = 'failed'; }).then(() => { if (homeTab === 'brands') drawHome(); });
+  }
 }
 let homeJoined = [];
 function renderJoined() {
@@ -375,6 +397,8 @@ document.addEventListener('click', async e => {
   const a = b.dataset.chatAction;
   if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
+  else if (b.hasAttribute('data-home-brands-retry')) { homeBrands = null; drawHome(); }
+  else if (b.dataset.homeTab) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
   else if (a === 'find-topic') openStart();
   else if (a === 'create-room') openCreateRoom();
   else if (a === 'room-submit') submitRoom();

@@ -216,3 +216,25 @@ button:focus-visible,input:focus-visible{outline-color:#1463e8}
   .hero{border-radius:18px}
   .logo{font-size:25px}
 }
+
+/* Community home tabs (journey reference: 추천 / 대화방 / 발견 / 브랜드). */
+.wordmark{font-size:27px;font-weight:800;color:#104eaf;letter-spacing:-1px;font-style:italic}
+.home-tabs{display:flex;gap:4px;border-bottom:1px solid #e6eef9;margin:6px 0 4px;position:sticky;top:0;background:#fff;z-index:2}
+.home-tabs button{flex:1;padding:12px 4px 10px;font-size:15px;color:#7d8aa0;border:0;background:none;border-bottom:2px solid transparent;margin-bottom:-1px}
+.home-tabs button.on{color:var(--blue);font-weight:700;border-bottom-color:var(--blue)}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.section-head .chat-section{margin-bottom:2px}.section-head .home-note{margin:0 0 6px}
+.text-link{background:none;border:0;color:var(--blue);font-size:13px;font-weight:600;white-space:nowrap;padding:8px 0;min-height:40px}
+.trend-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 4px}
+.trend-card{display:flex;flex-direction:column;gap:4px;text-align:left;background:none;border:0;padding:0;color:var(--ink);min-width:0}
+.trend-img{display:block;aspect-ratio:1;border-radius:14px;overflow:hidden;background:var(--sb-surface)}
+.trend-img img{width:100%;height:100%;object-fit:cover}
+.trend-img .room-thumb{width:100%;height:100%;border-radius:0}
+.trend-card b{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trend-card small{font-size:11px;color:var(--muted)}
+.home-brands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.home-brand{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--sb-border);border-radius:14px;background:#fff;padding:10px;min-width:0}
+.home-brand img,.home-brand i{flex:none;width:40px;height:40px;border-radius:50%;object-fit:contain;background:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff;font-weight:700;font-size:13px}
+.home-brand span{min-width:0}.home-brand b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.home-brand small{font-size:11px;color:var(--muted)}
+.mentioned-products .chat-item{min-width:0}
+.room-list-text em{color:#5b6b85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.onboard .room-list-text em{color:var(--blue);white-space:normal}

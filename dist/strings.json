@@ -1579,5 +1579,53 @@
   "room.liveNow": {
     "ko": "지금 활발한 대화 중",
     "en": "Active now"
+  },
+  "home.tab.rec": {
+    "ko": "추천",
+    "en": "For you"
+  },
+  "home.tab.rooms": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "home.tab.discover": {
+    "ko": "발견",
+    "en": "Discover"
+  },
+  "home.tab.brands": {
+    "ko": "브랜드",
+    "en": "Brands"
+  },
+  "home.trending": {
+    "ko": "지금 뜨는 이야기",
+    "en": "Trending now"
+  },
+  "home.trendingSub": {
+    "ko": "최근 24시간 가장 많이 이야기한 대화방이에요.",
+    "en": "Rooms with the most messages in the last 24 hours."
+  },
+  "home.recRooms": {
+    "ko": "추천 대화방",
+    "en": "Recommended rooms"
+  },
+  "home.recRoomsSub": {
+    "ko": "고른 관심사와 지금 활동을 기준으로 골랐어요.",
+    "en": "Picked from your interests and recent activity."
+  },
+  "home.seeAll": {
+    "ko": "전체보기",
+    "en": "See all"
+  },
+  "home.msgShort": {
+    "ko": "오늘 메시지 {n}개",
+    "en": "{n} messages today"
+  },
+  "home.brandsFailed": {
+    "ko": "브랜드 목록을 불러오지 못했어요.",
+    "en": "Couldn't load brands."
+  },
+  "home.noBrands": {
+    "ko": "아직 보여줄 브랜드가 없어요.",
+    "en": "No brands to show yet."
   }
 }

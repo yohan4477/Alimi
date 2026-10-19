@@ -58,7 +58,7 @@ try {
   await page.evaluate(()=>localStorage.removeItem('seoulbeauty-interests-v1'));await page.reload();
   await guide.locator('[data-onb="skip"]').click();
   assert.equal(await guide.innerHTML(),'');
-  assert.ok(await page.locator('.conversation-row[data-live]').count()>0,'home still lists active rooms');
+  assert.ok(await page.locator('[data-chat-room][data-live]').count()>0,'home still lists active rooms');
   assert.deepEqual(writes,[],'guide sends nothing to the server');
   assert.deepEqual(errors,[]);
   await page.close();
