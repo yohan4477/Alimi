@@ -16,8 +16,8 @@ test('loading companion preserves localized status, escapes markup and hides art
 test('a different costume can start each separate real loading state', () => {
   const positions = new Set(Array.from({length: 10}, () => {
     const html = loadingMarkup('Loading');
-    const x = html.match(/--sb-static-x:(-?\\d+)px/)?.[1];
-    const y = html.match(/--sb-static-y:(-?\\d+)px/)?.[1];
+    const x = html.match(/--sb-static-x:(-?\d+)px/)?.[1];
+    const y = html.match(/--sb-static-y:(-?\d+)px/)?.[1];
     return x + ',' + y;
   }));
   assert.equal(positions.size, 10);

@@ -37,11 +37,36 @@ try {
   await login('admin@example.test');await page.getByRole('tab',{name:'전략',exact:true}).waitFor();
   const cookies=await page.context().cookies();const session=cookies.find(c=>c.name==='__Host-sb-admin');assert.ok(session?.httpOnly&&session.secure&&session.sameSite==='Strict');
   assert.equal(await page.evaluate(()=>document.cookie.includes('__Host-sb-admin')),false);
-  for(const name of ['전략','서비스 기획','디자인 리뷰','실행 로드맵','관리 대시보드']) {
+  for(const name of ['전략','서비스 기획','디자인 리뷰','개발','실행 로드맵','관리 대시보드']) {
     await page.getByRole('tab',{name,exact:true}).click();assert.equal(await page.locator('[role="tabpanel"]:visible').count(),1);
     assert.equal(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
   }
-  await page.getByRole('tab',{name:'전략',exact:true}).click();await page.getByRole('tab',{name:'전략',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
+
+  // Developer board: priority × platform filtering, links and tab jumps are presentational.
+  await page.getByRole('tab',{name:'개발',exact:true}).click();
+  const development=page.locator('#sb-dev');
+  assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
+  await development.locator('[data-dev-filter="priority"][data-dev-value="P0"]').click();
+  assert.equal(await development.locator('[data-dev-item]:visible').count(),6);
+  await development.locator('[data-dev-filter="platform"][data-dev-value="ios"]').click();
+  assert.equal(await development.locator('[data-dev-item]:visible').count(),3);
+  await development.locator('[data-dev-filter="priority"][data-dev-value="P1"]').click();
+  assert.equal(await development.locator('[data-dev-item]:visible').count(),4);
+  await development.locator('[data-dev-filter="platform"][data-dev-value="backend"]').click();
+  assert.equal(await development.locator('[data-dev-item]:visible').count(),0);
+  assert.equal(await development.locator('#sb-dev-empty').isVisible(),true);
+  await development.locator('[data-dev-filter="priority"][data-dev-value="all"]').click();
+  await development.locator('[data-dev-filter="platform"][data-dev-value="all"]').click();
+  assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
+  for (const width of [320,390,1024]) {
+    await page.setViewportSize({width,height:900});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'developer board overflows at '+width);
+  }
+  await page.setViewportSize({width:390,height:844});
+  await development.locator('[data-dev-jump="sb-plan-tab"]').click();
+  assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
+  await page.getByRole('tab',{name:'개발',exact:true}).click();
+    await page.getByRole('tab',{name:'전략',exact:true}).click();await page.getByRole('tab',{name:'전략',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   // New pixel-character onboarding is a local admin-only simulation, not a customer signup.
   const guide = page.locator('#sb-pixel-guide-demo');
   await guide.waitFor();
