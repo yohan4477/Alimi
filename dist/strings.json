@@ -1943,5 +1943,7 @@
   "share.inviteMessage": {
     "ko": "Seoul Beauty에서 K-뷰티 이야기 같이 해요!",
     "en": "Talk K-beauty with me on Seoul Beauty!"
-  }
+  },
+  "chat.copy": {"ko": "메시지 복사", "en": "Copy message"},
+  "chat.newMessages": {"ko": "새 메시지 {n}개 ↓", "en": "{n} new messages ↓"}
 }
