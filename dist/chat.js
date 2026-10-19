@@ -136,9 +136,6 @@ const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
 function drawHome() {
   const box = $('#community-home'); if (!box || !home) return;
-  let create = document.getElementById('community-create');
-  if (!create) { create = document.createElement('button'); create.id = 'community-create'; create.className = 'primary'; create.dataset.chatAction = 'create-room'; box.before(create); }
-  create.textContent = '+ ' + t('room.new');
   box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
   const {hot, topics, recent, previews, partial, joined, images, products} = home;
   if (homeTab === 'rec') {
@@ -150,11 +147,10 @@ function drawHome() {
   } else if (homeTab === 'rooms') {
     box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'))}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
   } else if (homeTab === 'discover') {
-    const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p>`;
-    const popular = home.popular?.length ? sectionHead(t('home.popular'), t('home.popularSub')) + `<div class="popular-grid">${home.popular.map(f => `<button class="popular-item" data-family="${esc(f.family_key)}" data-ref="discover"><span class="popular-img"><img src="${esc(f.image_url)}" alt="" loading="lazy"></span><small>${esc(brandLabel(f))}</small><b>${esc(f.base_name)}</b>${f.minPrice ? `<em>${esc(usd(f.minPrice))}</em>` : ''}</button>`).join('')}</div>` : '';
+    const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
-    // Conversation mentions lead when there are any; otherwise the catalog fills the screen first.
-    box.innerHTML = `${products.length ? talk + popular : popular + talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
+    // Discovery reflects actual conversation mentions, including an honest empty state.
+    box.innerHTML = `${talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
   } else {
     box.innerHTML = sectionHead(t('brands.title'), '') + (homeBrands === 'failed' ? `<p class="empty" role="status">${esc(t('home.brandsFailed'))}</p><button class="text-link" data-home-brands-retry>${esc(t('retry'))}</button>` : homeBrands ? homeBrands.length ? `<div class="home-brands">${homeBrands.map(b => `<button class="home-brand" data-brand="${esc(b.brand)}"><i style="background:${brandColor(b.brand)}">${esc(brandInitials(b.brand))}${b.logo_url ? `<img src="${esc(b.logo_url)}" alt="" loading="lazy">` : ''}</i><span><b>${esc(brandLabel(b))}</b>${b.families ? `<small>${esc(t('count', {n: b.families}))}</small>` : ''}</span></button>`).join('')}</div>` : `<p class="empty">${esc(t('home.noBrands'))}</p>` : loadingMarkup(t('loading')));
     if (!homeBrands) fetchBrands().then(list => { homeBrands = list; }, () => { homeBrands = 'failed'; }).then(() => { if (homeTab === 'brands') drawHome(); });
