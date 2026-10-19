@@ -1,3 +1,4 @@
+import {loadingMarkup} from './loading-companion.js';
 import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
@@ -36,7 +37,7 @@ function variantRows(list,ref=null){
   return list.map(v=>{const id=tracked.get(v.sku),href=buyUrl(v,ref);return `<article class="variant-row"><div><strong>${esc([v.size_label,v.option_label].filter(Boolean).join(' · ')||t('family.default'))}</strong>${v.bestValue?`<span class="best-tag">${esc(t('badge.bestValue'))}</span>`:''}<small>${v.unitPrice!=null?esc(t('unit.price',{v:usd(v.unitPrice),u:unitName(v.unit)})):''}</small></div><b>${usd(v.price)}</b>${href?`<a class="variant-buy observed-buy" href="${esc(href)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(v.sku)}" data-ref="${esc(ref??'')}">${esc(t('variant.buy'))}</a>`:''}${id?`<button class="variant-heart" data-favorite="${esc(id)}" aria-pressed="${state.favorites.includes(id)}" aria-label="${esc(t('favorites'))}">${state.favorites.includes(id)?'♥':'♡'}</button>`:`<button class="variant-heart" data-catalog-save="${esc(remember(v))}" data-retailer="${esc(v.retailer)}" data-market="${esc(v.market)}" aria-label="${esc(t('save.action'))}">♡</button>`}</article>`}).join('');
 }
 async function openFamily(key,ref=null){
-  const dlg=$('#family-dialog');$('#family-body').innerHTML=`<p class="empty">${esc(t('loading'))}</p>`;$('#family-talk').innerHTML='';dlg.showModal();
+  const dlg=$('#family-dialog');$('#family-body').innerHTML=`${loadingMarkup(t('loading'))}`;$('#family-talk').innerHTML='';dlg.showModal();
   try{const list=await fetchFamily(key);const head=list[0];$('#family-title').textContent=head?brandLabel(head):'';
     $('#family-name').textContent=head?.name?.split(' - ')[0]??'';$('#family-body').innerHTML='<div id="family-description"></div>'+variantRows(list,ref);if(head)renderProductInfo($('#family-description'),head);track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});renderProductTalk($('#family-talk'),key)}
   catch{$('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`}
@@ -225,13 +226,13 @@ document.addEventListener('error',e=>{if(e.target.matches?.('.room-ico img')){e.
 
 async function loadBrandStrip(){
   const box=$('#brands');box.hidden=false;box.setAttribute('aria-busy','true');
-  box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><p role="status">${esc(t('loading'))}</p>`;
+  box.innerHTML=`<h2>${esc(t('brands.title'))}</h2>${loadingMarkup(t('loading'))}`;
   try{brands=await fetchBrands();renderBrands()}
   catch{box.innerHTML=`<h2>${esc(t('brands.title'))}</h2><p role="status">${esc(t('loadFailed'))} <button data-brands-retry>${esc(t('retry'))}</button></p>`}
   finally{box.setAttribute('aria-busy','false')}
 }
 loadBrandStrip();
-$('#products').innerHTML=`<p class="empty">${esc(t('loadingPrices'))}</p>`;
+$('#products').innerHTML=`${loadingMarkup(t('loadingPrices'))}`;
 loadProducts().then(({products:list,source,exportedAt})=>{
   products=mergeCatalogSaves(list,readCatalogSaves(storage));
   $('#categories').innerHTML=['전체',...CATEGORIES].map(c=>`<button class="chip ${c==='전체'?'active':''}" data-category="${c}">${esc(categoryLabel(c))}</button>`).join('');
