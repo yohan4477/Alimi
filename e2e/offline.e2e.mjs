@@ -22,6 +22,7 @@ const review = {...post, id: 8, kind: 'review', title: 'Three weeks with snail e
 const comment = {id: 3, post_id: 7, author_tag: 'other2', nickname: 'Soft Seal', body: 'Try this one', item, likes: 0, created_at: now};
 const message = {id: 11, room_id: 'acne', author_tag: 'other', nickname: 'Calm Otter', body: 'Anyone tried snail?', item: null, reply_to: null, likes: 0, created_at: now};
 
+const profiles = [];
 async function mock(page, calls) {
   await page.route('**/rest/v1/**', route => {
     const req = route.request(), u = new URL(req.url()), res = u.pathname.split('/').at(-1), q = k => u.searchParams.get(k);
@@ -43,6 +44,9 @@ async function mock(page, calls) {
       case 'post_chat': { const b = req.postDataJSON(); return json({...message, id: 12, author_tag: 'me', nickname: 'Dewy Panda', body: b.p_body}); }
       case 'add_comment': { const b = req.postDataJSON(); return json({...comment, id: 4, author_tag: 'me', body: b.p_body, item: null}); }
       case 'report_chat': case 'report_community': return route.fulfill({status: 204});
+      case 'get_profile': return json(null);
+      case 'set_profile': { const p = req.postDataJSON().p_profile; profiles.push(p); return json(p); }
+      case 'delete_profile': return route.fulfill({status: 204});
       default: return json([]);
     }
   });
@@ -73,6 +77,30 @@ try {
     await page.click('#saved [data-screen="settings"]');
     await page.waitForSelector('#settings .set-row');
   });
+  await step('profile: under 13 saves nothing, B2B locked under 16, concerns need health consent, Do Not Sell', async () => {
+    await page.click('#tabbar [data-screen="saved"]');
+    await page.click('#saved [data-profile-open]');
+    await page.click('#profile-dialog [data-value="under13"]');
+    assert.equal(await page.isDisabled('#profile-dialog [data-profile-save]'), true);
+    await page.click('#profile-dialog [data-value="13-15"]');
+    assert.equal(await page.isDisabled('#profile-dialog [data-profile-check="consent_b2b"]'), true);
+    await page.click('#profile-dialog [data-value="25-34"]');
+    await page.click('#profile-dialog [data-profile-field="skin_type"][data-value="oily"]');
+    await page.click('#profile-dialog [data-profile-field="skin_tone"][data-value="deep"]');
+    assert.equal(await page.locator('#profile-dialog [data-profile-field="concerns"]').count(), 0, 'concerns hidden until health consent');
+    await page.check('#profile-dialog [data-profile-check="consent_health"]');
+    await page.click('#profile-dialog [data-profile-field="concerns"][data-value="acne"]');
+    await page.click('#profile-dialog [data-profile-save]');
+    await page.waitForSelector('#profile-dialog:not([open])', {state: 'attached'});
+    const sent = profiles.at(-1);
+    assert.deepEqual([sent.age_band, sent.skin_type, sent.skin_tone, sent.concerns, sent.consent_b2b], ['25-34', 'oily', 'deep', ['acne'], false]);
+    await page.waitForSelector('#saved .profile-card >> text=25');
+    await page.click('#saved [data-screen="settings"]');
+    await page.click('#settings [data-set="do-not-sell"]');
+    await page.waitForFunction(n => document.querySelector('#toast')?.classList.contains('show'), null);
+    assert.equal(profiles.at(-1).opt_out_sale, true);
+    assert.equal(profiles.at(-1).consent_b2b, false);
+  });
   await step('community: topic posts, post detail with comment card carrying clickref', async () => {
     await page.click('#tabbar [data-screen="chat"]');
     await page.click('#chat .room-row[data-chat-room="acne"]');
@@ -83,6 +111,8 @@ try {
     await page.waitForSelector('#family-dialog[open] .variant-buy');
     assert.equal(new URL(await page.getAttribute('#family-body .variant-buy', 'href')).searchParams.get('clickref'), 'comment-3');
     await page.waitForSelector('#family-talk .post-row');
+    await page.click('#family-talk [data-review-similar]');
+    assert.equal(await page.locator('#family-talk .post-row').count() >= 1, true, 'the deep / oily review matches the saved profile');
     await page.click('#family-dialog .close-dialog');
     await page.fill('#comment-text', 'Thanks!');
     await page.click('#comment-form .chat-send');
