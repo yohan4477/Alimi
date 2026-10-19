@@ -34,7 +34,8 @@ try {
   await page.locator('#join-live').click();
   await page.locator('#chat-text').waitFor();
   assert.equal(await page.locator('#room-join').count(),0,'join button gone once joined');
-  assert.match(await page.locator('.msg-avatar').first().getAttribute('src'),/^avatars\/avatar-[1-5]\.webp$/);
+  assert.equal(await page.locator('.msg-avatar').count(),0);
+  assert.equal(await page.locator('.chat-nick').first().innerText(),'Maya');
   assert.deepEqual(errors,[]);await ctx.close();
  }
  // Not yet a member: the header offers join, which asks for the rules first and then opens live chat.
@@ -78,5 +79,5 @@ try {
   await page.locator('#activity-conversations [data-open-room="tint"]').waitFor();
   assert.deepEqual(errors,[]);await ctx.close();
  }
- console.log('ok - shared room/product links, room header members/join/share, generated avatars, welcome back with honest new-message badge, activity tabs');
+ console.log('ok - shared room/product links, room header members/join/share, hidden avatars with visible names, welcome back with honest new-message badge, activity tabs');
 } finally { await browser.close(); }

@@ -22,9 +22,14 @@ try {
   });
   await page.goto(base+'?lang='+lang);
   await page.locator('.pick-card[data-live]').first().waitFor();
-  assert.equal(await page.locator('#tabbar button').count(),5);
+  assert.equal(await page.locator('#tabbar button').count(),3);
   assert.equal(await page.locator('#chat').isVisible(),true);
   assert.equal(await page.locator('#browse').isVisible(),false);
+  assert.deepEqual(await page.locator('#tabbar button').evaluateAll(bs=>bs.map(b=>b.dataset.screen)),['chat','search','saved']);
+  await page.locator('#chat .home-alerts').click();
+  await page.locator('#alerts .alert-filters').waitFor();
+  await page.locator('#alerts [data-screen="chat"]').click();
+  await page.locator('.pick-card[data-live]').first().waitFor();
   // 추천 tab: trending card and recommended room; user-authored text stays verbatim in either UI language.
   assert.equal(await page.locator('.trend-card[data-chat-room="tint"]').count(),1);
   // 발견 tab: products mentioned in conversations.
@@ -51,6 +56,7 @@ try {
   assert.equal(await page.locator('#chat-log').isVisible(),true);
   assert.equal(await page.locator('#chat-log .chat-msg').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+  await page.locator('.room-back').click();
   await page.locator('#tabbar [data-screen="saved"]').click();
   await page.locator('[data-activity-tab="rooms"]').click();
   await page.locator('#activity-conversations h2').waitFor();

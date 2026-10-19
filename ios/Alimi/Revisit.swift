@@ -91,16 +91,16 @@ struct JoinedRoomCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 14) {
                 HStack(spacing: 4) {
-                    let pics = Array((act.pictures + [fallback].compactMap { $0 }).prefix(3))
+                    let pics = Array((act.pictures + [fallback].compactMap { $0 }).prefix(2))
                     ForEach(Array(pics.enumerated()), id: \.offset) { _, u in RemoteThumb(url: u).frame(width: 44, height: 70).clipShape(RoundedRectangle(cornerRadius: 8)) }
                     if pics.isEmpty { RoomThumb(room: act.room, picture: nil, size: 70) }
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .top) {
-                        Text(act.room.title).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                        Text(act.room.title).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
                         Spacer(minLength: 4)
                         if act.newCount > 0 {
-                            Text(String(act.newCount)).font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
+                            Text(String(act.newCount)).fixedSize().font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
                                 .padding(.horizontal, 9).frame(minHeight: 26).background(Color.sbBlue, in: Capsule())
                         }
                     }
@@ -207,7 +207,22 @@ struct AlertItem: Identifiable {
     let family: ProductFamily?
 }
 
+struct AlertBell: View {
+    let unread: Int
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "bell").font(.system(size: 23)).foregroundStyle(Color.sbNavy)
+                .frame(width: 44, height: 44)
+                .overlay(alignment: .topTrailing) {
+                    if unread > 0 { Circle().fill(Color.red).frame(width: 8, height: 8).padding(5) }
+                }
+        }.accessibilityLabel(L("alerts.title")).accessibilityValue(String(unread)).accessibilityIdentifier("open-alerts")
+    }
+}
+
 struct NotificationsView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var store: AlimiStore
     @ObservedObject var model: RevisitModel
     @State private var filter = "all"
@@ -217,8 +232,13 @@ struct NotificationsView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(L("alerts.title")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy).padding(.top, 12)
-                    HStack(spacing: 10) {
+                    HStack {
+                        Text(L("alerts.title")).font(.system(size: 32, weight: .heavy)).foregroundStyle(Color.sbNavy)
+                        Spacer()
+                        Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel(L("close")).accessibilityIdentifier("alerts-close")
+                    }.padding(.top, 12)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                      HStack(spacing: 10) {
                         ForEach(["all", "room", "product", "service"], id: \.self) { f in
                             Button { filter = f } label: {
                                 Text(L("alerts.filter." + f)).font(.system(size: 17, weight: filter == f ? .bold : .medium))
@@ -226,6 +246,7 @@ struct NotificationsView: View {
                                     .padding(.horizontal, 20).frame(minHeight: 46).background(filter == f ? Color.sbBlue : Color(rgb: 0xEEF2F8), in: Capsule())
                             }.buttonStyle(.plain).accessibilityIdentifier("alerts-filter-" + f)
                         }
+                      }.fixedSize(horizontal: true, vertical: false)
                     }
                     if shown.isEmpty && model.loaded {
                         Text(L(filter == "service" ? "alerts.emptyService" : "alerts.empty")).font(.subheadline).foregroundStyle(Color.sbGray).padding(.top, 20)
@@ -245,7 +266,7 @@ struct NotificationsView: View {
             .navigationDestination(for: ChatRoom.self) { CommunityTopic(room: $0, member: true) }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
-            .onAppear { Alerts.markOpened() }
+            .task { await model.load(store: store); Alerts.markOpened() }
             .accessibilityIdentifier("alerts")
         }
     }
@@ -255,7 +276,7 @@ struct AlertRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
             Image(systemName: item.icon).font(.system(size: 26)).foregroundStyle(Color(rgb: item.tint))
-                .frame(width: 72, height: 72).background(Color(rgb: item.bg), in: Circle())
+                .frame(width: 48, height: 48).background(Color(rgb: item.bg), in: Circle())
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .top) {
                     Text(item.title).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).fixedSize(horizontal: false, vertical: true)

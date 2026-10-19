@@ -99,9 +99,15 @@ struct InterestScreen: View {
                         .minimumScaleFactor(0.8).lineLimit(2).padding(.top, 28).accessibilityIdentifier("onb-title")
                     Text(L("onb.s0")).font(.system(size: 18)).foregroundStyle(Color.sbGray).padding(.top, 10)
                     Text(L("onb.fields")).font(.system(size: 18, weight: .bold)).foregroundStyle(Color.sbNavy).padding(.top, 40)
-                    HStack(spacing: 14) {
-                        fieldButton("skincare", icon: "drop")
-                        fieldButton("makeup", icon: "paintbrush.pointed")
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 14) {
+                            fieldButton("skincare", icon: "drop").fixedSize(horizontal: true, vertical: false)
+                            fieldButton("makeup", icon: "paintbrush.pointed").fixedSize(horizontal: true, vertical: false)
+                        }
+                        VStack(spacing: 10) {
+                            fieldButton("skincare", icon: "drop")
+                            fieldButton("makeup", icon: "paintbrush.pointed")
+                        }
                     }.padding(.top, 16)
                     Text(L("onb.keywords")).font(.system(size: 18, weight: .bold)).foregroundStyle(Color.sbNavy).padding(.top, 40)
                     if draft.visibleConcerns.isEmpty {
@@ -129,12 +135,12 @@ struct InterestScreen: View {
             draft = draft.normalized()
         } label: {
             HStack(spacing: 10) {
-                if on { Image(systemName: "checkmark").font(.system(size: 17, weight: .bold)) }
+                Image(systemName: "checkmark").font(.system(size: 17, weight: .bold)).opacity(on ? 1 : 0)
                 Image(systemName: icon).font(.system(size: 20))
-                Text(L("onb.g." + group)).font(.system(size: 18, weight: .bold))
+                Text(L("onb.g." + group)).font(.system(size: 18, weight: .bold)).lineLimit(1).minimumScaleFactor(0.8)
             }
             .foregroundStyle(on ? Color.white : Color.sbNavy)
-            .frame(maxWidth: .infinity, minHeight: 64)
+            .padding(.horizontal, 12).frame(maxWidth: .infinity, minHeight: 64)
             .background(on ? Color.sbBlue : Color.sbChipBg, in: RoundedRectangle(cornerRadius: 18))
             .overlay(RoundedRectangle(cornerRadius: 18).stroke(on ? Color.sbBlue : Color(rgb: 0xE3E7EE)))
         }.buttonStyle(.plain).accessibilityIdentifier("onb-group-" + group).accessibilityAddTraits(on ? .isSelected : [])
@@ -238,10 +244,10 @@ struct PickCard: View {
     var showIntro = true
     var body: some View {
         HStack(alignment: showIntro ? .top : .center, spacing: 16) {
-            RoomThumb(room: room, picture: picture, size: 100).frame(width: 100, height: showIntro ? 112 : 100)
+            RoomThumb(room: room, picture: picture, size: 72).frame(width: 72, height: 72)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .top) {
-                    Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                    Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
                     Spacer(minLength: 4)
                     Image(systemName: "chevron.right").font(.system(size: 17)).foregroundStyle(Color.sbNavy)
                 }
@@ -249,7 +255,7 @@ struct PickCard: View {
                 if showIntro { Text(room.intro).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1) }
                 let tags = Recommend.concerns(of: room).prefix(3)
                 if !tags.isEmpty {
-                    HStack(spacing: 6) {
+                    FlowLayout(spacing: 6) {
                         ForEach(Array(tags), id: \.self) { id in
                             Text("#" + Interests.label(id).replacingOccurrences(of: " ", with: ""))
                                 .font(.system(size: 13, weight: highlight.contains(id) ? .bold : .semibold)).foregroundStyle(Color.sbBlue)

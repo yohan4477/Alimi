@@ -82,10 +82,11 @@ const icon={
 };
 // Screens: home / saved / search / brand / settings / detail / chat. The bottom tab bar stays on every
 // screen except product detail (which has its own bottom action bar).
-const TABS=['chat','rooms','search','alerts','saved'];
+const TABS=['chat','search','saved'];
 let screen='chat',lastTab='chat',detailReturn='chat';
 const screenEl=n=>n==='home'?$('#browse'):n==='search'?$('#search-screen'):$('#'+n);
 function show(n){
+  if(n==='rooms'){activityTab='rooms';n='saved'}
   if(screen==='chat'&&n!=='chat')leaveChat();
   for(const s of ['home','saved','search','brand','settings','detail','chat','rooms','alerts','share'])screenEl(s).hidden=s!==n;
   screen=n;if(TABS.includes(n))lastTab=n;
@@ -97,7 +98,7 @@ function show(n){
   if(n==='search'){renderSearch();setTimeout(()=>$('#search').focus(),0)}
   if(n==='chat')openChat({toast,onClose:()=>show('chat')});
   if(n==='rooms')renderMyRooms($('#rooms'),{savedFamilies:savedFamilies()});
-  if(n==='alerts'){renderAlerts($('#alerts'),{savedFamilies:savedFamilies()}).then(()=>setAlertBadge(0))}
+  if(n==='alerts'){renderAlerts($('#alerts'),{savedFamilies:savedFamilies(),returnScreen:lastTab}).then(()=>setAlertBadge(0))}
   if(n==='share'){renderShareHub($('#share'),{saved:savedFamilies()});loadRevisit({}).then(d=>{if(screen==='share')renderShareHub($('#share'),{rooms:d.activity.map(a=>a.room),saved:savedFamilies()})},()=>{})}
 }
 // Popular-brand strip: round badges like a delivery app's brand grid; tapping one opens that brand's page.
@@ -137,7 +138,7 @@ let activityTab='saved';
 const recentList=()=>{const list=readRecent();return list.length?`<div class="recent-list">${list.map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:`<p class="empty">${esc(t('activity.recentEmpty'))}</p>`};
 // Products saved on this device that have a family key (for 알림 and 상품 공유).
 const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
-const setAlertBadge=n=>{const b=$('#alert-count');if(b){b.textContent=n;b.hidden=!n}};
+const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
 function renderSaved(){
   const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
   const hint=n===0?t('saved.hint'):n<3?t('saved.hintMore',{n:3-n}):t('saved.count',{n});

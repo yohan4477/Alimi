@@ -1,4 +1,5 @@
 {
+  "nav.explore": {"ko": "탐색", "en": "Explore"},
   "_note": "Single source of UI text for web (dist/) and iOS (copied to ios/Alimi/strings.json; tests keep them identical). Korean shows when the device language is Korean, English otherwise. {name} placeholders are filled at runtime.",
   "all": {
     "ko": "전체",

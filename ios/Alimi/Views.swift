@@ -1,26 +1,40 @@
 import SwiftUI
 import UIKit
 
+// Short action labels stay together; their parent must reserve their intrinsic width.
+struct InlineActionLabel: View {
+    let title: String
+    let icon: String
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+            Text(title).lineLimit(1)
+        }.fixedSize(horizontal: true, vertical: false)
+    }
+}
+
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
     @State private var tab = MainTab.chat
     @State private var onboarding: OnboardingStep? = Interests.load()?.done == true || ProcessInfo.processInfo.arguments.contains("-skipOnboarding") ? nil : .splash
     @State private var openRoom: ChatRoom?
     @State private var searching = false
+    @State private var showingAlerts = false
+    @State private var activitySection = "saved"
     @StateObject private var revisit = RevisitModel()
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { tab = .rooms })
-                .tabItem { Label(L("tab2.home"), systemImage: "house") }.tag(MainTab.chat)
-            MyRoomsView(onSearch: { searching = true }).tabItem { Label(L("tab2.rooms"), systemImage: "bubble.left") }.tag(MainTab.rooms)
-            BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab2.discover"), systemImage: "safari") }.tag(MainTab.home)
-            NotificationsView(model: revisit).tabItem { Label(L("tab2.alerts"), systemImage: "bell") }.tag(MainTab.alerts)
-                .badge(tab == .alerts ? 0 : revisit.unread)
-            SavedView(tab: $tab, editInterests: { onboarding = .choose }, onSearch: { searching = true })
-                .tabItem { Label(L("tab2.my"), systemImage: "person") }.tag(MainTab.saved)
+            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { activitySection = "rooms"; tab = .saved }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
+                .tabItem { Label(L("nav.community"), systemImage: "house") }.tag(MainTab.chat)
+            BrowseView(onCommunity: { tab = .chat }, onSearch: { searching = true })
+                .tabItem { Label(L("nav.explore"), systemImage: "magnifyingglass") }.tag(MainTab.home)
+            SavedView(section: $activitySection, editInterests: { onboarding = .choose }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
+                .tabItem { Label(L("nav.activity"), systemImage: "person") }.tag(MainTab.saved)
         }.id(lang)
         .sheet(isPresented: $searching) { SearchView().environmentObject(store) }
+        .sheet(isPresented: $showingAlerts, onDismiss: { Task { await revisit.load(store: store) } }) { NotificationsView(model: revisit).environmentObject(store) }
+        .toolbar(onboarding == nil ? .automatic : .hidden, for: .tabBar)
         // First-visit flow drawn over the tabs (not a modal cover), so closing it and opening the picked room happen
         // in one state change and the community stack is already on screen to receive the room.
         .overlay {
@@ -112,6 +126,7 @@ struct ProductArt: View {
 }
 struct BrowseView: View {
     var onCommunity: () -> Void = {}
+    var onSearch: () -> Void = {}
     @EnvironmentObject var store: AlimiStore
     @State private var category = "전체"
     @State private var catalog: [CatalogItem]? = []
@@ -157,7 +172,8 @@ struct BrowseView: View {
                     }
                     browseSection
                 }.padding(20)
-            }.navigationTitle("SeoulBeauty")
+            }.navigationTitle(L("nav.explore"))
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(action: onSearch) { Image(systemName: "magnifyingglass").frame(width: 44, height: 44) }.accessibilityLabel(L("search.title")).accessibilityIdentifier("explore-search") } }
                 .task(id: category) {
                     browse = []; browseDone = false
                     await loadMore()
@@ -253,7 +269,7 @@ struct BrandBadge: View {
                 }
             }
             .frame(width: size, height: size)
-            .overlay(Circle().stroke(Color(.separator), lineWidth: 0.5))
+
             .task(id: brand.logoUrl) {
                 if let bundled = UIImage(named: brand.bundledLogoName) { logoImage = bundled; return }
                 logoImage = nil
@@ -365,9 +381,9 @@ struct VariantList: View {
     var body: some View {
         ForEach(variants) { v in
             let trackedID = store.products.first { $0.sku == v.item.sku }?.id
-            HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
+                    FlowLayout(spacing: 6) {
                         Text(v.item.variantLabel.isEmpty ? L("family.default") : v.item.variantLabel).font(.subheadline.bold())
                         if v.bestValue { Text(L("badge.bestValue")).font(.caption2.bold()).foregroundStyle(.red) }
                     }
@@ -375,21 +391,23 @@ struct VariantList: View {
                         Text(L("unit.price", ["v": usd(unit), "u": CatalogItem.unitName(v.item.unit)])).font(.caption).foregroundStyle(.secondary)
                     }
                 }
-                Spacer()
-                Text(usd(v.item.price)).font(.headline)
-                if let link = Purchase.buyURL(v.item.affiliateUrl ?? v.item.url, ref: ref) {
-                    Button(L("variant.buy")) {
-                        EventLogger.shared.log(.merchantClick, props: ["from": ref ?? "options", "sku": v.item.sku])
-                        openURL(link)
-                    }.buttonStyle(.borderedProminent).controlSize(.small).accessibilityIdentifier("variant-buy-\(v.item.sku)")
+                HStack(spacing: 10) {
+                    Text(usd(v.item.price)).font(.headline).lineLimit(1).minimumScaleFactor(0.85)
+                    Spacer(minLength: 8)
+                    if let link = Purchase.buyURL(v.item.affiliateUrl ?? v.item.url, ref: ref) {
+                        Button(L("variant.buy")) {
+                            EventLogger.shared.log(.merchantClick, props: ["from": ref ?? "options", "sku": v.item.sku])
+                            openURL(link)
+                        }.buttonStyle(.borderedProminent).controlSize(.regular).fixedSize(horizontal: true, vertical: false).accessibilityIdentifier("variant-buy-\(v.item.sku)")
+                    }
+                    Button {
+                        if let id = trackedID { store.toggle(id) }
+                        else { busy = v.item.id; Task { _ = await store.saveCatalogItem(v.item); busy = nil } }
+                    } label: {
+                        let saved = trackedID.map { store.saved.favorites.contains($0) } ?? false
+                        Image(systemName: busy == v.item.id ? "hourglass" : saved ? "heart.fill" : "heart").font(.title3).frame(width: 44, height: 44)
+                    }.disabled(busy != nil).accessibilityLabel(L("save.action"))
                 }
-                Button {
-                    if let id = trackedID { store.toggle(id) }
-                    else { busy = v.item.id; Task { _ = await store.saveCatalogItem(v.item); busy = nil } }
-                } label: {
-                    let saved = trackedID.map { store.saved.favorites.contains($0) } ?? false
-                    Image(systemName: busy == v.item.id ? "hourglass" : saved ? "heart.fill" : "heart").font(.title3).frame(width: 44, height: 44)
-                }.disabled(busy != nil).accessibilityLabel(L("save.action"))
             }
             Divider()
         }
@@ -444,7 +462,7 @@ struct FamilySheet: View {
     }
     private var hero: some View {
         ZStack(alignment: .top) {
-            Color(rgb: 0xF7E9EA)
+            Color.white
             TabView(selection: $selected) {
                 ForEach(Array(photos.enumerated()), id: \.offset) { i, url in
                     RemoteImage(url: url, label: family.brandLabel).padding(28).tag(i)
@@ -472,7 +490,8 @@ struct FamilySheet: View {
                 ForEach(Array(photos.enumerated()), id: \.offset) { i, url in
                     Button { withAnimation { selected = i } } label: {
                         RemoteThumb(url: url).frame(width: 68, height: 68).clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(i == selected ? Color.sbBlue : Color(rgb: 0xE6EAF1), lineWidth: i == selected ? 2 : 1))
+                            .opacity(i == selected ? 1 : 0.55)
+                            .accessibilityAddTraits(i == selected ? .isSelected : [])
                     }.buttonStyle(.plain)
                 }
             }.padding(.horizontal, 20)
@@ -484,7 +503,7 @@ struct FamilySheet: View {
                 Text(family.brandLabel).font(.system(size: 17)).foregroundStyle(Color.sbGray)
                 Spacer()
                 Button { Task { await save() } } label: {
-                    Image(systemName: isSaved ? "heart.fill" : "heart").font(.system(size: 26)).foregroundStyle(Color(rgb: 0xF0476A))
+                    Image(systemName: isSaved ? "heart.fill" : "heart").font(.system(size: 26)).foregroundStyle(Color(rgb: 0xF0476A)).frame(width: 44, height: 44)
                 }.buttonStyle(.plain).disabled(busy).accessibilityLabel(L("save.action")).accessibilityIdentifier("product-save")
             }
             Text(family.baseName).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).fixedSize(horizontal: false, vertical: true)
@@ -502,17 +521,16 @@ struct FamilySheet: View {
             ("scalemass", L("product.fact.unit"), unit.map { usd($0.1) + "/" + CatalogItem.unitName($0.0.unit) } ?? "—"),
             ("sparkles", L("product.fact.category"), family.category.map(L10n.category) ?? "—"),
         ]
-        return HStack(spacing: 0) {
-            ForEach(Array(items.enumerated()), id: \.offset) { i, f in
+        return LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 12)], spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { _, f in
                 VStack(spacing: 8) {
                     Image(systemName: f.0).font(.system(size: 26, weight: .light)).foregroundStyle(Color.sbNavy)
-                    Text(f.1).font(.system(size: 14)).foregroundStyle(Color(rgb: 0x5B6475))
+                    Text(f.1).font(.system(size: 14)).foregroundStyle(Color(rgb: 0x5B6475)).multilineTextAlignment(.center)
                     Text(f.2).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color.sbNavy).lineLimit(1).minimumScaleFactor(0.7)
                 }.frame(maxWidth: .infinity).padding(.vertical, 16)
-                if i < items.count - 1 { Rectangle().fill(Color(rgb: 0xE6EAF1)).frame(width: 1, height: 64) }
             }
         }
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 18)).overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(rgb: 0xE6EAF1)))
+        .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
         .accessibilityElement(children: .combine).accessibilityIdentifier("product-facts")
     }
     @ViewBuilder private var cta: some View {

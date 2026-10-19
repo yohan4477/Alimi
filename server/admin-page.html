@@ -29,12 +29,18 @@
     <h3 class="sb-section">검증할 전략 가설</h3>
     <div class="sb-line"><div class="sb-label">유입</div><div class="sb-value"><span>K-뷰티 × 구체적 피부·메이크업 고민의 교집합이 단순 K-뷰티 탐색보다 가입 없이 첫 대화에 참여할 동기를 높이는가?</span><span class="text-small text-muted">고민별 유입→대화 진입→첫 참여를 비교. 초기 가설이며 결과 미확인.</span></div></div>
     <div class="sb-line"><div class="sb-label">구매 전환</div><div class="sb-value"><span>고민 해결형 대화와 제품 추천형 대화 중 어디서 제휴 클릭·승인 구매가 더 많이 발생하는가?</span><span class="text-small text-muted">주제별 방문자 1,000명당 수수료와 D7을 함께 비교. 주문·수수료 추적 연결은 미검증.</span></div></div>
-    <div class="sb-line"><div class="sb-label">집중 범위</div><div class="sb-value"><span>기존 Community · Search · My Activity와 상품·브랜드 연결 유지. 소비자 가격 추적·목표가·가격 알림은 제외.</span><span class="text-small text-muted">이 전략 문구는 앱 기능 구현·실제 사용자 실험·제휴 정산 검증 완료를 뜻하지 않음.</span></div></div>
+    <div class="sb-line"><div class="sb-label">집중 범위</div><div class="sb-value"><span>기존 Community · Explore · My Activity와 상품·브랜드 연결 유지. 소비자 가격 추적·목표가·가격 알림은 제외.</span><span class="text-small text-muted">이 전략 문구는 앱 기능 구현·실제 사용자 실험·제휴 정산 검증 완료를 뜻하지 않음.</span></div></div>
     <div class="sb-links"><a href="https://github.com/yohan4477/Alimi/blob/main/docs/STRATEGY.md" target="_blank" rel="noopener noreferrer">전략 원문 ↗</a></div>
   </section>
   <section class="sb-panel" id="sb-plan" role="tabpanel" aria-labelledby="sb-plan-tab" hidden>
     <h3>화면별 고객 여정 · 구성요소 · KPI</h3>
-    <div class="card" style="margin:12px 0"><span class="viz-badge">2026.10.19 · 고객 여정 개편안 · 미구현</span><h3>스킨케어·메이크업 함께 선택 → 세부 고민 → 맞춤 대화 → 상품 발견</h3><span>기존 Community · Search · My Activity 탭과 게시글/실시간 채팅, 상품 첨부 흐름은 유지한다. 아래는 신규 기획이며 실제 배포·계측 완료를 뜻하지 않는다.</span></div>
+    <div class="card" id="sb-three-tab-decision"><span class="viz-badge">2026.10.19 22:09 · 사용자 결정 · 배포 검증 별도</span><h3>시안 화면 유지 · 하단은 커뮤니티 / 탐색 / 내 활동</h3><p>Journey 1·2·3의 이미지·카드·말풍선·색상·타이포를 기준으로 유지한다. 이전 5탭 목표는 아래 3탭 기준으로 대체한다.</p>
+      <div class="sb-line"><div class="sb-label">① 신규 유입</div><div class="sb-value">온보딩 → 고민 선택 → 추천방 → 대화. 온보딩·대화방에서는 하단 탭 숨김.</div></div>
+      <div class="sb-line"><div class="sb-label">② 상품 발견</div><div class="sb-value">커뮤니티 또는 탐색 → 상품·브랜드 → 대화에 첨부·구매 → 원래 대화 복귀.</div></div>
+      <div class="sb-line"><div class="sb-label">③ 재방문</div><div class="sb-value">내 활동의 저장 상품·참여한 방 → 알림·공유 → 커뮤니티 복귀.</div></div>
+      <p>알림 화면은 상단 종 아이콘, 프로필·관심사·설정은 내 활동, 공유는 대화방·상품·공유 화면에서 연결한다. 원본 시안의 예시 수치·가격 하락 알림·미구현 초대 리워드는 운영 기능으로 복제하지 않는다.</p><small>화면 1:1 재현·실기기 검증·TestFlight 배포 완료를 의미하지 않는다.</small>
+    </div>
+    <div class="card" style="margin:12px 0"><span class="viz-badge">2026.10.19 · 고객 여정 개편안 · 미구현</span><h3>스킨케어·메이크업 함께 선택 → 세부 고민 → 맞춤 대화 → 상품 발견</h3><span>기존 Community · Explore · My Activity 탭과 게시글/실시간 채팅, 상품 첨부 흐름은 유지한다. 아래는 신규 기획이며 실제 배포·계측 완료를 뜻하지 않는다.</span></div>
 
     <section id="sb-pixel-guide-demo" class="sb-pixel-guide-demo" aria-label="픽셀 한복 캐릭터 가이드 온보딩 기획 미리보기">
       <div class="sb-guide-titlebar">
@@ -185,7 +191,7 @@
       <div>
         <p class="sb-design-eyebrow">서울뷰티 · 디자인 의사결정 보드</p>
         <h2>맞춤 추천을 추가하되,<br>첫 대화까지의 거리는 줄인다.</h2>
-        <p>기존 Community · Search · My Activity 탭과 상품 첨부를 유지한다. 스킨케어·메이크업 복수 관심사 선택은 <strong>가치를 보여주는 선택형 진입</strong>으로 제안하고, 실제 이용자 테스트로 결정한다.</p>
+        <p>기존 Community · Explore · My Activity 탭과 상품 첨부를 유지한다. 스킨케어·메이크업 복수 관심사 선택은 <strong>가치를 보여주는 선택형 진입</strong>으로 제안하고, 실제 이용자 테스트로 결정한다.</p>
       </div>
       <div class="sb-design-verdict"><span>디자인 판단</span><strong>조건부 추천</strong><small>실제 디자이너 인터뷰·사용자 테스트 결과가 아닌, 현행 코드와 UX 원칙 기반 휴리스틱 리뷰</small></div>
     </div>

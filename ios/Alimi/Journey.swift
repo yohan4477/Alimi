@@ -177,7 +177,7 @@ struct FlowLayout: Layout {
         let width = proposal.width ?? .infinity
         var x: CGFloat = 0, y: CGFloat = 0, row: CGFloat = 0, widest: CGFloat = 0
         for v in subviews {
-            let s = v.sizeThatFits(.unspecified)
+            let s = v.sizeThatFits(ProposedViewSize(width: width.isFinite ? width : nil, height: nil))
             if x > 0 && x + s.width > width { y += row + spacing; x = 0; row = 0 }
             x += s.width + spacing; row = max(row, s.height); widest = max(widest, x - spacing)
         }
@@ -186,7 +186,7 @@ struct FlowLayout: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var x = bounds.minX, y = bounds.minY, row: CGFloat = 0
         for v in subviews {
-            let s = v.sizeThatFits(.unspecified)
+            let s = v.sizeThatFits(ProposedViewSize(width: bounds.width, height: nil))
             if x > bounds.minX && x + s.width > bounds.maxX { y += row + spacing; x = bounds.minX; row = 0 }
             v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(s))
             x += s.width + spacing; row = max(row, s.height)
@@ -263,7 +263,7 @@ struct RoomListCard: View {
                 if let note, !note.isEmpty { Text(note).font(.caption).foregroundStyle(Color(rgb: 0x5B6B85)).lineLimit(1) }
                 let tags = Recommend.concerns(of: room).prefix(3)
                 if !tags.isEmpty {
-                    HStack(spacing: 6) {
+                    FlowLayout(spacing: 6) {
                         ForEach(Array(tags), id: \.self) { id in
                             Text("#" + Interests.label(id).replacingOccurrences(of: " ", with: ""))
                                 .font(.caption2.weight(highlight.contains(id) ? .bold : .regular))
@@ -322,6 +322,8 @@ struct CommunityHome: View {
     var onEditInterests: () -> Void = {}
     var onSearch: () -> Void = {}
     var onMyRooms: () -> Void = {}
+    var onAlerts: () -> Void = {}
+    var unreadAlerts = 0
     @StateObject private var revisit = RevisitModel()
     var body: some View {
         NavigationStack(path: $path) {
@@ -357,6 +359,7 @@ struct CommunityHome: View {
         ZStack {
             Image("SeoulBeautyLogo").resizable().scaledToFit().frame(height: 58).accessibilityLabel("Seoul Beauty")
             HStack {
+                AlertBell(unread: unreadAlerts, action: onAlerts)
                 Spacer()
                 Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 24, weight: .medium)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 44) }
                     .accessibilityLabel(L("search.title")).accessibilityIdentifier("home-search")
@@ -368,9 +371,9 @@ struct CommunityHome: View {
             ForEach(HomeTab.allCases, id: \.self) { t in
                 Button { tab = t; if t == .brands { Task { await model.loadBrands(store: store) } } } label: {
                     VStack(spacing: 10) {
-                        Text(L("home.tab." + t.rawValue)).font(.system(size: 18, weight: tab == t ? .bold : .regular))
+                        Text(L("home.tab." + t.rawValue)).font(.system(size: 18, weight: tab == t ? .bold : .regular)).lineLimit(1).minimumScaleFactor(0.8)
                             .foregroundStyle(tab == t ? Color.sbBlue : Color.sbGray)
-                        Rectangle().fill(tab == t ? Color.sbBlue : Color.clear).frame(width: 74, height: 3)
+                        Rectangle().fill(tab == t ? Color.sbBlue : Color.clear).frame(height: 3)
                     }.frame(maxWidth: .infinity)
                 }.buttonStyle(.plain).accessibilityIdentifier("home-tab-" + t.rawValue)
                     .accessibilityAddTraits(tab == t ? .isSelected : [])
@@ -434,7 +437,7 @@ struct CommunityHome: View {
     }
     @ViewBuilder private var allRooms: some View {
         SectionHead(title: L("home.topics"), sub: L("home.askHint")) {
-            if model.canCreateRooms { Button("+ " + L("room.new")) { creating = true }.font(.footnote.weight(.semibold)) }
+            if model.canCreateRooms { Button { creating = true } label: { InlineActionLabel(title: L("room.new"), icon: "plus").frame(minHeight: 44) }.font(.footnote.weight(.semibold)) }
         }
         ForEach(model.topics) { room in roomLink(room, note: room.intro) }
     }
@@ -447,7 +450,6 @@ struct CommunityHome: View {
                         VStack(alignment: .leading, spacing: 2) {
                             RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 100)
                                 .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.sbBorder))
                             Text(f.brandLabel).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                             Text(f.baseName).font(.caption).foregroundStyle(Color.sbInk).lineLimit(2)
                             Text(f.priceText).font(.caption.bold()).foregroundStyle(Color.sbInk)
@@ -504,7 +506,7 @@ struct BigHead: View {
             }
             Spacer()
             Button(action: more) {
-                HStack(spacing: 4) { Text(L("home.seeAll")); Image(systemName: "chevron.right") }.font(.system(size: 16)).foregroundStyle(Color.sbBlue)
+                InlineActionLabel(title: L("home.seeAll"), icon: "chevron.right").frame(minHeight: 44).font(.system(size: 16)).foregroundStyle(Color.sbBlue)
             }.buttonStyle(.plain)
         }.padding(.top, 26).padding(.bottom, 14)
     }
