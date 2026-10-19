@@ -1,5 +1,16 @@
 import SwiftUI
 
+// Rotate the first visible look between separate loading requests, even if each finishes
+// before a full costume-cycle interval. No identity/profile data influences the order.
+@MainActor private enum LoadingCostumeSequence {
+    private static var nextIndex = 0
+    static func take() -> Int {
+        let current = nextIndex
+        nextIndex = (nextIndex + 1) % 10
+        return current
+    }
+}
+
 /// A purely decorative companion while real asynchronous requests are pending.
 /// Shows a standard progress indicator for the first 400 ms, then cycles 10 costumes
 /// from one tiny local atlas. Never delays a request or shows fake percentage progress.
@@ -11,6 +22,7 @@ struct LoadingCompanion: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var showCharacter = false
     @State private var beganAt = Date()
+    @State private var firstLook = 0
 
     private var size: CGFloat { compact ? 48 : 64 }
     private var frameHeight: CGFloat { compact ? 72 : 96 }
@@ -21,7 +33,7 @@ struct LoadingCompanion: View {
             if showCharacter {
                 TimelineView(.periodic(from: .now, by: 2.2)) { context in
                     let seconds = max(0, context.date.timeIntervalSince(beganAt))
-                    let index = reduceMotion || scenePhase != .active ? 0 : Int(seconds / 2.2) % 10
+                    let index = reduceMotion || scenePhase != .active ? firstLook : (firstLook + Int(seconds / 2.2)) % 10
                     LoadingOutfitSprite(index: index, compact: compact)
                 }
                 .frame(width: size, height: frameHeight)
@@ -42,8 +54,11 @@ struct LoadingCompanion: View {
             do {
                 try await Task.sleep(for: .milliseconds(400))
                 if !Task.isCancelled {
-                    beganAt = Date()
-                    showCharacter = true
+                    await MainActor.run {
+                        firstLook = LoadingCostumeSequence.take()
+                        beganAt = Date()
+                        showCharacter = true
+                    }
                 }
             } catch { /* Loading finished; the view disappears without a mascot. */ }
         }
