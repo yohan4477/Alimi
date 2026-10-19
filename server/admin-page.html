@@ -51,15 +51,81 @@
             <div class="sb-guide-progress" aria-hidden="true"><span></span><span></span><span></span></div>
             <div class="sb-guide-figure">
               <img src="/assets/hanbok-guide-pixel.svg" width="70" height="105" loading="lazy" alt="작은 파란색 한복을 입은 픽셀 소녀"/>
-              <p id="sb-guide-speech" aria-live="polite">안녕! 어떤 뷰티 이야기가 궁금해?</p>
+              <p id="sb-guide-speech" aria-live="polite">
+              <span data-guide-speech="ko-0">안녕! 어떤 뷰티 이야기가 궁금해?</span>
+              <span data-guide-speech="ko-1" hidden>요즘 어떤 게 제일 궁금해?</span>
+              <span data-guide-speech="ko-2" hidden>이런 대화를 찾아줄게!</span>
+              <span data-guide-speech="en-0" hidden>Hi! What beauty topics interest you?</span>
+              <span data-guide-speech="en-1" hidden>What would you like to talk about?</span>
+              <span data-guide-speech="en-2" hidden>Let's find your conversations!</span>
+            </p>
             </div>
             <div id="sb-guide-options">
-              <h4>관심 분야 선택 <small>복수 선택 가능</small></h4>
-              <div class="sb-guide-choices"><button type="button" data-guide-interest="skin" aria-pressed="true">스킨케어 ✓</button><button type="button" data-guide-interest="makeup" aria-pressed="true">메이크업 ✓</button></div>
-              <p class="sb-guide-help">둘 다 고르거나, 먼저 둘러볼 수 있어요.</p>
+              <section data-guide-locale="ko" data-guide-stage="0">
+                <h4>관심 분야 선택 <small>둘 다 선택 가능</small></h4>
+                <div class="sb-guide-choices"><button type="button" data-guide-interest="skin" aria-pressed="false">스킨케어</button><button type="button" data-guide-interest="makeup" aria-pressed="false">메이크업</button></div>
+                <p class="sb-guide-help">피부 타입과 나이는 묻지 않아요. 바로 둘러봐도 좋아요.</p>
+              </section>
+              <section data-guide-locale="en" data-guide-stage="0" hidden>
+                <h4>Pick your interests <small>Choose both if you like</small></h4>
+                <div class="sb-guide-choices"><button type="button" data-guide-interest="skin" aria-pressed="false">Skincare</button><button type="button" data-guide-interest="makeup" aria-pressed="false">Makeup</button></div>
+                <p class="sb-guide-help">No skin diagnosis or personal details required. You can explore first.</p>
+              </section>
+              <section data-guide-locale="ko" data-guide-stage="1" hidden>
+                <h4>구체적인 고민은? <small>여러 개 선택 가능</small></h4>
+                <div data-guide-group="skin"><p class="sb-guide-group-title">스킨케어</p><div class="sb-guide-choices compact">
+                  <button type="button" data-guide-concern="skin_acne" aria-pressed="false">트러블</button>
+                  <button type="button" data-guide-concern="skin_sensitive" aria-pressed="false">민감성</button>
+                  <button type="button" data-guide-concern="skin_dry" aria-pressed="false">건조함</button>
+                  <button type="button" data-guide-concern="skin_pores" aria-pressed="false">모공</button>
+                </div></div>
+                <div data-guide-group="makeup"><p class="sb-guide-group-title">메이크업</p><div class="sb-guide-choices compact">
+                  <button type="button" data-guide-concern="makeup_cushion" aria-pressed="false">쿠션·호수</button>
+                  <button type="button" data-guide-concern="makeup_tint" aria-pressed="false">틴트·립</button>
+                  <button type="button" data-guide-concern="makeup_longevity" aria-pressed="false">지속력</button>
+                  <button type="button" data-guide-concern="makeup_base" aria-pressed="false">베이스</button>
+                </div></div>
+                <p class="sb-guide-help">선택하지 않고 계속할 수도 있어요.</p>
+              </section>
+              <section data-guide-locale="en" data-guide-stage="1" hidden>
+                <h4>Your beauty concerns <small>Select any</small></h4>
+                <div data-guide-group="skin"><p class="sb-guide-group-title">Skincare</p><div class="sb-guide-choices compact">
+                  <button type="button" data-guide-concern="skin_acne" aria-pressed="false">Breakouts</button>
+                  <button type="button" data-guide-concern="skin_sensitive" aria-pressed="false">Sensitivity</button>
+                  <button type="button" data-guide-concern="skin_dry" aria-pressed="false">Dryness</button>
+                  <button type="button" data-guide-concern="skin_pores" aria-pressed="false">Pores</button>
+                </div></div>
+                <div data-guide-group="makeup"><p class="sb-guide-group-title">Makeup</p><div class="sb-guide-choices compact">
+                  <button type="button" data-guide-concern="makeup_cushion" aria-pressed="false">Cushion shade</button>
+                  <button type="button" data-guide-concern="makeup_tint" aria-pressed="false">Lip tint</button>
+                  <button type="button" data-guide-concern="makeup_longevity" aria-pressed="false">Lasting power</button>
+                  <button type="button" data-guide-concern="makeup_base" aria-pressed="false">Base makeup</button>
+                </div></div>
+                <p class="sb-guide-help">You can continue without choosing.</p>
+              </section>
+              <section data-guide-locale="ko" data-guide-stage="2" hidden>
+                <h4>추천 채팅방 예시 <small>실제 데이터 연결 전</small></h4>
+                <div class="sb-guide-room" data-guide-room="skin"><b>스킨케어 고민 이야기</b><small>선택 고민과 일치하는 실제 방·최근 질문을 연결할 자리</small></div>
+                <div class="sb-guide-room" data-guide-room="makeup"><b>메이크업 고민 이야기</b><small>선택 고민과 일치하는 실제 방·최근 질문을 연결할 자리</small></div>
+                <div class="sb-guide-room" data-guide-room="generic"><b>전체 공개 방 둘러보기</b><small>추천방이 없어도 탐색과 방 만들기 가능</small></div>
+                <p class="sb-guide-help">참여자 수·추천 점수·채팅 내용은 만들어 넣지 않았어요.</p>
+              </section>
+              <section data-guide-locale="en" data-guide-stage="2" hidden>
+                <h4>Example room matches <small>Preview only</small></h4>
+                <div class="sb-guide-room" data-guide-room="skin"><b>Skincare Discussions</b><small>Real rooms and recent questions would appear here</small></div>
+                <div class="sb-guide-room" data-guide-room="makeup"><b>Makeup Discussions</b><small>Real rooms and recent questions would appear here</small></div>
+                <div class="sb-guide-room" data-guide-room="generic"><b>Explore all public rooms</b><small>Or create a room, even without matches</small></div>
+                <p class="sb-guide-help">No invented participants, scores or chat messages.</p>
+              </section>
             </div>
-            <div class="sb-guide-actions"><button type="button" id="sb-guide-back" hidden>이전</button><button type="button" id="sb-guide-next" class="primary">다음 →</button></div>
-            <button type="button" class="sb-guide-skip" id="sb-guide-skip">먼저 둘러보기</button>
+            <div class="sb-guide-actions">
+              <button type="button" id="sb-guide-back" hidden><span data-guide-back-label="ko">이전</span><span data-guide-back-label="en" hidden>Back</span></button>
+              <button type="button" id="sb-guide-next" class="primary">
+                <span data-guide-next-label="ko-0">다음 →</span><span data-guide-next-label="ko-1" hidden>대화 찾기 →</span><span data-guide-next-label="ko-2" hidden>처음부터</span>
+                <span data-guide-next-label="en-0" hidden>Next →</span><span data-guide-next-label="en-1" hidden>Find conversations →</span><span data-guide-next-label="en-2" hidden>Start over</span>
+              </button>
+            </div>
+            <button type="button" class="sb-guide-skip" id="sb-guide-skip"><span data-guide-skip-label="ko">먼저 둘러보기</span><span data-guide-skip-label="en" hidden>Explore first</span></button>
           </div>
           <p class="sb-guide-caption">실제 제작한 <strong>하늘색 한복 픽셀 캐릭터</strong>의 경량 미리보기. 실제 고객 데이터·대화방 연결은 없음.</p>
         </div>
