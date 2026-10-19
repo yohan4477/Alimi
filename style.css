@@ -135,3 +135,5 @@ svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-l
 
 .detail-actions{gap:8px}
 .chat-share-cta{white-space:nowrap;padding:10px 8px;font-size:13px}
+
+.mentioned-products .chat-item{min-width:0}.mentioned-products .chat-item>span{min-width:0}
