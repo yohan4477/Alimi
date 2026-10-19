@@ -1,4 +1,5 @@
 import {passwordMatches, passwordSession, validPasswordSession} from '../server/admin-password.js';
+import {readMetrics} from '../server/admin-metrics.js';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {adminOrigin, sameOrigin, readToken, sessionCookie, clearCookie, authRequest, verifiedAdmin} from '../server/admin-auth.js';
@@ -91,6 +92,10 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
         : await verifiedAdmin(token, fetchImpl);
       if (!result.user) { res.setHeader('Set-Cookie', clearCookie()); return send(401, loginPage('로그인이 만료되었습니다. 다시 로그인하세요.')); }
       if (!result.allowed) { res.setHeader('Set-Cookie', clearCookie()); return send(403, loginPage('이 계정에는 관리자 접근 권한이 없습니다.')); }
+      if (url.searchParams.get('view') === 'metrics') {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        return send(200, JSON.stringify(await readMetrics({env, fetchImpl})));
+      }
       if (url.searchParams.get('view') === 'planning-review') {
         const review = await readReview();
         const scriptHashes = [...review.matchAll(/<script>([\s\S]*?)<\/script>/g)]

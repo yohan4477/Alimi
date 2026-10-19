@@ -32,7 +32,7 @@ struct ChatItem: Codable, Hashable {
     var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
     var family: ProductFamily? {
         familyKey.map { ProductFamily(familyKey: $0, brand: brand, brandKo: brandKo, baseName: name, category: nil, imageUrl: imageUrl,
-                                      minPriceMinor: priceMinor, maxPriceMinor: priceMinor, variants: 1) }
+                                      minPriceMinor: priceMinor, maxPriceMinor: priceMinor, variants: 1, selectedSKU: sku, selectedRetailer: retailer, selectedMarket: market) }
     }
     enum CodingKeys: String, CodingKey {
         case retailer, market, sku, brand, name, brandKo = "brand_ko", priceMinor = "price_minor", imageUrl = "image_url", familyKey = "family_key"

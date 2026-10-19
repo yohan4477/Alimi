@@ -457,7 +457,7 @@ body.onboarding-open{overflow:hidden}
 #tabbar #alert-count{position:absolute;top:4px;left:calc(50% + 6px);min-width:16px;height:16px;border-radius:8px;background:#f0335a;color:#fff;font-size:10px;line-height:16px;padding:0 4px}
 @media(max-width:360px){.ob-keywords{grid-template-columns:repeat(2,minmax(0,1fr))}.pick-card .room-thumb{width:84px;height:88px}.family-facts{grid-template-columns:repeat(2,1fr)}.family-facts div:nth-child(3){border-left:0}}
 #chat-log{background:#fff}
-#saved .add-slot{flex-direction:row;min-height:64px;height:auto;gap:8px;border-radius:16px}
+#saved .add-slot{aspect-ratio:auto;flex-direction:row;min-height:64px;height:auto;gap:8px;border-radius:16px}
 .family-dialog .close-dialog{z-index:3;background:rgba(255,255,255,.9);border-radius:50%;width:40px;height:40px;line-height:1}
 
 /* Three journey destinations; notifications remain a header action. */
@@ -486,3 +486,8 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .startup-loading .ob-line1,.startup-loading .ob-line2{display:none}
 .startup-loading .ob-logo{position:relative;z-index:1;margin-top:32px}
 .startup-loading .startup-label{z-index:1}
+
+/* Keep option identity independent from product photography. */
+.family-options .variant-row{width:100%;text-align:left;background:white;color:var(--text,#172b4d);border:1px solid #e5e7eb;border-radius:12px;margin:8px 0;padding:12px;cursor:pointer}.family-options .variant-row[aria-pressed="true"]{border-color:#1762e8;background:#f4f8ff}#family-actions{display:flex;gap:8px;flex-wrap:wrap}#family-actions>*{flex:1;min-width:180px}
+
+.family-price-row .family-save{position:static;flex:0 0 44px;min-height:44px;color:var(--blue)}

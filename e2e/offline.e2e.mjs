@@ -79,9 +79,9 @@ try {
     await page.fill('#search', 'snail');
     await page.waitForSelector('#search-catalog .card .heart');
   });
-  await step('saved tab shows add slots and settings', async () => {
+  await step('saved tab shows one discovery action and settings', async () => {
     await page.click('#tabbar [data-screen="saved"]');
-    assert.equal(await page.locator('#saved .add-slot').count(), 3);
+    assert.equal(await page.locator('#saved .add-slot').count(), 1);
     await page.click('#saved [data-screen="settings"]');
     await page.waitForSelector('#settings .set-row');
   });

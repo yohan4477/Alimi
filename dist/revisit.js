@@ -15,7 +15,7 @@ const readJSON = (k, d) => { try { return JSON.parse(storage.getItem(k)) ?? d; }
 export const readRecent = () => { const v = readJSON(RECENT_KEY, []); return Array.isArray(v) ? v : []; };
 export function addRecent(f) {
   if (!f?.family_key) return;
-  const keep = ({family_key, brand, brand_ko, base_name, name, category, image_url, min_price_minor}) => ({family_key, brand, brand_ko, base_name: base_name ?? name, category, image_url, min_price_minor});
+  const keep = ({family_key, brand, brand_ko, base_name, name, category, image_url, min_price_minor, sku, retailer, market, ref}) => ({sku, retailer, market, ref, family_key, brand, brand_ko, base_name: base_name ?? name, category, image_url, min_price_minor});
   try { storage.setItem(RECENT_KEY, JSON.stringify([keep(f), ...readRecent().filter(x => x.family_key !== f.family_key)].slice(0, 20))); } catch {}
 }
 

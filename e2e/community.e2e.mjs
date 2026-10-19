@@ -44,7 +44,7 @@ try {
   await page.locator('#join-live').click();
   await page.locator('#chat-text').waitFor();
   await page.locator('#chat-log .chat-item').click();
-  await page.locator('#family-dialog[open] .variant-row').waitFor();
+  await page.locator('#family-dialog[open] #family-price').waitFor();
   assert.equal(await page.locator('.analysis-section').count(),0);
   assert.equal(await page.locator('.target-section').count(),0);
   // Opened from a live room: 대화에 첨부 puts the product into the composer.

@@ -131,13 +131,20 @@ enum ShareLinks {
 
 struct JoinedRoom: Identifiable { let room: ChatRoom; let last: ChatAPI.Last?; var id: String { room.id } }
 
+struct ConversationProduct: Identifiable {
+    let item: ChatItem
+    let room: ChatRoom
+    let ref: String
+    var id: String { [item.retailer, item.market, item.sku].joined(separator: "|") }
+}
+
 @MainActor
 final class CommunityHomeModel: ObservableObject {
     @Published var rooms: [ChatRoom] = []
     @Published var posts: [CommunityPost] = []
     @Published var joined: [JoinedRoom] = []
     @Published var pictures: [String: URL] = [:]
-    @Published var popular: [ProductFamily] = []
+    @Published var mentioned: [ConversationProduct] = []
     @Published var brands: [CatalogBrand]?
     @Published var loading = true
     @Published var failed = false
@@ -150,7 +157,29 @@ final class CommunityHomeModel: ObservableObject {
         do { rooms = try await ChatAPI.rooms() } catch { failed = true; return }
         posts = (try? await CommunityAPI.posts()) ?? []
         joined = ((try? await ChatAPI.myRooms(all: rooms)) ?? []).map { JoinedRoom(room: $0.room, last: $0.last) }
-        if popular.isEmpty { await loadPictures(store: store) }
+        await loadMentions()
+        if pictures.isEmpty { await loadPictures(store: store) }
+    }
+    private func loadMentions() async {
+        var result: [ConversationProduct] = []
+        var seen = Set<String>()
+        let cutoff = Date().addingTimeInterval(-86400)
+        func append(_ item: ChatItem?, room: ChatRoom, ref: String, date: String) {
+            guard let item, item.family != nil, let time = ISODate.parse(date), time >= cutoff, time <= Date() else { return }
+            let entry = ConversationProduct(item: item, room: room, ref: ref)
+            if seen.insert(entry.id).inserted { result.append(entry) }
+        }
+        for post in posts {
+            if let room = rooms.first(where: { $0.id == post.room_id }) {
+                append(post.item, room: room, ref: "post-\(post.id)", date: post.created_at)
+            }
+        }
+        for room in hot {
+            for message in (try? await ChatAPI.messages(room: room.id)) ?? [] where !ChatAPI.blocked.contains(message.authorTag) {
+                append(message.item, room: room, ref: "chat-\(message.id)", date: message.createdAt)
+            }
+        }
+        mentioned = Array(result.prefix(6))
     }
     private func loadPictures(store: AlimiStore) async {
         let cats = Array(Set(topics.compactMap(RoomPictures.category) + ["전체"]))
@@ -158,7 +187,6 @@ final class CommunityHomeModel: ObservableObject {
         for cat in cats {
             let page = await store.familiesPage(category: cat, offset: 0) ?? []
             byCategory[cat] = page.prefix(6).compactMap(\.imageUrl)
-            if cat == "전체" { popular = Array(page.filter { $0.imageUrl != nil }.prefix(6)) }
         }
         pictures = RoomPictures.assign(hot + topics, byCategory: byCategory)
     }
@@ -318,6 +346,7 @@ struct CommunityHome: View {
     @State private var interests = Interests.load()
     @State private var creating = false
     @State private var openFamily: ProductFamily?
+    @State private var productRef: String?
     @State private var path = NavigationPath()
     // A room picked at the end of onboarding opens here; the guide itself is a full-screen flow (Onboarding.swift).
     @Binding var openRoom: ChatRoom?
@@ -352,7 +381,7 @@ struct CommunityHome: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .task { if model.rooms.isEmpty { await model.load(store: store) }; onInitialLoadComplete(); await revisit.load(store: store); EventLogger.shared.log(.communityOpen) }
-            .sheet(item: $openFamily) { FamilySheet(family: $0).environmentObject(store) }
+            .sheet(item: $openFamily) { FamilySheet(family: $0, ref: productRef).environmentObject(store) }
             .sheet(isPresented: $creating, onDismiss: { Task { await model.load(store: store) } }) {
                 CreateRoomSheet(interests: Interests.load()) { room in creating = false; path.append(room) }
             }
@@ -444,28 +473,26 @@ struct CommunityHome: View {
         ForEach(model.topics) { room in roomLink(room, note: room.intro) }
     }
     @ViewBuilder private var discover: some View {
-        if !model.popular.isEmpty {
-            SectionHead(title: L("home.popular"), sub: L("home.popularSub"))
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10, alignment: .top), count: 3), spacing: 12) {
-                ForEach(model.popular) { f in
-                    Button { openFamily = f } label: {
-                        VStack(alignment: .leading, spacing: 2) {
-                            RemoteImage(url: f.imageUrl, label: f.brandLabel).frame(height: 100)
-                                .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12))
-                            Text(f.brandLabel).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-                            Text(f.baseName).font(.caption).foregroundStyle(Color.sbInk).lineLimit(2)
-                            Text(f.priceText).font(.caption.bold()).foregroundStyle(Color.sbInk)
-                        }
-                    }.buttonStyle(.plain).accessibilityIdentifier("popular-" + f.familyKey)
-                }
-            }
+        SectionHead(title: L("home.mentioned"), sub: L("home.scope"))
+        if model.mentioned.isEmpty {
+            Text(L("home.noProducts")).font(.caption).foregroundStyle(.secondary)
+            Button(L("home.topics")) { tab = .rooms }.buttonStyle(.bordered)
         }
-        if !model.posts.isEmpty {
-            SectionHead(title: L("home.questions"))
-            ForEach(model.posts.prefix(6)) { p in
-                NavigationLink(value: p.id) { CommunityPostRow(post: p).frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(.plain)
-                Divider()
-            }
+        ForEach(model.mentioned) { entry in
+            HStack(spacing: 12) {
+                Button { productRef = entry.ref; openFamily = entry.item.family } label: {
+                    HStack(spacing: 10) {
+                        RemoteImage(url: entry.item.imageUrl, label: entry.item.brandLabel).frame(width: 64, height: 64)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(entry.item.brandLabel).font(.caption).foregroundStyle(.secondary)
+                            Text(entry.item.name).font(.subheadline).foregroundStyle(Color.sbInk).lineLimit(2)
+                            Text(usd(Double(entry.item.priceMinor) / 100)).font(.caption.bold()).foregroundStyle(Color.sbInk)
+                        }
+                    }
+                }.buttonStyle(.plain)
+                Spacer(minLength: 0)
+                NavigationLink(value: entry.room) { Text(L("home.viewConversation")).font(.caption) }
+            }.padding(.vertical, 8)
         }
     }
     @ViewBuilder private var brands: some View {

@@ -131,6 +131,7 @@ export function buyUrl(item, ref = null) {
   if (!raw) return null;
   try {
     const u = new URL(raw);
+    if(u.protocol!=='https:')return null;
     if (ref && u.hostname === 'www.awin1.com') u.searchParams.set('clickref', String(ref).replace(/[^\w-]/g, '').slice(0, 50));
     return u.href;
   } catch { return null; }

@@ -15,3 +15,9 @@ test('empty rooms never appear as active, input order is not mutated',()=>{
  const rooms=[{id:'quiet',messages_24h:0},{id:'old',messages_24h:30,last_message_at:'2026-10-18T01:00:00Z'},{id:'new',messages_24h:1,last_message_at:'2026-10-18T23:00:00Z'}];
  assert.deepEqual(activeRooms(rooms).map(r=>r.id),['new','old']);assert.equal(rooms[0].id,'quiet');
 });
+
+test('mentions keep different SKUs and merchants separate within one family',()=>{
+ const entries=[row(1,'a','r1','A'),row(2,'b','r1','A'),row(3,'c','r1','A')];
+ entries.forEach((e,i)=>Object.assign(e.item,{sku:i===1?'02':'01',retailer:i===2?'sellerB':'sellerA',market:'US'}));
+ assert.equal(mentionedProducts(entries,[],now).length,3);
+});

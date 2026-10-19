@@ -32,4 +32,6 @@ test('purchase link carries the post / chat reference to Awin as clickref', asyn
   assert.equal(buyUrl({affiliate_url: aff}), aff);
   assert.equal(buyUrl({url: 'https://www.stylevana.com/a.html'}, 'post-1'), 'https://www.stylevana.com/a.html', 'no clickref on non-affiliate links');
   assert.equal(buyUrl({}), null);
+  assert.equal(buyUrl({url:'javascript:alert(1)'}),null);
+  assert.equal(buyUrl({url:'http://example.com'}),null);
 });

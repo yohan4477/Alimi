@@ -155,11 +155,15 @@ struct ProductFamily: Codable, Identifiable, Hashable {
     let minPriceMinor: Int
     let maxPriceMinor: Int
     let variants: Int
+    var selectedSKU: String? = nil
+    var selectedRetailer: String? = nil
+    var selectedMarket: String? = nil
     var id: String { familyKey }
     var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
     var priceText: String { variants > 1 && minPriceMinor != maxPriceMinor ? L("family.from", ["v": usd(Double(minPriceMinor) / 100)]) : usd(Double(minPriceMinor) / 100) }
     enum CodingKeys: String, CodingKey {
         case familyKey = "family_key", brand, brandKo = "brand_ko", baseName = "base_name", category, imageUrl = "image_url"
+        case selectedSKU, selectedRetailer, selectedMarket
         case minPriceMinor = "min_price_minor", maxPriceMinor = "max_price_minor", variants
     }
     static func pageURL(category: String, offset: Int, limit: Int = 24, brand: String? = nil) -> URL {
@@ -224,6 +228,7 @@ struct Product: Codable, Identifiable, Hashable {
     var familyKey: String? = nil
     var sizeLabel: String? = nil
     let retailer: String
+    var market: String? = nil
     let currency: String
     let url: URL
     let affiliateUrl: URL?
@@ -321,14 +326,14 @@ final class AlimiStore: ObservableObject {
     }
     // Save a local snapshot; no RPC, history subscription or price-alert enrollment.
     func saveCatalogItem(_ item: CatalogItem) async -> Bool {
-        if let existing = products.first(where: { $0.sku == item.sku && $0.retailer == item.retailer }) {
+        if let existing = products.first(where: { $0.sku == item.sku && $0.retailer == item.retailer && ($0.market == nil || $0.market == item.market) }) {
             saved.favorites.insert(existing.id)
             return true
         }
         guard let link = item.buyLink else { return false }
         let id = "catalog|" + item.id
         let p = Product(id: id, sku: item.sku, brand: item.brand, brandKo: item.brandKo, name: item.name,
-                        size: item.sizeLabel ?? "", category: item.category ?? "기타", familyKey: item.familyKey, retailer: item.retailer,
+                        size: item.sizeLabel ?? "", category: item.category ?? "기타", familyKey: item.familyKey, retailer: item.retailer, market: item.market,
                         currency: item.currency, url: URL(string: item.url ?? "") ?? link,
                         affiliateUrl: item.affiliateUrl.flatMap { URL(string: $0) }, imageUrl: item.imageUrl,
                         price: item.price, delivery: nil, availability: item.availability,

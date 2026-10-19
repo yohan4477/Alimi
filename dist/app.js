@@ -34,7 +34,7 @@ const catalogKey=c=>[c.retailer,c.market,c.sku].join('|');
 const remember=c=>{catalogItems.set(catalogKey(c),c);return catalogKey(c)};
 const card=p=>`<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><div class="price-line"><strong>${usd(p.price)}</strong></div><small class="meta">${esc(categoryLabel(p.category))}</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="${state.favorites.includes(p.id)}">${bookmark(state.favorites.includes(p.id))}</button></article>`;
 const catalogCard=c=>`<article class="card"><div class="visual">${c.image_url?`<img src="${esc(c.image_url)}" alt="${esc(brandLabel(c)+' '+c.name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(c))}</div><div class="product-name">${esc(c.name)}</div><div class="price-line"><strong>${usd(c.price)}</strong></div><small class="meta">${esc(categoryLabel(c.category??'기타'))} · ${esc(t('todayPrice'))}</small><button class="heart" data-catalog-save="${esc(remember(c))}" data-retailer="${esc(c.retailer)}" data-market="${esc(c.market)}" aria-label="${esc(t('save.action'))}">${bookmark(false)}</button></article>`;
-const familyCard=f=>`<article class="card"><button class="product-open" data-family="${esc(f.family_key)}"><div class="visual">${f.image_url?`<img src="${esc(f.image_url)}" alt="${esc(brandLabel(f)+' '+f.base_name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(f))}</div><div class="product-name">${esc(f.base_name)}</div><div class="price-line"><strong>${f.variants>1&&f.minPrice!==f.maxPrice?esc(t('family.from',{v:usd(f.minPrice)})):usd(f.minPrice)}</strong></div><small class="meta">${esc(categoryLabel(f.category??'기타'))}${f.variants>1?' · '+esc(t('family.options',{n:f.variants})):''}</small></button></article>`;
+const familyCard=f=>`<article class="card"><button class="product-open" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}"><div class="visual">${f.image_url?`<img src="${esc(f.image_url)}" alt="${esc(brandLabel(f)+' '+f.base_name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(f))}</div><div class="product-name">${esc(f.base_name)}</div><div class="price-line"><strong>${f.variants>1&&f.minPrice!==f.maxPrice?esc(t('family.from',{v:usd(f.minPrice)})):usd(f.minPrice)}</strong></div><small class="meta">${esc(categoryLabel(f.category??'기타'))}${f.variants>1?' · '+esc(t('family.options',{n:f.variants})):''}</small></button></article>`;
 // Variant list of one family: size / option, price, unit price, best-value badge and a heart per variant.
 function variantRows(list,ref=null){
   const tracked=new Map(products.map(p=>[p.sku,p.id]));
@@ -42,30 +42,43 @@ function variantRows(list,ref=null){
 }
 // Product page (journey 2): a photo per option with counter and strip, brand / name / save / price, facts the
 // catalog really has (options, sellers, best unit price, category), 대화에 첨부 from a live room or the seller link.
-let familyHead=null,familyList=[],familyPhoto=0;
+let familyHead=null,familyList=[],familyPhoto=0,familySelection=0,familyRef=null,familyVersion=0;
 const familyPhotos=()=>[...new Set(familyList.map(v=>v.image_url).filter(Boolean))];
-const familyCurrent=()=>{const url=familyPhotos()[familyPhoto];return familyList.find(v=>v.image_url&&v.image_url===url)??familyList[0]};
+const familyCurrent=()=>familyList[familySelection];
+const savedOption=v=>products.find(p=>p.sku===v.sku&&p.retailer===v.retailer&&(!p.market||p.market===v.market));
 function drawFamilyHero(){
   const photos=familyPhotos(),cur=familyCurrent();
-  $('#family-hero').innerHTML=photos.length?`<div class="fh-main"><img src="${esc(photos[familyPhoto]??photos[0])}" alt="${esc(cur?brandLabel(cur)+' '+(cur.name?.split(' - ')[0]??''):'')}">${photos.length>1?`<span class="fh-count">${familyPhoto+1}/${photos.length}</span>`:''}</div>${photos.length>1?`<div class="fh-thumbs">${photos.map((u,i)=>`<button class="${i===familyPhoto?'on':''}" data-family-photo="${i}" aria-label="${i+1}/${photos.length}"><img src="${esc(u)}" alt=""></button>`).join('')}</div>`:''}`:'';
-  const price=$('#family-price');if(price&&cur)price.textContent=usd(cur.price);
+  $('#family-hero').innerHTML=cur?.image_url?`<div class="fh-main"><img src="${esc(cur.image_url)}" alt="${esc(cur.name)}"></div>${photos.length>1?`<div class="fh-thumbs">${photos.map((u,i)=>`<button class="${u===cur.image_url?'on':''}" data-family-photo="${i}" aria-label="${i+1}/${photos.length}"><img src="${esc(u)}" alt=""></button>`).join('')}</div>`:''}`:'';
 }
-async function openFamily(key,ref=null){
-  const dlg=$('#family-dialog');$('#family-hero').innerHTML='';$('#family-body').innerHTML=`${loadingMarkup(t('loading'))}`;$('#family-talk').innerHTML='';dlg.showModal();
-  try{const list=await fetchFamily(key);const head=list[0];familyList=list;familyPhoto=0;familyHead=head??null;
-    $('#family-title').innerHTML=head?`<button class="text-link" data-family-brand="${esc(head.brand)}">${esc(brandLabel(head))} ›</button>`:'';$('#family-name').textContent=head?.name?.split(' - ')[0]??'';
-    drawFamilyHero();
+function drawFamilySelection(){
+  const cur=familyCurrent();if(!cur)return;
+  drawFamilyHero();
+  $('#family-price').textContent=usd(cur.price);
+  $('#family-option').textContent=[cur.size_label,cur.option_label].filter(Boolean).join(' · ')||t('family.default');
+  const id=savedOption(cur)?.id,on=Boolean(id&&state.favorites.includes(id)),button=$('[data-family-save]');
+  button.innerHTML=bookmark(on);button.setAttribute('aria-pressed',String(on));
+  document.querySelectorAll('[data-family-option]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.familyOption===familySelection)));
+  const href=cur.availability==='out_of_stock'?null:buyUrl(cur,familyRef);
+  $('#family-actions').innerHTML=(canAttachToChat()||brandChat?`<button class="primary family-attach" data-family-attach>${esc(t('family.attach'))}</button>`:'')+(href?`<a class="primary family-buy variant-buy observed-buy" href="${esc(href)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(cur.sku)}" data-retailer="${esc(cur.retailer)}" data-market="${esc(cur.market)}" data-ref="${esc(familyRef??'')}">${esc(t('product.buy',{seller:cur.retailer}))}</a>`:`<p role="status">${esc(t(cur.availability==='out_of_stock'?'stock.out':'catalogFailed'))}</p>`);
+  renderProductInfo($('#family-description'),cur);
+  addRecent({family_key:cur.family_key,sku:cur.sku,retailer:cur.retailer,market:cur.market,ref:familyRef,brand:cur.brand,brand_ko:cur.brand_ko,name:cur.name,category:cur.category,image_url:cur.image_url,min_price_minor:cur.price_minor});
+}
+async function openFamily(key,ref=null,option={}){
+  const version=++familyVersion,dlg=$('#family-dialog');familyList=[];familyHead=null;familyRef=ref;familySelection=0;
+  $('#family-hero').innerHTML='';$('#family-title').textContent='';$('#family-name').textContent='';$('#family-body').innerHTML=loadingMarkup(t('loading'));$('#family-talk').innerHTML='';if(!dlg.open)dlg.showModal();
+  try{const list=await fetchFamily(key);if(version!==familyVersion||!dlg.open)return;
+    if(!list.length){$('#family-body').innerHTML=`<p class="empty">${esc(t('empty.products'))}</p>`;return;}
+    familyList=list;familySelection=Math.max(0,list.findIndex(v=>v.sku===option.sku&&(!option.retailer||v.retailer===option.retailer)&&(!option.market||v.market===option.market)));const head=familyCurrent();familyHead=head;
+    $('#family-title').innerHTML=`<button class="text-link" data-family-brand="${esc(head.brand)}">${esc(brandLabel(head))} ›</button>`;$('#family-name').textContent=head.name?.split(' - ')[0]??'';
     const sellers=new Set(list.map(v=>v.retailer)).size,unit=list.filter(v=>v.unitPrice!=null).sort((a,b)=>a.unitPrice-b.unitPrice)[0];
-    const facts=[['options',t('product.fact.options'),t('product.fact.count',{n:list.length})],['sellers',t('product.fact.sellers'),t('product.fact.places',{n:Math.max(sellers,1)})],['unit',t('product.fact.unit'),unit?usd(unit.unitPrice)+'/'+unitName(unit.unit):'—'],['category',t('product.fact.category'),head?.category?categoryLabel(head.category):'—']];
-    const cta=head&&canAttachToChat()?`<button class="primary family-attach" data-family-attach>${esc(t('family.attach'))}</button>`:head&&buyUrl(head,ref)?`<a class="primary family-buy" href="${esc(buyUrl(head,ref))}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('product.buy',{seller:head.retailer}))}</a>`:'';
-    $('#family-body').innerHTML=(head?`<div class="family-price-row"><b id="family-price">${usd(head.price)}</b><button class="family-save heart" data-family-save aria-label="${esc(t('save.action'))}">${bookmark(false)}</button><button class="family-share" data-family-share="${esc(key)}" aria-label="${esc(t('share.product'))}">${esc(t('share.product'))}</button></div><div class="family-facts" data-product-facts>${facts.map(f=>`<div><i class="ff-${f[0]}" aria-hidden="true"></i><small>${esc(f[1])}</small><b>${esc(f[2])}</b></div>`).join('')}</div>${cta}`:'')+'<div id="family-description"></div>'+variantRows(list,ref);
-    if(head){renderProductInfo($('#family-description'),head);addRecent({family_key:key,brand:head.brand,brand_ko:head.brand_ko,name:head.name?.split(' - ')[0],category:head.category,image_url:head.image_url,min_price_minor:head.price_minor})}
-    track('product_view',null,{family:key,variants:list.length,...(ref?{from:ref}:{})});renderProductTalk($('#family-talk'),key)}
-  catch{$('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`}
+    const facts=[['options',t('product.fact.options'),t('product.fact.count',{n:list.length})],['sellers',t('product.fact.sellers'),t('product.fact.places',{n:sellers})],['unit',t('product.fact.unit'),unit?usd(unit.unitPrice)+'/'+unitName(unit.unit):'—'],['category',t('product.fact.category'),head.category?categoryLabel(head.category):'—']];
+    $('#family-body').innerHTML=`<div class="family-price-row"><b id="family-price"></b><button class="family-save heart" data-family-save aria-label="${esc(t('save.action'))}"></button><button class="family-share" data-family-share="${esc(key)}" aria-label="${esc(t('share.product'))}">${esc(t('share.product'))}</button></div><p id="family-option"></p>${list.length>1?`<div class="family-options">${list.map((v,i)=>`<button class="variant-row" data-family-option="${i}" aria-pressed="false"><strong>${esc([v.size_label,v.option_label].filter(Boolean).join(' · ')||t('family.default'))}</strong><small>${esc(v.retailer)}</small><b>${usd(v.price)}</b></button>`).join('')}</div>`:''}<div class="family-facts" data-product-facts>${facts.map(f=>`<div><i class="ff-${f[0]}" aria-hidden="true"></i><small>${esc(f[1])}</small><b>${esc(f[2])}</b></div>`).join('')}</div><div id="family-description"></div><p class="chart-note">${esc(t('detail.disclaimer'))}</p><div id="family-actions"></div>`;
+    drawFamilySelection();track('product_view',null,{family:key,sku:head.sku,from:ref??'catalog'});renderProductTalk($('#family-talk'),key);
+  }catch{if(version===familyVersion&&dlg.open)$('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`;}
 }
 async function loadOtherSizes(p){
   const box=$('#other-sizes');if(!box||!p.familyKey)return;
-  try{const list=(await fetchFamily(p.familyKey));if(list.length<2||selected!==p.id)return;box.innerHTML=`<h2>${esc(t('family.otherSizes'))}</h2>${variantRows(list)}`;box.hidden=false}catch{}
+  try{const list=(await fetchFamily(p.familyKey));if(list.length<2||selected!==p.id)return;box.innerHTML=`<h2>${esc(t('family.otherSizes'))}</h2><button class="text-link" data-family="${esc(p.familyKey)}" data-sku="${esc(p.sku)}" data-ref="${esc(p.sourceRef??'saved')}">${esc(t('family.options',{n:list.length}))}</button>`;box.hidden=false}catch{}
 }
 const icon={
   gear:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
@@ -86,12 +99,13 @@ const icon={
 const TABS=['chat','search','saved'];
 let screen='chat',lastTab='chat',detailReturn='chat';
 const screenEl=n=>n==='home'?$('#browse'):n==='search'?$('#search-screen'):$('#'+n);
-let brandChat = false;
+let brandChat = false, detailChat=false;
 function show(n){
-  const resumeChat = brandChat && n === 'chat';
+  const resumeChat = (brandChat||detailChat) && n === 'chat';
+  if(detailChat&&!['detail','chat'].includes(n)){leaveChat();detailChat=false;}
   if (brandChat && !['brand','chat'].includes(n)) { leaveChat(); brandChat = false; }
   if(n==='rooms'){activityTab='rooms';n='saved'}
-  if(screen==='chat'&&n!=='chat'&&!brandChat)leaveChat();
+  if(screen==='chat'&&n!=='chat'&&!brandChat&&!detailChat)leaveChat();
   for(const s of ['home','saved','search','brand','settings','detail','chat','rooms','alerts','share'])screenEl(s).hidden=s!==n;
   screen=n;if(TABS.includes(n))lastTab=n;
   $('#tabbar').hidden=n==='detail';
@@ -103,7 +117,7 @@ function show(n){
   if(n==='chat'&&!resumeChat)openChat({toast,onClose:()=>show('chat')});
   if(n==='rooms')renderMyRooms($('#rooms'),{savedFamilies:savedFamilies()});
   if(n==='alerts'){renderAlerts($('#alerts'),{savedFamilies:savedFamilies(),returnScreen:lastTab}).then(()=>setAlertBadge(0))}
-  if (resumeChat) brandChat = false;
+  if (resumeChat) {brandChat = false;detailChat=false;}
   if(n==='share'){renderShareHub($('#share'),{saved:savedFamilies()});loadRevisit({}).then(d=>{if(screen==='share')renderShareHub($('#share'),{rooms:d.activity.map(a=>a.room),saved:savedFamilies()})},()=>{})}
 }
 // Popular-brand strip: round badges like a delivery app's brand grid; tapping one opens that brand's page.
@@ -140,14 +154,14 @@ const savedCard=p=>`<article class="saved-card"><button class="product-open" dat
 function interestRow(){const p=readInterests(),list=p?[...['skincare','makeup'].filter(g=>p[g]).map(g=>t('onb.g.'+g)),...p.concerns.map(c=>t('onb.c.'+c))]:[];return `<button class="interest-row" data-onb-manage><span><b>${esc(t('onb.manage'))}</b><small>${esc(list.length?list.join(' · '):t('onb.none'))}</small></span><span aria-hidden="true">›</span></button>`}
 let activityTab='saved';
 // Recently viewed products on this device (revisit.js).
-const recentList=()=>{const list=readRecent();return list.length?`<div class="recent-list">${list.map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:`<p class="empty">${esc(t('activity.recentEmpty'))}</p>`};
+const recentList=()=>{const list=readRecent();return list.length?`<div class="recent-list">${list.map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:`<p class="empty">${esc(t('activity.recentEmpty'))}</p>`};
 // Products saved on this device that have a family key (for 알림 and 상품 공유).
 const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
 const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
 function renderSaved(){
   const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
   const hint=n===0?t('saved.hint'):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="logo-head actions-only"><span><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><h1 class="page-title">${esc(t('nav.activity'))}</h1><div class="pill-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms','recent'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${n===0?`<button class="add-slot first" data-screen="search">${icon.plus}<span>${esc(t('saved.add'))}</span></button>`:''}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>${profileCard()}${interestRow()}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button>`;
+  $('#saved').innerHTML=`<div class="logo-head actions-only"><span><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><h1 class="page-title">${esc(t('nav.activity'))}</h1><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms','recent'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<h2>${esc(t('activity.saved'))}</h2><p class="page-sub">${esc(hint)}</p><div class="saved-grid">${list.map(savedCard).join('')}${n===0?`<button class="add-slot first" data-screen="search">${icon.plus}<span>${esc(t('search.title'))}</span></button>`:''}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>${profileCard()}${interestRow()}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button>`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
@@ -235,12 +249,13 @@ function saveCatalogSelection(b){
 function renderDetail(){
   const p=product(selected),fav=state.favorites.includes(p.id);
   const shipping=p.delivery==null?t('unknown'):usd(p.delivery);
-  $('#detail').innerHTML=`<div class="detail-nav"><button id="back" aria-label="${esc(t('back'))}">←</button><strong>${esc(t('detail.title'))}</strong><button data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}">${bookmark(fav)}</button></div><div class="detail-product"><div class="detail-art">${art(p)}</div><div class="price-summary"><small>${esc(t('detail.usPrice',{retailer:p.retailer}))}</small><div class="current"><strong>${usd(p.price)}</strong></div><p class="price-baseline">${esc(p.checkedAt?t('detail.checked',{checked:kstDate(p.checkedAt)}):t('catalog.savedSnapshot'))}</p><h1>${esc(p.name)}</h1><p class="product-meta">${esc(brandLabel(p))}${p.size?' · '+esc(p.size):''} · ${esc(categoryLabel(p.category))}</p><div class="info-chips"><span>${stock(p)}</span><span>${esc(t('detail.shippingChip',{v:shipping}))}</span></div></div></div><section id="detail-description" class="offer-section"></section><section class="offer-section other-sizes" id="other-sizes" hidden></section><section class="offer-section"><div class="offer-heading"><h2>${esc(t('detail.retailer'))}</h2><small>${esc(t('detail.officialFeed'))}</small></div><article class="seller-row"><div class="seller-info"><strong>${esc(p.retailer)}</strong><small>${esc(t('detail.feedShipping',{v:shipping}))}</small></div><div class="seller-price"><strong>${usd(p.price)}</strong><small>${stock(p)}</small></div><a class="observed-buy" href="${esc(buyUrl(p)??p.url)}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('buy.at',{retailer:p.retailer}))}</a></article><p class="chart-note">${esc(t('detail.disclaimer'))}</p></section><section class="offer-section product-talk" id="detail-talk"></section><div class="detail-actions"><button data-favorite="${esc(p.id)}" class="save-action">${bookmark(fav)}<small>${esc(t('save.short'))}</small></button><a class="primary buy-cta observed-buy" href="${esc(buyUrl(p)??p.url)}" target="_blank" rel="sponsored noopener noreferrer">${esc(t('buy.at',{retailer:p.retailer}))}</a></div>`;
+  const href=p.availability==='out_of_stock'?null:buyUrl(p,p.sourceRef);
+  $('#detail').innerHTML=`<div class="detail-nav"><button id="back" aria-label="${esc(t('back'))}">←</button><strong>${esc(t('detail.title'))}</strong></div><div class="detail-product"><div class="detail-art">${art(p)}</div><div class="price-summary"><small>${esc(t('detail.usPrice',{retailer:p.retailer}))}</small><div class="current"><strong>${usd(p.price)}</strong></div><p class="price-baseline">${esc(p.checkedAt?t('detail.checked',{checked:kstDate(p.checkedAt)}):t('catalog.savedSnapshot'))}</p><h1>${esc(p.name)}</h1><p class="product-meta">${esc(brandLabel(p))}${p.size?' · '+esc(p.size):''} · ${esc(categoryLabel(p.category))}</p><div class="info-chips"><span>${stock(p)}</span><span>${esc(t('detail.shippingChip',{v:shipping}))}</span></div></div></div><section id="detail-description" class="offer-section"></section><section class="offer-section other-sizes" id="other-sizes" hidden></section><section class="offer-section"><div class="offer-heading"><h2>${esc(t('detail.retailer'))}</h2><small>${esc(t('detail.officialFeed'))}</small></div><article class="seller-row"><div class="seller-info"><strong>${esc(p.retailer)}</strong><small>${esc(t('detail.feedShipping',{v:shipping}))}</small></div><div class="seller-price"><strong>${usd(p.price)}</strong><small>${stock(p)}</small></div></article><p class="chart-note">${esc(t('detail.disclaimer'))}</p></section><section class="offer-section product-talk" id="detail-talk"></section><div class="detail-actions"><button data-favorite="${esc(p.id)}" class="save-action">${bookmark(fav)}<small>${esc(t('save.short'))}</small></button>${href?`<a class="primary buy-cta observed-buy" href="${esc(href)}" target="_blank" rel="sponsored noopener noreferrer" data-sku="${esc(p.sku)}" data-ref="${esc(p.sourceRef??'')}" data-retailer="${esc(p.retailer)}">${esc(t('buy.at',{retailer:p.retailer}))}</a>`:`<p role="status">${esc(t(p.availability==='out_of_stock'?'stock.out':'catalogFailed'))}</p>`}</div>`;
   loadOtherSizes(p);renderProductInfo($('#detail-description'),p);renderProductTalk($('#detail-talk'),p.familyKey);
   $('#back').onclick=closeDetail;
 }
 function closeDetail(){detailOpen=false;show(detailReturn)}
-function openDetail(id){selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
+function openDetail(id){detailChat=screen==='chat';selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
 
 localizePage();
 // A shared link opens its room or product on arrival.
@@ -256,12 +271,13 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`).focus();return}
   if('onbManage' in b.dataset){startGuide('choose');return}
-  if(b.dataset.familyPhoto){familyPhoto=+b.dataset.familyPhoto;drawFamilyHero();return}
-  if('familySave' in b.dataset){const cur=familyCurrent();if(!cur)return;let id=products.find(p=>p.sku===cur.sku)?.id;if(!id){try{id=saveCatalogSnapshot(cur,storage).id;products=mergeCatalogSaves(products,readCatalogSaves(storage))}catch{toast(t('loadFailed'));return}}toggleFavorite(state,id);save();const on=state.favorites.includes(id);b.innerHTML=bookmark(on);b.setAttribute('aria-pressed',on);return}
+  if('familyPhoto' in b.dataset){const url=familyPhotos()[+b.dataset.familyPhoto];familySelection=Math.max(0,familyList.findIndex(v=>v.image_url===url));drawFamilySelection();return}
+  if('familyOption' in b.dataset){familySelection=+b.dataset.familyOption;drawFamilySelection();return}
+  if('familySave' in b.dataset){const cur=familyCurrent();if(!cur)return;let id=savedOption(cur)?.id;if(!id){try{id=saveCatalogSnapshot({...cur,sourceRef:familyRef},storage).id;products=mergeCatalogSaves(products,readCatalogSaves(storage))}catch{toast(t('loadFailed'));return}}toggleFavorite(state,id);save();const on=state.favorites.includes(id);b.innerHTML=bookmark(on);b.setAttribute('aria-pressed',on);track(on?'wishlist_add':'wishlist_remove',id,{sku:cur.sku,from:familyRef??'catalog'});updateCount();return}
   if(b.dataset.followBrand){toggleFollow(b.dataset.followBrand);return}
   if('brandShare' in b.dataset){share({title:$('#brand h1')?.textContent??'',url:shareUrl({})},toast);return}
   if(b.dataset.catalogSave){saveCatalogSelection(b);return}
-  if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null);return}
+  if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null,{sku:b.dataset.sku,retailer:b.dataset.retailer,market:b.dataset.market});return}
   if(b.dataset.post&&screen!=='chat'){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);show('chat');return}
   if(b.dataset.familyBrand){brandChat = canAttachToChat();$('#family-dialog').close();openBrand(b.dataset.familyBrand);return}
   if(b.dataset.brand){openBrand(b.dataset.brand);return}
@@ -277,7 +293,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
 let searchTimer;$('#search').oninput=()=>{renderSearch();clearTimeout(searchTimer);searchTimer=setTimeout(()=>{const q=$('#search').value.trim();if(q)track('search',null,{length:q.length,results:search(products,q).length})},1200)};$('#clear').onclick=()=>{$('#search').value='';renderSearch();$('#search').focus()};
 $('#browse-now').onclick=()=>$('.results').scrollIntoView({behavior:'smooth'});
 $('#reset').onclick=()=>{if(confirm(t('reset.confirm'))){state={favorites:[],targets:{}};save();renderList()}};
-document.addEventListener('click',e=>{const a=e.target.closest('a.observed-buy');if(!a)return;if(a.dataset.sku)track('merchant_click',null,{sku:a.dataset.sku,from:a.dataset.ref||'options'});else if(selected)track('merchant_click',selected,{retailer:product(selected)?.retailer,from:a.classList.contains('buy-cta')?'detail_cta':'detail_retailer'})});
+document.addEventListener('click',e=>{const a=e.target.closest('a.observed-buy');if(!a)return;if(a.dataset.sku)track('merchant_click',null,{sku:a.dataset.sku,retailer:a.dataset.retailer??'',market:a.dataset.market??'',from:a.dataset.ref||'options'});else if(selected)track('merchant_click',selected,{retailer:product(selected)?.retailer,from:a.classList.contains('buy-cta')?'detail_cta':'detail_retailer'})});
 document.addEventListener('error',e=>{if(e.target.matches?.('.room-ico img')){e.target.remove();return}if(e.target.tagName==='IMG'&&!e.target.matches('.brand-item img,.brand-badge-lg img')){const box=document.createElement('div');box.className='no-photo';box.textContent=t('photoFailed');e.target.replaceWith(box)}},true);
 
 async function loadBrandStrip(){

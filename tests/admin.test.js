@@ -17,6 +17,16 @@ async function request({method='GET',url='/admin',headers={},body,fetchImpl=asyn
 }
 const cookie={cookie:`${SESSION_COOKIE}=${token}`};
 const form={origin:'https://admin.example','content-type':'application/x-www-form-urlencoded'};
+test('metrics requires the same verified admin and fails closed for other users',async()=>{
+  let called=0;
+  const fetchImpl=async()=>{called++;return response({...admin,app_metadata:{}})};
+  assert.equal((await request({url:'/api/admin?view=metrics',fetchImpl})).statusCode,401);
+  assert.equal(called,0);
+  assert.equal((await request({url:'/api/admin?view=metrics',headers:cookie,fetchImpl})).statusCode,403);
+  const allowed=await request({url:'/api/admin?view=metrics',headers:cookie});
+  assert.equal(allowed.statusCode,200);assert.equal(JSON.parse(allowed.body).state,'unconnected');
+  assert.match(allowed.headers['cache-control'],/no-store/);
+});
 
 test('anonymous page and direct API do not read or expose private content',async()=>{
   for (const url of ['/admin','/api/admin','/admin/']) {

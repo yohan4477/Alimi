@@ -518,6 +518,7 @@ struct FamilySheet: View {
     @State private var openBrand: CatalogBrand?
     @State private var variants: [VariantChoice]?
     @State private var selected = 0
+    @State private var selectedOption: String?
     @State private var busy = false
     // Product page of journey 2: photo of each option, name, price, real facts, then every option with its seller.
     private var photos: [URL] {
@@ -525,11 +526,11 @@ struct FamilySheet: View {
         for u in (variants ?? []).compactMap(\.item.imageUrl) + [family.imageUrl].compactMap({ $0 }) where !seen.contains(u) { seen.insert(u); out.append(u) }
         return out
     }
-    // The option shown in the photo; options without a photo of their own fall back to the cheapest.
+    // SKU selection is independent of photos; multiple options can share one photo.
     private var current: CatalogItem? {
         let list = variants ?? []
-        let url = photos.indices.contains(selected) ? photos[selected] : nil
-        return list.first { $0.item.imageUrl != nil && $0.item.imageUrl == url }?.item ?? list.first?.item
+        if let selectedOption { return list.first { $0.item.id == selectedOption }?.item ?? list.first?.item }
+        return list.first?.item
     }
     var body: some View {
         VStack(spacing: 0) {
@@ -541,7 +542,21 @@ struct FamilySheet: View {
                     facts.padding(.horizontal, 20).padding(.top, 20)
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L("family.buyHint")).font(.caption).foregroundStyle(.secondary)
-                        if let variants { VariantList(variants: variants, ref: ref) } else { LoadingCompanion(compact: true) }
+                        if let variants {
+                            ForEach(variants) { v in
+                                Button { selectedOption = v.item.id } label: {
+                                    HStack {
+                                        Image(systemName: current?.id == v.item.id ? "checkmark.circle.fill" : "circle")
+                                        VStack(alignment: .leading) {
+                                            Text(v.item.variantLabel.isEmpty ? L("family.default") : v.item.variantLabel)
+                                            Text(v.item.retailer).font(.caption).foregroundStyle(.secondary)
+                                        }
+                                        Spacer()
+                                        Text(usd(v.item.price))
+                                    }.padding(12).foregroundStyle(Color.sbNavy)
+                                }.buttonStyle(.bordered).accessibilityIdentifier("family-option-" + v.item.sku)
+                            }
+                        } else { LoadingCompanion(compact: true) }
                     }.padding(.horizontal, 20).padding(.top, 20)
                 }.padding(.bottom, 20)
             }
@@ -549,12 +564,20 @@ struct FamilySheet: View {
         }
         .background(Color.white)
         .task {
-            RecentViews.add(family)
             variants = await store.family(family.familyKey) ?? []
-            EventLogger.shared.log(.productView, props: ["family": family.familyKey, "variants": String(variants?.count ?? 0)])
+            selectedOption = variants?.first { $0.item.sku == family.selectedSKU && (family.selectedRetailer == nil || $0.item.retailer == family.selectedRetailer) && (family.selectedMarket == nil || $0.item.market == family.selectedMarket) }?.item.id
+            rememberOption()
+            if let current { EventLogger.shared.log(.productView, props: ["family": family.familyKey, "sku": current.sku, "from": ref ?? "catalog"]) }
         }
         .sheet(item: $openBrand) { brand in
             BrandView(brand: brand, attach: attach.map { callback in { item in callback(item); openBrand = nil; dismiss() } }).environmentObject(store)
+        }
+        .onChange(of: selected) { _, value in
+            if photos.indices.contains(value), current?.imageUrl != photos[value] { selectedOption = variants?.first { $0.item.imageUrl == photos[value] }?.item.id }
+        }
+        .onChange(of: selectedOption) { _, _ in
+            if let url = current?.imageUrl, let index = photos.firstIndex(of: url) { selected = index }
+            rememberOption()
         }
         .presentationDetents([.large])
     }
@@ -608,6 +631,7 @@ struct FamilySheet: View {
                 }.buttonStyle(.plain).disabled(busy).accessibilityLabel(L("save.action")).accessibilityIdentifier("product-save")
             }
             Text(family.baseName).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).fixedSize(horizontal: false, vertical: true)
+            Text(current?.variantLabel ?? "").font(.subheadline).foregroundStyle(Color.sbGray)
             Text(usd(current?.price ?? Double(family.minPriceMinor) / 100)).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).padding(.top, 6)
         }
     }
@@ -640,7 +664,8 @@ struct FamilySheet: View {
                 Label(L("family.attach"), systemImage: "ellipsis.bubble").font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 16))
             }.buttonStyle(.plain).accessibilityIdentifier("family-attach")
-        } else if let item = current, let link = Purchase.buyURL(item.affiliateUrl ?? item.url, ref: ref) {
+        }
+        if let item = current, item.availability != "out_of_stock", let link = Purchase.buyURL(item.affiliateUrl ?? item.url, ref: ref) {
             Button {
                 EventLogger.shared.log(.merchantClick, props: ["from": ref ?? "product", "sku": item.sku])
                 openURL(link)
@@ -650,13 +675,18 @@ struct FamilySheet: View {
             }.buttonStyle(.plain).accessibilityIdentifier("product-buy")
         }
     }
+    private func rememberOption() {
+        var recent = family
+        recent.selectedSKU = current?.sku; recent.selectedRetailer = current?.retailer; recent.selectedMarket = current?.market
+        RecentViews.add(recent)
+    }
     private var isSaved: Bool {
-        guard let sku = current?.sku, let id = store.products.first(where: { $0.sku == sku })?.id else { return false }
+        guard let item = current, let id = store.products.first(where: { $0.sku == item.sku && $0.retailer == item.retailer && ($0.market == nil || $0.market == item.market) })?.id else { return false }
         return store.saved.favorites.contains(id)
     }
     private func save() async {
         guard let item = current else { return }
-        if let id = store.products.first(where: { $0.sku == item.sku })?.id { store.toggle(id); return }
+        if let id = store.products.first(where: { $0.sku == item.sku && $0.retailer == item.retailer && ($0.market == nil || $0.market == item.market) })?.id { store.toggle(id); return }
         busy = true; _ = await store.saveCatalogItem(item); busy = false
     }
     private func circleButton(_ icon: String, label: String, action: @escaping () -> Void) -> some View {
