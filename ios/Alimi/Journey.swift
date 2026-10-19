@@ -336,7 +336,7 @@ struct GuideView: View {
         .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.sbBorder))
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .accessibilityIdentifier("onboard-guide")
+        .accessibilityElement(children: .contain).accessibilityIdentifier("onboard-guide")
     }
     private var choose: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -516,7 +516,7 @@ struct CommunityHome: View {
                 Text(L("home.welcomeSub")).font(.caption).foregroundStyle(.secondary)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(16)
                 .background(LinearGradient(colors: [Color(rgb: 0xF3F7FF), Color(rgb: 0xEAF3FF)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityIdentifier("welcome-back")
+                .accessibilityElement(children: .contain).accessibilityIdentifier("welcome-back")
             SectionHead(title: L("activity.chats"))
             ForEach(model.joined.prefix(2)) { j in
                 roomLink(j.room, note: j.last?.body ?? j.room.intro, fresh: Seen.hasNew(j.last?.createdAt, since: seen[j.room.id]))
