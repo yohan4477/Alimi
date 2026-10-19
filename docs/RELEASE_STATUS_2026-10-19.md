@@ -64,3 +64,12 @@
 - 요청 완료·실패 시 즉시 해제하고, 지연 시에도 최대 8초 뒤 탐색을 가리지 않도록 해제한다.
 - 일반 검색·탭 전환·백그라운드 갱신에는 전체 화면 그림을 띄우지 않는다. 기존 화면으로 복귀하며, 첫 로딩이 진행 중인 경우에만 대기가 계속될 수 있다.
 - 22.1 이후 변경. 웹/iOS 배포·검사 결과는 해당 변경 커밋 기준으로 확인한다.
+
+### 초기 로딩 변경 배포 기록 — 2026-10-20 00:06 KST
+
+- [PR #131](https://github.com/yohan4477/Alimi/pull/131) main 반영: 8eb9a0c.
+- JS 단위 테스트 131/131, [Web checks #100](https://github.com/yohan4477/Alimi/actions/runs/39272996344) 전체 성공.
+- [iOS CI #260](https://github.com/yohan4477/Alimi/actions/runs/39272996042) 빌드·XCTest·앱 실행·화면 캡처 전체 성공. 6a2c207 PR 소스 기준이며 merge 후 앱 코드 동일.
+- 8eb9a0c의 Vercel 배포 success 확인.
+- [TestFlight 실행 #23](https://github.com/yohan4477/Alimi/actions/runs/39274176051), 소스 8eb9a0c: 실행 요청 완료. GitHub macos-26 hosted runner 배정 대기 중. 빌드·서명·업로드 완료로 표시하지 않는다.
+- 현재 확인된 최신 업로드 성공은 1.0 (22.1)이다. 초기 로딩 이미지 변경은 해당 빌드에 포함되지 않는다.
