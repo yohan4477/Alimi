@@ -71,12 +71,12 @@ if (root) {
     const setFrame = index => {
       frame = ((index % 10) + 10) % 10;
       sprite.style.animation = 'none';
-      sprite.style.backgroundPosition = (-64 * (frame % 5)) + 'px ' + (-96 * Math.floor(frame / 5)) + 'px';
+      sprite.style.backgroundPosition = (-48 * (frame % 5)) + 'px ' + (-72 * Math.floor(frame / 5)) + 'px';
     };
     const readCurrentFrame = () => {
       const [x, y] = getComputedStyle(sprite).backgroundPosition.split(' ');
-      const column = Math.min(4, Math.max(0, Math.round(-parseFloat(x) / 64) || 0));
-      const row = Math.min(1, Math.max(0, Math.round(-parseFloat(y) / 96) || 0));
+      const column = Math.min(4, Math.max(0, Math.round(-parseFloat(x) / 48) || 0));
+      const row = Math.min(1, Math.max(0, Math.round(-parseFloat(y) / 72) || 0));
       return row * 5 + column;
     };
     const refreshLabel = () => {
