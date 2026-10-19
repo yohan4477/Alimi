@@ -478,8 +478,9 @@ struct ChatRoomView: View {
             if let item { Chip(text: item.brandLabel + " · " + item.name) { self.item = nil } }
             HStack(alignment: .center, spacing: 12) {
                 Button { picking = true } label: {
-                    Image(systemName: "plus").font(.system(size: 22, weight: .medium)).foregroundStyle(Color.sbNavy)
-                        .frame(width: 46, height: 46).overlay(Circle().stroke(Color.sbNavy, lineWidth: 1.6))
+                    Image(systemName: "plus").font(.system(size: 16, weight: .medium)).foregroundStyle(Color.sbNavy)
+                        .frame(width: 30, height: 30).overlay(Circle().stroke(Color.sbNavy, lineWidth: 1.4))
+                        .frame(width: 44, height: 44).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityLabel(L("chat.attach"))
                 HStack(spacing: 8) {
                     TextField(L("chat.typeHere"), text: $text, axis: .vertical)
