@@ -537,8 +537,8 @@
     "en": "Save products and posts you’d like to revisit"
   },
   "saved.hintMore": {
-    "ko": "저장한 상품을 다시 찾아보세요. {n}개 더 저장할 수 있어요",
-    "en": "Revisit your saved products. Room for {n} more"
+    "ko": "저장한 상품을 다시 찾아보세요.",
+    "en": "Revisit your saved products."
   },
   "saved.add": {
     "ko": "추가",
@@ -1141,8 +1141,8 @@
     "en": "Products in the conversation"
   },
   "home.scope": {
-    "ko": "최근 24시간, 불러온 대화에서 집계했어요. 언급은 추천을 뜻하지 않아요.",
-    "en": "From the recent conversations loaded in the last 24 hours. Mentions aren’t endorsements."
+    "ko": "최근 24시간 대화 일부 기준 · 언급은 추천이 아니에요.",
+    "en": "From a sample of conversations in the past 24 hours. Mentions aren’t endorsements."
   },
   "home.noProducts": {
     "ko": "상품이 연결된 대화가 생기면 여기에 보여드려요.",
@@ -1625,8 +1625,8 @@
     "en": "Recommended rooms"
   },
   "home.recRoomsSub": {
-    "ko": "지금 주목받는 인기 대화방이에요!",
-    "en": "Popular rooms getting attention right now!"
+    "ko": "관심 있는 주제의 대화를 둘러보세요.",
+    "en": "Explore conversations about topics that interest you."
   },
   "home.seeAll": {
     "ko": "전체보기",
