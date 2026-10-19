@@ -180,18 +180,18 @@
 #sb-design .sb-design-loading-grid{display:grid;grid-template-columns:minmax(200px,.85fr) minmax(230px,1.15fr);gap:17px;align-items:start;margin-top:13px}
 #sb-design .sb-design-loader-demo{min-width:0}
 #sb-design .sb-design-loader-stage{display:flex;min-height:200px;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:15px;border-radius:13px;background:light-dark(#fff,#1b2527);border:1px solid var(--dline)}
-#sb-design .sb-design-loader-character{width:48px;height:72px;flex:none;background-image:url('/assets/loading-characters.svg');background-size:240px 144px;background-position:0 0;background-repeat:no-repeat;image-rendering:pixelated;animation:sb-design-sprite-cycle 22s steps(1,end) infinite}
+#sb-design .sb-design-loader-character{width:64px;height:96px;flex:none;background-image:url('/assets/loading-characters-sprite.png');background-size:320px 192px;background-position:0 0;background-repeat:no-repeat;image-rendering:pixelated;animation:sb-design-sprite-cycle 22s steps(1,end) infinite}
 @keyframes sb-design-sprite-cycle{
 0%,9.999%{background-position:0 0}
-10%,19.999%{background-position:-48px 0}
-20%,29.999%{background-position:-96px 0}
-30%,39.999%{background-position:-144px 0}
-40%,49.999%{background-position:-192px 0}
-50%,59.999%{background-position:0 -72px}
-60%,69.999%{background-position:-48px -72px}
-70%,79.999%{background-position:-96px -72px}
-80%,89.999%{background-position:-144px -72px}
-90%,100%{background-position:-192px -72px}
+10%,19.999%{background-position:-64px 0}
+20%,29.999%{background-position:-128px 0}
+30%,39.999%{background-position:-192px 0}
+40%,49.999%{background-position:-256px 0}
+50%,59.999%{background-position:0 -96px}
+60%,69.999%{background-position:-64px -96px}
+70%,79.999%{background-position:-128px -96px}
+80%,89.999%{background-position:-192px -96px}
+90%,100%{background-position:-256px -96px}
 }
 #sb-design .sb-design-loader-stage p{font-size:.84rem;font-weight:680;text-align:center;margin:0;line-height:1.55}
 #sb-design .sb-design-loader-stage small{font-size:.67rem;color:var(--muted-foreground);line-height:1.5;text-align:center}
