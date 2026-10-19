@@ -60,6 +60,48 @@ if (root) {
       for (const preview of previews) preview.hidden = preview.dataset.designLocale !== chosen;
     });
   }
+  // Visual-only loader demo; no timers or fabricated request completion.
+  const loadingReview = document.getElementById('sb-loading-design-review');
+  if (loadingReview) {
+    const sprite = loadingReview.querySelector('.sb-design-loader-character');
+    const pause = loadingReview.querySelector('[data-loader-pause]');
+    const next = loadingReview.querySelector('[data-loader-next]');
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let paused = reduceMotion, frame = 0;
+    const setFrame = index => {
+      frame = ((index % 10) + 10) % 10;
+      sprite.style.animation = 'none';
+      sprite.style.backgroundPosition = (-64 * (frame % 5)) + 'px ' + (-96 * Math.floor(frame / 5)) + 'px';
+    };
+    const readCurrentFrame = () => {
+      const [x, y] = getComputedStyle(sprite).backgroundPosition.split(' ');
+      const column = Math.min(4, Math.max(0, Math.round(-parseFloat(x) / 64) || 0));
+      const row = Math.min(1, Math.max(0, Math.round(-parseFloat(y) / 96) || 0));
+      return row * 5 + column;
+    };
+    const refreshLabel = () => {
+      pause.setAttribute('aria-pressed', String(paused));
+      pause.textContent = reduceMotion ? '모션 감소 활성화' : paused ? '자동 순환 재생' : '일시정지';
+    };
+    pause.addEventListener('click', () => {
+      if (reduceMotion) return;
+      if (!paused) { setFrame(readCurrentFrame()); paused = true; }
+      else {
+        sprite.style.backgroundPosition = '';
+        sprite.style.animation = '';
+        paused = false;
+      }
+      refreshLabel();
+    });
+    next.addEventListener('click', () => {
+      const current = paused ? frame : readCurrentFrame();
+      paused = true;
+      setFrame(current + 1);
+      refreshLabel();
+    });
+    if (reduceMotion) { pause.disabled = true; setFrame(0); }
+    refreshLabel();
+  }
   // Private admin mock only. No preferences, chat messages or skin attributes are stored or sent.
   const guideDemo = document.getElementById('sb-pixel-guide-demo');
   if (guideDemo) {
