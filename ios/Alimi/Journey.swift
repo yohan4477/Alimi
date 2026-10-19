@@ -446,7 +446,7 @@ struct CommunityHome: View {
                 }.padding(.horizontal, 2)
             }
         }
-        SectionHead(title: L("home.recRooms"), sub: L("home.recRoomsSub")) {
+        SectionHead(title: L("home.recRooms"), sub: "") {
             Button { tab = .rooms } label: { InlineActionLabel(title: L("home.seeAll"), icon: "chevron.right") }.buttonStyle(.plain).foregroundStyle(Color.sbBlue)
         }
         let picks = (interests?.done == true && interests?.chosenGroup == true) ? Recommend.rooms(model.rooms, interests, limit: 4).map(\.room) : Array((model.hot.isEmpty ? model.topics : model.hot).prefix(4))
@@ -456,22 +456,12 @@ struct CommunityHome: View {
                     .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
             }
         }
-        NavigationLink { ShareHubView() } label: {
-            HStack(spacing: 14) {
-                Image("ShareFriends").resizable().scaledToFill().frame(width: 92, height: 64).clipShape(RoundedRectangle(cornerRadius: 12))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(L("share.hubTitle")).font(.system(size: 16, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
-                    Text(L("share.hubSub")).font(.system(size: 13)).foregroundStyle(Color.sbGray).lineLimit(1)
-                }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-            }.padding(12).background(Color.sbTagBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 18))
-        }.buttonStyle(.plain).padding(.top, 18).accessibilityIdentifier("share-hub")
+
         Button(L(interests?.chosenGroup == true ? "onb.edit" : "onb.manage"), action: onEditInterests).font(.footnote).padding(.top, 4)
             .accessibilityIdentifier("edit-interests")
     }
     @ViewBuilder private var allRooms: some View {
-        SectionHead(title: L("home.topics"), sub: L("home.askHint")) {
+        SectionHead(title: L("home.topics"), sub: "") {
             EmptyView()
         }
         ForEach(model.topics) { room in roomLink(room, note: room.intro) }

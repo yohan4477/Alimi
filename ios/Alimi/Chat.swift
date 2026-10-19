@@ -202,7 +202,7 @@ struct ChatTab: View {
         if tag == "all" { return topics.sorted { ($0.lastMessageAt ?? "") > ($1.lastMessageAt ?? "") } }
         return topics.filter { $0.tag == tag }
     }
-    private func choose(_ room: ChatRoom) { if ChatAPI.agreed { open = room } else { asking = room } }
+    private func choose(_ room: ChatRoom) { open = room }
 
     var body: some View {
         NavigationStack {
@@ -405,8 +405,6 @@ struct JoinSheet: View {
 struct ChatRoomView: View {
     @EnvironmentObject var store: AlimiStore
     let room: ChatRoom
-    var canPost = true
-    var onJoin: () -> Void = {}
     @State private var messages: [ChatMessage] = []
     @State private var nickname = ""
     @State private var text = ""
@@ -465,9 +463,9 @@ struct ChatRoomView: View {
                 } else { unread += max(0, new - old) }
             }
         }
-        .safeAreaInset(edge: .bottom) { if canPost { composer } else { joinBar } }
+        .safeAreaInset(edge: .bottom) { if room.isClosed { Text(room.closureReason ?? L("room.closed")).font(.footnote).padding() } else { composer } }
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
-        .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef, attach: canPost ? { picked in item = picked } : nil).environmentObject(store) }
+        .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef, attach: { picked in item = picked }).environmentObject(store) }
         .sheet(item: $savingMessage) { CommunityComposer(room: room, fromMessage: $0).environmentObject(store) }
         .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reporting != nil }, set: { if !$0 { reporting = nil } }), titleVisibility: .visible) {
             ForEach(["spam", "abuse", "sexual", "other"], id: \.self) { reason in
@@ -483,20 +481,14 @@ struct ChatRoomView: View {
             }
         }
         .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) { Button("OK") {} }
-        .task(id: canPost) { await start() }
+        .task { await start() }
     }
 
-    private var joinBar: some View {
-        VStack(spacing: 10) {
-            Text(room.isClosed ? (room.closureReason ?? L("room.closed")) : L("chat.rules")).font(.caption).foregroundStyle(Color.sbGray).fixedSize(horizontal: false, vertical: true)
-            Button(action: onJoin) {
-                Text(L("room.joinTalk")).font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 52).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
-            }.buttonStyle(.plain).disabled(room.isClosed).accessibilityIdentifier("chat-join")
-        }.padding(.horizontal, 16).padding(.vertical, 10).background(.bar)
-    }
     private var composer: some View {
         VStack(alignment: .leading, spacing: 6) {
+            if messages.allSatisfy({ $0.authorTag != ChatAPI.myTag }) {
+                Text(L("chat.quickRules")).font(.caption2).foregroundStyle(Color.sbGray)
+            }
             if let replyTo {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
@@ -528,10 +520,6 @@ struct ChatRoomView: View {
 
     private func start() async {
         do {
-            if canPost {
-                nickname = try await ChatAPI.join(room: room.id)
-                EventLogger.shared.log(.chatJoin, props: ["room": room.id])
-            }
             messages = try await ChatAPI.messages(room: room.id)
             Seen.mark(room.id, messages.last?.createdAt)
         } catch { notice = L("chat.loadFailed") }
@@ -552,6 +540,7 @@ struct ChatRoomView: View {
             if !messages.contains(where: { $0.id == m.id }) { messages.append(m) }
             EventLogger.shared.log(.chatSend, props: ["room": room.id, "item": item == nil ? "0" : "1", "reply": replyTo == nil ? "0" : "1"])
             text = ""; item = nil; replyTo = nil
+            NotificationCenter.default.post(name: .roomMembershipChanged, object: nil)
         } catch {
             notice = L(ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? ""))
         }

@@ -16,7 +16,7 @@ import {track} from './events.js';
 import {t, locale} from './i18n.js';
 import {searchCatalog, brandLabel, usd, brandInitials, brandColor, fetchBrands, fetchFamiliesPage} from './live.js';
 import {chatSecret, readBlocked, block, hasAgreed, agree, roomTitle, roomIntro, visible, errorKey,
-  roomActions, leaveRoom, deleteRoom, deleteMessage, fetchRooms, createRoom, fetchMessages, fetchMyRooms, joinRoom, postMessage, likeMessage, reportMessage} from './chat-api.js';
+  roomActions, leaveRoom, deleteRoom, deleteMessage, fetchRooms, createRoom, fetchMessages, fetchMyRooms, postMessage, likeMessage, reportMessage} from './chat-api.js';
 import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, filterReviews, photoUrl, reviewPayload, uploadPhoto, ago, fetchPosts, fetchPost, fetchComments, fetchProductTalk, createPost, addComment, likeCommunity, reportCommunity} from './community-api.js';
 
 import {$, esc} from './util.js';
@@ -121,7 +121,7 @@ async function loadCatalogPictures(rooms) {
 async function renderHome() {
   const version = ++homeVersion;
   rememberDraft(); stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="find-topic">＋ ${esc(t('home.ask'))}</button>`);
+  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room">＋ ${esc(t('room.new'))}</button>`);
   let posts = [], joined = [], postsFailed = false;
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
@@ -154,9 +154,9 @@ function drawHome() {
     const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (hot.length ? hot : topics).slice(0, 4);
     const mine = home.revisit?.activity?.length ? welcomeBanner() + bigHead(t('rooms.mine'), '', 'data-screen="rooms"') + home.revisit.activity.slice(0, 2).map(a => joinedCard(a, images.get(a.room.id))).join('') : '';
     const trend = hot.length ? bigHead(t('home.trending'), t('home.trendingSub')) + `<div class="trend-row">${hot.map(trendCard).join('')}</div>` : '';
-    box.innerHTML = `${mine}${trend}${sectionHead(t('home.recRooms'), t('home.recRoomsSub'), `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="share-card" data-screen="share"><img src="assets/share-friends.webp" alt="" width="92" height="64"><span><b>${esc(t('share.hubTitle'))}</b><small>${esc(t('share.hubSub'))}</small></span><i aria-hidden="true">›</i></button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
+    box.innerHTML = `${mine}${trend}${sectionHead(t('home.recRooms'), '', `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
   } else if (homeTab === 'rooms') {
-    box.innerHTML = `${sectionHead(t('home.topics'), t('home.askHint'))}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
+    box.innerHTML = `${sectionHead(t('home.topics'), '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
   } else if (homeTab === 'discover') {
     const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
@@ -203,28 +203,26 @@ async function manageRoom(action) {
   managingRoom = true;
   try {
     await (action === 'delete' ? deleteRoom : leaveRoom)(secret, room.id);
-    joinedRooms.delete(room.id); homeJoined = homeJoined.filter(j => j.room_id !== room.id);
+    homeJoined = homeJoined.filter(j => j.room_id !== room.id);
     roomDrafts.delete(room.id); leaveChat(); await renderHome();
     toast(t(action === 'delete' ? 'room.deleted' : 'room.left'));
   } catch(e) { toast(t(errorKey(e.message))); }
   finally { managingRoom = false; }
 }
 
-function askJoin(room, then) {
+function askRules(room, then) {
   if (hasAgreed(storage)) { then(); return; }
   const dlg = $('#chat-join');
-  dlg.innerHTML = `<h2>${esc(t('chat.joinTitle', {room: roomTitle(room)}))}</h2><p class="chat-intro">${esc(roomIntro(room))}</p><p class="chat-rules">${esc(t('chat.rules'))}</p><div class="chat-join-actions"><button data-chat-action="join-cancel">${esc(t('cancel'))}</button><button class="primary" data-chat-action="join-ok">${esc(t('chat.join'))}</button></div>`;
+  dlg.innerHTML = `<h2>${esc(t('chat.rulesTitle'))}</h2><p class="chat-intro">${esc(roomIntro(room))}</p><p class="chat-rules">${esc(t('chat.rules'))}</p><div class="chat-join-actions"><button data-chat-action="join-cancel">${esc(t('cancel'))}</button><button class="primary" data-chat-action="join-ok">${esc(t('community.agree'))}</button></div>`;
   joinThen = then; dlg.showModal();
 }
 let joinThen = () => {};
 
 // Topic: header + Posts / Live chat switch. The two never share one stream.
-const joinedRooms = new Set();
 function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null;
-  const member = room.status !== 'closed' && homeJoined.some(j => j.room_id === room.id);
-  const canPost = room.status !== 'closed' && hasAgreed(storage) && (member || joinedRooms.has(room.id)), other = mode === 'posts' ? 'live' : 'posts';
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div>${canPost || room.status === 'closed' ? '' : `<button class="room-join" id="room-join" data-chat-action="join-room">+ ${esc(t('room.join'))}</button>`}<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(room.status === 'closed' ? room.closure_reason || t('room.closed') : mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
+  const other = mode === 'posts' ? 'live' : 'posts';
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div><div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(room.status === 'closed' ? room.closure_reason || t('room.closed') : mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
   loadRoomActions(room);
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
@@ -316,19 +314,15 @@ async function submitPost() {
 async function startLive(room) {
   const draft=roomDrafts.get(room.id);
   chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
-  const canPost = room.status !== 'closed' && hasAgreed(storage) && (joinedRooms.has(room.id) || homeJoined.some(j => j.room_id === room.id));
-  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button>${canPost ? `<form id="chat-form" class="chat-composer"><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>` : room.status === 'closed' ? `<p class="chat-rules">${esc(room.closure_reason || t('room.closed'))}</p>` : `<div class="join-bar"><p class="chat-rules">${esc(t('chat.rules'))}</p><button class="primary" id="join-live" data-chat-action="join-live">${esc(t('room.joinTalk'))}</button></div>`}`);
-  if (canPost) {
+  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
+  {
+    if (room.status === 'closed') { $('#chat-form').innerHTML = `<p class="chat-rules">${esc(room.closure_reason || t('room.closed'))}</p>`; } else {
     $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
+    }
   }
   try {
-    if (canPost) {
-      chat.nickname = await joinRoom(secret, room.id);
-      if (!homeJoined.some(j => j.room_id === room.id)) homeJoined = [{room_id: room.id, last: null}, ...homeJoined];
-      track('chat_join', null, {room: room.id});
-    }
     const messages = await fetchMessages(room.id);
     if(chat.room?.id!==room.id||!$('#chat-log'))return;
     chat.messages = messages;
@@ -383,6 +377,9 @@ async function send() {
   try {
     const m = await postMessage(secret, roomId, text, item, replyTo);
     roomDrafts.delete(roomId);
+    if (chat.room?.id === roomId) loadRoomActions(chat.room);
+    if (!homeJoined.some(j => j.room_id === roomId)) homeJoined.unshift({room_id: roomId, last: m});
+    chat.nickname = m.nickname;
     track('chat_send', null, {room:roomId,item:item?1:0,reply:replyTo?1:0});
     if(chat.room?.id!==roomId||!box.isConnected)return;
     if (!chat.messages.some(x => x.id === m.id)) chat.messages.push(m);
@@ -512,7 +509,7 @@ async function submitRoom() {
     chat.rooms = await fetchRooms().catch(() => chat.rooms);
     $('#room-create').close(); toast(t('room.created'));
     const room = chat.rooms.find(r => r.id === id) ?? {id, title_en:newRoom.title.trim(), title_ko:newRoom.title.trim(), intro_en:newRoom.intro, intro_ko:newRoom.intro, kind:'topic', tag:newRoom.tag, concerns:newRoom.concerns, members:1, messages_24h:0};
-    if (room) { chat.room = room; joinedRooms.add(room.id); openTopic(room, 'live'); } else renderHome();
+    if (room) { chat.room = room; openTopic(room, 'live'); } else renderHome();
   } catch (e) { newRoom.busy = false; newRoom.error = t(errorKey(e.message) === 'chat.err.other' ? 'chat.err.create' : errorKey(e.message)); renderCreateRoom(); }
 }
 let pendingPost = null;
@@ -529,8 +526,6 @@ document.addEventListener('click', async e => {
   else if (a === 'resume') renderJoined();
   else if (b.hasAttribute('data-home-brands-retry')) { homeBrands = null; drawHome(); }
   else if (b.dataset.homeTab) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
-  else if (a === 'join-room') { const r = chat.room; if (r.status === 'closed') return; if (hasAgreed(storage)) { joinedRooms.add(r.id); openTopic(r, 'live'); } else askJoin(r, () => { joinedRooms.add(r.id); openTopic(r, 'live'); }); }
-  else if (a === 'join-live') { if (chat.room?.status === 'closed') return; agree(storage); joinedRooms.add(chat.room.id); openTopic(chat.room, 'live'); }
   else if (a === 'retry-room-actions') loadRoomActions(chat.room, true);
   else if (a === 'leave-room') manageRoom('leave');
   else if (a === 'delete-room') manageRoom('delete');
@@ -545,12 +540,12 @@ document.addEventListener('click', async e => {
   else if (a === 'more-room-tags') { keepRoomText(); newRoom.more = !newRoom.more; renderCreateRoom(); }
   else if (b.dataset.roomTag) { keepRoomText(); newRoom.tag = b.dataset.roomTag; renderCreateRoom(); $(`[data-room-tag="${newRoom.tag}"]`).focus(); }
   else if (b.dataset.roomConcern) { keepRoomText(); const id = b.dataset.roomConcern; newRoom.error = !newRoom.concerns.includes(id) && newRoom.concerns.length >= 3 ? t('chat.err.tags') : ''; newRoom.concerns = toggleRoomTag(newRoom.concerns, id); renderCreateRoom(); $(`[data-room-concern="${id}"]`).focus(); }
-  else if (b.dataset.chatStart) { const room = chat.rooms.find(r => r.id === b.dataset.chatStart); $('#chat-start').close(); if (room) { chat.room = room; askJoin(room, () => openWrite()); } }
+  else if (b.dataset.chatStart) { const room = chat.rooms.find(r => r.id === b.dataset.chatStart); $('#chat-start').close(); if (room) { chat.room = room; askRules(room, () => openWrite()); } }
   else if (a === 'topic') openTopic(chat.room, 'posts');
   else if (b.dataset.topicMode) openTopic(chat.room, b.dataset.topicMode);
   else if (a === 'join-cancel') $('#chat-join').close();
   else if (a === 'join-ok') { agree(storage); $('#chat-join').close(); joinThen(); }
-  else if (a === 'write') askJoin(chat.room, () => openWrite());
+  else if (a === 'write') askRules(chat.room, () => openWrite());
   else if (b.dataset.writeUsed) { keepDraftText(); view.draft.usedFor = view.draft.usedFor === b.dataset.writeUsed ? '' : b.dataset.writeUsed; renderWrite(); }
   else if (b.dataset.writeField) { keepDraftText(); const f = b.dataset.writeField; view.draft[f] = view.draft[f] === b.dataset.value ? '' : b.dataset.value; renderWrite(); }
   else if (b.hasAttribute('data-review-similar')) { const me = cachedProfile() ?? {}, on = talkFilter.skin_type === (me.skin_type ?? '') && talkFilter.skin_tone === (me.skin_tone ?? ''); talkFilter.skin_type = on ? '' : me.skin_type ?? ''; talkFilter.skin_tone = on ? '' : me.skin_tone ?? ''; drawTalk(); }
@@ -562,7 +557,7 @@ document.addEventListener('click', async e => {
   else if (a === 'write-item-cancel') { keepDraftText(); view.draft.item = null; renderWrite(); }
   else if (a === 'write-submit') { e.preventDefault(); submitPost(); }
   else if (a === 'attach') openPicker('chat');
-  else if (a === 'attach-comment') askJoin(chat.room ?? {title_en: '', title_ko: '', intro_en: '', intro_ko: ''}, () => openPicker('comment'));
+  else if (a === 'attach-comment') askRules(chat.room ?? {title_en: '', title_ko: '', intro_en: '', intro_ko: ''}, () => openPicker('comment'));
   else if (a === 'comment-item-cancel') { view.commentItem = null; renderPost(); }
   else if (a === 'reply-cancel') { chat.replyTo = null; renderContext(); }
   else if (a === 'item-cancel') { chat.item = null; renderContext(); }

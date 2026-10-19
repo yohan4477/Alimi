@@ -81,7 +81,7 @@ try {
   });
   await step('saved tab shows one discovery action and settings', async () => {
     await page.click('#tabbar [data-screen="saved"]');
-    assert.equal(await page.locator('#saved .add-slot').count(), 1);
+    assert.equal(await page.locator('#saved .add-slot').count(), 0);
     await page.click('#saved [data-screen="settings"]');
     await page.waitForSelector('#settings .set-row');
   });

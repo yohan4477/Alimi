@@ -10,14 +10,15 @@ try {
   page.on('pageerror',e=>errors.push(e.message));
   const item={family_key:'tint03',retailer:'Shop',market:'US',sku:'03',brand:'TEST',brand_ko:'테스트',name:'Soft tint 03',price_minor:1200,image_url:null,currency:'USD',size_label:'4g',option_label:'03',url:'https://example.com/tint',affiliate_url:null};
   const room={id:'tint',title_en:'Tint talk',title_ko:'틴트 이야기',intro_en:'Shades and experiences',intro_ko:'발색 경험을 나눠요',kind:'topic',sort:1,members:2,messages_24h:2,last_message_at:new Date().toISOString()};
-  let heartCount=0;
+  let heartCount=0, joins=0, sends=0;
   const messages=[{id:1,room_id:'tint',author_tag:'other',nickname:'Maya',body:'Which shade works on pigmented lips?',item,reply_to:null,likes:0,created_at:new Date().toISOString()}];
   await page.route('**/rest/v1/**',async route=>{
    const u=new URL(route.request().url()),resource=u.pathname.split('/').at(-1);
    if(resource==='chat_room_list')return route.fulfill({json:[room]});
    if(resource==='chat_messages')return route.fulfill({json:u.searchParams.has('id')?[]:messages});
    if(resource==='like_chat') { heartCount=heartCount?0:1; return route.fulfill({json:heartCount}); }
-   if(resource==='join_chat')return route.fulfill({json:'Jade'});
+   if(resource==='join_chat'){joins++;return route.fulfill({json:'Jade'});}
+   if(resource==='post_chat'){sends++;if(sends===1)return route.fulfill({status:500,json:{message:'temporary failure'}});const body=route.request().postDataJSON();return route.fulfill({json:{...messages[0],id:2,author_tag:'mine',nickname:'Jade',body:body.p_body,item:null}});}
    if(resource==='catalog_items')return route.fulfill({json:[item]});
    if(resource==='app_events')return route.fulfill({status:204});
    return route.fulfill({json:[]});
@@ -40,10 +41,10 @@ try {
   assert.match(await page.locator('#community-home').innerText(),lang==='en'?/Products in the conversation/:/대화에 나온 제품/);
   await page.locator('[data-home-tab="rec"][role="tab"]').click();
   await page.locator('.room-list-card[data-live]').first().click();
-  // Readable before joining; the join bar shows the rules and unlocks the composer.
+  // Reading and composing are available without joining.
   await page.locator('#chat-log .chat-item').waitFor();
   assert.equal(await page.locator('#chat-log .chat-bubble p').first().innerText(),messages[0].body);
-  await page.locator('#join-live').click();
+  assert.equal(await page.locator('#join-live, .room-join').count(),0);
   await page.locator('#chat-text').waitFor();
   const heart=page.locator('[data-chat-like="1"]');
   assert.equal(await heart.getAttribute('aria-pressed'),'false');
@@ -71,6 +72,14 @@ try {
   assert.equal(await page.locator('#chat-log').isVisible(),true);
   assert.equal(await page.locator('#chat-log .chat-msg').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+  assert.equal(joins,0,'reading never joins');
+  await page.locator('#chat-text').fill('Retry this message');
+  await page.locator('#chat-form .chat-send').click();
+  await page.waitForFunction(()=>!document.querySelector('#chat-text').disabled);
+  assert.equal(await page.locator('#chat-text').inputValue(),'Retry this message','failed send preserves draft');
+  await page.locator('#chat-form .chat-send').click();
+  await page.waitForFunction(()=>document.querySelector('#chat-text').value==='');
+  assert.equal(sends,2);assert.equal(joins,0,'posting does not require a separate join RPC');
   await page.locator('.room-back').click();
   await page.locator('#tabbar [data-screen="saved"]').click();
   await page.locator('[data-activity-tab="rooms"]').click();

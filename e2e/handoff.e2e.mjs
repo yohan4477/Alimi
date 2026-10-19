@@ -34,8 +34,7 @@ await page.locator('.pick-card').first().waitFor();
  await page.screenshot({path:`artifacts/handoff/${label}-community.png`});
  await page.click('#tabbar [data-screen="saved"]');await page.screenshot({path:`artifacts/handoff/${label}-saved.png`});
  if(!process.env.CAPTURE_ONLY){
-  assert.equal(await page.locator('#saved .add-slot').count(),1);
-  assert.ok((await page.locator('#saved .add-slot').boundingBox()).height<100,'empty-state action remains compact');
+  assert.equal(await page.locator('#saved .add-slot').count(),0);
   assert.equal(await page.locator('.activity-tabs .on').evaluate(el=>getComputedStyle(el).borderBottomWidth),'2px');
  }
  await page.click('#tabbar [data-screen="chat"]');await page.locator('.pick-card').first().click();await page.locator('#chat-log .chat-item').waitFor();

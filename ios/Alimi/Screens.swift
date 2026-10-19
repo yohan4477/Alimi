@@ -44,14 +44,7 @@ struct SavedView: View {
                     default: savedList
                     }
                     interestsRow.padding(.top, 8)
-                    NavigationLink { ShareHubView() } label: {
-                        HStack {
-                            Image(systemName: "heart.text.square").font(.system(size: 22)).foregroundStyle(Color.sbBlue)
-                            Text(L("share.hubTitle")).font(.subheadline.bold()).foregroundStyle(Color.sbNavy)
-                            Spacer()
-                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-                        }.padding(14).background(Color.sbTagBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 14))
-                    }.buttonStyle(.plain).accessibilityIdentifier("share-hub")
+
                 }.padding(20)
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -64,7 +57,6 @@ struct SavedView: View {
     @ViewBuilder private var savedList: some View {
         if items.isEmpty {
             Text(L("saved.hint")).font(.subheadline).foregroundStyle(Color.sbGray)
-            AddSlot(highlighted: true, action: onSearch)
         }
         ForEach(items) { SavedRow(product: $0) }
         SavedCommunityPosts()

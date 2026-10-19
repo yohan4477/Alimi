@@ -515,3 +515,5 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .startup-loading{background:#fff}
 .startup-brand-art{position:relative;width:100%;height:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 20px) 0 calc(env(safe-area-inset-bottom) + 60px)}
 .startup-brand-art>img{display:block;width:100%;height:100%;object-fit:contain}
+
+#family-actions>.family-save{flex:0 0 48px;min-width:48px;min-height:48px;position:static}.product-description summary{cursor:pointer;padding:10px 0;font-weight:600}

@@ -139,15 +139,11 @@ struct CommunityTopic: View {
     let room: ChatRoom
     var member = false
     var picture: URL? = nil
-    @State private var agreed = ChatAPI.agreed
-    @State private var joined = false
     @State private var showBoard = false
     @State private var actions: ChatAPI.RoomActions?
     @State private var manageError: String?
     @State private var pendingAction: String?
     @State private var managing = false
-    // Reading is open to everyone; posting needs the rules accepted and the room joined (journey screen 4).
-    private var canPost: Bool { !room.isClosed && agreed && (actions?.joined ?? (member || joined)) }
     var body: some View {
         VStack(spacing: 0) {
             topBar
@@ -159,12 +155,13 @@ struct CommunityTopic: View {
                     Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(Color.sbGray)
                 }.padding(.horizontal, 16).frame(minHeight: 50).background(Color.sbTagBg.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
             }.buttonStyle(.plain).padding(.horizontal, 16).padding(.top, 6).accessibilityIdentifier("room-notice")
-            ChatRoomView(room: room, canPost: canPost, onJoin: join)
+            ChatRoomView(room: room)
         }
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showBoard) { CommunityBoard(room: room).environmentObject(store) }
         .task { await loadActions() }
+        .onReceive(NotificationCenter.default.publisher(for: .roomMembershipChanged)) { _ in Task { await loadActions() } }
         .confirmationDialog(L(pendingAction == "delete" ? "room.deleteConfirm" : "room.leaveConfirm"), isPresented: Binding(get: { pendingAction != nil }, set: { if !$0 { pendingAction = nil } }), titleVisibility: .visible) {
             if let action = pendingAction {
                 Button(L(action == "delete" ? "room.delete" : "room.leave"), role: .destructive) { Task { await manage(action) } }
@@ -197,21 +194,7 @@ struct CommunityTopic: View {
                 Image(systemName: "ellipsis").rotationEffect(.degrees(90)).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 48)
             }.accessibilityLabel(L("chat.more")).accessibilityIdentifier("room-more")
           }
-            if !canPost && !room.isClosed {
-                Button(action: join) {
-                    InlineActionLabel(title: L("room.join"), icon: "plus").font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
-                        .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
-                }.buttonStyle(.plain).accessibilityIdentifier("room-join")
-            }
         }.padding(.horizontal, 16).padding(.top, 6).padding(.bottom, 8)
-    }
-    // The rules are on screen next to the button, so tapping it is the agreement.
-    private func join() {
-        guard !room.isClosed else { return }
-        Task {
-            do { _ = try await ChatAPI.join(room: room.id); ChatAPI.agreed = true; agreed = true; joined = true; await loadActions() }
-            catch { manageError = L(ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? "")) }
-        }
     }
     private func loadActions(showError: Bool = false) async {
         do { actions = try await ChatAPI.actions(room: room.id) }

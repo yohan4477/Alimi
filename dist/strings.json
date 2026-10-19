@@ -1,4 +1,12 @@
 {
+  "chat.rulesTitle": {
+    "ko": "대화 이용 안내",
+    "en": "Community guidelines"
+  },
+  "chat.quickRules": {
+    "ko": "서로 존중하며 이야기해요. 광고·욕설·개인정보 공유는 금지돼요.",
+    "en": "Be respectful. No ads, abuse or sharing personal information."
+  },
   "onb.optional": {
     "ko": "내 정보 (선택)",
     "en": "About me (optional)"
