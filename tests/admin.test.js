@@ -8,11 +8,11 @@ import {SESSION_COOKIE, isAdmin, adminOrigin, readToken} from '../server/admin-a
 const token = 'header.signed.token';
 const admin = {id:'user-1',email_confirmed_at:'2026-10-19T00:00:00Z',is_anonymous:false,app_metadata:{seoulbeauty_admin:true}};
 function response(body, status = 200) { return new Response(JSON.stringify(body), {status,headers:{'Content-Type':'application/json'}}); }
-async function request({method='GET',url='/admin',headers={},body,fetchImpl=async()=>response(admin),readPage=async()=>'<p>PRIVATE STRATEGY</p>'}={}) {
+async function request({method='GET',url='/admin',headers={},body,fetchImpl=async()=>response(admin),readPage=async()=>'<p>PRIVATE STRATEGY</p>',envOverrides={}}={}) {
   const req=Readable.from(body === undefined || typeof body === 'object' ? [] : [body]);
   Object.assign(req,{method,url,headers}); if (typeof body === 'object') req.body=body;
   const res={headers:{},statusCode:200,setHeader(k,v){this.headers[k.toLowerCase()]=v},end(b=''){this.body=b}};
-  await createAdminHandler({fetchImpl,readPage,env:{NODE_ENV:'test',ADMIN_ORIGIN:'https://admin.example'}})(req,res);
+  await createAdminHandler({fetchImpl,readPage,env:{NODE_ENV:'test',ADMIN_ORIGIN:'https://admin.example',...envOverrides}})(req,res);
   return res;
 }
 const cookie={cookie:`${SESSION_COOKIE}=${token}`};
@@ -108,4 +108,30 @@ test('review loads only after its tab is visible and responds to width changes',
   const review = await readFile(new URL('../server/admin-planning-review.html',import.meta.url),'utf8');
   assert.match(review,/new ResizeObserver/);
   assert.match(review,/width > 0 && width !== lastWidth/);
+});
+
+test('password-only login, protected review, invalid credentials and logout', async () => {
+  const envOverrides={ADMIN_SHARED_PASSWORD:'test-password',ADMIN_SHARED_SESSION_SECRET:'test-signing-secret-with-at-least-32-characters'};
+  const run=options=>request({envOverrides,fetchImpl:()=>assert.fail('password mode must not call external Auth'),...options});
+  const page=await run({});assert.equal(page.statusCode,401);assert.doesNotMatch(page.body,/name="email"/);
+  assert.equal((await run({method:'POST',url:'/api/admin?action=login',headers:form,body:'password=incorrect'})).statusCode,401);
+  const login=await run({method:'POST',url:'/api/admin?action=login',headers:form,body:'password=test-password'});
+  assert.equal(login.statusCode,303);assert.equal(login.headers.location,'/admin#sb-plan');
+  const cookie=login.headers['set-cookie'].split(';')[0];
+  assert.match(login.headers['set-cookie'],/HttpOnly; Secure; SameSite=Strict/);
+  const review=await run({url:'/api/admin?view=planning-review',headers:{cookie}});
+  assert.equal(review.statusCode,200);assert.match(review.body,/sb-reference-review/);
+  assert.equal((await run({headers:{cookie:cookie+'tampered'}})).statusCode,401);
+  const logout=await run({method:'POST',url:'/api/admin?action=logout',headers:{...form,cookie}});
+  assert.equal(logout.statusCode,303);assert.match(logout.headers['set-cookie'],/Max-Age=0/);
+});
+test('password sessions expire, rotate and fail closed without signing secret', async () => {
+  const {passwordSession,validPasswordSession}=await import('../server/admin-password.js');
+  const env={ADMIN_SHARED_PASSWORD:'example',ADMIN_SHARED_SESSION_SECRET:'test-signing-secret-with-at-least-32-characters'};
+  const token=passwordSession(env,1000000);
+  assert.equal(validPasswordSession(token,env,1000000),true);
+  assert.equal(validPasswordSession(token,env,4600000),false);
+  assert.equal(validPasswordSession(token,{...env,ADMIN_SHARED_PASSWORD:'changed'},1000000),false);
+  const unavailable=await request({envOverrides:{ADMIN_SHARED_PASSWORD:'example'},method:'POST',url:'/api/admin?action=login',headers:form,body:'password=example'});
+  assert.equal(unavailable.statusCode,503);
 });
