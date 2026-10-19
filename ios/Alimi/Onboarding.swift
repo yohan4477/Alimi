@@ -45,8 +45,7 @@ struct OnboardingFlow: View {
 
 // MARK: 1. Splash
 
-struct SplashScreen: View {
-    let next: () -> Void
+struct SplashArtwork: View {
     var body: some View {
         ZStack(alignment: .top) {
             LinearGradient(colors: [Color(rgb: 0xE6F0FE), Color(rgb: 0xE5F0FE)], startPoint: .top, endPoint: .bottom).ignoresSafeArea()
@@ -61,6 +60,29 @@ struct SplashScreen: View {
             VStack { Spacer(); Image("SplashPhoto").resizable().scaledToFit().frame(maxWidth: .infinity) }
                 .ignoresSafeArea(edges: .bottom).accessibilityHidden(true)
         }
+    }
+}
+
+struct StartupLoadingScreen: View {
+    var body: some View {
+        SplashArtwork()
+            .safeAreaInset(edge: .bottom) {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text(L("loading")).font(.footnote)
+                }
+                .padding(12).background(.regularMaterial, in: Capsule()).padding(.bottom, 12)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L("loading"))
+            .accessibilityIdentifier("startup-loading")
+    }
+}
+
+struct SplashScreen: View {
+    let next: () -> Void
+    var body: some View {
+        SplashArtwork()
         .contentShape(Rectangle())
         .onTapGesture(perform: next)
         // UI tests hold the splash (-holdSplash) to capture it, then tap through.

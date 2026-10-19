@@ -1,6 +1,7 @@
 // Temporarily disabled for the anonymous SeoulBeauty community.
 const SHOW_USER_AVATARS = false;
 import {loadingMarkup} from './loading-companion.js';
+import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
 // and Live chat, kept in separate views. Product cards are the shared link: the same card in a post,
@@ -35,16 +36,25 @@ const itemCard = (it, ref = '') => `<button class="chat-item" ${it.family_key ? 
 const shell = inner => { $('#chat').innerHTML = inner; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
+let firstCommunityLoad = true, communityOpenVersion = 0;
+let finishStartup = () => {};
 export async function openChat(opts = {}) {
+  const version = ++communityOpenVersion;
+  const initial = firstCommunityLoad;
+  firstCommunityLoad = false;
   onClose = opts.onClose ?? onClose; toast = opts.toast ?? toast;
   chat.myTag ||= await tagOf(secret);
+  if (version !== communityOpenVersion) return;
   track('community_open', null);
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
   if (pendingRoom) { if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
-  renderHome();
+  const showLaunch = initial && readInterests()?.done;
+  const finish = showLaunch ? beginStartupLoading({label: t('loading'), line1: t('splash.line1'), line2: t('splash.line2')}) : () => {};
+  finishStartup = finish;
+  try { await renderHome(); } finally { finish(); }
 }
 // Called when the user switches to another tab: stop polling until the community screen is opened again.
-export function leaveChat() { stopPolling(); chat.room = null; }
+export function leaveChat() { communityOpenVersion++; finishStartup(); stopPolling(); chat.room = null; }
 // Product sheet "대화에 첨부": only while a live room's composer is on screen.
 export const canAttachToChat = () => Boolean(chat.room && $('#chat-text'));
 export function attachToChat(it) {
