@@ -5,8 +5,6 @@ struct AccountView: View {
     var body: some View {
         VStack(spacing: 18) {
                 Spacer()
-                Image(systemName: auth.email == nil ? "person.crop.circle" : "person.crop.circle.fill")
-                    .font(.system(size: 62)).foregroundStyle(Color.alimi)
                 Text(L("account.title")).font(.title2.bold())
                 if let email = auth.email {
                     Text(email).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)

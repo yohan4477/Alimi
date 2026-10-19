@@ -347,7 +347,7 @@ struct RoomRow: View {
             HStack(spacing: 12) {
                 if room.isBrand { RoomBadge(room: room, size: 48) }
                 else {
-                    Image(systemName: "person.2.fill").foregroundStyle(Color.indigo)
+                    Image(systemName: "bubble.left.and.bubble.right").foregroundStyle(Color.indigo)
                         .frame(width: 48, height: 48).background(Color.indigo.opacity(0.1), in: Circle())
                 }
                 VStack(alignment: .leading, spacing: 3) {
@@ -513,16 +513,6 @@ struct Chip: View {
 }
 
 // Long-press a bubble for reply / like / report / block, like the reference chat app.
-// Temporarily disabled for the anonymous SeoulBeauty community.
-private let showUserAvatars = false
-
-// Same palette and hash as the web chat avatars.
-func avatarColor(_ tag: String) -> UInt32 {
-    let palette: [UInt32] = [0xF4A3A8, 0x9CC3F5, 0xF7C873, 0x9FD8B8, 0xC8B5F2, 0xF5B38A]
-    var h: UInt32 = 7
-    for c in tag.utf16 { h = h &* 31 &+ UInt32(c) }
-    return palette[Int(h % UInt32(palette.count))]
-}
 struct MessageRow: View {
     let message: ChatMessage
     let parent: ChatMessage?
@@ -536,7 +526,7 @@ struct MessageRow: View {
     var savePost: (() -> Void)? = nil
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            if mine { Spacer(minLength: 48) } else if showUserAvatars { ChatAvatar(tag: message.authorTag) }
+            if mine { Spacer(minLength: 48) }
             VStack(alignment: mine ? .trailing : .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     if !mine { Text(message.nickname).font(.system(size: 16, weight: .semibold)).foregroundStyle(Color(rgb: 0x5B6475)) }
@@ -587,15 +577,6 @@ struct MessageRow: View {
     }
 }
 
-// Illustrated portrait picked from the anonymous author tag (same person, same face); nothing personal.
-struct ChatAvatar: View {
-    let tag: String
-    var size: CGFloat = 52
-    var body: some View {
-        Image("Avatar\(Int(avatarColor(tag) % 5) + 1)").resizable().scaledToFill()
-            .frame(width: size, height: size).clipShape(Circle()).accessibilityHidden(true)
-    }
-}
 enum ChatTime {
     static func ago(_ iso: String, now: Date = Date()) -> String {
         guard let date = ISODate.parse(iso) else { return "" }

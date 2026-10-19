@@ -1,5 +1,4 @@
 // Temporarily disabled for the anonymous SeoulBeauty community.
-const SHOW_USER_AVATARS = false;
 import {loadingMarkup} from './loading-companion.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
@@ -313,7 +312,7 @@ function renderLog(scroll) {
   log.innerHTML = list.length ? list.map(m => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
     const replies = list.filter(x => x.reply_to === m.id).length;
-    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}">${mine || !SHOW_USER_AVATARS ? '' : `<img class="msg-avatar" src="avatars/avatar-${avatarIndex(m.author_tag)}.webp" alt="" width="52" height="52">`}<div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<time>${esc(timeAgo(m.created_at))}</time><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}${m.likes || replies ? `<div class="msg-pills"><button class="pill${m.likes ? ' on' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♥ ${m.likes || 0}</button>${replies ? `<button class="pill" data-chat-reply="${m.id}" aria-label="${esc(t('chat.reply'))}">💬 ${replies}</button>` : ''}</div>` : ''}</div></article>`;
+    return `<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}"><div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<time>${esc(timeAgo(m.created_at))}</time><button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<blockquote>${esc(parent.nickname)}: ${esc(parent.body || parent.item?.name || '')}</blockquote>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}${m.likes || replies ? `<div class="msg-pills"><button class="pill${m.likes ? ' on' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}">♥ ${m.likes || 0}</button>${replies ? `<button class="pill" data-chat-reply="${m.id}" aria-label="${esc(t('chat.reply'))}">💬 ${replies}</button>` : ''}</div>` : ''}</div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   if (scroll || near) log.scrollTop = log.scrollHeight;
 }
@@ -448,9 +447,6 @@ async function submitRoom() {
     if (room) { chat.room = room; joinedRooms.add(room.id); openTopic(room, 'live'); } else renderHome();
   } catch (e) { newRoom.busy = false; newRoom.error = t(errorKey(e.message)); renderCreateRoom(); }
 }
-const avatarIndex = tag => [0xF4A3A8, 0x9CC3F5, 0xF7C873, 0x9FD8B8, 0xC8B5F2, 0xF5B38A][[...String(tag ?? '')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 6] % 5 + 1;
-const AVATAR_COLORS = ['#f4a3a8', '#9cc3f5', '#f7c873', '#9fd8b8', '#c8b5f2', '#f5b38a'];
-const avatarColor = tag => AVATAR_COLORS[[...String(tag ?? '')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % AVATAR_COLORS.length];
 let pendingPost = null;
 export const openPostNext = id => { pendingPost = id; };
 let pendingRoom = null;

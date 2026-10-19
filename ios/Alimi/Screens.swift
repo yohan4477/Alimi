@@ -454,7 +454,7 @@ struct SettingsView: View {
         List {
             Section(L("account.title")) {
                 NavigationLink { AccountView() } label: {
-                    Label(auth.email ?? L("account.google"), systemImage: auth.email == nil ? "person.crop.circle" : "person.crop.circle.fill")
+                    Text(auth.email ?? L("account.google"))
                 }.accessibilityIdentifier("account-row")
             }
             serviceSection
