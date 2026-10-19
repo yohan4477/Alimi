@@ -81,3 +81,12 @@
 - 짧은 요청은 기본 진행 표시, 400ms 이상 걸리면 기존 이미지 표시. 실제 완료·실패 시 로딩 컴포넌트와 함께 사라진다.
 - 관리자 디자인 미리보기도 같은 이미지로 교체하고 의상 재생·다음 의상 조작을 제거한다.
 - 온보딩 3단계 유지, 사용자 아바타 숨김 유지. TestFlight #23에는 이 후속 수정이 포함되지 않으며 새 빌드가 필요하다.
+
+### 모든 로딩 이미지 교체 배포 결과 — 2026-10-20
+
+- [PR #132](https://github.com/yohan4477/Alimi/pull/132) main 반영: 3d684bc654d62d305ba02bd3811067881ac483eb.
+- JS 단위 테스트 130/130 및 [Web checks #101](https://github.com/yohan4477/Alimi/actions/runs/39275815822) 전체 성공. 3d684bc의 Vercel 배포 success 확인.
+- **Seoul Beauty 1.0 (24.1)**: [TestFlight #24](https://github.com/yohan4477/Alimi/actions/runs/39276209550) 빌드·서명·App Store Connect 업로드 전체 성공.
+- [iOS CI #263](https://github.com/yohan4477/Alimi/actions/runs/39275815867): 빌드 성공, XCTest 진행 중. 전체 통과로 표시하지 않는다.
+- Apple 처리·테스터 노출·실기기 설치 상태는 확인하지 않았다.
+- 이전 #23도 업로드에 성공했지만 모든 공유 로딩 이미지 교체는 **24.1부터 포함**된다. 이 기록이 이전 대기·미반영 기록보다 우선한다.

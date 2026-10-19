@@ -231,7 +231,7 @@
     </div>
 
     <section id="sb-loading-design-review" class="sb-design-loading" aria-label="첫 화면 이미지 로딩 디자인 리뷰">
-      <div class="sb-design-loading-head"><div><span class="sb-design-role-name">2026.10.20 · 사용자 결정</span><h3>모든 로딩에 첫 화면 이미지 사용</h3><p>검색·상품·대화 로딩의 작은 픽셀 캐릭터를 제거하고 기존 Seoul Beauty 로고·인물 사진을 재사용한다.</p></div><span class="viz-badge">웹/iPhone 공통 구현 · 배포 검증 전</span></div>
+      <div class="sb-design-loading-head"><div><span class="sb-design-role-name">2026.10.20 · 사용자 결정</span><h3>모든 로딩에 첫 화면 이미지 사용</h3><p>검색·상품·대화 로딩의 작은 픽셀 캐릭터를 제거하고 기존 Seoul Beauty 로고·인물 사진을 재사용한다.</p></div><span class="viz-badge">웹 배포·TestFlight 1.0 (24.1) 업로드 성공</span></div>
       <div class="sb-design-loader-stage" role="group" aria-label="로고와 인물 사진 로딩 미리보기">
         <img src="/assets/seoul-beauty-logo.webp" width="128" height="38" alt="Seoul Beauty">
         <img src="/assets/splash-photo.webp" width="96" height="134" alt="">
@@ -343,19 +343,19 @@
     </div>
   </section>
   <section class="sb-panel" id="sb-dev" role="tabpanel" aria-labelledby="sb-dev-tab" hidden>
-  <div class="card" id="sb-dev-release-update"><span class="viz-badge">2026.10.19 23:21 KST · 증거 기준 수동 업데이트</span><h3>Seoul Beauty 1.0 (22.1) · 자동검증·업로드 성공</h3>
-  <p>최종 업로드 커밋 <code>6e31dc7</code> (PR #130). 아래 기존 변경에 간단한 고객여정 보완을 추가했다. PR #127의 3탭·레이아웃·상품 표면·아바타 숨김, <code>921a6ea</code>의 좌우 전환 제거, PR #129의 표시 이름 Seoul Beauty 포함. 번들 ID <code>com.yohan4477.seoulbeauty</code>. 기존 Alimi 앱과 분리.</p>
-  <div class="sb-line"><div class="sb-label">검증 증거</div><div class="sb-value">JS 단위 테스트 127/127 및 Web checks #99 성공. iOS CI #254 빌드·XCTest·앱 실행·화면 캡처 전체 성공. 배포 커밋 6e31dc7의 GitHub Vercel status success 확인. TestFlight #22의 빌드·서명·App Store Connect 업로드 모두 성공.</div></div>
-  <div class="sb-line"><div class="sb-label">출시 확인 범위</div><div class="sb-value">Apple 처리 완료·테스터 그룹 배정·사용자 기기의 22.1 설치는 미확인. 이전 5탭 화면 제보가 있어 설치 버전과 화면을 대조해야 함. 업로드 성공만으로 실기기 완료 처리하지 않음.</div></div>
-  <div class="sb-line"><div class="sb-label">후속 반영</div><div class="sb-value">22.1 구현: 온보딩 1/3 시작·선택형 정보, 대화방 만들기 상시 노출, 상품→브랜드→원래 대화 첨부, 공유 웹 링크의 앱에서 열기. 22.1에 포함. 웹 검사 #99·Vercel 배포·TestFlight #22 업로드 성공. iOS CI #254 전체 성공. Apple 처리·테스터 배정·실기기 검증은 확인 대기.</div></div>
-  <p><a href="https://github.com/yohan4477/Alimi/actions/runs/39267027856" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #22 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39266571562" target="_blank" rel="noopener noreferrer">Web checks #99 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39266571540" target="_blank" rel="noopener noreferrer">iOS CI #254 ↗</a> · <a href="https://github.com/yohan4477/Alimi/blob/main/docs/RELEASE_STATUS_2026-10-19.md" target="_blank" rel="noopener noreferrer">출시 상태·남은 작업 ↗</a></p></div>
+  <div class="card" id="sb-dev-release-update"><span class="viz-badge">2026.10.19 23:21 KST · 증거 기준 수동 업데이트</span><h3>Seoul Beauty 1.0 (24.1) · 업로드 성공</h3>
+  <p>최종 업로드 커밋 <code>3d684bc</code> (PR #132). 모든 공유 로딩을 첫 화면의 로고·인물 사진으로 통일했고 작은 캐릭터·의상 순환을 제거했다. 아래 기존 변경에 간단한 고객여정 보완을 추가했다. PR #127의 3탭·레이아웃·상품 표면·아바타 숨김, <code>921a6ea</code>의 좌우 전환 제거, PR #129의 표시 이름 Seoul Beauty 포함. 번들 ID <code>com.yohan4477.seoulbeauty</code>. 기존 Alimi 앱과 분리.</p>
+  <div class="sb-line"><div class="sb-label">검증 증거</div><div class="sb-value">JS 단위 테스트 130/130·Web checks #101 전체 성공. 3d684bc Vercel 배포 success. TestFlight #24 빌드·서명·App Store Connect 업로드 성공. iOS CI #263 빌드 성공·XCTest 진행 중이며 이전 #260 전체 통과와 구분한다.</div></div>
+  <div class="sb-line"><div class="sb-label">출시 확인 범위</div><div class="sb-value">Apple 처리 완료·테스터 그룹 배정·사용자 기기의 24.1 설치는 미확인. 이전 5탭 화면 제보가 있어 설치 버전과 화면을 대조해야 함. 업로드 성공만으로 실기기 완료 처리하지 않음.</div></div>
+  <div class="sb-line"><div class="sb-label">후속 반영</div><div class="sb-value">22.1 구현: 온보딩 1/3 시작·선택형 정보, 대화방 만들기 상시 노출, 상품→브랜드→원래 대화 첨부, 공유 웹 링크의 앱에서 열기. 22.1에 포함. 모든 공유 로딩의 작은 캐릭터를 기존 로고·인물 사진으로 교체해 24.1에 포함. 웹 검사 #101·Vercel 배포·TestFlight #24 업로드 성공. iOS CI #263 전체 결과는 확인 대기. Apple 처리·테스터 배정·실기기 검증은 확인 대기.</div></div>
+  <p><a href="https://github.com/yohan4477/Alimi/actions/runs/39276209550" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #24 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39275815822" target="_blank" rel="noopener noreferrer">Web checks #101 ↗</a> · <a href="https://github.com/yohan4477/Alimi/actions/runs/39275815867" target="_blank" rel="noopener noreferrer">iOS CI #263 ↗</a> · <a href="https://github.com/yohan4477/Alimi/blob/main/docs/RELEASE_STATUS_2026-10-19.md" target="_blank" rel="noopener noreferrer">출시 상태·남은 작업 ↗</a></p></div>
 
   <div class="sb-dev-kicker">ENGINEERING / RELEASE READINESS <span>2026.10.19 · 수동 리뷰</span></div>
   <div class="sb-dev-hero">
     <div><p class="sb-dev-eyebrow">SeoulBeauty · 개발 검토</p><h2>기획에서 실제 동작까지.</h2><p>전략·기획·디자인의 결정을 <strong>코드 → 테스트 → 배포 → 실측</strong>으로 연결하는 실행 대시보드입니다. 소비자 UI나 기존 관리 화면은 변경하지 않습니다.</p>
       <div class="sb-dev-jumps"><button type="button" data-dev-jump="sb-strategy-tab">전략 ↗</button><button type="button" data-dev-jump="sb-plan-tab">서비스 기획 ↗</button><button type="button" data-dev-jump="sb-design-tab">디자인 리뷰 ↗</button></div>
     </div>
-    <aside class="sb-dev-blocker"><small>P0 · 사용자 제보 확인</small><strong>설치 화면의 탭 수 불일치</strong><p>22.1 소스는 3탭이며 웹·iOS 자동검사는 통과했다. 이전 탭 수 불일치 제보는 설치된 앱·빌드와 실제 화면을 대조해야 해결할 수 있다. 고객여정 변경 6e31dc7의 웹 배포는 성공했다.</p><a href="https://github.com/yohan4477/Alimi/actions/runs/39267027856" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #22 ↗</a></aside>
+    <aside class="sb-dev-blocker"><small>P0 · 사용자 제보 확인</small><strong>설치 화면의 탭 수 불일치</strong><p>22.1 소스는 3탭이며 웹·iOS 자동검사는 통과했다. 이전 탭 수 불일치 제보는 설치된 앱·빌드와 실제 화면을 대조해야 해결할 수 있다. 고객여정 변경 6e31dc7의 웹 배포는 성공했다.</p><a href="https://github.com/yohan4477/Alimi/actions/runs/39276209550" target="_blank" rel="noopener noreferrer">TestFlight 업로드 #24 ↗</a></aside>
   </div>
   <div class="sb-dev-summary" aria-label="개발 상태 요약">
     <div><span>온보딩·방 추천</span><strong>코드 반영</strong><small>관심사·고민 기반 실제 방 추천</small></div>
@@ -486,7 +486,7 @@
     <h3 class="sb-section">구현 ≠ 검증 ≠ 배포</h3>
     <div class="sb-line"><div class="sb-label">문서·관리</div><div class="sb-value"><span>main 반영 · PR #94·#95</span><span class="text-small text-muted">전략·서비스 기획·로드맵·관리 기준 연결</span></div></div>
     <div class="sb-line"><div class="sb-label">iOS CI</div><div class="sb-value"><span>#254 성공 · 6e31dc7 기준</span><span class="text-small text-muted">빌드·XCTest·실행·캡처 완료 · 실기기 검증은 별도</span></div></div>
-    <div class="sb-line"><div class="sb-label">TestFlight</div><div class="sb-value"><span>1.0 (22.1) 업로드 성공</span><span class="text-small text-muted">Apple 처리·테스터 배정·실기기 설치는 확인 대기</span></div></div>
+    <div class="sb-line"><div class="sb-label">TestFlight</div><div class="sb-value"><span>1.0 (24.1) 업로드 성공</span><span class="text-small text-muted">Apple 처리·테스터 배정·실기기 설치는 확인 대기</span></div></div>
     <div class="sb-line"><div class="sb-label">운영·신뢰</div><div class="sb-value"><span>데이터·권리·운영 항목 확인 필요</span><span class="text-small text-muted">로고/설명 사용 조건, 갱신, 배송·세금·관세·재고, 신고·홍보 처리</span></div></div>
     <div class="sb-links"><a href="https://github.com/yohan4477/Alimi/blob/main/docs/PRODUCT_STATUS.md" target="_blank" rel="noopener noreferrer">관리 대시보드 원문 ↗</a><a href="https://github.com/yohan4477/Alimi/issues/49" target="_blank" rel="noopener noreferrer">성과 관리 원장 ↗</a></div>
   </section>
