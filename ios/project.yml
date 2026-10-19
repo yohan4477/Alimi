@@ -15,7 +15,7 @@ targets:
       - path: Alimi
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.yohan4477.alimi
+        PRODUCT_BUNDLE_IDENTIFIER: com.yohan4477.seoulbeauty
         MARKETING_VERSION: '0.1.0'
         CURRENT_PROJECT_VERSION: '1'
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
