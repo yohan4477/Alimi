@@ -42,6 +42,40 @@ try {
     assert.equal(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
   }
   await page.getByRole('tab',{name:'전략',exact:true}).click();await page.getByRole('tab',{name:'전략',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
+  // New pixel-character onboarding is a local admin-only simulation, not a customer signup.
+  const guide = page.locator('#sb-pixel-guide-demo');
+  await guide.waitFor();
+  assert.equal(await guide.locator('[data-guide-locale="ko"][data-guide-stage="0"]').isVisible(),true);
+  const sprite=guide.locator('img');
+  assert.ok(await sprite.evaluate(img=>img.complete&&img.naturalWidth>0),'pixel guide asset resolves');
+  assert.equal((await page.request.get(base+'/assets/hanbok-guide-pixel.svg')).status(),200);
+  await guide.locator('[data-guide-locale="ko"][data-guide-stage="0"] [data-guide-interest="skin"]').click();
+  await guide.locator('[data-guide-locale="ko"][data-guide-stage="0"] [data-guide-interest="makeup"]').click();
+  await guide.locator('#sb-guide-next').click();
+  assert.ok(await guide.locator('[data-guide-locale="ko"][data-guide-stage="1"] [data-guide-group="skin"]').isVisible());
+  assert.ok(await guide.locator('[data-guide-locale="ko"][data-guide-stage="1"] [data-guide-group="makeup"]').isVisible());
+  await guide.locator('[data-guide-locale="ko"][data-guide-stage="1"] [data-guide-concern="skin_acne"]').click();
+  await guide.locator('[data-guide-lang="en"]').click();
+  assert.ok(await guide.locator('[data-guide-locale="en"][data-guide-stage="1"]').isVisible());
+  assert.ok(await guide.locator('[data-guide-locale="ko"][data-guide-stage="1"]').isHidden());
+  assert.equal(await guide.locator('[data-guide-locale="en"][data-guide-stage="1"] [data-guide-concern="skin_acne"]').getAttribute('aria-pressed'),'true');
+  await guide.locator('[data-guide-locale="en"][data-guide-stage="1"] [data-guide-concern="makeup_tint"]').click();
+  await guide.locator('#sb-guide-next').click();
+  assert.ok(await guide.locator('[data-guide-locale="en"][data-guide-stage="2"] [data-guide-room="skin"]').isVisible());
+  assert.ok(await guide.locator('[data-guide-locale="en"][data-guide-stage="2"] [data-guide-room="makeup"]').isVisible());
+  await guide.locator('#sb-guide-back').click();
+  assert.ok(await guide.locator('[data-guide-locale="en"][data-guide-stage="1"]').isVisible());
+  await guide.locator('#sb-guide-skip').click();
+  assert.ok(await guide.locator('[data-guide-locale="en"][data-guide-stage="2"] [data-guide-room="generic"]').isVisible());
+  assert.ok(await guide.locator('[data-guide-locale="en"][data-guide-stage="2"] [data-guide-room="skin"]').isHidden());
+  await guide.locator('#sb-guide-next').click();
+  assert.ok(await guide.locator('[data-guide-locale="en"][data-guide-stage="0"]').isVisible());
+  for (const width of [320,390,1024]) {
+    await page.setViewportSize({width,height:900});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`pixel-guide page has no horizontal overflow at ${width}`);
+  }
+  await page.setViewportSize({width:390,height:844});
+  await guide.locator('[data-guide-lang="ko"]').click();
   await page.getByText('기존 기획 설명 보기',{exact:true}).click();
   await page.getByText('대화 · 익명으로 묻고 답하기',{exact:true}).click();assert.ok(await page.getByText('사진형 프로필은 필수로 두지 않는 안을 우선 검토',{exact:true}).isVisible());
   await page.getByText('관심 분야·고민 복수 선택 인터랙티브 시안과 기존 화면 보기',{exact:true}).click();
