@@ -190,7 +190,7 @@
     </div>
     <div class="sb-design-stats" aria-label="디자인 리뷰 요약">
       <div><span>유지할 기본 탭</span><strong>3개</strong><small>구조 전면 교체 없음</small></div>
-      <div><span>우선 수정 P0</span><strong>3건</strong><small>온보딩 · 추천 설명 · 언어</small></div>
+      <div><span>우선 수정 P0</span><strong>4건</strong><small>온보딩 · 추천 설명 · 언어 · 로딩</small></div>
       <div><span>후속 개선 P1</span><strong>4건</strong><small>대화 · 연결 · 신뢰 · 재방문</small></div>
       <div><span>신규 KPI 검증</span><strong>미측정</strong><small>실측 성과 수치 아님</small></div>
     </div>
@@ -207,6 +207,35 @@
       <img src="/assets/hanbok-guide-pixel.svg" width="66" height="99" loading="lazy" alt="작은 하늘색 한복 픽셀 캐릭터"/>
       <div><span class="sb-design-role-name">NEW · 캐릭터 디자인 판단</span><h4>가이드 한 명으로 시작하고, 의상 10종은 나중에</h4><p>인사 → 관심 분야 → 분야별 고민 → 실제 채팅방 발견까지만 안내. 80~110px 소형 표현, 스킵 가능, KO/EN 대사 분리. 실제 사람과의 대화가 시작되면 캐릭터는 물러난다.</p><small>검증: 같은 UI의 캐릭터 있음/없음 A/B · 첫 실제 발화·D7 우선. 프로필 꾸미기는 P1.</small></div>
     </div>
+
+    <section id="sb-loading-design-review" class="sb-design-loading" aria-label="캐릭터 로딩 UX 디자인 리뷰">
+      <div class="sb-design-loading-head">
+        <div><span class="sb-design-role-name">NEW · 대기 중에도 함께하는 캐릭터</span><h3>데이터를 기다리는 동안 의상이 바뀌어요</h3><p>10종을 번갈아 보여주되, 빠른 로딩은 방해하지 않고 실제 데이터가 도착하면 즉시 사라지는 방식.</p></div>
+        <span class="viz-badge">웹/iPhone 로딩 코드 반영 · 배포 검증 전</span>
+      </div>
+      <div class="sb-design-loading-grid">
+        <div class="sb-design-loader-demo">
+          <div class="sb-design-loader-stage" role="group" aria-label="캐릭터 로딩 동작 미리보기">
+            <div class="sb-design-loader-character" aria-hidden="true"></div>
+            <p data-design-locale="ko" role="status">같은 고민의 대화를 찾는 중...</p>
+            <p data-design-locale="en" role="status" hidden>Finding conversations like yours...</p>
+            <small>디자인 시연 · 실제 API 요청이나 로딩시간 측정 아님</small>
+          </div>
+          <div class="sb-design-loader-controls">
+            <button type="button" data-loader-pause aria-pressed="false">일시정지</button>
+            <button type="button" data-loader-next>다음 의상 보기 →</button>
+          </div>
+          <p class="text-small text-muted">자동 재생은 약 2.2초마다 다음 캐릭터. 실제 앱의 400ms 미만 짧은 로딩에는 등장하지 않아.</p>
+        </div>
+        <div class="sb-design-loader-rules">
+          <div><span>0~0.4초</span><strong>텍스트·기본 로딩 표시</strong><small>캐릭터가 번쩍 나타났다 사라지는 현상 방지</small></div>
+          <div><span>0.4초 이후</span><strong>작은 2D 픽셀 캐릭터 등장</strong><small>한복 5벌 → 패션 의상 5벌 순환, 이름 표시 없음</small></div>
+          <div><span>로딩 계속</span><strong>2.2초마다 의상 변경</strong><small>10장을 따로 내려받지 않고 경량 1장 스프라이트 재사용</small></div>
+          <div><span>완료 · 오류</span><strong>즉시 본문 또는 재시도 안내</strong><small>가짜 진행률 금지, 모션 줄이기·앱 백그라운드 순환 중지</small></div>
+          <div class="sb-design-loader-kpis"><strong>디자인 KPI · 미측정</strong><small>실제 로딩 시간 p50/p95, 로딩 중 이탈·재시도, 캐릭터 노출 후 첫 대화 열람·참여</small></div>
+        </div>
+      </div>
+    </section>
     <h3 class="sb-design-heading">추천 UI 방향 · 간단 시안</h3>
     <p class="text-small text-muted">기존 실제 앱 스크린샷이 아닌 화면 구성 제안이다. 한국어/English 버튼으로 시스템 문구 분리를 미리 확인할 수 있다.</p>
     <div class="sb-design-lang" role="group" aria-label="디자인 시안 언어">
@@ -274,14 +303,15 @@
 
     <h3 class="sb-design-heading">화면별 UX 리스크 · 개선 백로그</h3>
     <div class="sb-design-filter" role="group" aria-label="디자인 개선 우선순위 필터">
-      <button type="button" data-design-filter="all" aria-pressed="true">전체 7</button>
-      <button type="button" data-design-filter="P0" aria-pressed="false">P0 · 우선 3</button>
+      <button type="button" data-design-filter="all" aria-pressed="true">전체 8</button>
+      <button type="button" data-design-filter="P0" aria-pressed="false">P0 · 우선 4</button>
       <button type="button" data-design-filter="P1" aria-pressed="false">P1 · 후속 4</button>
     </div>
     <div class="sb-design-issues">
       <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 첫 방문</span><h4>관심사 입력 전에 이탈</h4><p>가치를 모르는 상태에서 2단계 입력을 강제하면 피로가 생길 수 있다.</p><div><b>변경</b> 스킨케어·메이크업 복수 선택 · 고민 다중 선택 · 건너뛰기·전체 방 탐색·자유 생성 제공</div><small>확인 KPI · 첫 화면→대화 열람 전환, 스킵 이후 첫 참여</small></article>
       <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 추천 신뢰</span><h4>방은 추천되지만 들어갈 이유가 없음</h4><p>추천 이유·최근 대화·읽을 만한 질문이 없으면 빈방처럼 보인다.</p><div><b>변경</b> 고민 일치 이유 + 실제 활성 신호 + 질문 미리보기</div><small>확인 KPI · 추천 노출→방 입장, 방 입장→첫 유의미 행동</small></article>
       <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 언어</span><h4>한영 혼용이 신뢰를 약화</h4><p>버튼·채팅방 제목·에러·빈 상태 문구가 서로 다른 언어로 남지 않게 한다.</p><div><b>변경</b> ko/en 공통 키, 전체 화면·오류·알림까지 양언어 점검</div><small>확인 KPI · 언어별 첫 참여율, 미번역 문자열 건수</small></article>
+      <article data-design-priority="P0"><span class="sb-design-tag urgent">P0 · 로딩 경험</span><h4>느린 로딩에서 브랜드 경험 단절</h4><p>텍스트·스피너만 반복되면 기다림이 지루하고, 반대로 캐릭터를 강제로 오래 보여주면 본래 목적이 가려진다.</p><div><b>변경</b> 실제 요청 중 400ms 뒤 캐릭터 등장 → 2.2초 간격 10종 순환. 완료 즉시 종료, 실패 시 재시도. 모션 감소·스크린리더 대응.</div><small>확인 KPI · 로딩 p95, 로딩 이탈/오류, 첫 대화 열람·실제 참여</small></article>
       <article data-design-priority="P1"><span class="sb-design-tag">P1 · 채팅방</span><h4>첫 발화가 어려움</h4><p>익명 커뮤니티에서도 시작할 말이 없으면 읽고 떠나기 쉽다.</p><div><b>변경</b> 해당 고민 질문 목록과 ‘나도 궁금해요’/질문 작성 진입 제공</div><small>확인 KPI · 방 입장→첫 질문·댓글·채팅 비율</small></article>
       <article data-design-priority="P1"><span class="sb-design-tag">P1 · 상품 연결</span><h4>상품 확인 후 대화로 돌아가기 어려움</h4><p>채팅에서 상품을 열고 이탈하면 커뮤니티의 강점이 사라진다.</p><div><b>변경</b> 상품 상세의 관련 대화와 원래 채팅 복귀 링크 개선</div><small>확인 KPI · 대화→상품→대화 복귀율</small></article>
       <article data-design-priority="P1"><span class="sb-design-tag">P1 · 신뢰</span><h4>피부 관심사를 공개 정보로 오해</h4><p>아바타·피부 타입 선택이 성별·인종·효능 판단으로 읽히지 않게 한다.</p><div><b>변경</b> 추천용 비공개 기본값, 언제든 수정·초기화, 효능 보장 표현 금지</div><small>확인 KPI · 정보 입력 스킵률, 프라이버시 관련 문의·신고</small></article>
