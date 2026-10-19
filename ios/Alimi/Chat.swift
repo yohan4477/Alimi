@@ -50,6 +50,17 @@ struct ChatMessage: Codable, Identifiable, Hashable {
     }
 }
 
+enum CommunityShareURL {
+    private static let base = URL(string: "https://alimi-omega.vercel.app/")!
+    private static func make(_ key: String, _ value: String) -> URL {
+        var components = URLComponents(url: base, resolvingAgainstBaseURL: false)!
+        components.queryItems = [URLQueryItem(name: key, value: value)]
+        return components.url!
+    }
+    static func room(_ id: String) -> URL { make("room", id) }
+    static func family(_ key: String) -> URL { make("family", key) }
+}
+
 enum ChatAPI {
     static var defaults: UserDefaults = .standard
     static var offline: Bool { ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") }
@@ -409,6 +420,13 @@ struct ChatRoomView: View {
         }
         .safeAreaInset(edge: .bottom) { composer }
         .navigationTitle(room.title).navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                ShareLink(item: CommunityShareURL.room(room.id), subject: Text(L("chat.shareTitle")), message: Text(L("chat.shareRoomMessage", ["room": room.title]))) {
+                    Image(systemName: "square.and.arrow.up")
+                }.accessibilityLabel(L("chat.inviteFriend"))
+            }
+        }
         .sheet(isPresented: $picking) { ItemPicker { item = $0; picking = false }.environmentObject(store) }
         .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef).environmentObject(store) }
         .sheet(item: $savingMessage) { CommunityComposer(room: room, fromMessage: $0).environmentObject(store) }
