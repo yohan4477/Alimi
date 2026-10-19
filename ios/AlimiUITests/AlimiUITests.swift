@@ -10,7 +10,7 @@ final class AlimiUITests: XCTestCase {
         continueAfterFailure = false
         app = XCUIApplication()
         // Flows run in Korean (the operator's language); testEnglishForUSUsers checks the English UI.
-        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
+        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
         app.launch()
     }
@@ -146,7 +146,7 @@ final class AlimiUITests: XCTestCase {
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10))
         room.tap()
-        app.segmentedControls.buttons["실시간 채팅"].tap()
+        // Reading is open; the join bar shows the rules and unlocks posting.
         let join = app.buttons["chat-join"]
         XCTAssertTrue(join.waitForExistence(timeout: 5), "rules are shown before the first join")
         attach("chat-rules")
@@ -167,33 +167,40 @@ final class AlimiUITests: XCTestCase {
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.staticTexts["추천 좀 해주세요"])
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "blocked author's messages are hidden")
     }
-    // Journey 1: first visit opens the community guide; choices lead to matching rooms and show up in My activity.
-    func testCommunityGuideRecommendsRoomsAndRemembersChoices() {
+    // Journey 1: splash → interests and concerns (2/3) → matching rooms (3/3) → the room, then My activity remembers it.
+    func testJourneyOneOnboardingToRoom() {
+        app.terminate()
+        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
+                               "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+        app.launch()
+        XCTAssertTrue(app.otherElements["splash"].waitForExistence(timeout: 10) || app.staticTexts["좋은 일상을 만든다"].waitForExistence(timeout: 2), "splash first")
+        attach("j1-splash")
         let skincare = app.buttons["onb-group-skincare"]
-        XCTAssertTrue(skincare.waitForExistence(timeout: 15), "guide on first visit")
-        attach("guide-choose")
+        XCTAssertTrue(skincare.waitForExistence(timeout: 10), "interests after the splash")
         skincare.tap()
-        app.buttons["onb-concern-acne"].tap()
+        for id in ["acne", "sensitive", "firmness", "sebum"] { app.buttons["onb-concern-" + id].tap() }
+        XCTAssertTrue(app.buttons["onb-concern-toneup"].exists && app.buttons["onb-concern-trouble"].exists, "nine skincare keywords")
+        attach("j1-interests")
         app.buttons["onb-next"].tap()
-        XCTAssertTrue(app.buttons["onb-finish"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["chat-room-acne"].firstMatch.exists, "acne room recommended for acne")
-        attach("guide-recommendations")
-        app.buttons["onb-finish"].tap()
-        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["onb-next"])
-        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "guide closes when finished")
-        XCTAssertTrue(app.otherElements["welcome-back"].exists || app.staticTexts["다시 오신 걸 환영해요!"].exists, "joined rooms greet a returning visitor")
-        attach("community-home")
+        let room = app.buttons["chat-room-acne"].firstMatch
+        XCTAssertTrue(room.waitForExistence(timeout: 10), "acne room recommended")
+        XCTAssertTrue(app.buttons["onb-filter-rec"].exists && app.buttons["onb-filter-all"].exists)
+        attach("j1-rooms")
+        room.tap()
+        XCTAssertTrue(app.buttons["chat-join"].waitForExistence(timeout: 10), "room opens with the join bar")
+        XCTAssertTrue(app.staticTexts["추천 좀 해주세요"].waitForExistence(timeout: 10), "messages readable before joining")
+        attach("j1-room")
+        app.buttons["chat-join"].tap()
+        let field = app.textFields["chat-text"].firstMatch.exists ? app.textFields["chat-text"].firstMatch : app.textViews["chat-text"].firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "composer after joining")
         app.tabBars.buttons["관심 상품"].tap()
         let row = app.buttons["interests-row"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        XCTAssertTrue(row.label.contains("스킨케어") && row.label.contains("트러블"), "choices listed in My activity: \(row.label)")
-        app.segmentedControls.buttons["참여한 대화방"].tap()
-        XCTAssertTrue(app.buttons["my-room-acne"].waitForExistence(timeout: 10))
-        attach("activity-rooms")
+        XCTAssertTrue(row.label.contains("스킨케어") && row.label.contains("여드름"), "choices listed in My activity: \(row.label)")
     }
     func testEnglishForUSUsers() {
         app.terminate()
-        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents",
+        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Saved"].waitForExistence(timeout: 15))

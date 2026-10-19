@@ -13,8 +13,9 @@ struct Interests: Codable, Equatable {
     static let groups = ["skincare", "makeup"]
     // Stable ids shared with the web guide and the user_rooms migration; only labels are translated.
     static let catalog: [(id: String, group: String)] = [
-        ("acne", "skincare"), ("sensitive", "skincare"), ("dry", "skincare"), ("pores", "skincare"),
-        ("cushion", "makeup"), ("lip", "makeup"), ("longwear", "makeup"), ("shade", "makeup"),
+        ("acne", "skincare"), ("dry", "skincare"), ("sensitive", "skincare"), ("pores", "skincare"), ("spots", "skincare"),
+        ("firmness", "skincare"), ("sebum", "skincare"), ("toneup", "skincare"), ("trouble", "skincare"),
+        ("lip", "makeup"), ("base", "makeup"), ("cushion", "makeup"), ("longwear", "makeup"), ("shade", "makeup"),
     ]
     static let key = "seoulbeauty.interests.v1"
     func has(_ group: String) -> Bool { group == "skincare" ? skincare : group == "makeup" ? makeup : false }
@@ -46,8 +47,8 @@ struct RoomPick: Identifiable, Equatable {
 }
 enum Recommend {
     // Seed rooms without a concerns column fall back to this mapping (same as the web).
-    static let roomConcerns: [String: [String]] = ["acne": ["acne", "pores"], "dry-sensitive": ["sensitive", "dry"],
-                                                   "routine": ["pores", "dry"], "makeup": ["cushion", "lip", "longwear", "shade"]]
+    static let roomConcerns: [String: [String]] = ["acne": ["acne", "trouble", "sebum"], "dry-sensitive": ["sensitive", "dry"],
+                                                   "routine": ["pores", "spots", "firmness", "toneup"], "makeup": ["lip", "base", "cushion", "longwear", "shade"]]
     static let tagGroup = ["skin": "skincare", "makeup": "makeup"]
     static func concerns(of room: ChatRoom) -> [String] { room.concerns ?? roomConcerns[room.id] ?? [] }
     // Matched concerns first, then the chosen field, then recent activity; nothing chosen → busiest topics.
@@ -78,8 +79,9 @@ enum Recommend {
 
 enum RoomPictures {
     static let roomCategory = ["acne": "에센스·세럼", "dry-sensitive": "크림·로션", "routine": "토너·패드", "sunscreen": "선케어", "makeup": "립", "korea-shopping": "마스크팩"]
-    static let concernCategory = ["acne": "에센스·세럼", "sensitive": "토너·패드", "dry": "크림·로션", "pores": "토너·패드",
-                                  "cushion": "베이스메이크업", "lip": "립", "longwear": "베이스메이크업", "shade": "베이스메이크업"]
+    static let concernCategory = ["acne": "에센스·세럼", "dry": "크림·로션", "sensitive": "토너·패드", "pores": "토너·패드", "spots": "에센스·세럼",
+                                  "firmness": "크림·로션", "sebum": "토너·패드", "toneup": "에센스·세럼", "trouble": "에센스·세럼",
+                                  "lip": "립", "base": "베이스메이크업", "cushion": "베이스메이크업", "longwear": "베이스메이크업", "shade": "베이스메이크업"]
     static func category(_ room: ChatRoom) -> String? {
         roomCategory[room.id] ?? (room.concerns?.first).flatMap { concernCategory[$0] }
             ?? (room.tag == "skin" ? "에센스·세럼" : room.tag == "makeup" ? "베이스메이크업" : nil)
@@ -303,107 +305,6 @@ extension SectionHead where Trailing == EmptyView {
     init(title: String, sub: String? = nil) { self.init(title: title, sub: sub) { EmptyView() } }
 }
 
-// MARK: Guide
-
-struct GuideView: View {
-    let rooms: [ChatRoom]
-    let pictures: [String: URL]
-    let canCreate: Bool
-    let onDone: () -> Void
-    let onCreate: () -> Void
-    @State private var step = 0
-    @State private var draft = Interests.load() ?? Interests()
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if step == 0 {
-                Image("OnboardingHero").resizable().scaledToFill().frame(height: 190).clipped()
-                    .accessibilityLabel(L("onb.heroAlt"))
-            }
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(L(step == 0 ? "onb.q0" : "onb.q1")).font(.title3.bold()).foregroundStyle(Color.sbInk)
-                            .accessibilityIdentifier("onb-title")
-                        Text(L(step == 0 ? "onb.s0" : "onb.s1")).font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Image("HanbokGuide").resizable().interpolation(.none).scaledToFit().frame(width: 36, height: 54).accessibilityHidden(true)
-                }
-                if step == 0 { choose } else { recommendations }
-                progress
-            }.padding(18)
-        }
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.sbBorder))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .accessibilityElement(children: .contain).accessibilityIdentifier("onboard-guide")
-    }
-    private var choose: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(L("onb.fields")).font(.subheadline.bold())
-            HStack(spacing: 8) {
-                ForEach(Interests.groups, id: \.self) { g in
-                    ChoiceChip(label: L("onb.g." + g), on: draft.has(g), wide: true) {
-                        if g == "skincare" { draft.skincare.toggle() } else { draft.makeup.toggle() }
-                        draft = draft.normalized()
-                    }.accessibilityIdentifier("onb-group-" + g)
-                }
-            }
-            Text(L("onb.keywords")).font(.subheadline.bold()).padding(.top, 6)
-            if draft.visibleConcerns.isEmpty {
-                Text(L("onb.pickField")).font(.caption).foregroundStyle(.secondary)
-            } else {
-                FlowLayout {
-                    ForEach(draft.visibleConcerns, id: \.self) { id in
-                        ChoiceChip(label: Interests.label(id), on: draft.concerns.contains(id)) {
-                            if let i = draft.concerns.firstIndex(of: id) { draft.concerns.remove(at: i) } else { draft.concerns.append(id) }
-                        }.accessibilityIdentifier("onb-concern-" + id)
-                    }
-                }
-            }
-            primary(draft.chosenGroup ? L("onb.next") : L("onb.browse")) {
-                if draft.chosenGroup { withAnimation { step = 1 } } else { finish(draft) }
-            }.accessibilityIdentifier("onb-next").padding(.top, 8)
-            Button(L("onb.skip")) { finish(Interests()) }.font(.subheadline).foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("onb-skip")
-        }
-    }
-    private var recommendations: some View {
-        VStack(spacing: 8) {
-            ForEach(Recommend.rooms(rooms, draft)) { pick in
-                NavigationLink(value: pick.room) {
-                    RoomListCard(room: pick.room, picture: pictures[pick.room.id],
-                                 note: pick.matched.isEmpty ? (pick.popular ? L("onb.popular") : nil) : L("onb.matched", ["list": pick.matched.map(Interests.label).joined(separator: ", ")]),
-                                 highlight: pick.matched)
-                }.buttonStyle(.plain).simultaneousGesture(TapGesture().onEnded { draft.done = true; draft.save() })
-                    .accessibilityIdentifier("chat-room-" + pick.room.id)
-            }
-            primary(L("onb.browseAll")) { finish(draft) }.accessibilityIdentifier("onb-finish").padding(.top, 6)
-            HStack {
-                Button(L("back")) { withAnimation { step = 0 } }.foregroundStyle(.secondary)
-                Spacer()
-                if canCreate { Button("+ " + L("room.new")) { draft.done = true; draft.save(); onCreate() }.fontWeight(.semibold) }
-            }.font(.subheadline).frame(minHeight: 44)
-        }
-    }
-    private var progress: some View {
-        VStack(spacing: 4) {
-            ProgressView(value: Double(step + 1), total: 3).tint(Color.alimi).frame(width: 96)
-            Text("\(step + 1)/3").font(.caption2).foregroundStyle(.secondary)
-        }.frame(maxWidth: .infinity).accessibilityElement(children: .ignore).accessibilityLabel(L("onb.step", ["n": step + 1]))
-    }
-    private func primary(_ title: String, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title).font(.headline).foregroundStyle(.white).frame(maxWidth: .infinity, minHeight: 50)
-                .background(Color.alimi, in: RoundedRectangle(cornerRadius: 12))
-        }.buttonStyle(.plain)
-    }
-    private func finish(_ value: Interests) {
-        var v = value; v.done = true; v.save()
-        step = 0; onDone()
-    }
-}
-
 // MARK: Community home (추천 / 대화방 / 발견 / 브랜드)
 
 enum HomeTab: String, CaseIterable { case rec, rooms, discover, brands }
@@ -413,11 +314,12 @@ struct CommunityHome: View {
     @StateObject private var model = CommunityHomeModel()
     @State private var tab = HomeTab.rec
     @State private var interests = Interests.load()
-    @State private var editing = false
     @State private var creating = false
     @State private var openFamily: ProductFamily?
     @State private var path = NavigationPath()
-    @Binding var editRequest: Bool
+    // A room picked at the end of onboarding opens here; the guide itself is a full-screen flow (Onboarding.swift).
+    @Binding var openRoom: ChatRoom?
+    var onEditInterests: () -> Void = {}
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
@@ -433,7 +335,7 @@ struct CommunityHome: View {
                 }.padding(.horizontal, 16).padding(.bottom, 24)
             }
             .refreshable { await model.load(store: store) }
-            .navigationDestination(for: ChatRoom.self) { room in CommunityTopic(room: room, member: model.joined.contains { $0.room.id == room.id }) }
+            .navigationDestination(for: ChatRoom.self) { room in CommunityTopic(room: room, member: model.joined.contains { $0.room.id == room.id }, picture: model.pictures[room.id]) }
             .navigationDestination(for: CatalogBrand.self) { BrandView(brand: $0) }
             .navigationDestination(for: CommunityPost.ID.self) { id in
                 if let post = model.posts.first(where: { $0.id == id }) { CommunityPostView(post: post) }
@@ -444,7 +346,8 @@ struct CommunityHome: View {
             .sheet(isPresented: $creating, onDismiss: { Task { await model.load(store: store) } }) {
                 CreateRoomSheet(interests: Interests.load()) { room in creating = false; path.append(room) }
             }
-            .onChange(of: editRequest) { _, on in if on { editing = true; tab = .rec; editRequest = false } }
+            .onChange(of: openRoom) { _, room in if let room { tab = .rec; path.append(room); openRoom = nil } }
+            .onAppear { interests = Interests.load() }
         }
     }
     private var header: some View {
@@ -475,13 +378,7 @@ struct CommunityHome: View {
         case .brands: brands
         }
     }
-    private var needsGuide: Bool { editing || !(interests?.done ?? false) }
     @ViewBuilder private var recommended: some View {
-        if needsGuide && !model.rooms.isEmpty {
-            GuideView(rooms: model.rooms, pictures: model.pictures, canCreate: model.canCreateRooms,
-                      onDone: { interests = Interests.load(); editing = false }, onCreate: { interests = Interests.load(); editing = false; creating = true })
-                .padding(.top, 8)
-        }
         if !model.joined.isEmpty { welcomeBack }
         if !model.hot.isEmpty {
             SectionHead(title: L("home.trending"), sub: L("home.trendingSub"))
@@ -502,11 +399,8 @@ struct CommunityHome: View {
         }
         let picks = (interests?.done == true && interests?.chosenGroup == true) ? Recommend.rooms(model.rooms, interests, limit: 4).map(\.room) : Array((model.hot.isEmpty ? model.topics : model.hot).prefix(4))
         ForEach(picks) { room in roomLink(room, note: room.intro) }
-        if !(interests?.chosenGroup ?? false) && interests?.done == true {
-            Button(L("onb.manage")) { editing = true }.font(.footnote).padding(.top, 4)
-        } else if interests?.done == true {
-            Button(L("onb.edit")) { editing = true }.font(.footnote).padding(.top, 4)
-        }
+        Button(L(interests?.chosenGroup == true ? "onb.edit" : "onb.manage"), action: onEditInterests).font(.footnote).padding(.top, 4)
+            .accessibilityIdentifier("edit-interests")
     }
     private var welcomeBack: some View {
         let seen = Seen.all()

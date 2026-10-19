@@ -101,10 +101,10 @@ test('room creation errors map to their own messages', () => {
   assert.equal(errorKey('Could not find the function public.create_room'), 'chat.err.other');
 });
 
-test('the user room migration only accepts concern ids the web guide knows', async () => {
+test('the latest concern migration only accepts concern ids the web guide knows', async () => {
   const {CONCERNS} = await import('../dist/onboarding.js');
-  const sql = readFileSync(new URL('../supabase/migrations/20261019050000_user_rooms.sql', import.meta.url), 'utf8');
-  const lists = [...sql.matchAll(/array\['acne', 'sensitive'[^\]]*\]/g)];
+  const sql = readFileSync(new URL('../supabase/migrations/20261019060000_concern_keywords.sql', import.meta.url), 'utf8');
+  const lists = [...sql.matchAll(/array\['acne', 'dry'[^\]]*\]/g)];
   assert.equal(lists.length, 2, 'column check and create_room filter');
   for (const list of lists) assert.deepEqual(JSON.parse(list[0].slice(5).replace(/'/g, '"')), CONCERNS.map(c => c.id));
 });

@@ -29,7 +29,8 @@ export const roomListCard = (room, {image = null, note = '', highlight = [], fre
 
 // Catalog category that illustrates a room when nobody has mentioned a product there yet.
 const ROOM_CATEGORY = {acne: '에센스·세럼', 'dry-sensitive': '크림·로션', routine: '토너·패드', sunscreen: '선케어', makeup: '립', 'korea-shopping': '마스크팩'};
-const CONCERN_CATEGORY = {acne: '에센스·세럼', sensitive: '토너·패드', dry: '크림·로션', pores: '토너·패드', cushion: '베이스메이크업', lip: '립', longwear: '베이스메이크업', shade: '베이스메이크업'};
+const CONCERN_CATEGORY = {acne: '에센스·세럼', dry: '크림·로션', sensitive: '토너·패드', pores: '토너·패드', spots: '에센스·세럼', firmness: '크림·로션',
+  sebum: '토너·패드', toneup: '에센스·세럼', trouble: '에센스·세럼', lip: '립', base: '베이스메이크업', cushion: '베이스메이크업', longwear: '베이스메이크업', shade: '베이스메이크업'};
 export const roomCategory = room => ROOM_CATEGORY[room.id] ?? CONCERN_CATEGORY[(room.concerns ?? [])[0]]
   ?? (room.tag === 'skin' ? '에센스·세럼' : room.tag === 'makeup' ? '베이스메이크업' : null);
 // Distinct catalog pictures per category, handed out in room order; mentioned products keep priority.

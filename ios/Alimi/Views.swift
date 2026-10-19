@@ -4,15 +4,20 @@ import UIKit
 struct RootView: View {
     @EnvironmentObject var store: AlimiStore
     @State private var tab = MainTab.chat
-    @State private var editInterests = false
+    @State private var onboarding: OnboardingStep? = Interests.load()?.done == true || ProcessInfo.processInfo.arguments.contains("-skipOnboarding") ? nil : .splash
+    @State private var openRoom: ChatRoom?
     @AppStorage("alimi.lang") private var lang = ""
     var body: some View {
         TabView(selection: $tab) {
-            CommunityHome(editRequest: $editInterests).tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
+            CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }).tabItem { Label(L("nav.community"), systemImage: "bubble.left.and.bubble.right") }.tag(MainTab.chat)
             BrowseView(onCommunity: { tab = .chat }).tabItem { Label(L("tab.home"), systemImage: "house") }.tag(MainTab.home)
-            SavedView(tab: $tab, editInterests: { editInterests = true; tab = .chat }).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
+            SavedView(tab: $tab, editInterests: { onboarding = .choose }).tabItem { Label(L("favorites"), systemImage: "heart") }.tag(MainTab.saved)
             SearchView().tabItem { Label(L("search.title"), systemImage: "magnifyingglass") }.tag(MainTab.search)
-        }.id(lang).task { await store.refresh(); await AuthSession.shared.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
+        }.id(lang)
+        .fullScreenCover(isPresented: Binding(get: { onboarding != nil }, set: { if !$0 { onboarding = nil } })) {
+            OnboardingFlow(step: onboarding ?? .splash) { room in onboarding = nil; tab = .chat; openRoom = room }.environmentObject(store)
+        }
+        .task { await store.refresh(); await AuthSession.shared.restore(); EventLogger.shared.log(.homeView, props: ["source": store.source == .live ? "live" : "snapshot"]) }
     }
 }
 private let dayFormat: Date.FormatStyle = .dateTime.month().day().locale(L10n.locale)

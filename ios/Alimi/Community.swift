@@ -135,47 +135,81 @@ struct CommunityPostRow: View {
 }
 struct CommunityTopic: View {
     @EnvironmentObject var store: AlimiStore
+    @Environment(\.dismiss) private var dismiss
     let room: ChatRoom
     var member = false
-    @State private var mode = "posts"
+    var picture: URL? = nil
+    @State private var agreed = ChatAPI.agreed
+    @State private var joined = false
+    @State private var showBoard = false
+    // Reading is open to everyone; posting needs the rules accepted and the room joined (journey screen 4).
+    private var canPost: Bool { agreed && (member || joined) }
+    var body: some View {
+        VStack(spacing: 0) {
+            topBar
+            Button { showBoard = true } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "megaphone.fill").font(.system(size: 18)).foregroundStyle(Color.sbBlue)
+                    Text(room.intro).font(.system(size: 15)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                    Spacer(minLength: 4)
+                    Image(systemName: "chevron.right").font(.system(size: 14)).foregroundStyle(Color.sbGray)
+                }.padding(.horizontal, 16).frame(minHeight: 50).background(Color.sbTagBg.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
+            }.buttonStyle(.plain).padding(.horizontal, 16).padding(.top, 6).accessibilityIdentifier("room-notice")
+            ChatRoomView(room: room, canPost: canPost, onJoin: join)
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showBoard) { CommunityBoard(room: room).environmentObject(store) }
+    }
+    private var topBar: some View {
+        HStack(spacing: 12) {
+            Button { dismiss() } label: {
+                Image(systemName: "chevron.left").font(.system(size: 20, weight: .medium)).foregroundStyle(Color.sbNavy)
+                    .frame(width: 48, height: 48).background(Color.sbChipBg, in: RoundedRectangle(cornerRadius: 14))
+            }.buttonStyle(.plain).accessibilityLabel(L("back"))
+            RoomThumb(room: room, picture: picture, size: 56).clipShape(Circle())
+            VStack(alignment: .leading, spacing: 3) {
+                Text(room.title).font(.system(size: 19, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1)
+                Text(RoomText.memberLine(room)).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1)
+            }.accessibilityElement(children: .combine).accessibilityIdentifier("room-header")
+            Spacer(minLength: 4)
+            if !canPost {
+                Button(action: join) {
+                    Text("+ " + L("room.join")).font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
+                        .padding(.horizontal, 18).frame(minHeight: 48).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
+                }.buttonStyle(.plain).accessibilityIdentifier("room-join")
+            } else {
+                ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) {
+                    Image(systemName: "square.and.arrow.up").font(.system(size: 18)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 44)
+                }.accessibilityLabel(L("share.room")).accessibilityIdentifier("room-share")
+            }
+        }.padding(.horizontal, 16).padding(.top, 6).padding(.bottom, 8)
+    }
+    // The rules are on screen next to the button, so tapping it is the agreement.
+    private func join() { ChatAPI.agreed = true; agreed = true; joined = true }
+}
+
+// Posts of a room (questions, reviews), opened from the notice banner.
+struct CommunityBoard: View {
+    @EnvironmentObject var store: AlimiStore
+    @Environment(\.dismiss) private var dismiss
+    let room: ChatRoom
     @State private var posts: [CommunityPost] = []
     @State private var composing = false
     @State private var failed = false
-    @State private var agreed = ChatAPI.agreed
     var body: some View {
-        VStack(spacing: 0) {
-            Picker(L("community.title"), selection: $mode) {
-                Text(L("community.posts")).tag("posts"); Text(L("community.live")).tag("live")
-            }.pickerStyle(.segmented).padding()
-            if mode == "live" {
-                if agreed { ChatRoomView(room: room) }
-                else { VStack(spacing: 20) { Text(L("chat.rules")); Button(L("community.agree")) { ChatAPI.agreed = true; agreed = true }.accessibilityIdentifier("chat-join") }.padding() }
-            } else {
-                List {
-                    Text(room.intro).font(.subheadline).foregroundStyle(.secondary)
-                    Button(L("community.write"), systemImage: "square.and.pencil") { composing = true }
-                    ForEach(posts) { p in NavigationLink { CommunityPostView(post: p) } label: { CommunityPostRow(post: p) } }
-                    if posts.isEmpty && !failed { Text(L("community.empty")).foregroundStyle(.secondary) }
-                    if failed { Button(L("community.retry")) { Task { await load() } }; Text(L("community.loadError")) }
-                }.refreshable { await load() }.task { await load() }
+        NavigationStack {
+            List {
+                Text(room.intro).font(.subheadline).foregroundStyle(.secondary)
+                Button(L("community.write"), systemImage: "square.and.pencil") { composing = true }
+                ForEach(posts) { p in NavigationLink { CommunityPostView(post: p) } label: { CommunityPostRow(post: p) } }
+                if posts.isEmpty && !failed { Text(L("community.empty")).foregroundStyle(.secondary) }
+                if failed { Button(L("community.retry")) { Task { await load() } }; Text(L("community.loadError")) }
             }
-        }.navigationTitle(room.title).navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 0) {
-                        Text(room.title).font(.headline).lineLimit(1)
-                        Text(L("chat.members", ["n": room.members])).font(.caption2).foregroundStyle(.secondary)
-                    }.accessibilityIdentifier("room-header")
-                }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    if !member && mode == "posts" {
-                        Button("+ " + L("room.join")) { mode = "live" }.fontWeight(.bold).accessibilityIdentifier("room-join")
-                    }
-                    ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) { Image(systemName: "square.and.arrow.up") }
-                        .accessibilityLabel(L("share.room")).accessibilityIdentifier("room-share")
-                }
-            }
+            .refreshable { await load() }.task { await load() }
+            .navigationTitle(L("community.posts")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
             .sheet(isPresented: $composing, onDismiss: { Task { await load() } }) { CommunityComposer(room: room).environmentObject(store) }
+        }
     }
     private func load() async { do { posts = try await CommunityAPI.posts(room: room.id); failed = false } catch { failed = true } }
 }

@@ -8,14 +8,14 @@ import {roomListCard} from './room-card.js';
 export const GROUPS = ['skincare', 'makeup'];
 // Stable ids shared with the admin planning preview; only labels are translated.
 export const CONCERNS = [
-  {id: 'acne', group: 'skincare'}, {id: 'sensitive', group: 'skincare'}, {id: 'dry', group: 'skincare'}, {id: 'pores', group: 'skincare'},
-  {id: 'cushion', group: 'makeup'}, {id: 'lip', group: 'makeup'}, {id: 'longwear', group: 'makeup'}, {id: 'shade', group: 'makeup'},
+  ...['acne', 'dry', 'sensitive', 'pores', 'spots', 'firmness', 'sebum', 'toneup', 'trouble'].map(id => ({id, group: 'skincare'})),
+  ...['lip', 'base', 'cushion', 'longwear', 'shade'].map(id => ({id, group: 'makeup'})),
 ];
 // Seed rooms have no concern tags yet; a room's own `concerns` column, when present, replaces this.
 const ROOM_CONCERNS = {
-  acne: ['acne', 'pores'], 'dry-sensitive': ['sensitive', 'dry'], routine: ['pores', 'dry'],
-  makeup: ['cushion', 'lip', 'longwear', 'shade'],
-};
+  acne: ['acne', 'trouble', 'sebum'], 'dry-sensitive': ['sensitive', 'dry'], routine: ['pores', 'spots', 'firmness', 'toneup'],
+  makeup: ['lip', 'base', 'cushion', 'longwear', 'shade'],
+}
 const ROOM_GROUP = {skin: 'skincare', makeup: 'makeup'};
 const KEY = 'seoulbeauty-interests-v1';
 

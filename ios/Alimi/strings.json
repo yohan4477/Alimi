@@ -1417,16 +1417,16 @@
     "en": "What beauty topics are you into?"
   },
   "onb.s0": {
-    "ko": "관심 사항을 선택해 주세요 (복수 선택 가능). 피부 타입은 묻지 않아요.",
-    "en": "Pick what interests you — choose as many as you like. We won't ask for your skin type."
+    "ko": "관심사를 선택해 주세요\n(복수 선택 가능)",
+    "en": "Pick what interests you\n(choose as many as you like)"
   },
   "onb.q1": {
     "ko": "내 고민에 맞는 대화방 추천",
     "en": "Rooms that match your concerns"
   },
   "onb.s1": {
-    "ko": "지금, 비슷한 고민을 가진 사람들과 이야기해 보세요!",
-    "en": "Talk with people who have the same questions right now!"
+    "ko": "지금, 비슷한 고민을 가진 사람들과\n실제 이야기를 나눠보세요!",
+    "en": "Talk with people who share\nthe same concerns right now!"
   },
   "onb.g.skincare": {
     "ko": "스킨케어",
@@ -1437,32 +1437,32 @@
     "en": "Makeup"
   },
   "onb.c.acne": {
-    "ko": "트러블·여드름",
-    "en": "Acne & breakouts"
+    "ko": "여드름",
+    "en": "Acne"
   },
   "onb.c.sensitive": {
-    "ko": "민감성·자극",
-    "en": "Sensitive skin"
+    "ko": "민감성",
+    "en": "Sensitive"
   },
   "onb.c.dry": {
-    "ko": "건조함",
+    "ko": "건조",
     "en": "Dryness"
   },
   "onb.c.pores": {
-    "ko": "모공·피부결",
-    "en": "Pores & texture"
+    "ko": "모공",
+    "en": "Pores"
   },
   "onb.c.cushion": {
     "ko": "쿠션 호수",
     "en": "Cushion shades"
   },
   "onb.c.lip": {
-    "ko": "틴트·립",
-    "en": "Lip tints"
+    "ko": "립",
+    "en": "Lips"
   },
   "onb.c.longwear": {
-    "ko": "메이크업 지속력",
-    "en": "Makeup longevity"
+    "ko": "지속력",
+    "en": "Long-wear"
   },
   "onb.c.shade": {
     "ko": "컬러 매칭",
@@ -1683,5 +1683,69 @@
   "home.newMessages": {
     "ko": "새 메시지",
     "en": "New"
+  },
+  "splash.line1": {
+    "ko": "좋은 뷰티가",
+    "en": "Good beauty"
+  },
+  "splash.line2": {
+    "ko": "좋은 일상을 만든다",
+    "en": "makes good days"
+  },
+  "onb.filter.rec": {
+    "ko": "추천",
+    "en": "For you"
+  },
+  "onb.filter.skincare": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "onb.filter.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "onb.filter.all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "onb.c.spots": {
+    "ko": "잡티",
+    "en": "Dark spots"
+  },
+  "onb.c.firmness": {
+    "ko": "탄력",
+    "en": "Firmness"
+  },
+  "onb.c.sebum": {
+    "ko": "피지",
+    "en": "Oiliness"
+  },
+  "onb.c.toneup": {
+    "ko": "톤업",
+    "en": "Tone-up"
+  },
+  "onb.c.trouble": {
+    "ko": "트러블",
+    "en": "Breakouts"
+  },
+  "onb.c.base": {
+    "ko": "베이스",
+    "en": "Base"
+  },
+  "room.newToday": {
+    "ko": "오늘 {n}개의 새 글",
+    "en": "{n} new today"
+  },
+  "room.memberCount": {
+    "ko": "{n}명 멤버",
+    "en": "{n} members"
+  },
+  "room.joinTalk": {
+    "ko": "가입하고 대화하기",
+    "en": "Join to chat"
+  },
+  "chat.typeHere": {
+    "ko": "메시지를 입력하세요...",
+    "en": "Type a message..."
   }
 }

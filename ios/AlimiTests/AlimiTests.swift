@@ -184,7 +184,8 @@ final class AlimiTests: XCTestCase {
     func testInterestsDropConcernsOfUnselectedFields() {
         let n = Interests(skincare: true, makeup: false, concerns: ["acne", "lip", "nope", "acne"], done: true).normalized()
         XCTAssertEqual(n.concerns, ["acne"])
-        XCTAssertEqual(Interests(makeup: true).visibleConcerns, ["cushion", "lip", "longwear", "shade"])
+        XCTAssertEqual(Interests(makeup: true).visibleConcerns, ["lip", "base", "cushion", "longwear", "shade"])
+        XCTAssertEqual(Interests(skincare: true).visibleConcerns, ["acne", "dry", "sensitive", "pores", "spots", "firmness", "sebum", "toneup", "trouble"])
         let defaults = UserDefaults(suiteName: "AlimiTests.interests.\(UUID().uuidString)")!
         XCTAssertNil(Interests.load(defaults))
         Interests(skincare: true, makeup: true, concerns: ["dry", "cushion"], done: true).save(defaults)
@@ -193,7 +194,7 @@ final class AlimiTests: XCTestCase {
     func testRecommendationsMatchConcernsAndKeepFieldsApart() {
         let skin = Recommend.rooms(seedRooms, Interests(skincare: true, concerns: ["dry", "sensitive"]))
         XCTAssertEqual(skin.first?.room.id, "dry-sensitive")
-        XCTAssertEqual(skin.first?.matched, ["sensitive", "dry"])
+        XCTAssertEqual(skin.first?.matched, ["dry", "sensitive"])
         XCTAssertFalse(skin.contains { $0.room.tag == "makeup" || $0.room.isBrand })
         let both = Recommend.rooms(seedRooms, Interests(skincare: true, makeup: true, concerns: ["acne", "cushion"])).map(\.room.id)
         XCTAssertTrue(both.contains("acne") && both.contains("makeup"))
@@ -220,6 +221,19 @@ final class AlimiTests: XCTestCase {
         let d = UserDefaults(suiteName: "AlimiTests.seen.\(UUID().uuidString)")!
         Seen.mark("acne", "2026-10-19T10:00", d); Seen.mark("acne", "2026-10-19T09:00", d)
         XCTAssertEqual(Seen.all(d)["acne"], "2026-10-19T10:00")
+    }
+    func testRoomTextUsesRealCountsOnly() {
+        L10n.language = "ko"
+        XCTAssertEqual(RoomText.compact(12_400), "1.2만")
+        XCTAssertEqual(RoomText.compact(3_800), "3.8천")
+        XCTAssertEqual(RoomText.compact(40), "40")
+        let now = ISODate.parse("2026-10-19T10:00:00Z")!
+        let live = ChatRoom(id: "a", titleEn: "a", titleKo: "a", introEn: "", introKo: "", members: 3, messages24h: 5, lastMessageAt: "2026-10-19T09:30:00Z")
+        let quiet = ChatRoom(id: "b", titleEn: "b", titleKo: "b", introEn: "", introKo: "", members: 3, messages24h: 5, lastMessageAt: "2026-10-19T05:00:00Z")
+        let idle = ChatRoom(id: "c", titleEn: "c", titleKo: "c", introEn: "", introKo: "", members: 3, messages24h: 0)
+        XCTAssertEqual(RoomText.activity(live, now: now), "지금 활발한 대화 중")
+        XCTAssertEqual(RoomText.activity(quiet, now: now), "오늘 5개의 새 글")
+        XCTAssertNil(RoomText.activity(idle, now: now), "no activity claim without messages")
     }
     func testShareLinksOpenTheWebScreen() {
         XCTAssertEqual(ShareLinks.room("acne").absoluteString, "https://alimi-omega.vercel.app/?room=acne")
