@@ -31,7 +31,6 @@ struct SavedView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 18) {
-                        Image("SeoulBeautyLogo").resizable().scaledToFit().frame(height: 50).accessibilityLabel("Seoul Beauty")
                         Spacer()
                         Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("search.title"))
                         Button { tab = .alerts } label: { Image(systemName: "bell").font(.system(size: 23, weight: .medium)) }.accessibilityLabel(L("alerts.title"))

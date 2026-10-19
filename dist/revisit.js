@@ -82,7 +82,7 @@ export function joinedCard(a, fallback) {
 
 // 대화방 tab: welcome back and my rooms, then every room.
 export async function renderMyRooms(box, {pictures = new Map(), savedFamilies = []} = {}) {
-  box.innerHTML = `<div class="logo-head"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><p class="home-note">${esc(t('loading'))}</p>`;
+  box.innerHTML = `<div class="logo-head actions-only"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><p class="home-note">${esc(t('loading'))}</p>`;
   let data; try { data = await loadRevisit({savedFamilies}); } catch { if (box.isConnected) box.querySelector('.home-note').textContent = t('home.retry'); return; }
   if (!box.isConnected) return;
   const topics = data.rooms.filter(r => r.kind !== 'brand').sort((a, b) => a.sort - b.sort);
