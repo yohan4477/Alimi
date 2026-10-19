@@ -1,10 +1,10 @@
-name: Seoul Beauty TestFlight Upload
+name: SeoulBeauty TestFlight Upload
 
 on:
   workflow_dispatch:
     inputs:
       confirm_upload:
-        description: "Upload this signed Alimi build to App Store Connect for TestFlight processing"
+        description: "Upload this signed SeoulBeauty build to App Store Connect for TestFlight processing"
         required: true
         type: boolean
         default: false
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: alimi-testflight-upload
+  group: seoulbeauty-testflight-upload
   cancel-in-progress: false
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID || secrets.ASC_ISSUER_ID }}
       APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 || secrets.ASC_KEY_P8 }}
       APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID || secrets.APPLE_TEAM_ID }}
-      IOS_BUNDLE_ID: ${{ vars.IOS_BUNDLE_ID || 'com.yohan4477.alimi' }}
+      IOS_BUNDLE_ID: com.yohan4477.seoulbeauty
       BUILD_NUMBER: ${{ github.run_number }}.${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
@@ -150,6 +150,6 @@ jobs:
       - name: Keep the uploaded IPA as a short-lived artifact
         uses: actions/upload-artifact@v4
         with:
-          name: alimi-testflight-ipa-${{ github.run_number }}
+          name: seoulbeauty-testflight-ipa-${{ github.run_number }}
           path: ${{ runner.temp }}/export/*.ipa
           retention-days: 3
