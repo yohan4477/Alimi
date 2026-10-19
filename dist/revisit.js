@@ -4,7 +4,7 @@ import {t, locale} from './i18n.js';
 import {esc} from './util.js';
 import {chatSecret, fetchRooms, fetchMyRooms, fetchMessages, roomTitle, roomIntro, readBlocked} from './chat-api.js';
 import {fetchProductTalk} from './community-api.js';
-import {roomThumb, roomStats, compactCount, pickCard} from './room-card.js';
+import {roomListCard} from './room-card.js';
 import {share, shareUrl} from './share.js';
 
 let storage; try { storage = localStorage; } catch {}
@@ -74,10 +74,8 @@ export const ago = iso => {
   const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000), rtf = new Intl.RelativeTimeFormat(locale(), {numeric: 'auto'});
   return s < 3600 ? rtf.format(-Math.round(s / 60), 'minute') : s < 86400 ? rtf.format(-Math.round(s / 3600), 'hour') : rtf.format(-Math.round(s / 86400), 'day');
 };
-export const welcomeBanner = () => `<section class="welcome-back"><b>${esc(t('home.welcome'))} 👋</b><p>${esc(t('home.welcomeSub'))}</p></section>`;
 export function joinedCard(a, fallback) {
-  const pics = [...a.pictures, fallback].filter(Boolean).slice(0, 3);
-  return `<button class="joined-card" data-chat-room="${esc(a.room.id)}" data-live="1"><span class="joined-top"><span class="joined-pics">${pics.length ? pics.map(u => `<img src="${esc(u)}" alt="" loading="lazy">`).join('') : roomThumb(a.room)}</span><span class="joined-head"><b>${esc(roomTitle(a.room))}${a.newCount ? `<i class="count-badge">${a.newCount}</i>` : ''}</b><small>${esc(roomStats(a.room))}</small>${a.newCount ? `<em>${esc(t('alert.newCount', {n: a.newCount}))}</em>` : ''}</span></span><span class="joined-last">${esc(a.last?.body || roomIntro(a.room))}</span><span class="joined-stats"><span>${svg.bubble}${compactCount(a.room.messages_24h ?? 0)}</span><span>${svg.heart}${compactCount(a.likes)}</span><span>${svg.person}${compactCount(a.room.members ?? 0)}</span></span></button>`;
+  return roomListCard(a.room, {image: a.pictures?.[0] || fallback, note: a.last?.body || roomIntro(a.room), fresh: a.newCount > 0, attrs: `data-chat-room="${esc(a.room.id)}" data-live="1" data-my-room`});
 }
 
 // 대화방 tab: welcome back and my rooms, then every room.
@@ -86,7 +84,7 @@ export async function renderMyRooms(box, {pictures = new Map(), savedFamilies = 
   let data; try { data = await loadRevisit({savedFamilies}); } catch { if (box.isConnected) box.querySelector('.home-note').textContent = t('home.retry'); return; }
   if (!box.isConnected) return;
   const topics = data.rooms.filter(r => r.kind !== 'brand').sort((a, b) => a.sort - b.sort);
-  box.querySelector('.home-note').outerHTML = `${data.activity.length ? `${welcomeBanner()}<h2 class="big-head">${esc(t('rooms.mine'))}</h2>${data.activity.map(a => joinedCard(a, pictures.get(a.room.id)).replace('class="joined-card"', 'class="joined-card" data-my-room')).join('')}` : ''}<h2 class="big-head">${esc(t('home.topics'))}</h2>${topics.map(r => pickCard(r, {image: pictures.get(r.id)})).join('')}`;
+  box.querySelector('.home-note').outerHTML = `${data.activity.length ? `<h2 class="chat-section">${esc(t('rooms.mine'))}</h2>${data.activity.map(a => joinedCard(a, pictures.get(a.room.id))).join('')}` : ''}<h2 class="chat-section">${esc(t('home.topics'))}</h2>${topics.map(r => roomListCard(r, {image: pictures.get(r.id), note: roomIntro(r)})).join('')}`;
 }
 
 // 알림

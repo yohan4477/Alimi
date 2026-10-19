@@ -88,63 +88,12 @@ struct JoinedRoomCard: View {
     let act: RoomActivity
     let fallback: URL?
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 14) {
-                HStack(spacing: 4) {
-                    let pics = Array((act.pictures + [fallback].compactMap { $0 }).prefix(2))
-                    ForEach(Array(pics.enumerated()), id: \.offset) { _, u in RemoteThumb(url: u).frame(width: 44, height: 70).clipShape(RoundedRectangle(cornerRadius: 8)) }
-                    if pics.isEmpty { RoomThumb(room: act.room, picture: nil, size: 70) }
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .top) {
-                        Text(act.room.title).font(.system(size: 18, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(2)
-                        Spacer(minLength: 4)
-                        if act.newCount > 0 {
-                            Text(String(act.newCount)).fixedSize().font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
-                                .padding(.horizontal, 9).frame(minHeight: 26).background(Color.sbBlue, in: Capsule())
-                        }
-                    }
-                    Text(RoomText.stats(act.room)).font(.system(size: 14)).foregroundStyle(Color.sbGray).lineLimit(1)
-                    if act.newCount > 0 { Text(L("alert.newCount", ["n": act.newCount])).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(rgb: 0xF0335A)) }
-                }
-            }
-            Divider()
-            Text(act.last?.body ?? act.room.intro).font(.system(size: 15)).foregroundStyle(Color(rgb: 0x5B6475)).lineLimit(2)
-            HStack(spacing: 28) {
-                stat("ellipsis.bubble", act.room.messages24h)
-                stat("heart", act.likes)
-                stat("person", act.room.members)
-            }.font(.system(size: 15)).foregroundStyle(Color(rgb: 0x5B6475))
-        }
-        .padding(16)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(rgb: 0xE6EAF1)))
-    }
-    private func stat(_ icon: String, _ n: Int) -> some View {
-        HStack(spacing: 6) { Image(systemName: icon).font(.system(size: 18)); Text(RoomText.compact(n)) }
+        RoomListCard(room: act.room, picture: act.pictures.first ?? fallback,
+                     note: act.last?.body ?? act.room.intro, fresh: act.newCount > 0)
     }
 }
 
-struct WelcomeBanner: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L("home.welcome") + " 👋").font(.system(size: 26, weight: .heavy)).foregroundStyle(Color(rgb: 0x0E3A8C))
-            Text(L("home.welcomeSub")).font(.system(size: 16)).foregroundStyle(Color(rgb: 0x3B4A63))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 24).padding(.vertical, 26)
-        .background {
-            ZStack(alignment: .trailing) {
-                LinearGradient(colors: [Color(rgb: 0xE9F2FF), Color(rgb: 0xDCEBFF)], startPoint: .leading, endPoint: .trailing)
-                Circle().fill(Color.white.opacity(0.35)).frame(width: 140).offset(x: 60, y: 30)
-            }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .accessibilityElement(children: .combine).accessibilityIdentifier("welcome-back")
-    }
-}
-
-// MARK: 대화방 tab: welcome back + my rooms, then every room
-
+// MARK: My rooms and all rooms share the community room list.
 struct MyRoomsView: View {
     @EnvironmentObject var store: AlimiStore
     @StateObject private var model = RevisitModel()
@@ -158,9 +107,8 @@ struct MyRoomsView: View {
                         HStack { Spacer(); Button(action: onSearch) { Image(systemName: "magnifyingglass").font(.system(size: 24, weight: .medium)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 44) }.accessibilityLabel(L("search.title")) }
                     }
                     if !model.activity.isEmpty {
-                        WelcomeBanner()
                         HStack {
-                            Text(L("rooms.mine")).font(.system(size: 23, weight: .heavy)).foregroundStyle(Color.sbNavy)
+                            Text(L("rooms.mine")).font(.title3.bold()).foregroundStyle(Color.sbNavy)
                             Spacer()
                         }.padding(.top, 10)
                         ForEach(model.activity) { act in
@@ -168,9 +116,9 @@ struct MyRoomsView: View {
                                 .buttonStyle(.plain).accessibilityIdentifier("my-room-" + act.room.id)
                         }
                     }
-                    Text(L("home.topics")).font(.system(size: 23, weight: .heavy)).foregroundStyle(Color.sbNavy).padding(.top, 14)
+                    Text(L("home.topics")).font(.title3.bold()).foregroundStyle(Color.sbNavy).padding(.top, 14)
                     ForEach(home.topics) { room in
-                        NavigationLink(value: room) { PickCard(room: room, picture: home.pictures[room.id], showIntro: true) }
+                        NavigationLink(value: room) { RoomListCard(room: room, picture: home.pictures[room.id], note: room.intro) }
                             .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
                     }
                     if !model.loaded { LoadingCompanion(compact: true) }

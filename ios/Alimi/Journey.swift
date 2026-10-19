@@ -422,29 +422,21 @@ struct CommunityHome: View {
     }
     @ViewBuilder private var recommended: some View {
         if !revisit.activity.isEmpty {
-            WelcomeBanner().padding(.top, 14)
-            BigHead(title: L("rooms.mine"), sub: "", more: onMyRooms)
+            SectionHead(title: L("rooms.mine")) {
+                Button(action: onMyRooms) { InlineActionLabel(title: L("home.seeAll"), icon: "chevron.right") }.buttonStyle(.plain).foregroundStyle(Color.sbBlue)
+            }
             ForEach(revisit.activity.prefix(2)) { act in
                 NavigationLink(value: act.room) { JoinedRoomCard(act: act, fallback: model.pictures[act.room.id]) }
                     .buttonStyle(.plain).accessibilityIdentifier("chat-room-" + act.room.id)
             }
         }
         if !model.hot.isEmpty {
-            BigHead(title: L("home.trending"), sub: L("home.trendingSub")) { tab = .rooms }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 14) {
-                    ForEach(model.hot) { room in
-                        NavigationLink(value: room) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                RoomThumb(room: room, picture: model.pictures[room.id], size: 150)
-                                Text(room.title).font(.system(size: 17, weight: .heavy)).foregroundStyle(Color.sbNavy).lineLimit(1).frame(width: 150, alignment: .leading)
-                                Text(L("room.newToday", ["n": room.messages24h])).font(.system(size: 14)).foregroundStyle(Color.sbGray)
-                            }
-                        }.buttonStyle(.plain).accessibilityIdentifier("chat-room-" + room.id)
-                    }
-                }.padding(.horizontal, 2)
+            SectionHead(title: L("home.trending")) {
+                Button { tab = .rooms } label: { InlineActionLabel(title: L("home.seeAll"), icon: "chevron.right") }.buttonStyle(.plain).foregroundStyle(Color.sbBlue)
             }
+            ForEach(model.hot) { room in roomLink(room, note: room.intro) }
         }
+
         SectionHead(title: L("home.recRooms"), sub: "") {
             Button { tab = .rooms } label: { InlineActionLabel(title: L("home.seeAll"), icon: "chevron.right") }.buttonStyle(.plain).foregroundStyle(Color.sbBlue)
         }
