@@ -206,6 +206,32 @@ struct BrandStrip: View {
         return out
     }
 }
+
+// An alpha channel does not always imply transparent pixels. Check the actual
+// decoded pixels so opaque Stylevana assets are never mistakenly recolored.
+private extension UIImage {
+    var hasTransparency: Bool {
+        guard let cgImage,
+              cgImage.dataProvider != nil else { return false }
+        let alpha = cgImage.alphaInfo
+        guard alpha == .premultipliedFirst || alpha == .premultipliedLast ||
+              alpha == .first || alpha == .last else { return false }
+        // Color-space and byte order vary between files; decode into RGBA8.
+        let width = cgImage.width, height = cgImage.height
+        guard width > 0, height > 0 else { return false }
+        let sampleWidth = min(width, 64), sampleHeight = min(height, 64)
+        let bytesPerRow = sampleWidth * 4
+        var bytes = [UInt8](repeating: 255, count: sampleHeight * bytesPerRow)
+        guard let context = CGContext(data: &bytes, width: sampleWidth, height: sampleHeight,
+            bitsPerComponent: 8, bytesPerRow: bytesPerRow,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+        context.interpolationQuality = .low
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: sampleWidth, height: sampleHeight))
+        return stride(from: 3, to: bytes.count, by: 4).contains { bytes[$0] < 250 }
+    }
+}
+
 struct BrandBadge: View {
     let brand: CatalogBrand
     var size: CGFloat = 60
@@ -217,7 +243,13 @@ struct BrandBadge: View {
                 Circle().fill(Color(rgb: brand.color))
                 Text(brand.initials).font(.system(size: size * 0.3, weight: .heavy)).foregroundStyle(.white)
                 if let logoImage {
-                    Image(uiImage: logoImage).resizable().scaledToFit().background(Color.white).clipShape(Circle())
+                    Image(uiImage: logoImage)
+                        .resizable()
+                        .scaledToFit()
+                        // Transparent logos show the brand's assigned surface color.
+                        // Opaque images retain a white backing rather than a false recolor.
+                        .background(logoImage.hasTransparency ? Color.clear : Color.white)
+                        .clipShape(Circle())
                 }
             }
             .frame(width: size, height: size)
