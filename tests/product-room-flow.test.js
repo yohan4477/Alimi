@@ -31,8 +31,8 @@ test('onboarding stores a button-selected age and completes into browsing withou
  const click=dataset=>listeners.get('click')({target:{closest:()=>({dataset})}});
  click({onbGroup:'skincare'});click({onb:'next'});
  assert.match(box.innerHTML,/data-onb-profile="ageRange"/);assert.doesNotMatch(box.innerHTML,/<select data-onb-profile="ageRange"/);
- click({onbProfile:'ageRange',onbValue:'25–34'});assert.match(box.innerHTML,/data-onb-value="25–34" aria-pressed="true"/);
+ click({onbProfile:'ageRange',onbValue:'25–29'});assert.match(box.innerHTML,/data-onb-value="25–29" aria-pressed="true"/);
  click({onb:'profile-next'});
  assert.equal(closed,1);assert.equal(joined,0);assert.equal(box.hidden,true);
- assert.equal(readInterests().ageRange,'25–34');assert.equal(readInterests().done,true);
+ assert.equal(readInterests().ageRange,'25–29');assert.equal(readInterests().done,true);
 });

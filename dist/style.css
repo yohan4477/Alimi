@@ -537,3 +537,5 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 
 .product-room-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid #e6eaf1;background:transparent;padding:15px 2px;color:inherit;font:inherit}.product-room-row span{display:flex;flex-direction:column;gap:6px;min-width:0}.product-room-row b{font-size:15px;overflow-wrap:anywhere}.product-room-row small{font-size:12px;color:#697485}.product-room-row i{font-style:normal;color:#8a97aa}.product-room-row:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .product-sort{display:flex;gap:8px;margin:12px 0 6px;grid-column:1/-1}.product-sort .chip.active{background:#222;color:#fff;border-color:#222}.product-sort-note{grid-column:1/-1;margin-bottom:12px}
+
+.logo-head.activity-head{min-height:58px;align-items:center;gap:8px}.logo-head.activity-head .page-title{margin:0;min-width:0;font-size:clamp(24px,6vw,32px)}.logo-head.activity-head>span{flex:none;align-items:center}

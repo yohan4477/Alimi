@@ -277,7 +277,6 @@ struct CommunityPostView: View {
             if let v = post.skin_type { Text(L("skin." + v)) }
             if let v = post.skin_tone { Text(L("review.tone") + ": " + L("tone." + v)) }
             if let v = post.undertone { Text(L("under." + v)) }
-            if let v = post.climate { Text(L("climate." + v)) }
             if let v = post.goal { Text(v) }
             Text(L("about.unverified")).foregroundStyle(.secondary)
         }.font(.caption)
@@ -354,7 +353,6 @@ struct CommunityComposer: View {
                         choice("review.skin", $skinType, ["dry", "oily", "combination", "sensitive", "normal"], "skin.")
                         choice("review.tone", $tone, ["fair", "light", "medium", "tan", "deep"], "tone.")
                         choice("review.undertone", $undertone, ["cool", "warm", "neutral"], "under.")
-                        choice("review.climate", $climate, ["humid", "dry", "mixed"], "climate.")
                         TextField(L("review.goal"), text: $goal)
                         Text(L("review.showMine")).font(.caption).foregroundStyle(.secondary)
                     }

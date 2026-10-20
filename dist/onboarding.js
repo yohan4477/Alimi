@@ -6,6 +6,7 @@ import {esc} from './util.js';
 import {concernsOf} from './room-card.js';
 
 export const GROUPS = ['skincare', 'makeup'];
+export const AGE_RANGES = ['<15','15–19','20–24','25–29','30–34','35–39','40–44','45–49','50–54','55+'];
 // Stable ids shared with the admin planning preview; only labels are translated.
 export const CONCERNS = [
   ...['acne', 'dry', 'sensitive', 'pores', 'spots', 'firmness', 'sebum', 'toneup', 'trouble'].map(id => ({id, group: 'skincare'})),
@@ -19,7 +20,7 @@ export function normalize(p) {
   const skincare = p.skincare === true, makeup = p.makeup === true;
   const allowed = new Set(visibleConcerns({skincare, makeup}).map(c => c.id));
   const concerns = CONCERNS.map(c => c.id).filter(id => allowed.has(id) && Array.isArray(p.concerns) && p.concerns.includes(id));
-  return {version: 1, skincare, makeup, concerns, done: p.done === true, ...(p.ageRange ? {ageRange: ['<18','18–24','25–34','35–44','45+'].includes(p.ageRange) ? p.ageRange : null} : {}), ...(p.skinType ? {skinType: ['dry','oily','combination','normal'].includes(p.skinType) ? p.skinType : null} : {})};
+  return {version: 1, skincare, makeup, concerns, done: p.done === true, ...(p.ageRange ? {ageRange: [...AGE_RANGES, '<18','18–24','25–34','35–44','45+'].includes(p.ageRange) ? p.ageRange : null} : {}), ...(p.skinType ? {skinType: ['dry','oily','combination','normal'].includes(p.skinType) ? p.skinType : null} : {})};
 }
 export function readInterests(storage = deviceStorage()) {
   try { return normalize(JSON.parse(storage?.getItem(KEY))); } catch { return null; }
@@ -97,7 +98,7 @@ function drawFlow() {
   }
   if (step === 'profile') {
     const choices = (key, values, current, label) => `<div class="ob-keywords ob-profile-choices" role="group" aria-label="${esc(t(key === 'ageRange' ? 'onb.age' : 'onb.skin'))}">${values.map(v => `<button type="button" data-onb-profile="${key}" data-onb-value="${esc(v)}" aria-pressed="${v === (current || '')}" class="${v === (current || '') ? 'on' : ''}">${esc(label(v))}</button>`).join('')}</div>`;
-    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',['<18','18–24','25–34','35–44','45+'],draft.ageRange,v=>v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.finishBrowse'))}</button>${stepBar(2)}</div></div>`;
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',AGE_RANGES,draft.ageRange,v=>v === '<15' ? t('onb.age.under15') : v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.finishBrowse'))}</button>${stepBar(2)}</div></div>`;
     return;
   }
 }

@@ -18,11 +18,11 @@ export async function refreshProfile(fetchImpl = fetch) { try { const p = await 
 // Review-form prefill (keys match the write draft in chat.js).
 export function reviewPrefill() {
   const p = cachedProfile(); if (!p) return {};
-  return {skinType: p.skin_type ?? '', skinTone: p.skin_tone ?? '', undertone: p.undertone ?? '', climate: p.climate ?? ''};
+  return {skinType: p.skin_type ?? '', skinTone: p.skin_tone ?? '', undertone: p.undertone ?? ''};
 }
 // "Save to my profile" from a review: only the skin fields change; consents stay as they were.
 export async function saveFromReview(d) {
-  const p = {...(cachedProfile() ?? {}), skin_type: d.skinType || null, skin_tone: d.skinTone || null, undertone: d.undertone || null, climate: d.climate || null};
+  const p = {...(cachedProfile() ?? {}), skin_type: d.skinType || null, skin_tone: d.skinTone || null, undertone: d.undertone || null};
   remember(await saveProfile(secret, p));
 }
 // "Do Not Sell or Share My Personal Information".
@@ -54,7 +54,6 @@ ${under13 ? `<p class="write-warn">${esc(t('profile.under13'))}</p>` : `
 <p class="write-label">${esc(t('review.skin'))}</p>${chips('skin_type', SKIN_TYPES, 'skin.')}
 <p class="write-label">${esc(t('review.tone'))}</p>${chips('skin_tone', SKIN_TONES, 'tone.')}
 <p class="write-label">${esc(t('review.undertone'))}</p>${chips('undertone', UNDERTONES, 'under.')}
-<p class="write-label">${esc(t('review.climate'))}</p>${chips('climate', CLIMATES, 'climate.')}
 <p class="write-label">${esc(t('profile.interests'))}</p>${chips('interests', INTERESTS, 'profile.interest.', true)}
 <label class="profile-check"><input type="checkbox" data-profile-check="consent_health" ${draft.consent_health ? 'checked' : ''}><span><b>${esc(t('profile.healthConsent'))}</b><small>${esc(t('profile.healthHint'))}</small></span></label>
 ${draft.consent_health ? chips('concerns', CONCERNS, 'profile.concern.', true) : ''}
@@ -66,7 +65,7 @@ ${cachedProfile() ? `<button class="profile-delete" data-profile-delete>${esc(t(
 }
 export function openProfile() {
   const p = cachedProfile() ?? {};
-  draft = {age_band: p.age_band ?? '', skin_type: p.skin_type ?? '', skin_tone: p.skin_tone ?? '', undertone: p.undertone ?? '', climate: p.climate ?? '',
+  draft = {age_band: p.age_band ?? '', skin_type: p.skin_type ?? '', skin_tone: p.skin_tone ?? '', undertone: p.undertone ?? '',
     interests: p.interests ?? [], concerns: p.concerns ?? [], consent_health: !!p.consent_health, consent_analytics: !!p.consent_analytics,
     consent_b2b: !!p.consent_b2b, opt_out_sale: !!p.opt_out_sale || optedOutLocally()};
   let dlg = document.querySelector('#profile-dialog');

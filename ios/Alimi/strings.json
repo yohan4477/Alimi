@@ -1965,5 +1965,6 @@
   "rooms.noProductRooms": {"ko": "아직 제품별 대화가 없어요. 제품명을 검색해 시작해보세요.", "en": "No product rooms yet. Search a product to start one."},
   "rooms.demoProducts": {"ko": "가상 제품별 대화 · 실제 이용 현황이 아니에요.", "en": "Example conversations, not live activity."},
   "rooms.demoCreate": {"ko": "데모 대화방을 만들어보세요. 이 화면에서만 확인할 수 있어요.", "en": "Create a demo room for this session only."},
-  "rooms.demoCreated": {"ko": "데모 대화방을 만들었어요.", "en": "Demo room created."}
+  "rooms.demoCreated": {"ko": "데모 대화방을 만들었어요.", "en": "Demo room created."},
+  "onb.age.under15": {"ko": "15세 미만", "en": "Under 15"}
 }

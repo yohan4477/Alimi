@@ -210,8 +210,8 @@ struct ProfileScreen: View {
                     Text(L("onb.private")).font(.subheadline).foregroundStyle(Color.sbGray)
                     Text(L("onb.age")).font(.headline)
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        ForEach(["<18", "18–24", "25–34", "35–44", "45+"], id: \.self) { value in
-                            choice(value, selected: draft.ageRange == value, id: "age-" + value) { draft.ageRange = value }
+                        ForEach(["<15", "15–19", "20–24", "25–29", "30–34", "35–39", "40–44", "45–49", "50–54", "55+"], id: \.self) { value in
+                            choice(value == "<15" ? L("onb.age.under15") : value, selected: draft.ageRange == value, id: "age-" + value) { draft.ageRange = value }
                         }
                     }
                     if draft.skincare {
