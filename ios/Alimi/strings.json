@@ -772,6 +772,18 @@
     "ko": "아직 대화가 없어요",
     "en": "No messages yet"
   },
+  "coupang.name": {
+    "ko": "쿠팡",
+    "en": "Coupang"
+  },
+  "coupang.note": {
+    "ko": "한국 내 배송 · 쿠팡에서 같은 상품 검색",
+    "en": "Ships within Korea · searches Coupang for this product"
+  },
+  "coupang.disclosure": {
+    "ko": "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
+    "en": "As a Coupang Partners affiliate, SeoulBeauty earns a commission from qualifying purchases."
+  },
   "buy.at": {
     "ko": "{retailer}에서 보기",
     "en": "View at {retailer}"

@@ -154,6 +154,16 @@ export function buyUrl(item, ref = null) {
     return u.href;
   } catch { return null; }
 }
+// Coupang Partners link for viewers in Korea (Coupang ships domestically only). Device time zone is the
+// signal: no location lookup, nothing sent anywhere.
+export const inKorea = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Seoul'; } catch { return false; } };
+export function coupangUrl(item, ref = null) {
+  const q = [item.brandKo ?? item.brand_ko ?? item.brand, item.name].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (!q) return null;
+  const params = new URLSearchParams({q});
+  if (ref) params.set('ref', String(ref).replace(/[^\w-]/g, '').slice(0, 20));
+  return '/api/coupang?' + params;
+}
 export const unitName = unit => (unit === 'ml' || unit === 'g' ? '10' + unit : unit === 'pcs' ? '1pc' : unit);
 
 // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
