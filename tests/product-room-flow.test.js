@@ -33,6 +33,19 @@ test('onboarding stores a button-selected age and completes into browsing withou
  assert.match(box.innerHTML,/data-onb-profile="ageRange"/);assert.doesNotMatch(box.innerHTML,/<select data-onb-profile="ageRange"/);
  click({onbProfile:'ageRange',onbValue:'25–29'});assert.match(box.innerHTML,/data-onb-value="25–29" aria-pressed="true"/);
  click({onb:'profile-next'});
+ assert.match(box.innerHTML,/data-onb="products-browse"/);
+ assert.equal(closed,0);
+ click({onb:'products-browse'});
  assert.equal(closed,1);assert.equal(joined,0);assert.equal(box.hidden,true);
  assert.equal(readInterests().ageRange,'25–29');assert.equal(readInterests().done,true);
+});
+
+test('demo conversations expose all twelve attached products within the recent sample',async()=>{
+ const {demoRooms,demoMessages,demoEntries}=await import('../dist/demo-fixtures.js');
+ const {mentionedProducts}=await import('../dist/community-home.js');
+ assert.equal(demoRooms.length,60);
+ assert.equal(Object.values(demoMessages).flat().length,1440);
+ const products=mentionedProducts(demoEntries());
+ assert.equal(products.length,12);
+ assert.ok(products.every(g=>g.rooms.size===2 && g.entries.length>0 && g.item.demo));
 });

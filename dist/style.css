@@ -546,3 +546,5 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .product-sort-option{position:relative;min-height:44px;padding:10px 0 8px;background:transparent;border:0;border-radius:0;font-size:13px;line-height:1.4;color:#7d8aa0;font-weight:400;white-space:nowrap}
 .product-sort-option[aria-pressed=true]{color:var(--blue);font-weight:600}
 .product-sort-option[aria-pressed=true]::after{content:'';position:absolute;bottom:2px;left:0;right:0;height:2px;border-radius:1px;background:var(--blue)}
+
+.onb-product-list{margin-top:24px}.onb-product-list .product-room-row b{font-size:15px}

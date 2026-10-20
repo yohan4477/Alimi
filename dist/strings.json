@@ -1958,6 +1958,8 @@
   "rooms.productCount": {"ko": "대화방 {n}개", "en": "{n} rooms"},
   "rooms.productCreate": {"ko": "대화방을 만들어보세요!", "en": "Start a conversation!"},
   "rooms.productTalk": {"ko": "이 제품 대화 찾기", "en": "Find conversations about this product"},
+  "onb.products": {"ko":"어떤 제품 이야기가 궁금하세요?","en":"Which product would you like to talk about?"},
+  "onb.productsHint": {"ko":"제품을 골라 진행 중인 대화를 둘러보세요. 대화방은 직접 선택해 들어갈 수 있어요.","en":"Pick a product to browse conversations. You choose which room to enter."},
   "onb.finishBrowse": {"ko": "대화방 둘러보기", "en": "Browse conversations"},
   "onb.age.under18": {"ko": "18세 미만", "en": "Under 18"},
   "rooms.productsActive": {"ko": "지금 대화 중인 제품", "en": "Products people are discussing"},

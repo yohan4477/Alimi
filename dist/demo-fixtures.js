@@ -4,6 +4,7 @@ const concerns=['acne','dry','sensitive','pores','sensitive','dry','sebum','sens
 const q=['요즘 어떤 제품 쓰세요?','비슷한 고민 있으신 분?','다른 분 경험도 궁금해요.','이 조합 써본 분 계세요?','피부 타입별로 차이가 있나요?','구매 전에 후기 더 들어보고 싶어요.'];
 const a=['저도 그게 궁금해요!','저는 소량으로 테스트해봤어요.','저는 건성이라 조금 달랐어요.','사용감은 괜찮았는데 개인차가 있어요.','좋은 정보 감사합니다.','저도 며칠 더 써보려고요.'];
 const names=['루나','피치','민트','제이','소라','코코','로지','모카','나나','하늘','유니','달빛'];
+const demoNow = Date.now();
 export const demoRooms=topics.map((title,i)=>({id:'demo-'+i,title_ko:title,title_en:title,intro_ko:title+'에 대해 편하게 이야기해요.',intro_en:'Discuss '+title+'.',kind:'topic',tag:i<12?'skin':i<24?'makeup':'talk',concerns:[concerns[i]],members:5+(i*7)%41,messages_24h:3+(i*5)%18,sort:i,last_message_at:new Date(Date.UTC(2026,9,20,3)-i*60000).toISOString(),demo:true}));
 export const demoMessages=Object.fromEntries(demoRooms.map((r,i)=>[r.id,Array.from({length:24},(_,j)=>({id:900000+i*100+j,room_id:r.id,nickname:names[(i+j)%12],author_tag:'demo-author-'+((i+j)%12),body:j%2?q[(i+j)%6]:a[(i+j)%6],likes:(i+j)%9,item:null,reply_to:null,created_at:new Date(Date.UTC(2026,9,18,5)+i*60000+j*3600000).toISOString(),demo:true}))]));
 
@@ -27,7 +28,7 @@ for (const [i, product] of demoProducts.entries()) {
     const id=`demo-product-${i}-${j}`, title=`${product.label} · ${j?'조합·비교':'사용 후기'}`;
     const room={id,title_ko:title,title_en:title,intro_ko:`${product.label} 사용 경험을 나눠요.`,intro_en:`Share experiences with ${product.label}.`,kind:'topic',tag:[5,6,7,11].includes(i)?'makeup':'skin',concerns:[[5,7,11].includes(i)?'lip':i===6?'cushion':'dry'],members:8+(i*3+j)%25,messages_24h:4+(i+j)%13,sort:36+i*2+j,last_message_at:new Date(Date.UTC(2026,9,20,7)-i*60000-j*30000).toISOString(),demo:true,topic_product:product};
     demoRooms.push(room);
-    demoMessages[id]=Array.from({length:24},(_,k)=>({id:950000+i*100+j*30+k,room_id:id,nickname:names[(i+j+k)%names.length],author_tag:`demo-author-${(i+j+k)%12}`,body:[product.question,product.answer,`${product.name} 써본 분들의 다른 경험도 듣고 싶어요.`,'저도 비슷한 고민이에요. 피부 타입이나 쓰는 양에 따라 다를 것 같아요.','구매 전에 여기서 경험을 더 들어보려고요.','사용 순서도 함께 알려주셔서 도움됐어요.'][k%6],likes:(i+j+k)%7,item:null,reply_to:null,created_at:new Date(Date.UTC(2026,9,19,6)+k*3600000+i*60000).toISOString(),demo:true}));
+    demoMessages[id]=Array.from({length:24},(_,k)=>({id:950000+i*100+j*30+k,room_id:id,nickname:names[(i+j+k)%names.length],author_tag:`demo-author-${(i+j+k)%12}`,body:[product.question,product.answer,`${product.name} 써본 분들의 다른 경험도 듣고 싶어요.`,'저도 비슷한 고민이에요. 피부 타입이나 쓰는 양에 따라 다를 것 같아요.','구매 전에 여기서 경험을 더 들어보려고요.','사용 순서도 함께 알려주셔서 도움됐어요.'][k%6],likes:(i+j+k)%7,item:k%4===0?{demo:true,family_key:product.id,brand:product.brand,name:product.name,label:product.label}:null,reply_to:null,created_at:new Date(demoNow-(23-k)*3600000-i*60000).toISOString(),demo:true}));
   }
 }
 export function createDemoProductRoom({title,intro='',tag='talk',concerns=[],productName}) {
@@ -35,3 +36,5 @@ export function createDemoProductRoom({title,intro='',tag='talk',concerns=[],pro
   const room={id:`demo-created-${demoRooms.length}`,title_ko:title,title_en:title,intro_ko:intro,intro_en:intro,kind:'topic',tag,concerns:[...concerns],members:0,messages_24h:0,sort:demoRooms.length,demo:true,topic_product:product};
   demoRooms.push(room);demoMessages[room.id]=[];return room;
 }
+
+export const demoEntries = () => Object.values(demoMessages).flat().map(m=>({...m,source:'chat'}));

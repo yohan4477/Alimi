@@ -263,7 +263,7 @@ localizePage();
 const arrival=sharedTarget();if(arrival){const appLink=document.createElement('a');appLink.className='text-link';appLink.textContent=t('share.openApp');appLink.href='seoulbeauty://open?'+new URLSearchParams(arrival);document.body.prepend(appLink);}if(arrival?.room)openRoomNext(arrival.room);
 show('chat');
 if(arrival?.product)openFamily(arrival.product);
-const startGuide=step=>openOnboarding({step,onClose:()=>{openRoomListNext();show('chat')}});
+const startGuide=step=>openOnboarding({step,load:onboardingData,onClose:target=>{if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
 if(!readInterests()?.done&&!arrival&&!new URLSearchParams(location.search).has('skipOnboarding'))startGuide('splash');
 loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;

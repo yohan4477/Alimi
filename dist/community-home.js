@@ -10,5 +10,5 @@ export function mentionedProducts(entries, blocked = [], now = Date.now()) {
     if (!groups.has(key)) groups.set(key,{item:e.item,authors:new Set(),rooms:new Set(),entries:[]});
     const g=groups.get(key);g.authors.add(e.author_tag);g.rooms.add(e.room_id);g.entries.push(e);
   }
-  return [...groups.values()].sort((a,b)=>b.authors.size-a.authors.size || b.rooms.size-a.rooms.size).slice(0,6);
+  return [...groups.values()].sort((a,b)=>b.authors.size-a.authors.size || b.rooms.size-a.rooms.size).slice(0,12);
 }

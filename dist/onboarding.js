@@ -64,25 +64,27 @@ const icon = {
   grid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
 };
 const logoBar = () => `<div class="ob-bar"><button type="button" class="ob-back" data-onb="back" aria-label="${esc(t('back'))}">${icon.back}</button><img class="ob-logo-small" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"></div>`;
-const stepBar = n => `<div class="ob-step" role="progressbar" aria-valuemin="1" aria-valuemax="2" aria-valuenow="${n}" aria-label="${esc(t('onb.step', {n}))}"><span><i style="width:${n * 100 / 2}%"></i></span><small>${n}/2</small></div>`;
+const stepBar = n => `<div class="ob-step" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${n}" aria-label="${esc(t('onb.step', {n}))}"><span><i style="width:${n * 100 / 3}%"></i></span><small>${n}/3</small></div>`;
 
 // opts: step ('splash' | 'choose'), load() → {rooms, pictures: Map}, onRoom(room), onClose()
 export function openOnboarding(opts) {
   const saved = readInterests();
-  flow = {...opts, step: opts.step ?? 'splash', filter: 'rec', rooms: [], pictures: new Map(),
+  flow = {...opts, products: [], step: opts.step ?? 'splash', filter: 'rec', rooms: [], pictures: new Map(),
     draft: saved ? {...saved, concerns: [...saved.concerns]} : {version: 1, skincare: false, makeup: false, concerns: [], done: false}};
   const box = document.getElementById('onboarding');
   box.hidden = false; document.body.classList.add('onboarding-open');
   drawFlow();
+  const current = flow;
+  opts.load?.().then(data=>{if(flow===current){flow.products=data.products??[];if(flow.step==='products')drawFlow();}},()=>{});
   if (flow.step === 'splash' && !new URLSearchParams(location.search).has('holdSplash')) setTimeout(() => { if (flow?.step === 'splash') { flow.step = 'choose'; drawFlow(); } }, 1800);
 }
 export const onboardingOpen = () => Boolean(flow);
-function closeFlow(room) {
+function closeFlow(target) {
   const f = flow; if (!f) return;
   saveInterests({...f.draft, done: true});
   flow = null;
   const box = document.getElementById('onboarding'); box.hidden = true; box.innerHTML = ''; document.body.classList.remove('onboarding-open');
-  f.onClose?.();
+  f.onClose?.(target);
 }
 function drawFlow() {
   const box = document.getElementById('onboarding'); if (!flow || !box) return;
@@ -96,21 +98,28 @@ function drawFlow() {
     box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q0'))}</h1><p class="ob-sub">${esc(t('onb.s0'))}</p><h2>${esc(t('onb.fields'))}</h2><div class="ob-fields">${GROUPS.map(g => `<button type="button" data-onb-group="${g}" aria-pressed="${draft[g]}" class="${draft[g] ? 'on' : ''}">${draft[g] ? icon.check : ''}${icon[g]}<span>${esc(t('onb.g.' + g))}</span></button>`).join('')}</div><h2>${esc(t('onb.keywords'))}</h2>${concerns.length ? `<div class="ob-keywords">${concerns.map(c => { const on = draft.concerns.includes(c.id); return `<button type="button" data-onb-concern="${c.id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${on ? icon.check : ''}<span>${esc(t('onb.c.' + c.id))}</span></button>`; }).join('')}</div>` : `<p class="ob-hint">${esc(t('onb.pickField'))}</p>`}</div><div class="ob-foot"><button type="button" class="ob-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button>${stepBar(1)}</div></div>`;
     return;
   }
+  if (step === 'products') {
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.products'))}</h1><p class="ob-sub">${esc(t('onb.productsHint'))}</p><div class="onb-product-list">${flow.products.map(g=>`<button type="button" class="product-room-row" data-onb-product="${esc(g.name)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount',{n:g.rooms.length}))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div><button class="text-btn" data-onb="topics">${esc(t('home.topics'))}</button></div><div class="ob-foot"><button class="ob-next" data-onb="products-browse">${esc(t('rooms.byProduct'))}</button>${stepBar(3)}</div></div>`;
+    return;
+  }
   if (step === 'profile') {
     const choices = (key, values, current, label) => `<div class="ob-keywords ob-profile-choices" role="group" aria-label="${esc(t(key === 'ageRange' ? 'onb.age' : 'onb.skin'))}">${values.map(v => `<button type="button" data-onb-profile="${key}" data-onb-value="${esc(v)}" aria-pressed="${v === (current || '')}" class="${v === (current || '') ? 'on' : ''}">${esc(label(v))}</button>`).join('')}</div>`;
-    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',AGE_RANGES,draft.ageRange,v=>v === '<15' ? t('onb.age.under15') : v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.finishBrowse'))}</button>${stepBar(2)}</div></div>`;
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',AGE_RANGES,draft.ageRange,v=>v === '<15' ? t('onb.age.under15') : v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.next'))}</button>${stepBar(2)}</div></div>`;
     return;
   }
 }
 globalThis.document?.addEventListener('click', e => {
   if (!flow) return;
-  const b = e.target.closest('[data-onb],[data-onb-group],[data-onb-concern],[data-onb-profile]');
+  const b = e.target.closest('[data-onb],[data-onb-group],[data-onb-concern],[data-onb-profile],[data-onb-product]');
   if (!b || !document.getElementById('onboarding')?.contains(b)) return;
   const a = b.dataset.onb, d = flow.draft;
   if (a === 'splash') flow.step = 'choose';
-  else if (a === 'back') { if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow(null); return; } }
-  else if (a === 'next') { if (!d.skincare && !d.makeup) { closeFlow(null); return; } flow.step = 'profile'; }
-  else if (a === 'profile-next') { closeFlow(null); return; }
+  else if (a === 'back') { if (flow.step === 'products') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow(null); return; } }
+  else if (a === 'next') { flow.step = !d.skincare && !d.makeup ? 'products' : 'profile'; }
+  else if (a === 'profile-next') flow.step = 'products';
+  else if (b.dataset.onbProduct) { closeFlow({productQuery:b.dataset.onbProduct}); return; }
+  else if (a === 'products-browse') { closeFlow({productQuery:''}); return; }
+  else if (a === 'topics') { closeFlow(null); return; }
   else if (a === 'create') { closeFlow(null); document.dispatchEvent(new CustomEvent('seoulbeauty-create-room')); return; }
   else if (b.dataset.onbProfile) d[b.dataset.onbProfile] = b.dataset.onbValue || null;
   else if (b.dataset.onbGroup) { const g = b.dataset.onbGroup; d[g] = !d[g]; flow.draft = normalize(d); }
