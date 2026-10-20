@@ -314,7 +314,36 @@ function openDetail(id){if(!product(id)){toast(t('empty.products'));return;}deta
 localizePage();
 // A shared link opens its room or product on arrival.
 const arrival=sharedTarget();if(arrival){const appLink=document.createElement('a');appLink.className='text-link';appLink.textContent=t('share.openApp');appLink.href='seoulbeauty://open?'+new URLSearchParams({...arrival,region});document.body.prepend(appLink);}if(arrival?.room)openRoomNext(arrival.room);
+
+// Invite handoff: offer optional skin-based discovery only after the user enters SeoulBeauty.
+// The invite answers are session-only and are never posted as public reviews.
+function showInviteDiscovery(){
+  let data;try{data=JSON.parse(sessionStorage.getItem('sb-invite-discovery')||'null');sessionStorage.removeItem('sb-invite-discovery')}catch{return}
+  if(!data||!data.focus||Date.now()-data.at>24*60*60*1000)return;
+  const names={torriden:'토리든 다이브인 세럼',anua:'아누아 어성초 77 토너',aestura:'에스트라 아토베리어365 크림',romand:'롬앤 쥬시 래스팅 틴트',clio:'클리오 킬커버 쿠션',roundlab:'라운드랩 자작나무 선크림'};
+  const name=names[data.focus];if(!name)return;
+  const overlay=document.createElement('dialog');overlay.className='chat-dialog';overlay.id='invite-arrival-dialog';
+  overlay.style.cssText='border:0;border-radius:16px;max-width:min(420px,calc(100vw - 32px));width:100%;padding:23px;color:#252525;background:#fff';
+  const h=document.createElement('h2');h.textContent='내 피부와 비슷한 사람들의 경험도 볼래?';h.style.cssText='font-size:19px;line-height:1.4;margin:10px 0';
+  const lead=document.createElement('p');lead.textContent=name+' · '+(data.topic||'사용 경험');lead.style.cssText='color:#777;font-size:13px';
+  const hint=document.createElement('p');hint.textContent='피부 타입을 선택하면 관련 후기를 찾을 때 참고할 수 있어요. 언제든 건너뛸 수 있어요.';hint.style.cssText='color:#777;font-size:13px;line-height:1.6';
+  const options=document.createElement('div');options.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0';
+  const select=document.createElement('button');select.textContent='내게 맞는 후기 찾기';select.disabled=true;select.style.cssText='width:100%;background:#252525;color:#fff;padding:14px;border-radius:10px;border:0';
+  const skip=document.createElement('button');skip.textContent='지금은 둘러보기';skip.style.cssText='display:block;width:100%;padding:13px;border:0;background:#fff;color:#777';
+  let chosen='';
+  const close=()=>{overlay.close();overlay.remove()};
+  for(const value of ['지성','건성','복합성','민감성','잘 모르겠어요']){
+    const b=document.createElement('button');b.textContent=value;b.style.cssText='background:#f7f7f7;border:1px solid #eee;border-radius:10px;padding:12px;font-size:13px';
+    b.onclick=()=>{chosen=value;select.disabled=false;for(const x of options.children)x.style.borderColor=x===b?'#0786ff':'#eee'};
+    options.append(b);
+  }
+  select.onclick=()=>{try{sessionStorage.setItem('sb-invite-skin-preference',chosen)}catch{}close();openProfile()};
+  skip.onclick=close;
+  overlay.append(h,lead,hint,options,select,skip);document.body.append(overlay);overlay.showModal();
+}
+
 show('chat');
+showInviteDiscovery();
 if(arrival?.product)openFamily(arrival.product);
 const startGuide=(step,returnToChat=false,returnToActivity=false)=>openOnboarding({step,returnToChat:returnToChat||returnToActivity,load:onboardingData,onClose:target=>{if(returnToActivity){renderSaved();return;}if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
 loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
