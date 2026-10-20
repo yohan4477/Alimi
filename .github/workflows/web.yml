@@ -29,7 +29,7 @@ jobs:
       - name: Browser smoke test against the live public API
         run: |
           set -euo pipefail
-          python3 -m http.server 3000 --directory dist >/dev/null 2>&1 &
+          node scripts/dev-server.mjs >/dev/null 2>&1 &
           sleep 1
           CHROME_PATH="$(command -v google-chrome)" node e2e/no-tracking.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/community.e2e.mjs http://localhost:3000/

@@ -94,7 +94,7 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
       if (!result.allowed) { res.setHeader('Set-Cookie', clearCookie()); return send(403, loginPage('이 계정에는 관리자 접근 권한이 없습니다.')); }
       if (url.searchParams.get('view') === 'metrics') {
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        return send(200, JSON.stringify(await readMetrics({env, fetchImpl})));
+        return send(200, JSON.stringify(await readMetrics({env, fetchImpl, serviceRegion:url.searchParams.get('region') ?? 'all'})));
       }
       if (url.searchParams.get('view') === 'planning-review') {
         const review = await readReview();

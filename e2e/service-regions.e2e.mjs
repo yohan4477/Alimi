@@ -8,16 +8,16 @@ await context.route('**/*.supabase.co/**',async route=>{
  if(u.pathname.endsWith('chat_room_list'))rows=[{id:'us-room',service_region:'us',title_en:'US sunscreen questions',title_ko:'미국 선크림',intro_en:'US experience',intro_ko:'미국',kind:'topic',tag:'skin',sort:0,members:0,messages_24h:0,concerns:[]},{id:'kr-room',service_region:'kr',title_en:'KR cushion',title_ko:'한국 쿠션 질문',intro_en:'KR experience',intro_ko:'한국 사용 경험',kind:'topic',tag:'makeup',sort:0,members:0,messages_24h:0,concerns:[]}];
  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(rows)});
 });
-await page.goto('http://localhost:3000/kr?skipOnboarding=1&lang=ko');
+await page.goto('http://127.0.0.1:3000/kr?skipOnboarding=1&lang=ko');
 await page.waitForSelector('#community-home .edit-interests');
 assert.match(await page.locator('#community-home').innerText(),/한국 쿠션 질문/);
 assert.doesNotMatch(await page.locator('#community-home').innerText(),/US sunscreen questions/);
-await page.locator('[data-service-region]').first().click();
+await page.locator('[data-service-region]:visible').first().click();
 await page.locator('[data-select-language="en"]').click();
 await page.waitForURL(u=>u.pathname==='/kr'&&u.searchParams.get('lang')==='en');
 await page.waitForSelector('#community-home .edit-interests');
 assert.match(await page.locator('#community-home').innerText(),/한국 쿠션 질문/);
-await page.locator('[data-service-region]').first().click();
+await page.locator('[data-service-region]:visible').first().click();
 await page.locator('[data-select-region="us"]').click();
 await page.waitForSelector('#community-home .edit-interests');
 assert.equal(new URL(page.url()).pathname,'/us');
@@ -25,7 +25,7 @@ assert.match(await page.locator('#community-home').innerText(),/US sunscreen que
 assert.doesNotMatch(await page.locator('#community-home').innerText(),/한국 쿠션 질문/);
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
 await page.screenshot({path:'/tmp/sb-us.png'});
-await page.goto('http://localhost:3000/kr?skipOnboarding=1&lang=ko');await page.waitForSelector('#community-home .edit-interests');
+await page.goto('http://127.0.0.1:3000/kr?skipOnboarding=1&lang=ko');await page.waitForSelector('#community-home .edit-interests');
 await page.screenshot({path:'/tmp/sb-kr.png'});
 assert.deepEqual(errors,[]);console.log('PASS: separate KR/US rooms, independent language, market switch, mobile layout');
 await browser.close();
