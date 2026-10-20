@@ -17,7 +17,7 @@ export function productRoomGroups(rooms, catalog = []) {
     if (!product) continue;
     const name=product.label??[product.brand,product.base_name??product.name].filter(Boolean).join(' ');
     const key=product.id??product.family_key??name;
-    if(!groups.has(key))groups.set(key,{id:key,name,rooms:[]});
+    if(!groups.has(key))groups.set(key,{id:key,name,image_url:product.image_url??'',rooms:[]});
     groups.get(key).rooms.push(room);
   }
   return [...groups.values()].sort((a,b)=>b.rooms.reduce((n,r)=>n+(r.messages_24h??0),0)-a.rooms.reduce((n,r)=>n+(r.messages_24h??0),0));
