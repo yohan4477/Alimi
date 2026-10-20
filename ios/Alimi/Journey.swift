@@ -279,26 +279,27 @@ struct RoomListCard: View {
     var highlight: [String] = []
     var fresh = false
     var body: some View {
-        HStack(spacing: 12) {
-            RoomThumb(room: room, picture: picture)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(room.title).font(.headline).foregroundStyle(Color.sbInk).lineLimit(1)
-                    Label(String(room.members), systemImage: "person").font(.caption).foregroundStyle(Color.sbGray).fixedSize()
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 8) {
+                    Text(room.title).font(.system(size: 16, weight: .semibold)).foregroundStyle(Color.sbInk).lineLimit(1)
+                    Text(String(room.members)).font(.system(size: 13, weight: .medium)).foregroundStyle(Color.sbBlue).fixedSize()
                     if fresh {
-                        Text(L("home.newMessages")).font(.caption2.bold()).foregroundStyle(.white)
-                            .padding(.horizontal, 7).padding(.vertical, 1).background(Color.alimi, in: Capsule())
+                        Text(L("home.newMessages")).font(.caption2.bold()).foregroundStyle(Color.sbBlue)
                     }
                 }
-                if room.messages24h > 0 { Text(L("room.newToday", ["n": room.messages24h])).font(.caption).foregroundStyle(.secondary) }
-                if let note, !note.isEmpty { Text(note).font(.caption).foregroundStyle(Color(rgb: 0x5B6B85)).lineLimit(1) }
+                if let note, !note.isEmpty {
+                    Text(note).font(.system(size: 13)).foregroundStyle(Color(rgb: 0x697485)).lineLimit(1)
+                } else if room.messages24h > 0 {
+                    Text(L("room.newToday", ["n": room.messages24h])).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
                 let tags = Recommend.concerns(of: room).prefix(3)
                 if !tags.isEmpty {
                     FlowLayout(spacing: 6) {
                         ForEach(Array(tags), id: \.self) { id in
                             Text("#" + Interests.label(id).replacingOccurrences(of: " ", with: ""))
                                 .font(.caption2.weight(highlight.contains(id) ? .bold : .regular))
-                                .foregroundStyle(highlight.contains(id) ? Color.alimi : Color(rgb: 0x5D7CB3))
+                                .foregroundStyle(highlight.contains(id) ? Color.sbBlue : Color(rgb: 0x5D7CB3))
                         }
                     }
                 }
@@ -306,14 +307,11 @@ struct RoomListCard: View {
             Spacer(minLength: 0)
             Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
         }
-        .padding(10)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.sbBorder))
+        .padding(.horizontal, 2)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .bottom) { Rectangle().fill(Color(rgb: 0xE6EAF1)).frame(height: 0.5) }
         .contentShape(Rectangle())
-    }
-    // Real numbers only: members from the room list, "active now" only with messages in the last 24h.
-    private var stats: String {
-        [L("chat.members", ["n": room.members]), room.messages24h > 0 ? L("room.liveNow") : ""].filter { !$0.isEmpty }.joined(separator: " · ")
     }
 }
 
