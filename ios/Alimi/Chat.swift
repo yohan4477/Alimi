@@ -596,8 +596,8 @@ struct MessageRow: View {
         Text(ChatTime.clock(message.createdAt)).font(.system(size: 10)).foregroundStyle(Color.sbGray).fixedSize().padding(.bottom, 2)
     }
     private var nicknameColor: Color {
-        let colors: [UInt32] = [0x147B86, 0x2463EB, 0x8056A3, 0x99601B]
-        let index = message.authorTag.utf8.reduce(0) { ($0 + Int($1)) % colors.count }
+        let colors: [UInt32] = [0x147B86, 0x2463AB, 0x8056A3, 0x99601B, 0xB43F67, 0x397845, 0x5265A0, 0x9C4F32]
+        let index = message.nickname.utf8.reduce(0) { ($0 * 31 + Int($1)) % colors.count }
         return Color(rgb: colors[index])
     }
 
