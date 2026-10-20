@@ -204,21 +204,29 @@ struct ProfileScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             LogoBar(back: back)
-            Form {
-                Section { Text(L("onb.private")).font(.subheadline).foregroundStyle(Color.sbGray) }
-                Section(L("onb.optional")) {
-                    Picker(L("onb.age"), selection: Binding(get: { draft.ageRange ?? "" }, set: { draft.ageRange = $0.isEmpty ? nil : $0 })) {
-                        Text(L("onb.unknown")).tag("")
-                        ForEach(["<18", "18–24", "25–34", "35–44", "45+"], id: \.self) { Text($0).tag($0) }
-                    }
-                    if draft.skincare {
-                        Picker(L("onb.skin"), selection: Binding(get: { draft.skinType ?? "" }, set: { draft.skinType = $0.isEmpty ? nil : $0 })) {
-                            Text(L("onb.unknown")).tag("")
-                            ForEach(["dry", "oily", "combination", "normal"], id: \.self) { Text(L("onb.skin." + $0)).tag($0) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    Text(L("onb.optional")).font(.system(size: 27, weight: .heavy)).foregroundStyle(Color.sbNavy)
+                    Text(L("onb.private")).font(.subheadline).foregroundStyle(Color.sbGray)
+                    Text(L("onb.age")).font(.headline)
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        ForEach(["<18", "18–24", "25–34", "35–44", "45+"], id: \.self) { value in
+                            choice(value, selected: draft.ageRange == value, id: "age-" + value) { draft.ageRange = value }
                         }
                     }
-                }
-            }.scrollContentBackground(.hidden)
+                    if draft.skincare {
+                        Text(L("onb.skin")).font(.headline)
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                            ForEach(["dry", "oily", "combination", "normal", ""], id: \.self) { value in
+                                choice(value.isEmpty ? L("onb.unknown") : L("onb.skin." + value),
+                                       selected: (draft.skinType ?? "") == value, id: "skin-" + value) {
+                                    draft.skinType = value.isEmpty ? nil : value
+                                }
+                            }
+                        }
+                    }
+                }.padding(24)
+            }
             Button(action: next) {
                 Text(L("onb.next")).font(.system(size: 19, weight: .bold)).foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 58).background(Color.sbBlue, in: RoundedRectangle(cornerRadius: 14))
@@ -226,6 +234,17 @@ struct ProfileScreen: View {
             StepBar(step: 2).padding(.vertical, 12)
         }.background(Color.white)
     }
+    private func choice(_ title: String, selected: Bool, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).font(.system(size: 17, weight: selected ? .bold : .medium))
+                .foregroundStyle(selected ? Color.white : Color.sbNavy)
+                .frame(maxWidth: .infinity, minHeight: 52)
+                .background(selected ? Color.sbBlue : Color.white, in: Capsule())
+                .overlay(Capsule().stroke(selected ? Color.sbBlue : Color(rgb: 0xE3E7EE)))
+        }.buttonStyle(.plain).accessibilityIdentifier("onb-profile-" + id)
+            .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
 }
 
 struct StepBar: View {
