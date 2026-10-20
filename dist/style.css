@@ -576,3 +576,11 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 #chat-log .chat-msg:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 .activity-empty{padding:28px 0 32px;grid-column:1/-1}.activity-empty p{font-size:14px;line-height:1.65;color:#7d8aa0;margin:0 0 12px}.activity-empty .text-link{min-height:44px;padding:8px 0}#saved>.interest-row{margin-top:24px;border-top:1px solid #e6eaf1;padding-top:18px}#activity-profile-dialog .interest-row{text-align:left;width:100%}
+
+/* Optional social sign-in, matching each provider's familiar colors. */
+.auth-kakao{background:#fee500;color:#191919;border-color:#fee500}
+.auth-naver{background:#03c75a;color:#fff;border-color:#03c75a}
+.social-mark{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;flex:none}
+.social-mark svg{width:22px;height:22px}.naver-mark{font:900 20px Arial,sans-serif}
+.auth-button:disabled{opacity:.6;cursor:wait}.auth-button:focus-visible{outline:3px solid #2364dc;outline-offset:3px}
+.auth-error{font-size:13px;line-height:1.5;color:#b42318;margin:12px 0}

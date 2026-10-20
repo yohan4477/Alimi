@@ -3,7 +3,7 @@ import {loadingMarkup} from './loading-companion.js';
 import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
-import {GoogleAuth} from './auth.js';
+import {SocialAuth,AUTH_PROVIDERS} from './auth.js';
 import {openProfile,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
 import {openProductRoomsNext,openRoomListNext,openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData} from './chat.js';
 import {renderMyRooms,renderAlerts,renderShareHub,addRecent,readRecent,loadRevisit,unreadCount} from './revisit.js';
@@ -176,17 +176,21 @@ function renderSaved(){
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
-// Optional Google account; saved items and settings stay on this device either way.
-const auth=new GoogleAuth();
+// Optional social account; saved items and settings stay on this device either way.
+const auth=new SocialAuth();
+let authBusy=false,authError='';
 async function authAction(a){
+  if(authBusy)return;
+  authBusy=true;authError='';renderSettings();
   try{
-    if(a==='google'){await auth.startGoogleLogin();return}
-    await auth.signOut();renderSettings();toast(t('account.signedOut'));
-  }catch(error){toast(error?.message||t('account.failed'))}
+    if(Object.hasOwn(AUTH_PROVIDERS,a)){await auth.startLogin(a);return}
+    if(a==='signout'){await auth.signOut();toast(t('account.signedOut'))}
+  }catch(error){authError=error?.message||t('account.failed')}
+  finally{authBusy=false;renderSettings()}
 }
 function renderSettings(){
   $('#settings').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="saved" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('settings.title'))}</h1></div>
-<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||'')}</b><em>${esc(t('account.signedIn'))}</em></span></div><button class="auth-button secondary" data-auth="signout">${esc(t('account.signout'))}</button>`:`<button class="auth-button" data-auth="google"><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
+<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||auth.user.user_metadata?.name||auth.user.user_metadata?.nickname||t('account.member'))}</b><em>${esc(t('account.signedIn'))}</em></span></div><button class="auth-button secondary" data-auth="signout">${esc(t('account.signout'))}</button>`:`${['kakao','naver','google'].map(provider=>`<button class="auth-button auth-${provider}" data-auth="${provider}" ${authBusy?'disabled':''}><span class="social-mark ${provider}-mark" aria-hidden="true">${provider==='kakao'?'<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.3 4.8 6.7l-.9 3.4c-.1.3.2.5.5.3l4-2.6 1.6.1c5.5 0 10-3.5 10-7.9S17.5 3 12 3Z"/></svg>':provider==='naver'?'N':'G'}</span>${esc(t('account.'+provider))}</button>`).join('')}<p class="set-hint">${esc(t('account.localDataHint'))}</p>`}${authBusy?`<p role="status">${esc(t('account.connecting'))}</p>`:''}${authError?`<p class="auth-error" role="alert">${esc(authError)}</p>`:''}</section>
 <section class="set-group"><h3>${esc(t('settings.service'))}</h3>
 <div class="set-row static"><span class="set-ico">${icon.globe}</span><span class="set-label">${esc(t('settings.language'))}</span><span class="seg"><button data-lang="ko" class="${lang==='ko'?'on':''}">한국어</button><button data-lang="en" class="${lang==='en'?'on':''}">English</button></span></div><p class="set-hint">${esc(t('settings.languageHint'))}</p></section>
 <section class="set-group"><h3>${esc(t('settings.data'))}</h3>${row(icon.lock,t('profile.title'),'data-profile-open')}${row(icon.lock,t('profile.doNotSell'),'data-set="do-not-sell"')}${row(icon.tray,t('settings.clearSaved'),'data-set="clear-saved"')}${row(icon.trash,t('settings.clearCache'),'data-set="clear-cache"')}</section>
@@ -329,7 +333,7 @@ loadProducts().then(({products:list,source,exportedAt})=>{
   track('home_view',null,{source,lang});
 
 }).catch(()=>{$('#products').innerHTML=`<p class="empty">${esc(t('loadFailed'))}</p>`});
-auth.handleCallback().catch(error=>{const clean=new URL(location.href);for(const key of ['code','state','error','error_description'])clean.searchParams.delete(key);history.replaceState({},'',clean.toString());toast(error?.message||t('account.failed'))}).finally(()=>auth.restore().then(()=>{if(screen==='settings')renderSettings()}));
+auth.handleCallback().then(completed=>{if(completed)show('settings')}).catch(error=>{const clean=new URL(location.href);for(const key of ['code','state','sb_auth_state','error','error_description','error_code'])clean.searchParams.delete(key);history.replaceState({},'',clean.toString());toast(error?.message||t('account.failed'))}).finally(()=>auth.restore().then(()=>{if(screen==='settings')renderSettings()}));
 document.addEventListener('profile-change',()=>{if(screen==='saved')renderSaved()});
 if(cachedProfile())refreshProfile();
 

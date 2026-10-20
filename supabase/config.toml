@@ -417,3 +417,7 @@ enabled = true
 # Public on purpose: the function only dispatches the feed workflow and rate-limits itself (45 min).
 [functions.feed-tick]
 verify_jwt = false
+
+[functions.naver-userinfo]
+# This endpoint validates a Naver bearer token with Naver, not a Supabase JWT.
+verify_jwt = false
