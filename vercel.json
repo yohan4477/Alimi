@@ -21,6 +21,22 @@
     {
       "source": "/admin/",
       "destination": "/api/admin"
+    },
+    {
+      "source": "/kr",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/kr/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/us",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/us/",
+      "destination": "/index.html"
     }
   ]
 }

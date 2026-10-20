@@ -1,4 +1,6 @@
 import {shouldSuggestSetup,snoozeSetup} from './onboarding-nudge.js';
+import {region, inRegion} from './region.js';
+import {regionButton} from './region-picker.js';
 import {findProductRooms,productRoomGroups} from './room-search.js';
 import {productSortControls,rankProducts,aggregateProductStats} from './product-sort.js';
 // Temporarily disabled for the anonymous SeoulBeauty community.
@@ -132,7 +134,7 @@ async function loadCatalogPictures(rooms) {
 async function renderHome() {
   const version = ++homeVersion;
   rememberDraft(); stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? 'online' : '데모'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? 'online' : '데모'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="service-context">${regionButton()}</div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
   if (demoActive) {
     chat.rooms = demoRooms;
     home = {hot:demoRooms.slice(0,6),topics:demoRooms,recent:[],previews:new Map(),partial:false,joined:[],images:new Map(),products:mentionedProducts(demoEntries())};
@@ -143,7 +145,8 @@ async function renderHome() {
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
   if (version !== homeVersion || !$('#community-home')) return;
-  const recent = visiblePosts(posts), hot = activeRooms(chat.rooms), topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => a.sort-b.sort);
+  const scopedPosts = posts.filter(p=>chat.rooms.some(r=>r.id===p.room_id));
+  const recent = visiblePosts(scopedPosts), hot = activeRooms(chat.rooms), topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => a.sort-b.sort);
   const entries = recent.map(p => ({...p,source:'post'}));
   let partial = postsFailed;
   const previews = new Map();
@@ -166,6 +169,7 @@ function drawHome() {
   const box = $('#community-home'); if (!box || !home) return;
   box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
   const {hot, topics, recent, previews, partial, joined, images, products} = home;
+  if(region==='kr' && !demoActive && !chat.rooms.length) { box.innerHTML=`<p class="empty">${esc(t('region.krPending'))}</p><button data-service-region>${esc(t('region.open'))}</button>`; return; }
   if (homeTab === 'rec') {
     const interests = readInterests();
     const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (hot.length ? hot : topics).slice(0, 4);
@@ -196,7 +200,7 @@ function drawProductRooms() {
     return;
   }
   if (groups.length) {
-    box.innerHTML = `<h3 class="chat-section">${esc(t('rooms.productsActive'))}</h3>${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${groups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>`;
+    box.innerHTML = `<h3 class="chat-section">${esc(t('rooms.productsActive'))}</h3>${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${groups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small><small>${esc(g.rooms.slice(0,2).map(r=>roomIntro(r)||roomTitle(r)).join(' · '))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>`;
   } else if (query && rooms.length) {
     box.innerHTML = `<p class="home-note">${esc(t('rooms.productCount', {n:rooms.length}))}</p>${rooms.map(r => roomListCard(r, {attrs: `data-chat-room="${esc(r.id)}" data-live="1"`})).join('')}${create}`;
   } else {
@@ -343,7 +347,7 @@ async function startLive(room) {
     if(chat.room?.id!==room.id||!$('#chat-log'))return;
     chat.messages = messages;
   } catch { if(chat.room?.id!==room.id||!$('#chat-log'))return; $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
-  track('chat_open',null,{room:room.id});
+  track('chat_open',null,{room:room.id,entry_mode:roomFindMode});
   renderLog(true);
   startPolling();
 }

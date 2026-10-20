@@ -1,10 +1,12 @@
 // Share a room or product (journey reference 3-3): the system share sheet when there is one, otherwise
 // copy the link. Links are plain web URLs (?room= / ?product=) that open the same screen; no tracking params.
+import {region, normalizeRegion} from './region.js';
 import {t} from './i18n.js';
 
 export function shareUrl(params, href = globalThis.location?.href ?? '') {
   const u = new URL(href);
-  u.search = new URLSearchParams(params).toString(); u.hash = '';
+  const selected=normalizeRegion(u.pathname.split('/')[1]) || normalizeRegion(u.searchParams.get('region')) || region;
+  u.pathname='/' + selected; u.search = new URLSearchParams(params).toString(); u.hash = '';
   return u.href;
 }
 export async function share({title, url}, toast = () => {}, nav = globalThis.navigator) {

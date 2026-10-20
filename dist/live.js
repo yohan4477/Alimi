@@ -1,8 +1,9 @@
 // Catalog and product data from Supabase (public read-only API; see supabase.js).
+import {region, market, currency, inMarket, money, amount} from './region.js';
 import {t, lang} from './i18n.js';
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet} from './supabase.js';
 export {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY};
-export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,currency,url,affiliate_url,image_url,' +
+export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,market,currency,url,affiliate_url,image_url,' +
   'products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),' +
   'price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id';
 
@@ -14,7 +15,7 @@ export const brandLabel = p => (lang === 'ko' && p.brandKo) || p.brand;
 
 // Converts API rows (or the bundled snapshot, which stores the same rows) into view models.
 export function toProducts(rows) {
-  return rows.filter(r => r.products && r.offer_current).map(r => ({
+  return rows.filter(r => r.products && r.offer_current && inMarket(r)).map(r => ({
     id: r.products.slug,
     sku: r.external_id,
     brand: r.products.brand,
@@ -24,19 +25,20 @@ export function toProducts(rows) {
     category: r.products.category ?? '기타',
     familyKey: r.products.family_key ?? null,
     sizeLabel: r.products.size_label ?? r.products.size ?? null,
+    market: r.market ?? (r.currency === 'KRW' ? 'KR' : 'US'),
     retailer: r.retailer,
     currency: r.currency,
     url: r.url,
     affiliateUrl: r.affiliate_url,
     imageUrl: r.image_url,
-    price: minor(r.offer_current.amount_minor),
-    delivery: minor(r.offer_current.delivery_minor),
+    price: amount(r.offer_current.amount_minor,r.currency),
+    delivery: amount(r.offer_current.delivery_minor,r.currency),
     availability: r.offer_current.availability,
     changedAt: r.offer_current.changed_at,
     checkedAt: r.offer_current.last_success_at,
     history: [...(r.price_observations || [])]
       .sort((a, b) => a.observed_at.localeCompare(b.observed_at))
-      .map(o => ({at: o.observed_at, price: minor(o.amount_minor), availability: o.availability}))
+      .map(o => ({at: o.observed_at, price: amount(o.amount_minor,r.currency), availability: o.availability}))
   })).sort((a, b) => a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name));
 }
 
@@ -55,7 +57,7 @@ export async function loadProducts(fetchImpl = fetch, snapshotUrl = './live-snap
 // Catalog layer search (whole official feed, current price only). Query is reduced to safe characters
 // before it is placed in the PostgREST filter.
 const CATALOG_FIELDS = 'retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url,url,affiliate_url,family_key';
-const toCatalog = c => ({...c, brandKo: c.brand_ko ?? null, price: c.price_minor / 100});
+const toCatalog = c => ({...c, brandKo: c.brand_ko ?? null, price: amount(c.price_minor,c.currency)});
 export const catalogQuery = q => q.replace(/[^\p{L}\p{N} &'-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
 export function catalogSearchUrl(q, limit = 30) {
   const term = catalogQuery(q);
@@ -63,7 +65,7 @@ export function catalogSearchUrl(q, limit = 30) {
   const like = `"*${term.replace(/"/g, '')}*"`;
   const params = new URLSearchParams({
     select: CATALOG_FIELDS,
-    active: 'eq.true', or: `(brand.ilike.${like},brand_ko.ilike.${like},name.ilike.${like})`, order: 'brand,name', limit: String(limit)
+    market: 'eq.' + market, currency: 'eq.' + currency, active: 'eq.true', or: `(brand.ilike.${like},brand_ko.ilike.${like},name.ilike.${like})`, order: 'brand,name', limit: String(limit)
   });
   return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
 }
@@ -79,11 +81,21 @@ export function familiesPageUrl(category, offset, limit = 24, brand = null) {
   const params = new URLSearchParams({select: FAMILY_FIELDS, order: 'sort_key.desc', offset: String(offset), limit: String(limit)});
   if (category && category !== '전체') params.set('category', 'eq.' + category);
   if (brand) params.set('brand', 'eq.' + brand);
-  return SUPABASE_URL + '/rest/v1/catalog_families?' + params;
+  params.set('market','eq.'+market);
+  return SUPABASE_URL + '/rest/v1/catalog_region_families?' + params;
 }
 export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
-  const rows = await restGet(familiesPageUrl(category, offset, limit, brand), fetchImpl);
-  return rows.map(f => ({...f, brandKo: f.brand_ko ?? null, minPrice: f.min_price_minor / 100, maxPrice: f.max_price_minor / 100}));
+  let rows;
+  try { rows=await restGet(familiesPageUrl(category,offset,limit,brand),fetchImpl); }
+  catch(e) {
+    if(!/HTTP 404/.test(e.message)) throw e;
+    // Legacy API has no region aggregate. Group only explicitly scoped catalog rows.
+    const p=new URLSearchParams({select:CATALOG_FIELDS+',base_name',active:'eq.true',market:'eq.'+market,currency:'eq.'+currency,order:'sku.desc',offset:String(offset),limit:String(limit)});
+    if(category && category!=='전체')p.set('category','eq.'+category); if(brand)p.set('brand','eq.'+brand);
+    const items=await restGet(SUPABASE_URL+'/rest/v1/catalog_items?'+p,fetchImpl);
+    const groups=new Map(); for(const i of items) { if(!i.family_key)continue; const f=groups.get(i.family_key); if(f){f.min_price_minor=Math.min(f.min_price_minor,i.price_minor);f.max_price_minor=Math.max(f.max_price_minor,i.price_minor);f.variants++;}else groups.set(i.family_key,{...i,base_name:i.base_name??i.name,min_price_minor:i.price_minor,max_price_minor:i.price_minor,variants:1}); } rows=[...groups.values()];
+  }
+  return rows.map(f => ({...f, brandKo: f.brand_ko ?? null, minPrice: amount(f.min_price_minor), maxPrice: amount(f.max_price_minor)}));
 }
 // All variants of one family. Duplicate listings of the same size/option (e.g. [Deal] relistings without EAN)
 // collapse to the cheapest; sorted by unit price so the best value comes first.
@@ -96,11 +108,11 @@ export function collapseVariants(rows) {
   const list = [...best.values()].sort((a, b) => (a.unit_price_minor ?? Infinity) - (b.unit_price_minor ?? Infinity) || a.price_minor - b.price_minor);
   const units = list.filter(v => v.unit_price_minor != null);
   const bestUnit = units.length > 1 ? Math.min(...units.map(v => v.unit_price_minor)) : null;
-  return list.map(v => ({...v, price: v.price_minor / 100, unitPrice: v.unit_price_minor == null ? null : v.unit_price_minor / 100,
+  return list.map(v => ({...v, price: amount(v.price_minor,v.currency), unitPrice: amount(v.unit_price_minor,v.currency),
     bestValue: bestUnit != null && v.unit_price_minor === bestUnit}));
 }
 export async function fetchFamily(familyKey, fetchImpl = fetch) {
-  const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor,url,affiliate_url', active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
+  const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor,url,affiliate_url', market: 'eq.'+market, currency: 'eq.'+currency, active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
   const rows = await restGet(SUPABASE_URL + '/rest/v1/catalog_items?' + params, fetchImpl);
   return collapseVariants(rows);
 }
@@ -127,6 +139,7 @@ export const brandColor = brand => BRAND_COLORS[[...brand].reduce((h, c) => (h *
 // Affiliate link for a purchase click. `ref` (e.g. "post-12") is passed to Awin as clickref so confirmed
 // sales in the Awin report can be traced back to the post / chat that led to them.
 export function buyUrl(item, ref = null) {
+  if((item.market || item.currency) && !inMarket(item))return null;
   const raw = item.affiliateUrl ?? item.affiliate_url ?? item.url;
   if (!raw) return null;
   try {
@@ -140,7 +153,7 @@ export const unitName = unit => (unit === 'ml' || unit === 'g' ? '10' + unit : u
 
 // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
 export function catalogPageUrl(category, offset, limit = 24) {
-  const params = new URLSearchParams({select: CATALOG_FIELDS, active: 'eq.true', order: 'sku.desc', offset: String(offset), limit: String(limit)});
+  const params = new URLSearchParams({select: CATALOG_FIELDS, market:'eq.'+market, currency:'eq.'+currency, active: 'eq.true', order: 'sku.desc', offset: String(offset), limit: String(limit)});
   if (category && category !== '전체') params.set('category', 'eq.' + category);
   return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
 }
@@ -181,7 +194,7 @@ export function watchSummary(p, now = new Date()) {
     text: lowest ? t('watch.lowest', {days}) : t('watch.changes', {days, n: prices.length - 1})};
 }
 export const trackedDays = (p, now = new Date()) => p.history.length ? Math.floor((now - Date.parse(p.history[0].at)) / DAY) + 1 : 0;
-export const usd = n => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(n);
+export const usd = n => money(n);
 export const alertState = (target, current) => t(target == null ? 'alert.unset' : current <= target ? 'alert.reached' : 'alert.waiting');
 
 export function parseTarget(raw) {

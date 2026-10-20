@@ -18,18 +18,9 @@ test('fast first request never displays artwork or leaves timers/listeners behin
   const s = setup(); s.tick(399); s.finish(); s.tick(9000);
   assert.equal(s.children.length, 0); assert.equal(s.timers.size, 0); assert.equal(s.events.size, 0);
 });
-test('slow first request shows the brand artwork and leaves immediately on completion', () => {
-  const s = setup(); s.tick(400);
-  assert.equal(s.children.length, 1);
-  assert.match(s.children[0].innerHTML, /startup-brand.png/);
-  assert.doesNotMatch(s.children[0].innerHTML, /seoul-beauty-logo.webp|splash-photo.webp/);
-  assert.doesNotMatch(s.children[0].innerHTML, /loading-characters/);
-  s.finish(); assert.equal(s.children.length, 0);
-});
-test('backgrounding dismisses the launch cover and cannot show it again', () => {
-  const s = setup(); s.tick(400); s.doc.hidden = true; s.events.get('visibilitychange')();
-  s.doc.hidden = false; s.tick(9000);
-  assert.equal(s.children.length, 0); assert.equal(s.events.size, 0);
+test('slow or background navigation never adds an artwork cover', () => {
+  const s=setup(); s.tick(400); s.doc.hidden=true; s.tick(9000); s.finish();
+  assert.equal(s.children.length,0); assert.equal(s.events.size,0); assert.equal(s.timers.size,0);
 });
 test('stalled requests release navigation after the cover limit', () => {
   const s = setup(); s.tick(400); s.tick(8000);

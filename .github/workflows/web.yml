@@ -37,6 +37,7 @@ jobs:
           CHROME_PATH="$(command -v google-chrome)" node e2e/handoff.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/offline.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/web.e2e.mjs http://localhost:3000/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/service-regions.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/onboarding.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/journey.e2e.mjs http://localhost:3000/
       - if: failure()

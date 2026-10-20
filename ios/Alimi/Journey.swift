@@ -117,11 +117,12 @@ enum Seen {
     }
 }
 enum ShareLinks {
-    static let site = URL(string: "https://alimi-omega.vercel.app/")!
+    static let site = URL(string: "https://seoulbeauty.me/")!
     static func room(_ id: String) -> URL { link(["room": id]) }
     static func product(_ key: String) -> URL { link(["product": key]) }
     private static func link(_ params: [String: String]) -> URL {
         var c = URLComponents(url: site, resolvingAgainstBaseURL: false)!
+        c.path = "/" + ServiceRegion.current
         c.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
         return c.url!
     }
@@ -361,6 +362,7 @@ struct CommunityHome: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     header
+                    HStack { Spacer(); ServiceRegionMenu() }.padding(.horizontal, 20)
                     tabs
                     Button { creating = true } label: { InlineActionLabel(title: L("room.new"), icon: "plus").frame(maxWidth: .infinity, minHeight: 44) }
                         .buttonStyle(.borderedProminent).accessibilityIdentifier("create-room")
@@ -468,7 +470,7 @@ struct CommunityHome: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(entry.item.brandLabel).font(.caption).foregroundStyle(.secondary)
                             Text(entry.item.name).font(.subheadline).foregroundStyle(Color.sbInk).lineLimit(2)
-                            Text(usd(Double(entry.item.priceMinor) / 100)).font(.caption.bold()).foregroundStyle(Color.sbInk)
+                            Text(usd(ServiceRegion.amount(entry.item.priceMinor, currency: entry.item.market == "KR" ? "KRW" : "USD"))).font(.caption.bold()).foregroundStyle(Color.sbInk)
                         }
                     }
                 }.buttonStyle(.plain)

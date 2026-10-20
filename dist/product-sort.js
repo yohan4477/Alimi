@@ -1,3 +1,4 @@
+import {fetchRooms} from './chat-api.js';
 // Shared ranking for product lists. Counts come from public product attachments,
 // never bookmarks. A bounded recent sample is explicitly labelled in the UI.
 import {SUPABASE_URL,restGet} from './supabase.js';
@@ -24,7 +25,16 @@ export function productSortControls(){
 export async function loadProductStats(fetchImpl=fetch){
   if(pending)return pending;status='loading';
   pending=(async()=>{try{const since=new Date(Date.now()-86400000).toISOString();const tables=['community_posts','community_comments','chat_messages'];
-    const rows=await Promise.all(tables.map(async source=>{const params=new URLSearchParams({select:'id,item,likes,created_at',item:'not.is.null',created_at:'gte.'+since,order:'created_at.desc,id.desc',limit:'1000'});return (await restGet(SUPABASE_URL+'/rest/v1/'+source+'?'+params,fetchImpl)).map(e=>({...e,source}));}));
+    const roomIds=(await fetchRooms(fetchImpl)).map(r=>r.id);
+    const rows=[]; let postIds=[];
+    for(const source of ['community_posts','chat_messages','community_comments']) {
+      if(!roomIds.length || (source==='community_comments'&&!postIds.length)){rows.push([]);continue;}
+      const params=new URLSearchParams({select:'id,item,likes,created_at',item:'not.is.null',created_at:'gte.'+since,order:'created_at.desc,id.desc',limit:'1000'});
+      params.set(source==='community_comments'?'post_id':'room_id','in.('+(source==='community_comments'?postIds:roomIds).join(',')+')');
+      const result=await restGet(SUPABASE_URL+'/rest/v1/'+source+'?'+params,fetchImpl);
+      if(source==='community_posts')postIds=result.map(p=>p.id);
+      rows.push(result.map(e=>({...e,source})));
+    }
     stats=aggregateProductStats(rows.flat());status='ready';
   }catch{stats=new Map();status='failed';}finally{if(typeof document!=='undefined')document.dispatchEvent(new Event('product-stats-ready'));}})();return pending;
 }

@@ -1,5 +1,6 @@
 // Journey 3 (재방문 → 저장 → 공유): welcome back with joined rooms, 알림 from real events, share hub, recently viewed.
 // Same rules as ios/Alimi/Revisit.swift: counts come from fetched messages / posts; "new" only after this device looked.
+import {inMarket} from './region.js';
 import {t, locale} from './i18n.js';
 import {esc} from './util.js';
 import {chatSecret, fetchRooms, fetchMyRooms, fetchMessages, roomTitle, roomIntro, readBlocked} from './chat-api.js';
@@ -12,7 +13,7 @@ const SEEN_KEY = 'seoulbeauty-seen-v1', ALERTS_KEY = 'seoulbeauty-alerts-opened'
 const readJSON = (k, d) => { try { return JSON.parse(storage.getItem(k)) ?? d; } catch { return d; } };
 
 // ---- Recently viewed products (this device) ----
-export const readRecent = () => { const v = readJSON(RECENT_KEY, []); return Array.isArray(v) ? v : []; };
+export const readRecent = () => { const v = readJSON(RECENT_KEY, []); return Array.isArray(v) ? v.filter(p=>inMarket(p)) : []; };
 export function addRecent(f) {
   if (!f?.family_key) return;
   const keep = ({family_key, brand, brand_ko, base_name, name, category, image_url, min_price_minor, sku, retailer, market, ref}) => ({sku, retailer, market, ref, family_key, brand, brand_ko, base_name: base_name ?? name, category, image_url, min_price_minor});

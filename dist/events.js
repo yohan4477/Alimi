@@ -1,4 +1,6 @@
 // P0 funnel events (#49). Anonymous random device ID; never sends search text or personal data.
+import {region} from './region.js';
+import {lang} from './i18n.js';
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY} from './supabase.js';
 export const EVENT_NAMES = ['home_view', 'search', 'product_view', 'wishlist_add', 'wishlist_remove', 'target_price_set', 'merchant_click', 'chat_open', 'chat_join', 'chat_send',
   'community_open', 'post_view', 'post_create', 'comment_create', 'product_card_click', 'post_save'];
@@ -12,7 +14,7 @@ export function deviceId(storage) {
 }
 export function buildEvent(name, productId, props, id) {
   if (!EVENT_NAMES.includes(name)) throw Error('Unknown event ' + name);
-  return {device_id: id, platform: 'web', app_version: 'web-1', name, product_id: productId ?? null, props: props ?? {}};
+  return {device_id: id, platform: 'web', app_version: 'web-1', name, product_id: productId ?? null, props: {...props,service_region:region,ui_language:lang}};
 }
 export function track(name, productId, props, {storage = globalThis.localStorage, fetchImpl = globalThis.fetch} = {}) {
   try {

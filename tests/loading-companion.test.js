@@ -16,17 +16,17 @@ test('loading preserves escaped localized status with decorative launch images',
 test('every loading render uses the original portrait and logo with no costume cycling', () => {
   const first = loadingMarkup('Loading');
   assert.equal(loadingMarkup('Loading'), first);
-  assert.match(first, /assets\/splash-photo.webp/);
-  assert.match(first, /assets\/seoul-beauty-logo.webp/);
+  assert.doesNotMatch(first, /<img/);
+  assert.match(first, /role="status"/);
   assert.doesNotMatch(first, /sprite|avatar-|loading-characters|sb-look-offset/);
 });
 
 test('native and web content loaders cannot render the former character atlas', async () => {
   const native = await readFile(new URL('../ios/Alimi/LoadingCompanion.swift', import.meta.url), 'utf8');
   const css = await readFile(new URL('../dist/style.css', import.meta.url), 'utf8');
-  assert.match(native, /Image\("SplashPhoto"\)/);
-  assert.match(native, /Image\("SeoulBeautyLogo"\)/);
-  assert.match(native, /\.milliseconds\(400\)/);
+  assert.doesNotMatch(native, /Image\(/);
+  assert.match(native, /ProgressView/);
+  assert.match(native, /accessibilityLabel/);
   assert.doesNotMatch(native, /LoadingCharacters|TimelineView|LoadingOutfitSprite/);
   assert.doesNotMatch(css, /loading-characters-sprite|sb-sprite-change/);
   assert.match(css, /prefers-reduced-motion:reduce/);
