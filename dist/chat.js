@@ -14,6 +14,7 @@ import {share, shareUrl} from './share.js';
 // comment or chat message opens the same product sheet and carries the source as Awin clickref.
 // Live chat polls every few seconds while open.
 import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
+import {experienceMarkup, installExperienceChoices, preferredExperienceReviews} from './product-experience.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
 import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine} from './room-card.js';
 import {loadRevisit, joinedCard, ago as timeAgo} from './revisit.js';
@@ -511,17 +512,18 @@ function openReport() {
 export async function renderProductTalk(box, familyKey) {
   if (!box || !familyKey) return;
   const request=Symbol(); box.talkRequest=request;
-  box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))}</h3>${loadingMarkup(t('loading'))}`;
+  box.innerHTML = experience+`<h3 class="chat-section">${esc(t('product.reviews'))}</h3>${loadingMarkup(t('loading'))}`;
   let talk; try { talk = await fetchProductTalk(familyKey); } catch { if(box.talkRequest===request)box.innerHTML = ''; return; }
   if(box.talkRequest!==request||!box.isConnected)return;
-  talkState = {box, talk}; talkFilter = {}; drawTalk();
+  talkState = {box, talk, familyKey}; talkFilter = {}; installExperienceChoices(box,familyKey,drawTalk); drawTalk();
 }
 // Filter reviews by the conditions writers chose to show (skin type / tone); a reference, not a promise.
 let talkState = null, talkFilter = {};
 function drawTalk() {
-  if (!talkState) return; const {box, talk} = talkState;
-  const all = visiblePosts(talk.reviews), reviews = filterReviews(all, talkFilter), posts = visiblePosts(talk.posts);
-  if(!all.length&&!posts.length&&!talk.chatMentions){box.innerHTML=`<p class="home-note">${esc(t('product.talkEmpty'))}</p>`;return;}
+  if (!talkState) return; const {box, talk, familyKey} = talkState;
+  const all = visiblePosts(talk.reviews), reviews = preferredExperienceReviews(filterReviews(all, talkFilter),familyKey,cachedProfile()), posts = visiblePosts(talk.posts);
+  const experience = experienceMarkup(familyKey,all.length,cachedProfile());
+  if(!all.length&&!posts.length&&!talk.chatMentions){box.innerHTML=experience+`<p class="home-note">${esc(t('product.talkEmpty'))}</p>`;return;}
   const chips = (key, prefix) => [...new Set(all.map(r => r[key]).filter(Boolean))].map(v => `<button data-review-filter="${key}:${v}" class="${talkFilter[key] === v ? 'on' : ''}">${esc(t(prefix + '.' + v))}</button>`).join('');
   const me = cachedProfile(), mine = me && (me.skin_type || me.skin_tone);
   // "People like me" applies the person's own self-reported skin; without a profile it invites them to add one.
