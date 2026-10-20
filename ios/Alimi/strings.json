@@ -1321,16 +1321,16 @@
     "en": "Signed out"
   },
   "account.localDataHint": {
-    "ko": "로그인해도 관심상품과 목표가는 아직 이 기기에만 저장돼요.",
-    "en": "Saved products and target prices are still stored on this device only."
+    "ko": "로그인 없이 이용할 수 있어요. 로그인하면 관심 상품과 프로필·관심 설정을 계정에 저장할 수 있어요.",
+    "en": "Browse without signing in. Sign in to sync saved products, profile and interests."
   },
   "account.failed": {
     "ko": "Google 로그인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
     "en": "Google sign-in could not be completed. Please try again."
   },
   "account.providerDisabled": {
-    "ko": "Google 로그인이 아직 연결되지 않았어요.",
-    "en": "Google sign-in has not been connected yet."
+    "ko": "이 로그인 서비스의 연결 설정이 아직 완료되지 않았어요.",
+    "en": "This sign-in provider is not configured yet."
   },
   "profile.title": {
     "ko": "내 피부 프로필",
@@ -2171,5 +2171,41 @@
   "region.noOffers": {
     "ko": "이 지역의 판매처 정보를 준비 중이에요.",
     "en": "Retailer listings for this region are being prepared."
+  },
+  "account.kakao": {
+    "ko": "카카오로 로그인",
+    "en": "Continue with Kakao"
+  },
+  "account.naver": {
+    "ko": "네이버로 로그인",
+    "en": "Continue with Naver"
+  },
+  "account.cancelled": {
+    "ko": "로그인이 취소됐어요. 다시 시도해 주세요.",
+    "en": "Sign-in was cancelled. Please try again."
+  },
+  "account.invalidCallback": {
+    "ko": "로그인을 확인할 수 없어요. 시작한 브라우저에서 다시 시도해 주세요.",
+    "en": "Sign-in could not be verified. Try again in the same browser."
+  },
+  "account.sync.local": {
+    "ko": "이 기기에 저장됨",
+    "en": "Saved on this device"
+  },
+  "account.sync.loading": {
+    "ko": "계정 데이터 동기화 중",
+    "en": "Syncing account data"
+  },
+  "account.sync.ready": {
+    "ko": "계정에 동기화됨",
+    "en": "Synced to your account"
+  },
+  "account.sync.failed": {
+    "ko": "동기화하지 못했어요. 변경사항은 이 기기에 보관돼요.",
+    "en": "Sync failed. Changes remain on this device."
+  },
+  "account.syncRetry": {
+    "ko": "지금 동기화",
+    "en": "Sync now"
   }
 }
