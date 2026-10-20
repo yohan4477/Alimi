@@ -337,7 +337,7 @@ function showInviteDiscovery(){
     b.onclick=()=>{chosen=value;select.disabled=false;for(const x of options.children)x.style.borderColor=x===b?'#0786ff':'#eee'};
     options.append(b);
   }
-  select.onclick=()=>{try{sessionStorage.setItem('sb-invite-skin-preference',chosen)}catch{}close();openProfile()};
+  select.onclick=()=>{const map={'지성':'oily','건성':'dry','복합성':'combination','민감성':'sensitive'};close();openProfile(map[chosen]||'')};
   skip.onclick=close;
   overlay.append(h,lead,hint,options,select,skip);document.body.append(overlay);overlay.showModal();
 }
