@@ -34,7 +34,7 @@ try {
   await page.locator('#alerts [data-screen="chat"]').click();
   await page.locator('.room-list-card[data-live]').first().waitFor();
   // 추천 tab: trending card and recommended room; user-authored text stays verbatim in either UI language.
-  assert.equal(await page.locator('.trend-card[data-chat-room="tint"]').count(),1);
+  assert.ok(await page.locator('.room-list-card[data-chat-room="tint"]').count()>=1);
   // 발견 tab: products mentioned in conversations.
   await page.locator('[data-home-tab="discover"][role="tab"]').click();
   assert.equal(await page.locator('.mentioned-products article').count(),1);

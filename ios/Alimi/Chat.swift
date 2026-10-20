@@ -16,11 +16,12 @@ struct ChatRoom: Codable, Identifiable, Hashable {
     var lastMessageAt: String? = nil
     // Concern tags (user_rooms migration); nil on servers without it, which also hides room creation.
     var concerns: [String]? = nil
+    var serviceRegion: String? = nil
     var isBrand: Bool { kind == "brand" }
-    var title: String { L10n.language == "ko" ? titleKo : titleEn }
-    var intro: String { L10n.language == "ko" ? introKo : introEn }
+    var title: String { (serviceRegion ?? "us") == "kr" ? titleKo : titleEn }
+    var intro: String { (serviceRegion ?? "us") == "kr" ? introKo : introEn }
     enum CodingKeys: String, CodingKey {
-        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h", kind, tag, brand, logoUrl = "logo_url", lastMessageAt = "last_message_at", concerns
+        case id, titleEn = "title_en", titleKo = "title_ko", introEn = "intro_en", introKo = "intro_ko", members, messages24h = "messages_24h", kind, tag, brand, logoUrl = "logo_url", lastMessageAt = "last_message_at", concerns, serviceRegion = "service_region"
     }
 }
 struct ChatItem: Codable, Hashable {
@@ -111,7 +112,7 @@ enum ChatAPI {
                                 ChatRoom(id: "brand-cosrx", titleEn: "COSRX", titleKo: "코스알엑스", introEn: "COSRX fans", introKo: "코스알엑스 팬 모임",
                                          members: 2, messages24h: 0, kind: "brand", brand: "COSRX")] }
         let url = URL(string: "/rest/v1/chat_room_list?select=*&order=sort", relativeTo: LiveAPI.baseURL)!
-        return try JSONDecoder().decode([ChatRoom].self, from: try await send(url))
+        return try JSONDecoder().decode([ChatRoom].self, from: try await send(url)).filter { ($0.serviceRegion ?? "us") == ServiceRegion.current }
     }
     struct Last { let body: String; let createdAt: String? }
     // Rooms this device joined (chat_members is publicly readable), each with its newest message for the preview.
@@ -140,7 +141,14 @@ enum ChatAPI {
         if offline { return "acne" }
         let body: [String: Any?] = ["p_secret": secret, "p_title": title.trimmingCharacters(in: .whitespacesAndNewlines),
                                     "p_intro": intro.trimmingCharacters(in: .whitespacesAndNewlines), "p_tag": tag, "p_concerns": concerns]
-        return try JSONDecoder().decode(String.self, from: try await rpc("create_room", body))
+        var scoped = body; scoped["p_service_region"] = ServiceRegion.current
+        do { return try JSONDecoder().decode(String.self, from: try await rpc("create_region_room", scoped)) }
+        catch {
+            if ServiceRegion.current == "us", String(describing: error).contains("Could not find") {
+                return try JSONDecoder().decode(String.self, from: try await rpc("create_room", body))
+            }
+            throw error
+        }
     }
     static func join(room: String) async throws -> String {
         if offline { return "Dewy Panda" }
@@ -680,13 +688,13 @@ struct ChatProductCard: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(item.brandLabel).font(.system(size: 17, weight: .bold)).foregroundStyle(Color.sbNavy)
                     Text(item.name).font(.system(size: 15)).foregroundStyle(Color.sbNavy).lineLimit(2).multilineTextAlignment(.leading)
-                    Text(usd(Double(item.priceMinor) / 100)).font(.system(size: 19, weight: .bold)).foregroundStyle(Color(rgb: 0xF0335A))
+                    Text(usd(ServiceRegion.amount(item.priceMinor, currency: item.market == "KR" ? "KRW" : "USD"))).font(.system(size: 19, weight: .bold)).foregroundStyle(Color(rgb: 0xF0335A))
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.system(size: 15)).foregroundStyle(Color.sbGray)
             }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.white, in: RoundedRectangle(cornerRadius: 18))
-        }.buttonStyle(.plain).accessibilityLabel(L("chat.sharedPrice", ["v": usd(Double(item.priceMinor) / 100)]) + " " + item.name)
+        }.buttonStyle(.plain).accessibilityLabel(L("chat.sharedPrice", ["v": usd(ServiceRegion.amount(item.priceMinor, currency: item.market == "KR" ? "KRW" : "USD"))]) + " " + item.name)
     }
 }
 
@@ -700,7 +708,7 @@ struct ItemCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.brandLabel).font(.caption2).foregroundStyle(.secondary)
                     Text(item.name).font(.caption.bold()).lineLimit(2).multilineTextAlignment(.leading)
-                    Text(L("chat.sharedPrice", ["v": usd(Double(item.priceMinor) / 100)])).font(.caption2).foregroundStyle(.red)
+                    Text(L("chat.sharedPrice", ["v": usd(ServiceRegion.amount(item.priceMinor, currency: item.market == "KR" ? "KRW" : "USD"))])).font(.caption2).foregroundStyle(.red)
                 }
             }.padding(8).frame(minWidth: 220, alignment: .leading).background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
         }.buttonStyle(.plain)

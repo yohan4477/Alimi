@@ -45,6 +45,7 @@ try {
   // Developer board: priority × platform filtering, links and tab jumps are presentational.
   await page.getByRole('tab',{name:'개발',exact:true}).click();
   const development=page.locator('#sb-dev');
+  await development.locator(':scope > details > summary').click();
   assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
   await development.locator('[data-dev-filter="priority"][data-dev-value="P0"]').click();
   assert.equal(await development.locator('[data-dev-item]:visible').count(),6);
@@ -68,6 +69,7 @@ try {
   await page.getByRole('tab',{name:'개발',exact:true}).click();
     await page.getByRole('tab',{name:'전략',exact:true}).click();await page.getByRole('tab',{name:'전략',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   // New pixel-character onboarding is a local admin-only simulation, not a customer signup.
+  await page.locator('#sb-plan > details > summary').click();
   const guide = page.locator('#sb-pixel-guide-demo');
   await guide.waitFor();
   assert.equal(await guide.locator('[data-guide-locale="ko"][data-guide-stage="0"]').isVisible(),true);
@@ -129,6 +131,7 @@ try {
   await preview.locator('[data-onboard-room="demo-1"]').click();
   assert.ok(await preview.getByText('이 방은 기획 시안에서만 열립니다.',{exact:false}).isVisible());
   await page.getByRole('tab',{name:'디자인 리뷰',exact:true}).click();
+  await page.locator('#sb-design > details > summary').click();
   assert.ok(await page.getByText('맞춤 추천을 추가하되,',{exact:false}).first().isVisible());
   assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),8);
   // Loading preview reuses launch assets; costume/avatar controls are gone.

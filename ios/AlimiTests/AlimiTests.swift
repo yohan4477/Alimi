@@ -248,8 +248,8 @@ final class AlimiTests: XCTestCase {
         XCTAssertNil(RoomText.activity(idle, now: now), "no activity claim without messages")
     }
     func testShareLinksOpenTheWebScreen() {
-        XCTAssertEqual(ShareLinks.room("acne").absoluteString, "https://alimi-omega.vercel.app/?room=acne")
-        XCTAssertEqual(ShareLinks.product("anua|oil").absoluteString, "https://alimi-omega.vercel.app/?product=anua%7Coil")
+        XCTAssertEqual(ShareLinks.room("acne").absoluteString, "https://seoulbeauty.me/us?room=acne")
+        XCTAssertEqual(ShareLinks.product("anua|oil").absoluteString, "https://seoulbeauty.me/us?product=anua%7Coil")
         XCTAssertEqual(ChatAPI.errorKey("Failure(message: \"chat:duplicate\")"), "chat.err.duplicate")
     }
 }

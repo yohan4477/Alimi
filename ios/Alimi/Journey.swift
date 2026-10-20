@@ -117,11 +117,12 @@ enum Seen {
     }
 }
 enum ShareLinks {
-    static let site = URL(string: "https://alimi-omega.vercel.app/")!
+    static let site = URL(string: "https://seoulbeauty.me/")!
     static func room(_ id: String) -> URL { link(["room": id]) }
     static func product(_ key: String) -> URL { link(["product": key]) }
     private static func link(_ params: [String: String]) -> URL {
         var c = URLComponents(url: site, resolvingAgainstBaseURL: false)!
+        c.path = "/" + ServiceRegion.current
         c.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
         return c.url!
     }
@@ -342,6 +343,7 @@ struct CommunityHome: View {
     @EnvironmentObject var store: AlimiStore
     @StateObject private var model = CommunityHomeModel()
     @State private var tab = HomeTab.rec
+    @State private var topicLimit = 5
     @State private var interests = Interests.load()
     @State private var creating = false
     @State private var openFamily: ProductFamily?
@@ -361,6 +363,7 @@ struct CommunityHome: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     header
+                    HStack { Spacer(); ServiceRegionMenu() }.padding(.horizontal, 20)
                     tabs
                     Button { creating = true } label: { InlineActionLabel(title: L("room.new"), icon: "plus").frame(maxWidth: .infinity, minHeight: 44) }
                         .buttonStyle(.borderedProminent).accessibilityIdentifier("create-room")
@@ -449,10 +452,11 @@ struct CommunityHome: View {
             .accessibilityIdentifier("edit-interests")
     }
     @ViewBuilder private var allRooms: some View {
-        SectionHead(title: L("home.topics"), sub: "") {
-            EmptyView()
-        }
-        ForEach(model.topics) { room in roomLink(room, note: room.intro) }
+        SectionHead(title: L("home.topics"))
+        ForEach(Array(model.topics.prefix(topicLimit))) { room in roomLink(room, note: room.intro) }
+        if model.topics.count > topicLimit { Button(L("home.seeAll")) { topicLimit += 10 } }
+        SectionHead(title: L("rooms.byProduct"))
+        ProductRoomFinder(model: model, open: { path.append($0) })
     }
     @ViewBuilder private var discover: some View {
         SectionHead(title: L("home.mentioned"), sub: L("home.scope"))
@@ -468,7 +472,7 @@ struct CommunityHome: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(entry.item.brandLabel).font(.caption).foregroundStyle(.secondary)
                             Text(entry.item.name).font(.subheadline).foregroundStyle(Color.sbInk).lineLimit(2)
-                            Text(usd(Double(entry.item.priceMinor) / 100)).font(.caption.bold()).foregroundStyle(Color.sbInk)
+                            Text(usd(ServiceRegion.amount(entry.item.priceMinor, currency: entry.item.market == "KR" ? "KRW" : "USD"))).font(.caption.bold()).foregroundStyle(Color.sbInk)
                         }
                     }
                 }.buttonStyle(.plain)
@@ -507,6 +511,7 @@ struct BigHead: View {
 struct CreateRoomSheet: View {
     @Environment(\.dismiss) private var dismiss
     let interests: Interests?
+    var initialTitle = ""
     let created: (ChatRoom) -> Void
     @State private var title = ""
     @State private var intro = ""
@@ -548,6 +553,7 @@ struct CreateRoomSheet: View {
             .navigationTitle(L("room.new")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("close")) { dismiss() } } }
             .onAppear {
+                if title.isEmpty { title = initialTitle }
                 if let i = interests { tag = i.skincare && !i.makeup ? "skin" : i.makeup && !i.skincare ? "makeup" : "talk"; concerns = i.concerns.filter { offered.contains($0) } }
             }
         }

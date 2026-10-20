@@ -6,12 +6,19 @@ import Combine
 enum LiveAPI {
     static let baseURL = URL(string: "https://mqsnshnlfwsgabrsmqsz.supabase.co")!
     static let publishableKey = "sb_publishable_CJjQ-l5ev-D4OH0Na0gFoQ_szunygff"
-    static let offersQuery = "select=external_id,retailer,currency,url,affiliate_url,image_url,products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id"
+    static let offersQuery = "select=external_id,retailer,market,currency,url,affiliate_url,image_url,products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id"
     static var offersURL: URL { URL(string: "/rest/v1/offers?" + offersQuery, relativeTo: baseURL)! }
 
     // Every Supabase call goes through here so the apikey header is set in one place.
     static func request(_ url: URL, method: String = "GET", body: Data? = nil, contentType: String? = nil, timeout: TimeInterval = 15) -> URLRequest {
-        var request = URLRequest(url: url, timeoutInterval: timeout)
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+        if method == "GET" && ["catalog_items", "catalog_region_families", "offers"].contains(url.lastPathComponent) {
+            var items = (components.queryItems ?? []).filter { $0.name != "market" && $0.name != "currency" }
+            items.append(URLQueryItem(name: "market", value: "eq." + ServiceRegion.market))
+            items.append(URLQueryItem(name: "currency", value: "eq." + ServiceRegion.currency))
+            components.queryItems = items
+        }
+        var request = URLRequest(url: components.url!, timeoutInterval: timeout)
         request.httpMethod = method
         request.httpBody = body
         request.setValue(publishableKey, forHTTPHeaderField: "apikey")
@@ -52,6 +59,7 @@ struct OfferRow: Codable {
     let externalId: String
     let retailer: String
     let currency: String
+    var market: String? = nil
     let url: URL
     let affiliateUrl: URL?
     let imageUrl: URL?
@@ -59,7 +67,7 @@ struct OfferRow: Codable {
     let offerCurrent: Current?
     let priceObservations: [Observation]?
     enum CodingKeys: String, CodingKey {
-        case externalId = "external_id", retailer, currency, url, affiliateUrl = "affiliate_url", imageUrl = "image_url"
+        case externalId = "external_id", retailer, currency, market, url, affiliateUrl = "affiliate_url", imageUrl = "image_url"
         case products, offerCurrent = "offer_current", priceObservations = "price_observations"
     }
 }
@@ -86,8 +94,8 @@ struct CatalogItem: Codable, Identifiable, Hashable {
     var id: String { "\(retailer)|\(market)|\(sku)" }
     var buyLink: URL? { Purchase.buyURL(affiliateUrl ?? url) }
     var variantLabel: String { [sizeLabel, optionLabel].compactMap { $0 }.joined(separator: " · ") }
-    var unitPrice: Double? { unitPriceMinor.map { Double($0) / 100 } }
-    var price: Double { Double(priceMinor) / 100 }
+    var unitPrice: Double? { unitPriceMinor.map { ServiceRegion.amount($0, currency: currency) } }
+    var price: Double { ServiceRegion.amount(priceMinor, currency: currency) }
     var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
     static let fields = "retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url,url,affiliate_url,family_key"
     enum CodingKeys: String, CodingKey {
@@ -160,14 +168,14 @@ struct ProductFamily: Codable, Identifiable, Hashable {
     var selectedMarket: String? = nil
     var id: String { familyKey }
     var brandLabel: String { L10n.language == "ko" ? (brandKo ?? brand) : brand }
-    var priceText: String { variants > 1 && minPriceMinor != maxPriceMinor ? L("family.from", ["v": usd(Double(minPriceMinor) / 100)]) : usd(Double(minPriceMinor) / 100) }
+    var priceText: String { variants > 1 && minPriceMinor != maxPriceMinor ? L("family.from", ["v": usd(ServiceRegion.amount(minPriceMinor))]) : usd(ServiceRegion.amount(minPriceMinor)) }
     enum CodingKeys: String, CodingKey {
         case familyKey = "family_key", brand, brandKo = "brand_ko", baseName = "base_name", category, imageUrl = "image_url"
         case selectedSKU, selectedRetailer, selectedMarket
         case minPriceMinor = "min_price_minor", maxPriceMinor = "max_price_minor", variants
     }
     static func pageURL(category: String, offset: Int, limit: Int = 24, brand: String? = nil) -> URL {
-        var c = URLComponents(url: URL(string: "/rest/v1/catalog_families", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
+        var c = URLComponents(url: URL(string: "/rest/v1/catalog_region_families", relativeTo: LiveAPI.baseURL)!, resolvingAgainstBaseURL: true)!
         var items = [URLQueryItem(name: "select", value: "family_key,brand,brand_ko,base_name,category,image_url,min_price_minor,max_price_minor,variants"),
                      URLQueryItem(name: "order", value: "sort_key.desc"), URLQueryItem(name: "offset", value: String(offset)),
                      URLQueryItem(name: "limit", value: String(limit))]
@@ -246,16 +254,16 @@ struct Product: Codable, Identifiable, Hashable {
     var stockLabel: String { L(availability == "in_stock" ? "stock.in" : availability == "out_of_stock" ? "stock.out" : "stock.unknown") }
 
     static func from(_ rows: [OfferRow]) -> [Product] {
-        rows.compactMap { r -> Product? in
+        rows.filter { ServiceRegion.matches(market: $0.market, currency: $0.currency) }.compactMap { r -> Product? in
             guard let p = r.products, let slug = p.slug, let brand = p.brand, let name = p.name, let c = r.offerCurrent,
                   let changed = ISODate.parse(c.changedAt), let checked = ISODate.parse(c.lastSuccessAt) else { return nil }
             let history = (r.priceObservations ?? []).compactMap { o in
-                ISODate.parse(o.observedAt).map { PricePoint(date: $0, price: Double(o.amountMinor) / 100) }
+                ISODate.parse(o.observedAt).map { PricePoint(date: $0, price: ServiceRegion.amount(o.amountMinor, currency: r.currency)) }
             }.sorted { $0.date < $1.date }
             return Product(id: slug, sku: r.externalId, brand: brand, brandKo: p.brandKo, name: name, size: p.size ?? "", category: p.category ?? "기타",
                            familyKey: p.familyKey, sizeLabel: p.sizeLabel ?? p.size,
-                           retailer: r.retailer, currency: r.currency, url: r.url, affiliateUrl: r.affiliateUrl, imageUrl: r.imageUrl,
-                           price: Double(c.amountMinor) / 100, delivery: c.deliveryMinor.map { Double($0) / 100 },
+                           retailer: r.retailer, market: r.market, currency: r.currency, url: r.url, affiliateUrl: r.affiliateUrl, imageUrl: r.imageUrl,
+                           price: ServiceRegion.amount(c.amountMinor, currency: r.currency), delivery: c.deliveryMinor.map { ServiceRegion.amount($0, currency: r.currency) },
                            availability: c.availability, changedAt: changed, checkedAt: checked, history: history)
         }.sorted { ($0.brand, $0.name) < ($1.brand, $1.name) }
     }
@@ -302,7 +310,7 @@ final class AlimiStore: ObservableObject {
     }
     private func mergingCatalogSaves(_ rows: [Product]) -> [Product] {
         let keys = Set(catalogSaves.map { $0.retailer + "|" + $0.sku })
-        return rows.filter { !keys.contains($0.retailer + "|" + $0.sku) } + catalogSaves
+        return (rows.filter { !keys.contains($0.retailer + "|" + $0.sku) } + catalogSaves).filter { ServiceRegion.matches(market: $0.market, currency: $0.currency) }
     }
     static func bundledSnapshot() -> LiveSnapshot? {
         guard let url = Bundle.main.url(forResource: "live-snapshot", withExtension: "json"),
@@ -311,11 +319,12 @@ final class AlimiStore: ObservableObject {
     }
     func refresh() async {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return }
+        products = mergingCatalogSaves(products)
         loading = true
         defer { loading = false }
         guard let rows: [OfferRow] = await LiveAPI.get(LiveAPI.offersURL, session: session) else { return }
         let fresh = Product.from(rows)
-        if !fresh.isEmpty { products = mergingCatalogSaves(fresh); source = .live }
+        products = mergingCatalogSaves(fresh); source = .live
     }
     func searchCatalog(_ q: String) async -> [CatalogItem]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
@@ -357,6 +366,7 @@ final class AlimiStore: ObservableObject {
     func search(_ query: String, category: String = "전체", favoritesOnly: Bool = false) -> [Product] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         return products.filter { p in
+            ServiceRegion.matches(market: p.market, currency: p.currency) &&
             (!favoritesOnly || saved.favorites.contains(p.id)) &&
             (category == "전체" || p.category == category) &&
             (q.isEmpty || "\(p.brand) \(p.brandKo ?? "") \(p.name)".localizedCaseInsensitiveContains(q))
@@ -371,7 +381,15 @@ final class AlimiStore: ObservableObject {
     }
     func familiesPage(category: String, offset: Int, brand: String? = nil) async -> [ProductFamily]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }
-        return await LiveAPI.get(ProductFamily.pageURL(category: category, offset: offset, brand: brand), session: session)
+        if let rows: [ProductFamily] = await LiveAPI.get(ProductFamily.pageURL(category: category, offset: offset, brand: brand), session: session) { return rows }
+        var c = URLComponents(url: CatalogItem.pageURL(category: category, offset: offset), resolvingAgainstBaseURL: true)!
+        if let brand { c.queryItems?.append(URLQueryItem(name: "brand", value: "eq." + brand)) }
+        guard let items: [CatalogItem] = await LiveAPI.get(c.url!, session: session) else { return nil }
+        return Dictionary(grouping: items.filter { $0.familyKey != nil }, by: { $0.familyKey! }).map { key, list in
+            let head = list[0]
+            return ProductFamily(familyKey: key, brand: head.brand, brandKo: head.brandKo, baseName: head.name, category: head.category,
+                                 imageUrl: head.imageUrl, minPriceMinor: list.map(\.priceMinor).min()!, maxPriceMinor: list.map(\.priceMinor).max()!, variants: list.count)
+        }.sorted { $0.familyKey < $1.familyKey }
     }
     func family(_ key: String) async -> [VariantChoice]? {
         if ProcessInfo.processInfo.arguments.contains("-uiTestingOffline") { return [] }

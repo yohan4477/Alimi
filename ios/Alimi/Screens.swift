@@ -480,6 +480,8 @@ struct SettingsView: View {
     }
     private var serviceSection: some View {
         Section(L("settings.service")) {
+            HStack { Text(L("region.title")); Spacer(); ServiceRegionMenu() }
+            hint("region.languageHint")
             HStack(spacing: 12) {
                 Image(systemName: "globe").frame(width: 24).foregroundStyle(.secondary)
                 Text(L("settings.language"))

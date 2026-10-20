@@ -28,6 +28,7 @@ struct TabPageHeader: View {
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .accessibilityIdentifier(titleID)
             Spacer(minLength: 0)
+            ServiceRegionMenu()
             Button(action: onSearch) {
                 Image(systemName: "magnifyingglass").font(.system(size: 23, weight: .medium))
                     .frame(width: 44, height: 44)
@@ -82,6 +83,7 @@ struct RootView: View {
     @State private var activitySection = "saved"
     @StateObject private var revisit = RevisitModel()
     @AppStorage("alimi.lang") private var lang = ""
+    @AppStorage("seoulbeauty.region") private var region = "us"
     var body: some View {
         TabView(selection: $tab) {
             CommunityHome(openRoom: $openRoom, onEditInterests: { onboarding = .choose }, onSearch: { searching = true }, onMyRooms: { activitySection = "rooms"; tab = .saved }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread, onInitialLoadComplete: { initialLoadPending = false; showStartup = false })
@@ -90,7 +92,11 @@ struct RootView: View {
                 .tabItem { Label(L("nav.explore"), systemImage: "magnifyingglass") }.tag(MainTab.home)
             SavedView(section: $activitySection, editInterests: { onboarding = .choose }, onSearch: { searching = true }, onAlerts: { showingAlerts = true }, unreadAlerts: revisit.unread)
                 .tabItem { Label(L("nav.activity"), systemImage: "person") }.tag(MainTab.saved)
-        }.id(lang)
+        }.id(lang + "|" + region)
+        .onChange(of: region) { _, _ in
+            openRoom = nil; linkedFamily = nil; searching = false; showingAlerts = false
+            Task { await store.refresh() }
+        }
         .onChange(of: tab) { _, value in
             if value != .chat { initialLoadPending = false; showStartup = false }
         }
@@ -131,6 +137,7 @@ struct RootView: View {
         initialLoadPending = false; showStartup = false
         guard url.scheme == "seoulbeauty", url.host == "open",
               let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { return }
+        if let region = query.first(where: { $0.name == "region" })?.value { ServiceRegion.set(region) }
         if let id = query.first(where: { $0.name == "room" })?.value, !id.isEmpty, id.count <= 200 {
             guard let room = (try? await ChatAPI.rooms())?.first(where: { $0.id == id }) else { linkError = true; return }
             onboarding = nil; tab = .chat; openRoom = room
@@ -138,7 +145,7 @@ struct RootView: View {
             guard let choices = await store.family(key), let item = choices.first?.item else { linkError = true; return }
             onboarding = nil
             linkedFamily = ProductFamily(familyKey: key, brand: item.brand, brandKo: item.brandKo, baseName: item.name, category: item.category,
-                                         imageUrl: item.imageUrl, minPriceMinor: Int(item.price * 100), maxPriceMinor: Int(item.price * 100), variants: choices.count)
+                                         imageUrl: item.imageUrl, minPriceMinor: item.priceMinor, maxPriceMinor: item.priceMinor, variants: choices.count)
         }
     }
 }
@@ -629,7 +636,7 @@ struct FamilySheet: View {
             }
             Text(family.baseName).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).fixedSize(horizontal: false, vertical: true)
             Text(current?.variantLabel ?? "").font(.subheadline).foregroundStyle(Color.sbGray)
-            Text(usd(current?.price ?? Double(family.minPriceMinor) / 100)).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).padding(.top, 6)
+            Text(usd(current?.price ?? ServiceRegion.amount(family.minPriceMinor))).font(.system(size: 26, weight: .heavy)).foregroundStyle(Color.sbNavy).padding(.top, 6)
         }
     }
     // Facts the catalog actually knows (no ratings, delivery or gift claims).

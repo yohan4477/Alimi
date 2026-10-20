@@ -1,11 +1,11 @@
 // Server-only diagnostic aggregates. Never return device IDs or raw event properties.
 const URL_BASE = 'https://mqsnshnlfwsgabrsmqsz.supabase.co';
 const TEST_DEVICE = '00000000-0000-4000-8000-000000000001';
-export async function readMetrics({env = process.env, fetchImpl = fetch, now = new Date()} = {}) {
-  const base = {generatedAt: now.toISOString(), days: 7, unit: 'devices', transactions: 'unconnected', funnel: 'unmeasured'};
+export async function readMetrics({env = process.env, fetchImpl = fetch, now = new Date(), serviceRegion = 'all'} = {}) {
+  const base = {generatedAt: now.toISOString(), days: 7, unit: 'devices', transactions: 'unconnected', funnel: 'unmeasured', serviceRegion: ['kr','us'].includes(serviceRegion) ? serviceRegion : 'all'};
   const key = env.SUPABASE_SECRET_KEY;
   if (!key) return {...base, state: 'unconnected', metrics: null};
-  const params = new URLSearchParams({select: 'id,received_at,device_id,name,app_version',
+  const params = new URLSearchParams({select: 'id,received_at,device_id,name,app_version,props',
     received_at: 'gte.' + new Date(+now - 7 * 86400000).toISOString(), order: 'received_at.desc,id.desc', limit: '1000'});
   try {
     const headers = {apikey: key, Prefer: 'count=exact'};
@@ -21,8 +21,10 @@ export async function readMetrics({env = process.env, fetchImpl = fetch, now = n
     // Never render a capped sample as the full population.
     if (total === null || total > rows.length) return {...base, state: 'partial', metrics: null};
     const clean = [...new Map(rows.filter(r => r.device_id !== TEST_DEVICE && r.app_version !== 'verify' && +new Date(r.received_at) <= +now).map(r => [r.id, r])).values()];
-    const count = name => new Set(clean.filter(r => r.name === name).map(r => r.device_id)).size;
-    return {...base, state: clean.length ? 'received' : 'no_data', lastEventAt: clean[0]?.received_at ?? null,
-      metrics: clean.length ? {community: count('community_open'), rooms: count('chat_open'), detail: count('product_view'), merchant: count('merchant_click'), saved: count('wishlist_add')} : null};
+    const unknownRegion = clean.filter(r=>!['kr','us'].includes(r.props?.service_region)).length;
+    const scoped = base.serviceRegion === 'all' ? clean : clean.filter(r=>r.props?.service_region === base.serviceRegion);
+    const count = name => new Set(scoped.filter(r => r.name === name).map(r => r.device_id)).size;
+    return {...base, state: scoped.length ? 'received' : 'no_data', unknownRegionEvents: unknownRegion, lastEventAt: scoped[0]?.received_at ?? null,
+      metrics: scoped.length ? {community: count('community_open'), rooms: count('chat_open'), detail: count('product_view'), merchant: count('merchant_click'), saved: count('wishlist_add')} : null};
   } catch { return {...base, state: 'unavailable', metrics: null}; }
 }

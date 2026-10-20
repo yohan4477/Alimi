@@ -19,6 +19,7 @@ struct OnboardingFlow: View {
     @StateObject private var model = CommunityHomeModel()
     @State var step: OnboardingStep
     @State private var draft = Interests.load() ?? Interests()
+    @State private var showTopics = false
     let finish: (ChatRoom?) -> Void
     var body: some View {
         ZStack {
@@ -31,8 +32,19 @@ struct OnboardingFlow: View {
             case .profile:
                 ProfileScreen(draft: $draft, back: { step = .choose }, next: { step = .rooms }).transition(.identity)
             case .rooms:
-                RoomPicksScreen(model: model, interests: draft, back: { step = .profile }, open: { close($0) })
-                    .transition(.identity)
+                if showTopics {
+                    RoomPicksScreen(model: model, interests: draft, back: { showTopics = false }, open: { close($0) }).transition(.identity)
+                } else {
+                    VStack(alignment: .leading, spacing: 12) {
+                        LogoBar(back: { step = .profile })
+                        Text(L("onb.products")).font(.title2.bold()).padding(.horizontal, 20)
+                        Text(L("onb.productsHint")).font(.subheadline).foregroundStyle(.secondary).padding(.horizontal, 20)
+                        ScrollView { ProductRoomFinder(model: model, open: { close($0) }).padding(.horizontal, 20) }
+                        Button(L("home.topics")) { showTopics = true }.accessibilityIdentifier("onb-show-topics").padding(.horizontal, 20)
+                        Button(L("onb.browse")) { close(nil) }.buttonStyle(.borderedProminent).padding(.horizontal, 20).accessibilityIdentifier("onb-finish")
+                        StepBar(step: 3).padding(.bottom, 12)
+                    }.background(Color.white)
+                }
             }
         }
         .task { await model.load(store: store) }

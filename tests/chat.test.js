@@ -30,9 +30,10 @@ test('server error codes map to friendly text keys', () => {
   assert.equal(errorKey('HTTP 500'), 'chat.err.other');
 });
 
-test('room title follows the UI language', () => {
+test('room original language follows community region, independently of interface', () => {
   const r = {title_en: 'Sunscreen talk', title_ko: '선크림 이야기'};
-  setLang('ko'); assert.equal(roomTitle(r), '선크림 이야기');
+  setLang('ko'); assert.equal(roomTitle(r), 'Sunscreen talk');
+  assert.equal(roomTitle({...r,service_region:'kr'}), '선크림 이야기');
   setLang('en'); assert.equal(roomTitle(r), 'Sunscreen talk');
 });
 
@@ -89,8 +90,8 @@ test('creating a room sends trimmed text, the field tag and concern ids to creat
   let sent;
   const fetchImpl = async (url, opts) => { sent = {url, body: JSON.parse(opts.body)}; return {ok: true, status: 200, json: async () => 'u-abc123'}; };
   assert.equal(await createRoom('s', {title: '  Cushion for oily skin ', intro: ' lasts? ', tag: 'makeup', concerns: ['cushion']}, fetchImpl), 'u-abc123');
-  assert.match(sent.url, /\/rpc\/create_room$/);
-  assert.deepEqual(sent.body, {p_secret: 's', p_title: 'Cushion for oily skin', p_intro: 'lasts?', p_tag: 'makeup', p_concerns: ['cushion']});
+  assert.match(sent.url, /\/rpc\/create_region_room$/);
+  assert.deepEqual(sent.body, {p_secret: 's', p_title: 'Cushion for oily skin', p_intro: 'lasts?', p_tag: 'makeup', p_concerns: ['cushion'], p_service_region:'us'});
 });
 
 test('room creation errors map to their own messages', () => {

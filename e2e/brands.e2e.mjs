@@ -12,7 +12,7 @@ try {
  await page.route('**/rest/v1/**',async route=>{
   const u=new URL(route.request().url()), resource=u.pathname.split('/').at(-1);
   if(resource==='catalog_brands')return route.fulfill(stripFails?{status:503,json:{}}:{json:[{brand:'A',families:30,logo_url:'https://logos.invalid/a.png'},{brand:'B',families:25,logo_url:null},{brand:'EMPTY',families:1,logo_url:null}]});
-  if(resource==='catalog_families'){
+  if(resource==='catalog_region_families'){
    const brand=u.searchParams.get('brand'), offset=Number(u.searchParams.get('offset'));
    if(brand==='eq.A'){oldStarted();await gate;return route.fulfill({json:[row('A',0)]})}
    if(brand==='eq.B'){if(failB)return route.fulfill({status:503,json:{}});return route.fulfill({json:Array.from({length:offset?1:24},(_,i)=>row('B',offset+i))})}

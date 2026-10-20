@@ -1,5 +1,7 @@
 // Community posts and comments (topic Q&A next to each topic's live chat). Same anonymous identity,
 // filters and error codes as chat (see chat-api.js); writes go through RPCs, clients only read.
+import {currency} from './region.js';
+import {fetchRooms} from './chat-api.js';
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet, rpc} from './supabase.js';
 
 export const POST_FIELDS = 'id,room_id,author_tag,nickname,kind,title,body,item,reasons,comments,likes,created_at,last_activity_at,' +
@@ -25,7 +27,7 @@ export function reviewPayload(d) {
   if (d.goal?.trim()) out.goal = d.goal.trim().slice(0, 60);
   if (d.photos?.length) out.photos = d.photos.slice(0, 4);
   if (d.where?.trim()) out.bought_where = d.where.trim().slice(0, 60);
-  const price = Math.round(Number(d.price) * 100); if (price > 0 && price <= 10000000) { out.bought_price_minor = price; out.bought_currency = 'USD'; }
+  const price = Math.round(Number(d.price) * (currency==='KRW'?1:100)); if (price > 0 && price <= 10000000) { out.bought_price_minor = price; out.bought_currency = currency; }
   if (/^[A-Za-z]{2}$/.test(d.shipCountry ?? '')) out.ship_country = d.shipCountry.toUpperCase();
   const days = Number(d.shipDays); if (d.shipDays !== '' && d.shipDays != null && Number.isInteger(days) && days >= 0 && days <= 120) out.ship_days = days;
   if (d.sponsored) out.sponsored = true;
@@ -47,14 +49,21 @@ export const mentionsUrl = familyKey => rest('product_mentions', {select: 'sourc
 
 const get = restGet;
 
-export const fetchPosts = (room = null, limit = 30, fetchImpl = fetch) => get(postsUrl(room, limit), fetchImpl);
-export async function fetchPost(id, fetchImpl = fetch) { const [p] = await get(rest('community_posts', {select: POST_FIELDS, id: 'eq.' + id}), fetchImpl); return p ?? null; }
+export const fetchPosts = async (room = null, limit = 30, fetchImpl = fetch) => {
+  const rooms=await fetchRooms(fetchImpl), ids=new Set(rooms.map(r=>r.id));
+  if(room && !ids.has(room)) return [];
+  if(!ids.size) return [];
+  const u=new URL(postsUrl(room,limit)); if(!room)u.searchParams.set('room_id','in.('+[...ids].join(',')+')');
+  return get(u.href,fetchImpl);
+};
+export async function fetchPost(id, fetchImpl = fetch) { const [p] = await get(rest('community_posts', {select: POST_FIELDS, id: 'eq.' + id}), fetchImpl); return p && (await fetchRooms(fetchImpl)).some(r=>r.id===p.room_id) ? p : null; }
 export const fetchComments = (post, fetchImpl = fetch) => get(commentsUrl(post), fetchImpl);
 // Everything said about one product: posts (directly or via a comment) and the number of chat mentions.
 export async function fetchProductTalk(familyKey, fetchImpl = fetch) {
-  const mentions = await get(mentionsUrl(familyKey), fetchImpl);
+  const idsInRegion=new Set((await fetchRooms(fetchImpl)).map(r=>r.id));
+  const mentions = (await get(mentionsUrl(familyKey), fetchImpl)).filter(m=>m.post_id != null || idsInRegion.has(m.room_id));
   const ids = [...new Set(mentions.map(m => m.post_id).filter(Boolean))].slice(0, 20);
-  const posts = ids.length ? await get(rest('community_posts', {select: POST_FIELDS, id: `in.(${ids.join(',')})`, order: 'last_activity_at.desc'}), fetchImpl) : [];
+  const posts = ids.length ? await get(rest('community_posts', {select: POST_FIELDS, id: `in.(${ids.join(',')})`, order: 'last_activity_at.desc'}), fetchImpl).then(rows=>rows.filter(p=>idsInRegion.has(p.room_id))) : [];
   const reviewIds = new Set(mentions.filter(m => m.source === 'review').map(m => m.post_id));
   return {reviews: posts.filter(p => reviewIds.has(p.id)), posts: posts.filter(p => !reviewIds.has(p.id)), chatMentions: mentions.filter(m => m.source === 'chat').length};
 }

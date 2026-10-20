@@ -1,6 +1,7 @@
 // Topic chat (#68) data layer. Anonymous: a random per-device secret proves authorship to the RPCs;
 // the server only keeps its hash ("author_tag"), which is also what Block hides locally.
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet, rpc} from './supabase.js';
+import {region, inRegion} from './region.js';
 import {lang} from './i18n.js';
 
 const SECRET_KEY = 'alimi-chat-secret', BLOCK_KEY = 'alimi-chat-blocked', AGREED_KEY = 'alimi-chat-agreed';
@@ -25,8 +26,8 @@ export function block(storage, tag) {
 export const hasAgreed = storage => { try { return storage.getItem(AGREED_KEY) === '1'; } catch { return false; } };
 export const agree = storage => { try { storage.setItem(AGREED_KEY, '1'); } catch {} };
 
-export const roomTitle = r => (lang === 'ko' ? r.title_ko : r.title_en);
-export const roomIntro = r => (lang === 'ko' ? r.intro_ko : r.intro_en);
+export const roomTitle = r => ((r.service_region ?? 'us') === 'kr' ? r.title_ko : r.title_en);
+export const roomIntro = r => ((r.service_region ?? 'us') === 'kr' ? r.intro_ko : r.intro_en);
 export const visible = (messages, blocked) => messages.filter(m => !blocked.includes(m.author_tag));
 // Server errors are "chat:<code>"; anything else is a network / unknown failure.
 export const errorKey = message => {
@@ -44,7 +45,7 @@ export function messagesUrl(room, afterId = 0, limit = 60) {
 
 const get = restGet;
 
-export const fetchRooms = (fetchImpl = fetch) => get(roomsUrl(), fetchImpl);
+export const fetchRooms = async (fetchImpl = fetch) => (await get(roomsUrl(), fetchImpl)).filter(r=>inRegion(r));
 // Rooms this device joined ("My chats"), each with its latest message for the preview line.
 export const myRoomsUrl = tag => SUPABASE_URL + '/rest/v1/chat_members?' + new URLSearchParams({select: 'room_id,joined_at', author_tag: 'eq.' + tag, order: 'joined_at.desc'});
 export async function fetchMyRooms(tag, fetchImpl = fetch) {
@@ -66,8 +67,14 @@ export const postMessage = (secret, room, body, item = null, replyTo = null, fet
   p_retailer: item?.retailer ?? null, p_market: item?.market ?? null, p_sku: item?.sku ?? null, p_reply_to: replyTo
 }, fetchImpl);
 // Anyone can open a public topic room; the server checks length, links, words, duplicates and rate.
-export const createRoom = (secret, {title, intro = '', tag = 'talk', concerns = []}, fetchImpl = fetch) => rpc('create_room', {
-  p_secret: secret, p_title: String(title ?? '').trim(), p_intro: String(intro ?? '').trim(), p_tag: tag, p_concerns: concerns
-}, fetchImpl);
+export async function createRoom(secret, {title, intro = '', tag = 'talk', concerns = []}, fetchImpl = fetch) {
+  const args={p_secret:secret,p_title:String(title??'').trim(),p_intro:String(intro??'').trim(),p_tag:tag,p_concerns:concerns};
+  try { return await rpc('create_region_room',{...args,p_service_region:region},fetchImpl); }
+  catch(e) {
+    // Only the original US pilot can use the old RPC when the migration is missing.
+    if(region==='us' && /Could not find|PGRST202/.test(e.message)) return rpc('create_room',args,fetchImpl);
+    throw e;
+  }
+}
 export const likeMessage = (secret, id, fetchImpl = fetch) => rpc('like_chat', {p_secret: secret, p_message: id}, fetchImpl);
 export const reportMessage = (secret, id, reason, fetchImpl = fetch) => rpc('report_chat', {p_secret: secret, p_message: id, p_reason: reason}, fetchImpl);

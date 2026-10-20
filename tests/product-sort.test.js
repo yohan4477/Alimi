@@ -11,7 +11,12 @@ test('product ranking combines family options, deduplicates sources, and separat
  assert.deepEqual(list,[b,c,a]);
  assert.deepEqual(rankProducts([{familyKey:'a'},b],'mentions',stats),[{familyKey:'a'},b]);
 });
-test('rank query uses public attachments and a bounded 24h sample',async()=>{
- let calls=0;await loadProductStats(async url=>{calls++;const u=new URL(url);assert.equal(u.searchParams.get('item'),'not.is.null');assert.match(u.searchParams.get('created_at'),/^gte\./);return {ok:true,json:async()=>[]}});
- assert.equal(calls,3);assert.match(productSortControls(),/data-product-sort="likes"/);
+test('rank sample is constrained to current community rooms and parent posts',async()=>{
+ const calls=[];await loadProductStats(async url=>{const u=new URL(url);calls.push(u);
+ if(u.pathname.endsWith('chat_room_list'))return {ok:true,json:async()=>[{id:'us-room',service_region:'us'},{id:'kr-room',service_region:'kr'}]};
+ assert.equal(u.searchParams.get('item'),'not.is.null');assert.match(u.searchParams.get('created_at'),/^gte\./);
+ if(u.pathname.endsWith('community_comments'))assert.equal(u.searchParams.get('post_id'),'in.(10)');
+ else assert.equal(u.searchParams.get('room_id'),'in.(us-room)');
+ return {ok:true,json:async()=>u.pathname.endsWith('community_posts')?[{id:10}]:[]};});
+ assert.equal(calls.length,4);assert.match(productSortControls(),/data-product-sort="likes"/);
 });

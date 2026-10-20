@@ -12,7 +12,7 @@ enum L10n {
     }
     private static var stored: String {
         if let o = UserDefaults.standard.string(forKey: "alimi.lang"), o == "ko" || o == "en" { return o }
-        return "ko"
+        return ServiceRegion.current == "kr" ? "ko" : "en"
     }
     static var locale: Locale { Locale(identifier: language == "ko" ? "ko_KR" : "en_US") }
     private static let table: [String: [String: String]] = {

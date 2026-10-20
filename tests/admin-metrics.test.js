@@ -25,3 +25,11 @@ test('empty received dataset remains no_data, not fabricated zero KPIs',async()=
   const r=await readMetrics({env,now,fetchImpl:async()=>new Response('[]',{headers:{'content-range':'*/0'}})});
   assert.equal(r.state,'no_data');assert.equal(r.metrics,null);
 });
+
+test('region filter separates pilots and leaves legacy events unclassified',async()=>{
+ const rows=[{...row(1,'kr-user','product_view'),props:{service_region:'kr'}},{...row(2,'us-user','product_view'),props:{service_region:'us'}},row(3,'legacy','product_view')];
+ const fetchImpl=async()=>new Response(JSON.stringify(rows),{headers:{'content-range':'0-2/3'}});
+ const kr=await readMetrics({env,now,fetchImpl,serviceRegion:'kr'});
+ assert.equal(kr.metrics.detail,1);assert.equal(kr.unknownRegionEvents,1);assert.equal(kr.serviceRegion,'kr');
+ assert.equal((await readMetrics({env,now,fetchImpl,serviceRegion:'all'})).metrics.detail,3);
+});

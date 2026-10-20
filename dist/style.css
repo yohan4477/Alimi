@@ -555,6 +555,8 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .setup-nudge{background:#f1f6ff;border-radius:12px;padding:12px 14px;margin:8px 0;color:var(--ink)}
 .setup-nudge b{font-size:14px}.setup-nudge p{font-size:12px;line-height:1.5;color:#6b7385;margin:5px 0}
 .setup-nudge>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.setup-nudge button{min-height:44px;font-size:12px}.setup-nudge .text-btn{color:#6b7385}
+/* Service context uses the existing white/blue design, independently of UI locale. */
+.service-context{display:flex;justify-content:flex-end;padding:0 20px 4px}.service-region-button{border:0;background:transparent;color:#596b82;font:inherit;font-size:12px;min-height:32px;padding:4px 8px;cursor:pointer;white-space:nowrap}#explore-region{text-align:right;padding:0 12px}#service-region-picker{border:1px solid #e6eaf1;border-radius:16px;max-width:min(360px,calc(100vw - 32px));padding:24px;color:#152033}#service-region-picker p{font-size:13px;color:#697485}.service-choices{display:flex;gap:8px}.service-choices button{flex:1;min-height:44px;border:1px solid #e6eaf1;border-radius:8px;background:white;color:#152033}.service-choices button[aria-pressed=true]{border-color:#1463e8;color:#1463e8;background:#f3f7ff}
 
 /* Compact conversation: inline clocks and consecutive-author groups. */
 #chat-log .chat-msg{margin:12px 0 0;grid-template-columns:minmax(0,1fr) 44px;gap:6px}

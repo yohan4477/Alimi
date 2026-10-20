@@ -7,7 +7,7 @@ if (root) {
     metricsBusy=true;status.textContent='불러오는 중…';
     const cells=[...document.querySelectorAll('[data-metric]')];cells.forEach(e=>e.textContent='조회 중');
     try{
-      const response=await fetch('/api/admin?view=metrics',{credentials:'same-origin',cache:'no-store'});
+      const response=await fetch('/api/admin?view=metrics&region='+encodeURIComponent(document.getElementById('metrics-region')?.value??'all'),{credentials:'same-origin',cache:'no-store'});
       if(!response.ok)throw Error('access');const data=await response.json();
       const labels={unconnected:'미연결',denied:'조회 권한 없음',unavailable:'조회 실패',partial:'집계 범위 초과 · 일부 데이터',no_data:'미수신',received:'수신 확인'};
       const label=labels[data.state]??'조회 실패';
@@ -17,6 +17,7 @@ if (root) {
     }catch{status.textContent='조회 실패 · 로그인과 연결 상태를 확인하세요.';cells.forEach(e=>e.textContent='조회 실패');}
     finally{metricsBusy=false;}
   }
+  document.getElementById('metrics-region')?.addEventListener('change',()=>refreshMetrics(true));
   document.getElementById('metrics-refresh')?.addEventListener('click',()=>refreshMetrics(true));
   const review = document.getElementById('sb-planning-review');
   const tabs = [...root.querySelectorAll('[role="tab"]')];

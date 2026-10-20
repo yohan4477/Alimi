@@ -24,7 +24,7 @@ struct EventLogger {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
         var body: [String: Any] = ["device_id": deviceID, "platform": "ios", "app_version": String("\(version) (\(build))".prefix(20)),
-                                   "name": event.rawValue, "props": props]
+                                   "name": event.rawValue, "props": props.merging(["service_region": ServiceRegion.current, "ui_language": L10n.language]) { _, context in context }]
         body["product_id"] = productID
         return body
     }

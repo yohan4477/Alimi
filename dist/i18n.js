@@ -1,6 +1,7 @@
 // UI text lookup shared with iOS (strings.json). Korean when the browser language is Korean, English
 // otherwise. `?lang=ko|en` overrides and is remembered, so the Korean operator can check either language.
 import strings from './strings.json' with {type: 'json'};
+import {defaultLanguage} from './region.js';
 
 function detect() {
   try {
@@ -9,7 +10,7 @@ function detect() {
     const saved = globalThis.localStorage?.getItem('alimi-lang');
     if (saved === 'ko' || saved === 'en') return saved;
   } catch {}
-  return String(globalThis.navigator?.language ?? 'en').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+  return globalThis.location?.pathname?.match(/^\/(kr|us)(\/|$)/) ? defaultLanguage : (String(globalThis.navigator?.language ?? 'en').toLowerCase().startsWith('ko') ? 'ko' : 'en');
 }
 
 export let lang = detect();

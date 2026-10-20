@@ -15,7 +15,7 @@ test('device id is a persisted random UUID; survives broken storage', () => {
 
 test('only whitelisted events are built', () => {
   assert.deepEqual(buildEvent('product_view', 'cosrx', undefined, 'id'),
-    {device_id: 'id', platform: 'web', app_version: 'web-1', name: 'product_view', product_id: 'cosrx', props: {}});
+    {device_id: 'id', platform: 'web', app_version: 'web-1', name: 'product_view', product_id: 'cosrx', props: {service_region:'us',ui_language:'en'}});
   assert.throws(() => buildEvent('hack', null, {}, 'id'), /Unknown event/);
 });
 
@@ -27,7 +27,7 @@ test('track posts minimal anonymous payload and never throws', async () => {
   assert.equal(calls[0][1].headers.Prefer, 'return=minimal');
   const body = JSON.parse(calls[0][1].body);
   assert.deepEqual(Object.keys(body).sort(), ['app_version', 'device_id', 'name', 'platform', 'product_id', 'props']);
-  assert.deepEqual(body.props, {length: 5, results: 2});
+  assert.deepEqual(body.props, {length: 5, results: 2,service_region:'us',ui_language:'en'});
   assert.doesNotThrow(() => track('home_view', null, {}, {storage: memStorage(), fetchImpl: () => Promise.reject(Error('offline'))}));
   assert.doesNotThrow(() => track('bogus', null, {}, {storage: memStorage(), fetchImpl: async () => ({})}));
 });

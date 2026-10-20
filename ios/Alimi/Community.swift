@@ -39,6 +39,10 @@ enum CommunityAPI {
             if ids.isEmpty { return [] }
             q["id"] = "in.(" + ids.map(String.init).joined(separator: ",") + ")"
         }
+        let allowed = Set(try await ChatAPI.rooms().map(\.id))
+        if let room, !allowed.contains(room) { return [] }
+        if allowed.isEmpty { return [] }
+        if room == nil { q["room_id"] = "in.(" + allowed.sorted().joined(separator: ",") + ")" }
         let rows: [CommunityPost] = try await get("community_posts", q)
         return rows.filter { !ChatAPI.blocked.contains($0.author_tag) }
     }
@@ -236,7 +240,7 @@ struct CommunityPostView: View {
                     if let whereBought = post.bought_where {
                         VStack(alignment: .leading) {
                             Text(L("review.buyerInfo")).font(.caption.bold()); Text(whereBought)
-                            if let price = post.bought_price_minor { Text("\(post.bought_currency ?? "USD") \(String(format: "%.2f", Double(price) / 100))") }
+                            if let price = post.bought_price_minor { Text(ServiceRegion.money(ServiceRegion.amount(price, currency: post.bought_currency ?? "USD"), currency: post.bought_currency ?? "USD")) }
                             if let country = post.ship_country { Text(country + (post.ship_days.map { " · \($0)d" } ?? "")) }
                         }.font(.caption).padding().background(Color.canvas, in: RoundedRectangle(cornerRadius: 12))
                     }
@@ -363,7 +367,7 @@ struct CommunityComposer: View {
                     }
                     Section(L("review.purchase")) {
                         TextField(L("review.where"), text: $whereBought)
-                        TextField(L("review.price") + " (USD)", text: $price).keyboardType(.decimalPad)
+                        TextField(L("review.price") + " (" + ServiceRegion.currency + ")", text: $price).keyboardType(.decimalPad)
                         TextField(L("review.shipCountry") + " (US, KR…)", text: $country).textInputAutocapitalization(.characters)
                         TextField(L("review.shipDays"), text: $shipDays).keyboardType(.numberPad)
                         Toggle(L("review.sponsored"), isOn: $sponsored)
@@ -383,7 +387,7 @@ struct CommunityComposer: View {
                 .onAppear {
                     if let message = fromMessage, title.isEmpty && text.isEmpty {
                         text = message.body; title = String(message.body.prefix(100))
-                        if let c = message.item { item = CatalogItem(retailer: c.retailer, market: c.market, sku: c.sku, brand: c.brand, brandKo: c.brandKo, name: c.name, category: nil, priceMinor: c.priceMinor, currency: "USD", availability: "unknown", imageUrl: c.imageUrl) }
+                        if let c = message.item { item = CatalogItem(retailer: c.retailer, market: c.market, sku: c.sku, brand: c.brand, brandKo: c.brandKo, name: c.name, category: nil, priceMinor: c.priceMinor, currency: c.market == "KR" ? "KRW" : "USD", availability: "unknown", imageUrl: c.imageUrl) }
                     }
                 }
                 .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) { Button("OK") {} }
@@ -405,7 +409,7 @@ struct CommunityComposer: View {
             for (key, value) in [("used_for", usedFor), ("skin_type", skinType), ("skin_tone", tone), ("undertone", undertone), ("climate", climate), ("goal", goal), ("bought_where", whereBought)] where !value.isEmpty { review[key] = value }
             if !price.isEmpty {
                 guard let amount = Double(price), amount.isFinite, amount > 0, amount <= 100000 else { notice = L("target.invalid"); return }
-                review["bought_price_minor"] = Int((amount * 100).rounded()); review["bought_currency"] = "USD"
+                review["bought_price_minor"] = Int((amount * (ServiceRegion.currency == "KRW" ? 1 : 100)).rounded()); review["bought_currency"] = ServiceRegion.currency
             }
             if !country.isEmpty {
                 guard country.range(of: "^[A-Za-z]{2}$", options: .regularExpression) != nil else { notice = L("review.shipCountry"); return }

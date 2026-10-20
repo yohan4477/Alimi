@@ -103,11 +103,10 @@ try {
     await page.click('.room-list-card[data-chat-room="acne"]');
     // Opens on the chat, readable; the join bar shows the rules and unlocks the composer.
     await page.waitForSelector('.chat-msg >> text=추천 좀 해주세요');
-    assert.match(await page.textContent('.join-bar .chat-rules'), /.+/);
-    await page.click('#join-live');
+    assert.equal(await page.locator('#join-live').count(),0,'anonymous reading and composing require no join step');
     await page.waitForSelector('#chat-text');
     assert.equal(await page.getAttribute('#chat-text', 'placeholder'), '메시지를 입력하세요...');
-    await page.click('[data-chat-menu="1"]');
+    await page.locator('.chat-msg[data-id="1"]').press('Enter');
     await page.click('[data-chat-action="reply"]');
     await page.click('[data-chat-action="attach"]');
     await page.fill('#chat-pick-q', 'anua');
@@ -117,10 +116,10 @@ try {
     await page.waitForSelector('.chat-msg .chat-item');
     assert.equal(posted.p_reply_to, 1);
     assert.ok(posted.p_sku, 'searched item is attached by reference');
-    await page.click('[data-chat-menu="1"]');
+    await page.locator('.chat-msg[data-id="1"]').press('Enter');
     await page.click('[data-chat-action="report"]');
     await page.click('[data-chat-report="spam"]');
-    await page.click('[data-chat-menu="1"]');
+    await page.locator('.chat-msg[data-id="1"]').press('Enter');
     await page.click('[data-chat-action="block"]');
     assert.equal(await page.locator('.chat-msg >> text=추천 좀 해주세요').count(), 0, 'blocked author is hidden');
     await page.click('[data-chat-action="rooms"]');
@@ -140,6 +139,7 @@ try {
     await page.click('.room-list-card[data-chat-room="acne"]');
     await page.click('.room-notice[data-topic-mode="posts"]');
     await page.click('[data-chat-action="write"]');
+    await page.click('#chat-join [data-chat-action="join-ok"]');
     await page.click('[data-write-kind="question"]');
     await page.fill('#write-title', '끈적이지 않는 선크림 추천해 주세요');
     await page.click('[data-write-reason="texture"]');

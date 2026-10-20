@@ -10,7 +10,7 @@ final class AlimiUITests: XCTestCase {
         continueAfterFailure = false
         app = XCUIApplication()
         // Flows run in Korean (the operator's language); testEnglishForUSUsers checks the English UI.
-        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding",
+        app.launchArguments = ["-alimi.lang", "ko", "-seoulbeauty.region", "us", "-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
         app.launch()
         XCTAssertEqual(app.tabBars.buttons.count, 3, "Only community, explore and activity")
@@ -167,7 +167,7 @@ final class AlimiUITests: XCTestCase {
     // Journey 1: splash → interests and concerns (2/3) → matching rooms (3/3) → the room, then My activity remembers it.
     func testJourneyOneOnboardingToRoom() {
         app.terminate()
-        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-holdSplash",
+        app.launchArguments = ["-alimi.lang", "ko", "-seoulbeauty.region", "us", "-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-holdSplash",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
         app.launch()
         let splash = app.staticTexts["좋은 일상을 만든다"]
@@ -183,6 +183,8 @@ final class AlimiUITests: XCTestCase {
         app.buttons["onb-next"].tap()
         XCTAssertTrue(app.buttons["onb-profile-next"].waitForExistence(timeout: 5))
         app.buttons["onb-profile-next"].tap()
+        XCTAssertTrue(app.buttons["onb-show-topics"].waitForExistence(timeout: 5), "choose product or topic before entering a room")
+        app.buttons["onb-show-topics"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10), "acne room recommended")
         XCTAssertTrue(app.buttons["onb-filter-rec"].exists && app.buttons["onb-filter-all"].exists)
@@ -223,7 +225,7 @@ final class AlimiUITests: XCTestCase {
     }
     func testEnglishForUSUsers() {
         app.terminate()
-        app.launchArguments = ["-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding", "-alimi.lang", "en",
+        app.launchArguments = ["-alimi.lang", "ko", "-seoulbeauty.region", "us", "-uiTestingReset", "-uiTestingOffline", "-disableEvents", "-skipOnboarding", "-alimi.lang", "en",
                                "-alimi.notifications.introductionSeen.v1", "YES", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["My activity"].waitForExistence(timeout: 15))

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {shareUrl, share, sharedTarget} from '../dist/share.js';
 
 test('share links keep the page and drop language, hash and other params', () => {
-  assert.equal(shareUrl({room: 'acne'}, 'https://x.app/?lang=ko&utm=1#top'), 'https://x.app/?room=acne');
+  assert.equal(shareUrl({room: 'acne'}, 'https://x.app/?lang=ko&utm=1#top'), 'https://x.app/us?room=acne');
 });
 
 test('system share sheet first; cancelling is not an error; otherwise copy the link', async () => {

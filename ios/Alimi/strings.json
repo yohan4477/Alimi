@@ -1,26 +1,92 @@
 {
-  "activity.profile": {"ko": "내 프로필·관심 고민", "en": "My profile & interests"},
-  "activity.profileHint": {"ko": "피부 정보와 관심 고민 관리", "en": "Manage skin details and interests"},
-  "activity.skinHint": {"ko": "비슷한 피부의 후기 확인·리뷰 작성에 사용해요", "en": "For similar-skin reviews and review forms"},
-  "activity.interests": {"ko": "관심 분야·고민", "en": "Interests & concerns"},
-  "activity.interestsHint": {"ko": "관심 있는 대화를 찾는 데 사용해요", "en": "Find conversations that match your interests"},
-  "activity.savedEmpty": {"ko": "아직 저장한 상품이 없어요. 다시 보고 싶은 상품을 저장해 보세요.", "en": "No saved products yet. Save products you want to revisit."},
-  "activity.browseProducts": {"ko": "상품 둘러보기", "en": "Browse products"},
-  "activity.browseRooms": {"ko": "대화방 둘러보기", "en": "Browse conversations"},
-  "chat.rulesTitle": {"ko": "대화 이용 안내", "en": "Community guidelines"},
-  "chat.quickRules": {"ko": "서로 존중하며 이야기해요. 광고·욕설·개인정보 공유는 금지돼요.", "en": "Be respectful. No ads, abuse or sharing personal information."},
-  "onb.optional": {"ko": "내 정보 (선택)", "en": "About me (optional)"},
-  "onb.private": {"ko": "이 기기에만 저장돼요. 연령대는 추천에 사용하지 않아요.", "en": "Saved on this device only. Age is not used for recommendations."},
-  "onb.age": {"ko": "연령대", "en": "Age range"},
-  "onb.skin": {"ko": "피부 타입", "en": "Skin type"},
-  "onb.unknown": {"ko": "선택 안 함 / 잘 모르겠어요", "en": "Skip / not sure"},
-  "onb.skin.dry": {"ko": "건성", "en": "Dry"},
-  "onb.skin.oily": {"ko": "지성", "en": "Oily"},
-  "onb.skin.combination": {"ko": "복합성", "en": "Combination"},
-  "onb.skin.normal": {"ko": "중성", "en": "Normal"},
-  "onb.empty": {"ko": "맞는 방이 없나요? 직접 만들어보세요.", "en": "No room for you? Start one."},
-  "share.openApp": {"ko": "앱에서 열기", "en": "Open in app"},
-  "nav.explore": {"ko": "탐색", "en": "Explore"},
+  "activity.profile": {
+    "ko": "내 프로필·관심 고민",
+    "en": "My profile & interests"
+  },
+  "activity.profileHint": {
+    "ko": "피부 정보와 관심 고민 관리",
+    "en": "Manage skin details and interests"
+  },
+  "activity.skinHint": {
+    "ko": "비슷한 피부의 후기 확인·리뷰 작성에 사용해요",
+    "en": "For similar-skin reviews and review forms"
+  },
+  "activity.interests": {
+    "ko": "관심 분야·고민",
+    "en": "Interests & concerns"
+  },
+  "activity.interestsHint": {
+    "ko": "관심 있는 대화를 찾는 데 사용해요",
+    "en": "Find conversations that match your interests"
+  },
+  "activity.savedEmpty": {
+    "ko": "아직 저장한 상품이 없어요. 다시 보고 싶은 상품을 저장해 보세요.",
+    "en": "No saved products yet. Save products you want to revisit."
+  },
+  "activity.browseProducts": {
+    "ko": "상품 둘러보기",
+    "en": "Browse products"
+  },
+  "activity.browseRooms": {
+    "ko": "대화방 둘러보기",
+    "en": "Browse conversations"
+  },
+  "chat.rulesTitle": {
+    "ko": "대화 이용 안내",
+    "en": "Community guidelines"
+  },
+  "chat.quickRules": {
+    "ko": "서로 존중하며 이야기해요. 광고·욕설·개인정보 공유는 금지돼요.",
+    "en": "Be respectful. No ads, abuse or sharing personal information."
+  },
+  "onb.optional": {
+    "ko": "내 정보 (선택)",
+    "en": "About me (optional)"
+  },
+  "onb.private": {
+    "ko": "이 기기에만 저장돼요. 연령대는 추천에 사용하지 않아요.",
+    "en": "Saved on this device only. Age is not used for recommendations."
+  },
+  "onb.age": {
+    "ko": "연령대",
+    "en": "Age range"
+  },
+  "onb.skin": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "onb.unknown": {
+    "ko": "선택 안 함 / 잘 모르겠어요",
+    "en": "Skip / not sure"
+  },
+  "onb.skin.dry": {
+    "ko": "건성",
+    "en": "Dry"
+  },
+  "onb.skin.oily": {
+    "ko": "지성",
+    "en": "Oily"
+  },
+  "onb.skin.combination": {
+    "ko": "복합성",
+    "en": "Combination"
+  },
+  "onb.skin.normal": {
+    "ko": "중성",
+    "en": "Normal"
+  },
+  "onb.empty": {
+    "ko": "맞는 방이 없나요? 직접 만들어보세요.",
+    "en": "No room for you? Start one."
+  },
+  "share.openApp": {
+    "ko": "앱에서 열기",
+    "en": "Open in app"
+  },
+  "nav.explore": {
+    "ko": "탐색",
+    "en": "Explore"
+  },
   "_note": "Single source of UI text for web (dist/) and iOS (copied to ios/Alimi/strings.json; tests keep them identical). Korean shows when the device language is Korean, English otherwise. {name} placeholders are filled at runtime.",
   "all": {
     "ko": "전체",
@@ -171,8 +237,8 @@
     "en": "Product"
   },
   "detail.usPrice": {
-    "ko": "{retailer} · 미국 상품가",
-    "en": "{retailer} · US price"
+    "ko": "{retailer} 판매 가격",
+    "en": "Price at {retailer}"
   },
   "detail.checked": {
     "ko": "상품가 확인 {checked} · 최신 조건은 판매처에서 확인",
@@ -1530,10 +1596,22 @@
     "ko": "본인 설정하기",
     "en": "Personal settings"
   },
-  "onb.save": {"ko":"저장하고 대화 계속하기","en":"Save and continue chatting"},
-  "onb.nudgeTitle": {"ko":"본인 설정을 하면 도움이 돼요","en":"Personal settings can help"},
-  "onb.nudgeHint": {"ko":"관심 분야와 고민을 설정하면 관련 대화를 찾기 쉬워요. 지금 바로 대화해도 괜찮아요.","en":"Set your interests and concerns to find relevant conversations. You can keep chatting without setting them."},
-  "onb.snooze": {"ko":"하루 동안 보지 않기","en":"Hide for 24 hours"},
+  "onb.save": {
+    "ko": "저장하고 대화 계속하기",
+    "en": "Save and continue chatting"
+  },
+  "onb.nudgeTitle": {
+    "ko": "본인 설정을 하면 도움이 돼요",
+    "en": "Personal settings can help"
+  },
+  "onb.nudgeHint": {
+    "ko": "관심 분야와 고민을 설정하면 관련 대화를 찾기 쉬워요. 지금 바로 대화해도 괜찮아요.",
+    "en": "Set your interests and concerns to find relevant conversations. You can keep chatting without setting them."
+  },
+  "onb.snooze": {
+    "ko": "하루 동안 보지 않기",
+    "en": "Hide for 24 hours"
+  },
   "onb.none": {
     "ko": "아직 고르지 않았어요",
     "en": "Not chosen yet"
@@ -1958,27 +2036,128 @@
     "ko": "Seoul Beauty에서 K-뷰티 이야기 같이 해요!",
     "en": "Talk K-beauty with me on Seoul Beauty!"
   },
-  "chat.copy": {"ko": "메시지 복사", "en": "Copy message"},
-  "chat.newMessages": {"ko": "새 메시지 {n}개 ↓", "en": "{n} new messages ↓"},
-  "rooms.findBy": {"ko": "대화 찾기", "en": "Find conversations"},
-  "rooms.byProduct": {"ko": "제품으로 대화 찾기", "en": "Find by product"},
-  "rooms.productLabel": {"ko": "어떤 제품이 궁금하세요?", "en": "Which product are you curious about?"},
-  "rooms.productPh": {"ko": "상품명이나 브랜드 검색", "en": "Search a product or brand"},
-  "rooms.productHint": {"ko": "방 제목에 제품명이 있는 대화를 찾아요.", "en": "Find rooms with the product name in their title."},
-  "rooms.productPrompt": {"ko": "제품명을 입력해 대화를 찾아보세요.", "en": "Enter a product name to find conversations."},
-  "rooms.productEmpty": {"ko": "아직 제목이 일치하는 대화방이 없어요.", "en": "No rooms have a matching title yet."},
-  "rooms.productCount": {"ko": "대화방 {n}개", "en": "{n} rooms"},
-  "rooms.productCreate": {"ko": "대화방을 만들어보세요!", "en": "Start a conversation!"},
-  "rooms.productTalk": {"ko": "이 제품 대화 찾기", "en": "Find conversations about this product"},
-  "onb.products": {"ko":"어떤 제품 이야기가 궁금하세요?","en":"Which product would you like to talk about?"},
-  "onb.productsHint": {"ko":"제품을 골라 진행 중인 대화를 둘러보세요. 대화방은 직접 선택해 들어갈 수 있어요.","en":"Pick a product to browse conversations. You choose which room to enter."},
-  "onb.finishBrowse": {"ko": "대화방 둘러보기", "en": "Browse conversations"},
-  "onb.age.under18": {"ko": "18세 미만", "en": "Under 18"},
-  "rooms.productsActive": {"ko": "지금 대화 중인 제품", "en": "Products people are discussing"},
-  "rooms.productAll": {"ko": "제품 목록", "en": "All products"},
-  "rooms.noProductRooms": {"ko": "아직 제품별 대화가 없어요. 제품명을 검색해 시작해보세요.", "en": "No product rooms yet. Search a product to start one."},
-  "rooms.demoProducts": {"ko": "가상 제품별 대화 · 실제 이용 현황이 아니에요.", "en": "Example conversations, not live activity."},
-  "rooms.demoCreate": {"ko": "데모 대화방을 만들어보세요. 이 화면에서만 확인할 수 있어요.", "en": "Create a demo room for this session only."},
-  "rooms.demoCreated": {"ko": "데모 대화방을 만들었어요.", "en": "Demo room created."},
-  "onb.age.under15": {"ko": "15세 미만", "en": "Under 15"}
+  "chat.copy": {
+    "ko": "메시지 복사",
+    "en": "Copy message"
+  },
+  "chat.newMessages": {
+    "ko": "새 메시지 {n}개 ↓",
+    "en": "{n} new messages ↓"
+  },
+  "rooms.findBy": {
+    "ko": "대화 찾기",
+    "en": "Find conversations"
+  },
+  "rooms.byProduct": {
+    "ko": "제품으로 대화 찾기",
+    "en": "Find by product"
+  },
+  "rooms.productLabel": {
+    "ko": "어떤 제품이 궁금하세요?",
+    "en": "Which product are you curious about?"
+  },
+  "rooms.productPh": {
+    "ko": "상품명이나 브랜드 검색",
+    "en": "Search a product or brand"
+  },
+  "rooms.productHint": {
+    "ko": "방 제목에 제품명이 있는 대화를 찾아요.",
+    "en": "Find rooms with the product name in their title."
+  },
+  "rooms.productPrompt": {
+    "ko": "제품명을 입력해 대화를 찾아보세요.",
+    "en": "Enter a product name to find conversations."
+  },
+  "rooms.productEmpty": {
+    "ko": "아직 제목이 일치하는 대화방이 없어요.",
+    "en": "No rooms have a matching title yet."
+  },
+  "rooms.productCount": {
+    "ko": "대화방 {n}개",
+    "en": "{n} rooms"
+  },
+  "rooms.productCreate": {
+    "ko": "대화방을 만들어보세요!",
+    "en": "Start a conversation!"
+  },
+  "rooms.productTalk": {
+    "ko": "이 제품 대화 찾기",
+    "en": "Find conversations about this product"
+  },
+  "onb.products": {
+    "ko": "어떤 제품 이야기가 궁금하세요?",
+    "en": "Which product would you like to talk about?"
+  },
+  "onb.productsHint": {
+    "ko": "제품을 골라 진행 중인 대화를 둘러보세요. 대화방은 직접 선택해 들어갈 수 있어요.",
+    "en": "Pick a product to browse conversations. You choose which room to enter."
+  },
+  "onb.finishBrowse": {
+    "ko": "대화방 둘러보기",
+    "en": "Browse conversations"
+  },
+  "onb.age.under18": {
+    "ko": "18세 미만",
+    "en": "Under 18"
+  },
+  "rooms.productsActive": {
+    "ko": "지금 대화 중인 제품",
+    "en": "Products people are discussing"
+  },
+  "rooms.productAll": {
+    "ko": "제품 목록",
+    "en": "All products"
+  },
+  "rooms.noProductRooms": {
+    "ko": "아직 제품별 대화가 없어요. 제품명을 검색해 시작해보세요.",
+    "en": "No product rooms yet. Search a product to start one."
+  },
+  "rooms.demoProducts": {
+    "ko": "가상 제품별 대화 · 실제 이용 현황이 아니에요.",
+    "en": "Example conversations, not live activity."
+  },
+  "rooms.demoCreate": {
+    "ko": "데모 대화방을 만들어보세요. 이 화면에서만 확인할 수 있어요.",
+    "en": "Create a demo room for this session only."
+  },
+  "rooms.demoCreated": {
+    "ko": "데모 대화방을 만들었어요.",
+    "en": "Demo room created."
+  },
+  "onb.age.under15": {
+    "ko": "15세 미만",
+    "en": "Under 15"
+  },
+  "region.open": {
+    "ko": "서비스 지역 선택",
+    "en": "Choose service region"
+  },
+  "region.title": {
+    "ko": "서비스 지역",
+    "en": "Service region"
+  },
+  "region.kr": {
+    "ko": "한국",
+    "en": "South Korea"
+  },
+  "region.us": {
+    "ko": "미국",
+    "en": "United States"
+  },
+  "region.hint": {
+    "ko": "선택한 지역의 대화와 판매처를 보여드려요.",
+    "en": "Conversations and retailers follow your service region."
+  },
+  "region.languageHint": {
+    "ko": "화면 언어를 바꿔도 서비스 지역과 판매처는 유지돼요.",
+    "en": "Changing interface language keeps your service region and retailers."
+  },
+  "region.krPending": {
+    "ko": "한국 대화방을 준비 중이에요. 데모에서 이용 흐름을 먼저 살펴볼 수 있어요.",
+    "en": "Korean conversations are being prepared. Try demo mode to explore the experience."
+  },
+  "region.noOffers": {
+    "ko": "이 지역의 판매처 정보를 준비 중이에요.",
+    "en": "Retailer listings for this region are being prepared."
+  }
 }
