@@ -16,7 +16,11 @@ export function rankProducts(items,mode=order,counts=stats){
 }
 export const productSortMode=()=>order;
 export function setProductSort(value){if(!['mentions','likes'].includes(value))return;order=value;document.dispatchEvent(new Event('product-sort-change'));}
-export function productSortControls(){const ko=lang==='ko';return `<div class="product-sort" role="group" aria-label="${ko?'상품 정렬':'Product order'}">${[['mentions',ko?'언급순':'Most mentioned'],['likes',ko?'좋아요순':'Most liked']].map(([k,label])=>`<button class="chip ${order===k?'active':''}" data-product-sort="${k}" aria-pressed="${order===k}">${label}</button>`).join('')}</div><p class="home-note product-sort-note" role="status">${status==='loading'?(ko?'집계 불러오는 중…':'Loading counts…'):status==='failed'?(ko?'집계를 불러오지 못했어요. 기존 순서로 표시해요.':'Counts unavailable. Showing original order.'):ko?'불러온 상품 · 최근 24시간 글·댓글·대화 표본 기준. 좋아요는 상품 언급에 받은 합계':'Loaded products · sampled posts, comments and chats from the last 24h. Likes on product mentions.'}</p>`;}
+export function productSortControls(){
+  const ko=lang==='ko',scope=status==='loading'?(ko?'집계 중…':'Loading…'):status==='failed'?(ko?'집계 확인 필요':'Counts unavailable'):(ko?'최근 24시간 표본':'Last 24h sample');
+  const detail=ko?'불러온 상품 중 최근 24시간 글·댓글·대화 표본 기준. 좋아요는 상품 언급이 받은 합계입니다.':'Loaded products ranked by sampled posts, comments and chats from the last 24h. Likes are totals on product mentions.';
+  return `<div class="product-sort"><small class="product-sort-scope" title="${detail}" role="status">${scope}</small><div class="product-sort-options" role="group" aria-label="${ko?'상품 정렬':'Product order'}">${[['mentions',ko?'언급순':'Most mentioned'],['likes',ko?'좋아요순':'Most liked']].map(([k,label])=>`<button class="product-sort-option" data-product-sort="${k}" aria-pressed="${order===k}">${label}</button>`).join('')}</div></div>`;
+}
 export async function loadProductStats(fetchImpl=fetch){
   if(pending)return pending;status='loading';
   pending=(async()=>{try{const since=new Date(Date.now()-86400000).toISOString();const tables=['community_posts','community_comments','chat_messages'];
