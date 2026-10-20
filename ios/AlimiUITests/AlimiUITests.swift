@@ -183,6 +183,8 @@ final class AlimiUITests: XCTestCase {
         app.buttons["onb-next"].tap()
         XCTAssertTrue(app.buttons["onb-profile-next"].waitForExistence(timeout: 5))
         app.buttons["onb-profile-next"].tap()
+        XCTAssertTrue(app.buttons["onb-show-topics"].waitForExistence(timeout: 5), "choose product or topic before entering a room")
+        app.buttons["onb-show-topics"].tap()
         let room = app.buttons["chat-room-acne"].firstMatch
         XCTAssertTrue(room.waitForExistence(timeout: 10), "acne room recommended")
         XCTAssertTrue(app.buttons["onb-filter-rec"].exists && app.buttons["onb-filter-all"].exists)

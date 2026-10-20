@@ -32,14 +32,14 @@ async function mock(page, calls) {
       case 'app_events': return route.fulfill({status: 204});
       case 'offers': return json([]);
       case 'catalog_brands': return json([{brand: 'COSRX', brand_ko: '코스알엑스', families: 143, logo_url: null}]);
-      case 'catalog_families': return json(q('offset') === '0' ? [family] : []);
+      case 'catalog_region_families': return json(q('offset') === '0' ? [family] : []);
       case 'catalog_items': return json([item]);
       case 'chat_room_list': return json([room]);
       case 'chat_members': return json([]);
       case 'chat_messages': return json(q('id') ? [] : q('room_id') ? [message] : []);
       case 'community_posts': return json(q('id') ? [post, review].filter(p => q('id') === 'eq.' + p.id || q('id').startsWith('in.')) : [post, review]);
       case 'community_comments': return json([comment]);
-      case 'product_mentions': return json([{source: 'review', source_id: 8, post_id: 8, room_id: null, created_at: now}, {source: 'comment', source_id: 3, post_id: 7, room_id: null, created_at: now}]);
+      case 'product_mentions': return json([{source: 'review', source_id: 8, post_id: 8, room_id: room.id, created_at: now}, {source: 'comment', source_id: 3, post_id: 7, room_id: room.id, created_at: now}]);
       case 'join_chat': return json('Dewy Panda');
       case 'post_chat': { const b = req.postDataJSON(); return json({...message, id: 12, author_tag: 'me', nickname: 'Dewy Panda', body: b.p_body}); }
       case 'add_comment': { const b = req.postDataJSON(); return json({...comment, id: 4, author_tag: 'me', body: b.p_body, item: null}); }
@@ -67,12 +67,10 @@ try {
     await page.waitForSelector('#tabbar [data-screen="chat"].active');
     await page.waitForSelector('#chat [data-chat-room="acne"]');
   });
-  await step('start a conversation opens a topic sheet, then the write form for that topic', async () => {
-    await page.click('[data-chat-action="find-topic"]');
-    await page.click('#chat-start [data-chat-start="acne"]');
-    await page.waitForSelector('#post-write[open] #write-title');
-    assert.match(await page.locator('#post-write h2').innerText(), /Acne/);
-    await page.click('#post-write .close-dialog');
+  await step('start a conversation opens the free room form', async () => {
+    await page.click('.start-conversation');
+    await page.waitForSelector('#room-create[open] #room-title');
+    await page.click('#room-create .close-dialog');
   });
   await step('search finds catalog items', async () => {
     await page.click('#tabbar [data-screen="search"]');

@@ -61,9 +61,9 @@ export const fetchComments = (post, fetchImpl = fetch) => get(commentsUrl(post),
 // Everything said about one product: posts (directly or via a comment) and the number of chat mentions.
 export async function fetchProductTalk(familyKey, fetchImpl = fetch) {
   const idsInRegion=new Set((await fetchRooms(fetchImpl)).map(r=>r.id));
-  const mentions = (await get(mentionsUrl(familyKey), fetchImpl)).filter(m=>idsInRegion.has(m.room_id));
+  const mentions = (await get(mentionsUrl(familyKey), fetchImpl)).filter(m=>m.post_id != null || idsInRegion.has(m.room_id));
   const ids = [...new Set(mentions.map(m => m.post_id).filter(Boolean))].slice(0, 20);
-  const posts = ids.length ? await get(rest('community_posts', {select: POST_FIELDS, id: `in.(${ids.join(',')})`, order: 'last_activity_at.desc'}), fetchImpl) : [];
+  const posts = ids.length ? await get(rest('community_posts', {select: POST_FIELDS, id: `in.(${ids.join(',')})`, order: 'last_activity_at.desc'}), fetchImpl).then(rows=>rows.filter(p=>idsInRegion.has(p.room_id))) : [];
   const reviewIds = new Set(mentions.filter(m => m.source === 'review').map(m => m.post_id));
   return {reviews: posts.filter(p => reviewIds.has(p.id)), posts: posts.filter(p => !reviewIds.has(p.id)), chatMentions: mentions.filter(m => m.source === 'chat').length};
 }
