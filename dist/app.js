@@ -1,4 +1,4 @@
-import {region, inMarket, languageURL} from './region.js';
+import {region, inMarket, languageURL, amount} from './region.js';
 import {regionButton,installRegionPicker} from './region-picker.js';
 import {rankProducts,productSortControls,setProductSort,loadProductStats} from './product-sort.js';
 import {loadingMarkup} from './loading-companion.js';
@@ -73,7 +73,7 @@ function drawFamilySelection(){
 function openDemoProduct(label){
   const item=demoProducts.find(p=>p.label===label||p.id===label);
   if(!item){toast(t('empty.products'));return;}
-  ++familyVersion;familyList=[];familyHead=null;
+  ++familyVersion;familyList=[];familyHead=null;$('#family-talk').talkRequest=null;
   const dlg=$('#family-dialog');
   $('#family-title').textContent=item.brand;
   $('#family-name').textContent=item.name;
@@ -87,12 +87,12 @@ function openCatalogItem(item,ref=''){
   if(!item){toast(t('empty.products'));return;}
   if(item.family_key){openFamily(item.family_key,ref,item);return;}
   const p={...item,id:['catalog',item.retailer,item.market,item.sku].join('|'),imageUrl:item.image_url,brandKo:item.brand_ko,
-    price:item.price??item.price_minor/100,familyKey:null,sourceRef:ref,history:[],delivery:null};
+    price:item.price??amount(item.price_minor,item.currency),familyKey:null,sourceRef:ref,history:[],delivery:null};
   products=products.filter(x=>x.id!==p.id).concat(p);openDetail(p.id);
 }
 
 async function openFamily(key,ref=null,option={}){
-  const version=++familyVersion,dlg=$('#family-dialog');familyList=[];familyHead=null;familyRef=ref;familySelection=0;
+  const version=++familyVersion,dlg=$('#family-dialog');familyList=[];familyHead=null;familyRef=ref;familySelection=0;$('#family-talk').talkRequest=null;
   $('#family-hero').innerHTML='';$('#family-title').textContent='';$('#family-name').textContent='';$('#family-body').innerHTML=loadingMarkup(t('loading'));$('#family-talk').innerHTML='';if(!dlg.open)dlg.showModal();
   try{const list=await fetchFamily(key);if(version!==familyVersion||!dlg.open)return;
     if(!list.length){$('#family-body').innerHTML=`<p class="empty">${esc(t('empty.products'))}</p>`;return;}
@@ -129,6 +129,7 @@ let screen='chat',lastTab='chat',detailReturn='chat';
 const screenEl=n=>n==='home'?$('#browse'):n==='search'?$('#search-screen'):$('#'+n);
 let brandChat = false, detailChat=false;
 function show(n){
+  if(n!=='detail')detailOpen=false;
   const resumeChat = (brandChat||detailChat) && n === 'chat';
   if(detailChat&&!['detail','chat'].includes(n)){leaveChat();detailChat=false;}
   if (brandChat && !['brand','chat'].includes(n)) { leaveChat(); brandChat = false; }
@@ -293,7 +294,7 @@ function renderDetail(){
   $('#back').onclick=closeDetail;
 }
 function closeDetail(){detailOpen=false;show(detailReturn)}
-function openDetail(id){detailChat=screen==='chat';selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
+function openDetail(id){if(!product(id)){toast(t('empty.products'));return;}detailChat=screen==='chat';selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
 
 localizePage();
 // A shared link opens its room or product on arrival.
@@ -323,7 +324,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if('brandShare' in b.dataset){share({title:$('#brand h1')?.textContent??'',url:shareUrl({})},toast);return}
   if(b.dataset.catalogSave){saveCatalogSelection(b);return}
   if(b.dataset.family){if(b.dataset.ref)track('product_card_click',null,{family:b.dataset.family,from:b.dataset.ref});openFamily(b.dataset.family,b.dataset.ref||null,{sku:b.dataset.sku,retailer:b.dataset.retailer,market:b.dataset.market});return}
-  if(b.dataset.post&&screen!=='chat'){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);show('chat');return}
+  if(b.dataset.post&&(screen!=='chat'||b.closest('#family-dialog'))){$('#family-dialog').open&&$('#family-dialog').close();openPostNext(+b.dataset.post);brandChat=false;detailChat=false;show('chat');return}
   if(b.dataset.familyBrand){brandChat = canAttachToChat();$('#family-dialog').close();openBrand(b.dataset.familyBrand);return}
   if(b.dataset.brand){openBrand(b.dataset.brand);return}
   if('brandsRetry' in b.dataset){loadBrandStrip();return}
@@ -333,7 +334,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.set){settingsAction(b.dataset.set);return}
   if(b.dataset.lang){try{localStorage.setItem('alimi-lang',b.dataset.lang)}catch{}location.href=languageURL(b.dataset.lang).href;return}
   if(b.dataset.product)openDetail(b.dataset.product);
-  if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);track(state.favorites.includes(b.dataset.favorite)?'wishlist_add':'wishlist_remove',b.dataset.favorite);save();renderList();if(screen==='search')renderSearch();if(detailOpen)renderDetail()}
+  if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);track(state.favorites.includes(b.dataset.favorite)?'wishlist_add':'wishlist_remove',b.dataset.favorite);save();renderList();if(screen==='search')renderSearch();if(screen==='saved')renderSaved();if(screen==='detail'&&detailOpen)renderDetail()}
   if(b.dataset.category){category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.classList.toggle('active',x.dataset.category===category));renderList()}});
 let searchTimer;$('#search').oninput=()=>{renderSearch();clearTimeout(searchTimer);searchTimer=setTimeout(()=>{const q=$('#search').value.trim();if(q)track('search',null,{length:q.length,results:search(products,q).length})},1200)};$('#clear').onclick=()=>{$('#search').value='';renderSearch();$('#search').focus()};
 $('#browse-now').onclick=()=>$('.results').scrollIntoView({behavior:'smooth'});
@@ -374,3 +375,4 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-product-so
 document.addEventListener('product-sort-change',redrawProductLists);
 document.addEventListener('product-stats-ready',redrawProductLists);
 loadProductStats();
+
