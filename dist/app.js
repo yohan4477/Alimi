@@ -7,6 +7,7 @@ import {productInfoHTML, renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
+import {AccountSync} from './account-sync.js';
 import {openProfile,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
 import {openProductRoomsNext,openRoomListNext,openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData} from './chat.js';
 import {renderMyRooms,renderAlerts,renderShareHub,addRecent,readRecent,loadRevisit,unreadCount} from './revisit.js';
@@ -21,7 +22,7 @@ const product=id=>products.find(p=>p.id===id);
 const kstDate=iso=>new Intl.DateTimeFormat(locale(),{timeZone:'Asia/Seoul',month:lang==='ko'?'long':'short',day:'numeric'}).format(new Date(iso));
 const stock=p=>t(p.availability==='in_stock'?'stock.in':p.availability==='out_of_stock'?'stock.out':'stock.unknown');
 function toast(m){$('#toast').textContent=m;$('#toast').classList.add('show');clearTimeout(timer);timer=setTimeout(()=>$('#toast').classList.remove('show'),2500)}
-function save(){try{writeState(storage,state)}catch{toast(t('saveLocalOnly'))}}
+function save(){try{writeState(storage,state);accountSync.changed()}catch{toast(t('saveLocalOnly'))}}
 const bookmark = on => `<svg viewBox="0 0 24 24" aria-hidden="true" width="24" height="24" style="fill:${on?'currentColor':'none'};stroke:currentColor;stroke-width:1.8"><path d="M6 3h12v18l-6-4-6 4z"/></svg>`;
 const art=p=>`<img src="${esc(p.imageUrl)}" alt="${esc(brandLabel(p)+' '+p.name)}" loading="lazy">`;
 
@@ -205,17 +206,31 @@ function renderSaved(){
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
-// Optional Google account; saved items and settings stay on this device either way.
+// Optional account with owner-isolated cloud preferences.
 const auth=new GoogleAuth();
+let syncStatus='local',authBusy=false;
+const accountSync=new AccountSync(auth,{storage,onChange:()=>{
+  state=readState(storage);products=mergeCatalogSaves(products.filter(p=>!p.id.startsWith('catalog|')),readCatalogSaves(storage)).filter(p=>inMarket(p));
+  updateCount();if(screen==='saved')renderSaved();
+},onStatus:value=>{syncStatus=value;if(screen==='settings')renderSettings()}});
+for(const event of ['profile-change','interests-change'])document.addEventListener(event,()=>accountSync.changed());
+async function restoreAccount(){try{await auth.restore();if(auth.user)await accountSync.start();else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}if(screen==='settings')renderSettings();}
+setInterval(()=>{if(!document.hidden)restoreAccount()},60000);
+window.addEventListener('online',()=>restoreAccount().then(()=>accountSync.flush()));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreAccount()});
+window.addEventListener('storage',e=>{if(e.key==='alimi-auth-session-v1')location.reload()});
 async function authAction(a){
+  if(authBusy)return;authBusy=true;renderSettings();
   try{
-    if(a==='google'){await auth.startGoogleLogin();return}
-    await auth.signOut();renderSettings();toast(t('account.signedOut'));
+    if(['google','kakao','naver'].includes(a)){await auth.startLogin(a);return;}
+    if(a==='sync'){await accountSync.flush();accountSync.ready=false;await accountSync.start();return;}
+    await accountSync.flush();try{await auth.signOut()}finally{accountSync.stop()}toast(t('account.signedOut'));
   }catch(error){toast(error?.message||t('account.failed'))}
+  finally{authBusy=false;renderSettings();}
 }
 function renderSettings(){
   $('#settings').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="saved" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('settings.title'))}</h1></div>
-<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||'')}</b><em>${esc(t('account.signedIn'))}</em></span></div><button class="auth-button secondary" data-auth="signout">${esc(t('account.signout'))}</button>`:`<button class="auth-button" data-auth="google"><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
+<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||auth.user.user_metadata?.name||t('account.signedIn'))}</b><em>${esc(t('account.sync.'+syncStatus))}</em></span></div><button class="auth-button secondary" data-auth="sync" ${authBusy?'disabled':''}>${esc(t('account.syncRetry'))}</button><button class="auth-button secondary" data-auth="signout" ${authBusy?'disabled':''}>${esc(t('account.signout'))}</button>`:`<button class="auth-button auth-kakao" data-auth="kakao" ${authBusy?'disabled':''}>${esc(t('account.kakao'))}</button><button class="auth-button auth-naver" data-auth="naver" ${authBusy?'disabled':''}>${esc(t('account.naver'))}</button><button class="auth-button" data-auth="google" ${authBusy?'disabled':''}><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
 <section class="set-group"><h3>${esc(t('settings.service'))}</h3>
 <div class="set-row static"><span class="set-label">${esc(t('region.title'))}</span>${regionButton()}</div><div class="set-row static"><span class="set-ico">${icon.globe}</span><span class="set-label">${esc(t('settings.language'))}</span><span class="seg"><button data-lang="ko" class="${lang==='ko'?'on':''}">한국어</button><button data-lang="en" class="${lang==='en'?'on':''}">English</button></span></div><p class="set-hint">${esc(t('settings.languageHint'))}</p></section>
 <section class="set-group"><h3>${esc(t('settings.data'))}</h3>${row(icon.lock,t('profile.title'),'data-profile-open')}${row(icon.lock,t('profile.doNotSell'),'data-set="do-not-sell"')}${row(icon.tray,t('settings.clearSaved'),'data-set="clear-saved"')}${row(icon.trash,t('settings.clearCache'),'data-set="clear-cache"')}</section>
@@ -361,9 +376,9 @@ loadProducts().then(({products:list,source,exportedAt})=>{
   track('home_view',null,{source,lang});
 
 }).catch(()=>{$('#products').innerHTML=`<p class="empty">${esc(t('loadFailed'))}</p>`});
-auth.handleCallback().catch(error=>{const clean=new URL(location.href);for(const key of ['code','state','error','error_description'])clean.searchParams.delete(key);history.replaceState({},'',clean.toString());toast(error?.message||t('account.failed'))}).finally(()=>auth.restore().then(()=>{if(screen==='settings')renderSettings()}));
+auth.handleCallback().catch(error=>toast(error?.message||t('account.failed'))).finally(restoreAccount);
 document.addEventListener('profile-change',()=>{if(screen==='saved')renderSaved()});
-if(cachedProfile())refreshProfile();
+if(cachedProfile()&&!storage.getItem('seoulbeauty-data-owner'))refreshProfile();
 
 function redrawProductLists(){
   if(screen==='brand')renderBrandPage();
@@ -375,4 +390,5 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-product-so
 document.addEventListener('product-sort-change',redrawProductLists);
 document.addEventListener('product-stats-ready',redrawProductLists);
 loadProductStats();
+
 

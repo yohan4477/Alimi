@@ -23,7 +23,7 @@ Try save → edit to considering → reload → delete. The chat composer remain
 
 ## Verification
 
-- `npm test`: 159 passed, including new aggregation, isolation, persistence and API cases.
+- `npm test`: 168 passed, including new aggregation, isolation, persistence and API cases.
 - Happy DOM scenario: open, save, edit, reload, delete, no repeated prompt, no fetch from offline experience controller — passed.
 - PGlite PostgreSQL: actual migration creation, anonymous RPC upsert/deletion, enum constraints, invalid product, cross-author evidence, direct table writes denied, inactive room — passed against a minimal existing-chat schema.
 - Browser flow committed at `e2e/room-experiences.e2e.mjs` and added to Web checks; browser results must be read from CI, not inferred from DOM tests.

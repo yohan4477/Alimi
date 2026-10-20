@@ -600,3 +600,5 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .experience-editor [role=alert]{color:#b42318}.room-experiences button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 .chat-experience-badge{display:block;font-size:10px;line-height:1.4;color:#667085;margin:0 0 3px}
+
+.auth-button.auth-kakao{background:#fee500;color:#191919;border-color:#fee500}.auth-button.auth-naver{background:#03c75a;color:#fff;border-color:#03c75a}.auth-button:disabled{opacity:.55;cursor:wait}
