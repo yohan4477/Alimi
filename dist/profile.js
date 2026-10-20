@@ -67,9 +67,9 @@ ${draft.consent_health ? chips('concerns', CONCERNS, 'profile.concern.', true) :
 <button class="primary profile-save" data-profile-save ${under13 ? 'disabled' : ''}>${esc(t('profile.save'))}</button>
 ${cachedProfile() ? `<button class="profile-delete" data-profile-delete>${esc(t('profile.delete'))}</button>` : ''}`;
 }
-export function openProfile() {
+export function openProfile(prefillSkin = '') {
   const p = cachedProfile() ?? {};
-  draft = {age_band: p.age_band ?? '', skin_type: p.skin_type ?? '', skin_tone: p.skin_tone ?? '', undertone: p.undertone ?? '',
+  draft = {age_band: p.age_band ?? '', skin_type: p.skin_type ?? prefillSkin, skin_tone: p.skin_tone ?? '', undertone: p.undertone ?? '',
     interests: p.interests ?? [], concerns: p.concerns ?? [], consent_health: !!p.consent_health, consent_analytics: !!p.consent_analytics,
     consent_b2b: !!p.consent_b2b, opt_out_sale: !!p.opt_out_sale || optedOutLocally()};
   let dlg = document.querySelector('#profile-dialog');
