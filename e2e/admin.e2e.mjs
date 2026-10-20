@@ -69,7 +69,9 @@ try {
   await page.getByRole('tab',{name:'개발',exact:true}).click();
     await page.getByRole('tab',{name:'전략',exact:true}).click();await page.getByRole('tab',{name:'전략',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   // New pixel-character onboarding is a local admin-only simulation, not a customer signup.
+  assert.equal(await page.locator('#sb-planning-review').getAttribute('src'),null,'collapsed historical preview does not start a request');
   await page.locator('#sb-plan > details > summary').click();
+  assert.equal(await page.locator('#sb-planning-review').getAttribute('src'),null,'nested preview stays unloaded until explicitly opened');
   const guide = page.locator('#sb-pixel-guide-demo');
   await guide.waitFor();
   assert.equal(await guide.locator('[data-guide-locale="ko"][data-guide-stage="0"]').isVisible(),true);
@@ -110,6 +112,7 @@ try {
   await page.getByText('관심 분야·고민 복수 선택 인터랙티브 시안과 기존 화면 보기',{exact:true}).click();
   const preview=page.frameLocator('#sb-planning-review');
   await preview.locator('#sb-onboard-phone').waitFor();
+  await page.waitForFunction(()=>document.querySelector('#sb-planning-review').previousElementSibling.textContent==='');
   await preview.locator('[data-onboard-group="skin"]').click();
   await preview.locator('[data-onboard-group="makeup"]').click();
   assert.equal(await preview.locator('[data-onboard-group="skin"]').getAttribute('aria-pressed'),'true');
@@ -158,6 +161,15 @@ try {
   }
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'artifacts/admin-mobile.png',fullPage:true});
   await page.setViewportSize({width:1024,height:900});await page.screenshot({path:'artifacts/admin-desktop.png',fullPage:true});
+  // An expired/failed preview must recover explicitly instead of showing a blank loading frame.
+  await page.route('**/api/admin?view=planning-review', route=>route.fulfill({status:401,contentType:'text/html',body:'<main>Session expired</main>'}));
+  await page.reload();
+  await page.getByRole('tab',{name:'서비스 기획',exact:true}).click();
+  await page.locator('#sb-plan > details > summary').click();
+  await page.getByText('관심 분야·고민 복수 선택 인터랙티브 시안과 기존 화면 보기',{exact:true}).click();
+  await page.getByText('시안을 열 수 없습니다. 로그인 상태를 확인하세요.',{exact:false}).waitFor();
+  assert.equal(await page.locator('#sb-planning-review').getAttribute('src'),null);
+  assert.ok(await page.getByRole('button',{name:'다시 불러오기',exact:true}).isVisible());
   revoked=true;r=await page.reload();assert.equal(r.status(),403);assert.equal(await page.locator('[role="tab"]').count(),0);
   revoked=false;await login('admin@example.test');
   await Promise.all([page.waitForNavigation(),page.getByRole('button',{name:'로그아웃',exact:true}).click()]);assert.equal(await page.locator('[role="tab"]').count(),0);

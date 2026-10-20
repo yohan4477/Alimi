@@ -29,9 +29,7 @@ if (root) {
       t.classList.toggle('active', active);
       document.getElementById(t.getAttribute('aria-controls')).hidden = !active;
     }
-    if (tab.id === 'sb-plan-tab' && review && !review.hasAttribute('src')) {
-      review.src = review.dataset.src;
-    }
+    if (tab.id === 'sb-plan-tab') loadReview();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
     if (focus) tab.focus();
     try { sessionStorage.setItem('sb-admin-tab', tab.id); } catch {}
@@ -43,12 +41,54 @@ if (root) {
       if (next !== null) { event.preventDefault(); select(tabs[next], true); }
     });
   }
-  let reviewObserver;
-  review?.addEventListener('load', () => {
+  let reviewObserver, reviewTimer, reviewPending = false;
+  let reviewStatus;
+  function loadReview() {
+    if (!review || review.hasAttribute('src')) return;
+    const panel = review.closest('[role="tabpanel"]');
+    if (panel?.hidden) return;
+    for (let parent = review.parentElement; parent; parent = parent.parentElement)
+      if (parent.tagName === 'DETAILS' && !parent.open) return;
+    if (!reviewStatus) {
+      reviewStatus = document.createElement('p');
+      reviewStatus.setAttribute('role', 'status');
+      review.before(reviewStatus);
+    }
+    reviewStatus.replaceChildren(document.createTextNode('시안을 불러오는 중…'));
+    reviewPending = true;
+    reviewTimer = setTimeout(() => reviewFailed('시안 응답이 지연되고 있습니다.'), 15000);
+    review.src = review.dataset.src;
+  }
+  function reviewFailed(message) {
+    clearTimeout(reviewTimer); reviewPending = false;
     reviewObserver?.disconnect();
+    review.removeAttribute('src');
+    reviewStatus.replaceChildren(document.createTextNode(message + ' '));
+    const retry = document.createElement('button');
+    retry.type = 'button'; retry.textContent = '다시 불러오기';
+    retry.addEventListener('click', loadReview);
+    const login = document.createElement('a');
+    login.href = '/admin#sb-plan'; login.textContent = '관리자 로그인 확인';
+    reviewStatus.append(retry, document.createTextNode(' · '), login);
+  }
+  for (let parent = review?.parentElement; parent; parent = parent.parentElement)
+    if (parent.tagName === 'DETAILS') parent.addEventListener('toggle', loadReview);
+  review?.addEventListener('error', () => {
+    if (reviewPending) reviewFailed('시안을 불러오지 못했습니다.');
+  });
+  review?.addEventListener('load', () => {
+    if (!reviewPending || !review.hasAttribute('src')) return;
     const body = review.contentDocument?.body;
-    if (!body) return;
-    const fit = () => { review.style.height = Math.ceil(body.getBoundingClientRect().height + 16) + 'px'; };
+    if (!body || !body.querySelector('#sb-reference-review')) {
+      reviewFailed('시안을 열 수 없습니다. 로그인 상태를 확인하세요.'); return;
+    }
+    clearTimeout(reviewTimer); reviewPending = false;
+    reviewStatus.textContent = '';
+    reviewObserver?.disconnect();
+    const fit = () => {
+      const height = Math.ceil(body.getBoundingClientRect().height + 16);
+      if (height > 16 && review.style.height !== height + 'px') review.style.height = height + 'px';
+    };
     reviewObserver = new ResizeObserver(fit);
     reviewObserver.observe(body);
     fit();
