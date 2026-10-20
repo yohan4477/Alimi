@@ -51,7 +51,20 @@ const itemCard = (it, ref = '') => it.demo ? `<button class="chat-item" data-dem
 const shell = inner => { $('#chat').innerHTML = inner; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
-let demoActive = new URLSearchParams(globalThis.location?.search ?? '').get('demo') === '1';
+const communityModeKey = 'seoulbeauty-community-mode';
+const modeQuery = new URLSearchParams(globalThis.location?.search ?? '');
+let savedMode; try { savedMode = storage?.getItem(communityModeKey); } catch {}
+let demoActive = modeQuery.has('demo') ? modeQuery.get('demo') === '1' : savedMode === 'offline';
+function saveCommunityMode() {
+  try { storage?.setItem(communityModeKey, demoActive ? 'offline' : 'online'); } catch {}
+  // Keep reloads and region/language navigation in the selected mode too.
+  try {
+    const url = new URL(globalThis.location.href);
+    url.searchParams.set('demo', demoActive ? '1' : '0');
+    globalThis.history.replaceState(globalThis.history.state, '', url);
+  } catch {}
+}
+if (modeQuery.has('demo')) saveCommunityMode();
 let firstCommunityLoad = true, communityOpenVersion = 0;
 let finishStartup = () => {};
 export async function openChat(opts = {}) {
@@ -140,7 +153,8 @@ async function renderHome() {
 
   if (demoActive) {
     chat.rooms = demoRooms;
-    home = {hot:demoRooms.slice(0,6),topics:demoRooms,recent:[],previews:new Map(),partial:false,joined:[],images:new Map(),products:mentionedProducts(demoEntries())};
+    const entries = demoEntries();
+    home = {hot:demoRooms.slice(0,6),topics:demoRooms,recent:[],previews:new Map(demoRooms.map(r => [r.id, demoMessages[r.id]?.at(-1)?.body ?? ''])),partial:false,joined:[],images:roomImages(entries),products:mentionedProducts(entries)};
     drawHome();
     return;
   }
@@ -557,7 +571,7 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
-  if (a === 'toggle-demo') { demoActive = !demoActive; home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rooms'; renderHome(); }
+  if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rooms'; renderHome(); }
   else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
