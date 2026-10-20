@@ -574,3 +574,5 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 #chat-log .chat-item img,#chat-log .chat-item .no-photo{width:44px;height:44px;object-fit:contain}
 #chat-log .chat-item>span{min-width:0}
 #chat-log .chat-msg:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.activity-empty{padding:28px 0 32px;grid-column:1/-1}.activity-empty p{font-size:14px;line-height:1.65;color:#7d8aa0;margin:0 0 12px}.activity-empty .text-link{min-height:44px;padding:8px 0}#saved>.interest-row{margin-top:24px;border-top:1px solid #e6eaf1;padding-top:18px}#activity-profile-dialog .interest-row{text-align:left;width:100%}
