@@ -17,7 +17,7 @@
 - 배포 코드: [`2429650` / PR #137](https://github.com/yohan4477/Alimi/pull/137). [한국 웹](https://seoulbeauty.me/kr) · [미국 웹](https://seoulbeauty.me/us), Vercel 배포 성공. 실제 모바일 화면에서 지역별 표시·경로, 가로 넘침 없음, JavaScript 오류 없음 확인.
 - [웹 검사](https://github.com/yohan4477/Alimi/actions/runs/39397290830): 단위·권한 150개 및 관리자/모바일 fixture, 실제 API 상품·대화·글·댓글 흐름 통과.
 - [iPhone 시뮬레이터](https://github.com/yohan4477/Alimi/actions/runs/39396796511): 빌드, 기본 테스트 23개와 화면 테스트 10개 통과. 실기기 설치는 미검증.
-- [TestFlight 업로드](https://github.com/yohan4477/Alimi/actions/runs/39398078282): SeoulBeauty `com.yohan4477.seoulbeauty`, **1.0 (28.1)** archive/export/upload 성공. [Apple 처리·테스트 상태 조회](https://github.com/yohan4477/Alimi/actions/runs/39398552498)는 업로드 성공과 구분해 확인한다. 테스터 초대·기기 설치는 이 기록으로 입증하지 않는다.
+- [TestFlight 업로드](https://github.com/yohan4477/Alimi/actions/runs/39398078282): SeoulBeauty `com.yohan4477.seoulbeauty`, **1.0 (28.1)** archive/export/upload 성공. [Apple 상태 조회](https://github.com/yohan4477/Alimi/actions/runs/39398552498) (2026-10-20 09:10 UTC): `VALID`, 내부 `IN_BETA_TESTING` 확인. 외부 `READY_FOR_BETA_SUBMISSION`으로 외부 베타 심사 제출은 미완료. 테스터 초대·기기 설치는 이 기록으로 입증하지 않는다.
 - 미완료: 운영 DB 지역 마이그레이션, 한국 실대화·판매처 데이터 연결. 권한 미확보 상태를 유지하며 기존 미국 데이터를 한국 데이터로 표시하지 않는다. 실제 전환·D7·승인 수수료도 미검증.
 
 <details><summary>이전 기획·검증 이력 — 위 최신 결정 우선</summary>
