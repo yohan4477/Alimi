@@ -2,7 +2,8 @@ import {region, inMarket, languageURL} from './region.js';
 import {regionButton,installRegionPicker} from './region-picker.js';
 import {rankProducts,productSortControls,setProductSort,loadProductStats} from './product-sort.js';
 import {loadingMarkup} from './loading-companion.js';
-import {renderProductInfo} from './product-info.js';
+import {demoProducts, demoRooms} from './demo-fixtures.js';
+import {productInfoHTML, renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
@@ -38,7 +39,7 @@ const catalogItems=new Map();
 const catalogKey=c=>[c.retailer,c.market,c.sku].join('|');
 const remember=c=>{catalogItems.set(catalogKey(c),c);return catalogKey(c)};
 const card=p=>`<article class="card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><div class="price-line"><strong>${usd(p.price)}</strong></div><small class="meta">${esc(categoryLabel(p.category))}</small><div class="delivery">${esc(p.retailer)} · ${stock(p)}</div></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="${state.favorites.includes(p.id)}">${bookmark(state.favorites.includes(p.id))}</button></article>`;
-const catalogCard=c=>`<article class="card"><div class="visual">${c.image_url?`<img src="${esc(c.image_url)}" alt="${esc(brandLabel(c)+' '+c.name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(c))}</div><div class="product-name">${esc(c.name)}</div><div class="price-line"><strong>${usd(c.price)}</strong></div><small class="meta">${esc(categoryLabel(c.category??'기타'))} · ${esc(t('todayPrice'))}</small><button class="heart" data-catalog-save="${esc(remember(c))}" data-retailer="${esc(c.retailer)}" data-market="${esc(c.market)}" aria-label="${esc(t('save.action'))}">${bookmark(false)}</button></article>`;
+const catalogCard=c=>`<article class="card"><button class="product-open" data-catalog-open="${esc(remember(c))}"><div class="visual">${c.image_url?`<img src="${esc(c.image_url)}" alt="${esc(brandLabel(c)+' '+c.name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(c))}</div><div class="product-name">${esc(c.name)}</div><div class="price-line"><strong>${usd(c.price)}</strong></div><small class="meta">${esc(categoryLabel(c.category??'기타'))} · ${esc(t('todayPrice'))}</small></button><button class="heart" data-catalog-save="${esc(remember(c))}" data-retailer="${esc(c.retailer)}" data-market="${esc(c.market)}" aria-label="${esc(t('save.action'))}">${bookmark(false)}</button></article>`;
 const familyCard=f=>`<article class="card"><button class="product-open" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}"><div class="visual">${f.image_url?`<img src="${esc(f.image_url)}" alt="${esc(brandLabel(f)+' '+f.base_name)}" loading="lazy">`:`<div class="no-photo">${esc(t('noPhoto'))}</div>`}</div><div class="brand">${esc(brandLabel(f))}</div><div class="product-name">${esc(f.base_name)}</div><div class="price-line"><strong>${f.variants>1&&f.minPrice!==f.maxPrice?esc(t('family.from',{v:usd(f.minPrice)})):usd(f.minPrice)}</strong></div><small class="meta">${esc(categoryLabel(f.category??'기타'))}${f.variants>1?' · '+esc(t('family.options',{n:f.variants})):''}</small></button></article>`;
 // Variant list of one family: size / option, price, unit price, best-value badge and a heart per variant.
 function variantRows(list,ref=null){
@@ -68,6 +69,28 @@ function drawFamilySelection(){
   renderProductInfo($('#family-description'),cur);
   addRecent({family_key:cur.family_key,sku:cur.sku,retailer:cur.retailer,market:cur.market,ref:familyRef,brand:cur.brand,brand_ko:cur.brand_ko,name:cur.name,category:cur.category,image_url:cur.image_url,min_price_minor:cur.price_minor});
 }
+
+function openDemoProduct(label){
+  const item=demoProducts.find(p=>p.label===label||p.id===label);
+  if(!item){toast(t('empty.products'));return;}
+  ++familyVersion;familyList=[];familyHead=null;
+  const dlg=$('#family-dialog');
+  $('#family-title').textContent=item.brand;
+  $('#family-name').textContent=item.name;
+  $('#family-hero').innerHTML=item.image_url?`<img src="${esc(item.image_url)}" alt="${esc(item.name)}">`:'';
+  $('#family-body').innerHTML=`<p class="home-note">${esc(t('rooms.demoProducts'))}</p>${productInfoHTML({...item,category:({ 'torriden-serum':'에센스·세럼','aestura-cream':'크림·로션','roundlab-sun':'선케어','anua-toner':'토너·패드','cosrx-essence':'에센스·세럼','romand-tint':'립','clio-cushion':'베이스메이크업','laneige-lip':'립','medicube-pad':'토너·패드','drg-cream':'크림·로션','goodal-serum':'에센스·세럼','peripera-tint':'립' })[item.id]})}`;
+  const rooms=demoRooms.filter(r=>r.topic_product?.id===item.id);
+  $('#family-talk').innerHTML=`<h2>${esc(t('rooms.productTalk'))}</h2>${rooms.map(r=>`<button class="post-row" data-open-room="${esc(r.id)}"><span class="post-main"><b>${esc(r.title_ko)}</b><small>${esc(r.intro_ko)}</small></span></button>`).join('')}`;
+  if(!dlg.open)dlg.showModal();
+}
+function openCatalogItem(item,ref=''){
+  if(!item){toast(t('empty.products'));return;}
+  if(item.family_key){openFamily(item.family_key,ref,item);return;}
+  const p={...item,id:['catalog',item.retailer,item.market,item.sku].join('|'),imageUrl:item.image_url,brandKo:item.brand_ko,
+    price:item.price??item.price_minor/100,familyKey:null,sourceRef:ref,history:[],delivery:null};
+  products=products.filter(x=>x.id!==p.id).concat(p);openDetail(p.id);
+}
+
 async function openFamily(key,ref=null,option={}){
   const version=++familyVersion,dlg=$('#family-dialog');familyList=[];familyHead=null;familyRef=ref;familySelection=0;
   $('#family-hero').innerHTML='';$('#family-title').textContent='';$('#family-name').textContent='';$('#family-body').innerHTML=loadingMarkup(t('loading'));$('#family-talk').innerHTML='';if(!dlg.open)dlg.showModal();
@@ -280,8 +303,11 @@ if(arrival?.product)openFamily(arrival.product);
 const startGuide=(step,returnToChat=false,returnToActivity=false)=>openOnboarding({step,returnToChat:returnToChat||returnToActivity,load:onboardingData,onClose:target=>{if(returnToActivity){renderSaved();return;}if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
 loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  if('productRooms' in b.dataset){const name=b.dataset.productRooms;$('#family-dialog').open&&$('#family-dialog').close();openProductRoomsNext(name);show('chat');return}
-  if(b.dataset.openRoom){openRoomNext(b.dataset.openRoom);show('chat');return}
+  if(b.dataset.demoProduct){openDemoProduct(b.dataset.demoProduct);return}
+  if(b.dataset.chatProduct){try{openCatalogItem(JSON.parse(b.dataset.chatProduct),b.dataset.ref||'chat')}catch{toast(t('loadFailed'))}return}
+  if(b.dataset.catalogOpen){openCatalogItem(catalogItems.get(b.dataset.catalogOpen));return}
+  if('productRooms' in b.dataset){const name=b.dataset.productRooms;$('#family-dialog').open&&$('#family-dialog').close();openProductRoomsNext(name);brandChat=false;detailChat=false;show('chat');return}
+  if(b.dataset.openRoom){$('#family-dialog').open&&$('#family-dialog').close();openRoomNext(b.dataset.openRoom);brandChat=false;detailChat=false;show('chat');return}
   if(b.dataset.familyShare){share({title:$('#family-name').textContent,url:shareUrl({product:b.dataset.familyShare})},toast);return}
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`).focus();return}
