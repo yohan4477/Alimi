@@ -263,8 +263,7 @@ localizePage();
 const arrival=sharedTarget();if(arrival){const appLink=document.createElement('a');appLink.className='text-link';appLink.textContent=t('share.openApp');appLink.href='seoulbeauty://open?'+new URLSearchParams(arrival);document.body.prepend(appLink);}if(arrival?.room)openRoomNext(arrival.room);
 show('chat');
 if(arrival?.product)openFamily(arrival.product);
-const startGuide=step=>openOnboarding({step,load:onboardingData,onClose:target=>{if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
-if(!readInterests()?.done&&!arrival&&!new URLSearchParams(location.search).has('skipOnboarding'))startGuide('splash');
+const startGuide=(step,returnToChat=false)=>openOnboarding({step,returnToChat,load:onboardingData,onClose:target=>{if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
 loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if('productRooms' in b.dataset){const name=b.dataset.productRooms;$('#family-dialog').open&&$('#family-dialog').close();openProductRoomsNext(name);show('chat');return}
@@ -272,7 +271,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.familyShare){share({title:$('#family-name').textContent,url:shareUrl({product:b.dataset.familyShare})},toast);return}
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`).focus();return}
-  if('onbManage' in b.dataset){startGuide('choose');return}
+  if('onbManage' in b.dataset){startGuide('choose',b.dataset.onbContext==='chat');return}
   if('familyPhoto' in b.dataset){const url=familyPhotos()[+b.dataset.familyPhoto];familySelection=Math.max(0,familyList.findIndex(v=>v.image_url===url));drawFamilySelection();return}
   if('familyOption' in b.dataset){familySelection=+b.dataset.familyOption;drawFamilySelection();return}
   if('familySave' in b.dataset){const cur=familyCurrent();if(!cur)return;let id=savedOption(cur)?.id;if(!id){try{id=saveCatalogSnapshot({...cur,sourceRef:familyRef},storage).id;products=mergeCatalogSaves(products,readCatalogSaves(storage))}catch{toast(t('loadFailed'));return}}toggleFavorite(state,id);save();const on=state.favorites.includes(id);b.innerHTML=bookmark(on);b.setAttribute('aria-pressed',on);track(on?'wishlist_add':'wishlist_remove',id,{sku:cur.sku,from:familyRef??'catalog'});updateCount();return}

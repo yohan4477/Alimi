@@ -81,7 +81,7 @@ export function openOnboarding(opts) {
 export const onboardingOpen = () => Boolean(flow);
 function closeFlow(target) {
   const f = flow; if (!f) return;
-  saveInterests({...f.draft, done: true});
+  if (!target?.cancelled) saveInterests({...f.draft, done: true});
   flow = null;
   const box = document.getElementById('onboarding'); box.hidden = true; box.innerHTML = ''; document.body.classList.remove('onboarding-open');
   f.onClose?.(target);
@@ -104,7 +104,7 @@ function drawFlow() {
   }
   if (step === 'profile') {
     const choices = (key, values, current, label) => `<div class="ob-keywords ob-profile-choices" role="group" aria-label="${esc(t(key === 'ageRange' ? 'onb.age' : 'onb.skin'))}">${values.map(v => `<button type="button" data-onb-profile="${key}" data-onb-value="${esc(v)}" aria-pressed="${v === (current || '')}" class="${v === (current || '') ? 'on' : ''}">${esc(label(v))}</button>`).join('')}</div>`;
-    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',AGE_RANGES,draft.ageRange,v=>v === '<15' ? t('onb.age.under15') : v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.next'))}</button>${stepBar(2)}</div></div>`;
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',AGE_RANGES,draft.ageRange,v=>v === '<15' ? t('onb.age.under15') : v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t(flow.returnToChat ? 'onb.save' : 'onb.next'))}</button>${stepBar(2)}</div></div>`;
     return;
   }
 }
@@ -114,9 +114,9 @@ globalThis.document?.addEventListener('click', e => {
   if (!b || !document.getElementById('onboarding')?.contains(b)) return;
   const a = b.dataset.onb, d = flow.draft;
   if (a === 'splash') flow.step = 'choose';
-  else if (a === 'back') { if (flow.step === 'products') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow(null); return; } }
-  else if (a === 'next') { flow.step = !d.skincare && !d.makeup ? 'products' : 'profile'; }
-  else if (a === 'profile-next') flow.step = 'products';
+  else if (a === 'back') { if (flow.step === 'products') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow({cancelled:true}); return; } }
+  else if (a === 'next') { flow.step = !d.skincare && !d.makeup && !flow.returnToChat ? 'products' : 'profile'; }
+  else if (a === 'profile-next') { if(flow.returnToChat){closeFlow(null);return;} flow.step = 'products'; }
   else if (b.dataset.onbProduct) { closeFlow({productQuery:b.dataset.onbProduct}); return; }
   else if (a === 'products-browse') { closeFlow({productQuery:''}); return; }
   else if (a === 'topics') { closeFlow(null); return; }

@@ -1519,9 +1519,13 @@
     "en": "Change interests"
   },
   "onb.manage": {
-    "ko": "관심 분야·고민",
-    "en": "Interests & concerns"
+    "ko": "본인 설정하기",
+    "en": "Personal settings"
   },
+  "onb.save": {"ko":"저장하고 대화 계속하기","en":"Save and continue chatting"},
+  "onb.nudgeTitle": {"ko":"본인 설정을 하면 도움이 돼요","en":"Personal settings can help"},
+  "onb.nudgeHint": {"ko":"관심 분야와 고민을 설정하면 관련 대화를 찾기 쉬워요. 지금 바로 대화해도 괜찮아요.","en":"Set your interests and concerns to find relevant conversations. You can keep chatting without setting them."},
+  "onb.snooze": {"ko":"하루 동안 보지 않기","en":"Hide for 24 hours"},
   "onb.none": {
     "ko": "아직 고르지 않았어요",
     "en": "Not chosen yet"

@@ -1,3 +1,4 @@
+import {shouldSuggestSetup,snoozeSetup} from './onboarding-nudge.js';
 import {findProductRooms,productRoomGroups} from './room-search.js';
 import {productSortControls,rankProducts,aggregateProductStats} from './product-sort.js';
 // Temporarily disabled for the anonymous SeoulBeauty community.
@@ -324,7 +325,8 @@ async function submitPost() {
 async function startLive(room) {
   const draft=roomDrafts.get(room.id);
   chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
-  body(`<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
+  const setupNudge = shouldSuggestSetup(readInterests(), storage) ? `<aside id="setup-nudge" class="setup-nudge"><b>${esc(t('onb.nudgeTitle'))}</b><p>${esc(t('onb.nudgeHint'))}</p><div><button class="text-link" data-onb-manage data-onb-context="chat">${esc(t('onb.manage'))}</button><button class="text-btn" data-setup-snooze>${esc(t('onb.snooze'))}</button></div></aside>` : '';
+  body(`${setupNudge}<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
   {
     $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
@@ -634,3 +636,5 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-demo-produ
 
 document.addEventListener('product-sort-change',()=>{if(home&&homeTab==='discover'&&$('#community-home'))drawHome()});
 document.addEventListener('product-stats-ready',()=>{if(home&&homeTab==='discover'&&$('#community-home'))drawHome()});
+
+document.addEventListener('click',e=>{if(e.target.closest('[data-setup-snooze]')){snoozeSetup(storage);document.getElementById('setup-nudge')?.remove();}});

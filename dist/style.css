@@ -551,3 +551,7 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 
 /* Product photos retain their original white background. */
 #hero-art,.detail-art,.recent-row img{background:#fff}
+
+.setup-nudge{background:#f1f6ff;border-radius:12px;padding:12px 14px;margin:8px 0;color:var(--ink)}
+.setup-nudge b{font-size:14px}.setup-nudge p{font-size:12px;line-height:1.5;color:#6b7385;margin:5px 0}
+.setup-nudge>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.setup-nudge button{min-height:44px;font-size:12px}.setup-nudge .text-btn{color:#6b7385}
