@@ -1,4 +1,5 @@
 import {findProductRooms,productRoomGroups} from './room-search.js';
+import {productSortControls,rankProducts} from './product-sort.js';
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
 import {demoRooms, demoMessages, createDemoProductRoom} from './demo-fixtures.js';
@@ -130,7 +131,7 @@ async function loadCatalogPictures(rooms) {
 async function renderHome() {
   const version = ++homeVersion;
   rememberDraft(); stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? '실제' : '데모'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? 'online' : '데모'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
   if (demoActive) {
     chat.rooms = demoRooms;
     home = {hot:demoRooms.slice(0,6),topics:demoRooms,recent:[],previews:new Map(),partial:false,joined:[],images:new Map(),products:[]};
@@ -175,8 +176,8 @@ function drawHome() {
     box.innerHTML = `<div class="room-find-modes" role="group" aria-label="${esc(t('rooms.findBy'))}"><button data-room-find="topics" aria-pressed="${roomFindMode === 'topics'}">${esc(t('home.topics'))}</button><button data-room-find="products" aria-pressed="${roomFindMode === 'products'}">${esc(t('rooms.byProduct'))}</button></div>${roomFindMode === 'products' ? `<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><p class="home-note">${esc(t('rooms.productHint'))}</p><div id="product-room-results" aria-live="polite"></div>` : `${sectionHead(t('home.topics'), '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`}`;
     if (roomFindMode === 'products') drawProductRooms();
   } else if (homeTab === 'discover') {
-    const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
-    const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
+    const mentioned = products.length ? `<div class="mentioned-products">${rankProducts(products).map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
+    const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${productSortControls()}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
     // Discovery reflects actual conversation mentions, including an honest empty state.
     box.innerHTML = `${talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
 
@@ -627,3 +628,7 @@ export async function onboardingData() {
 export const openRoomById = id => { pendingRoom = id; };
 
 document.addEventListener('seoulbeauty-create-room', () => openCreateRoom());
+
+
+document.addEventListener('product-sort-change',()=>{if(home&&homeTab==='discover'&&$('#community-home'))drawHome()});
+document.addEventListener('product-stats-ready',()=>{if(home&&homeTab==='discover'&&$('#community-home'))drawHome()});

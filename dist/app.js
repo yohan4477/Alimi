@@ -1,3 +1,4 @@
+import {rankProducts,productSortControls,setProductSort,loadProductStats} from './product-sort.js';
 import {loadingMarkup} from './loading-companion.js';
 import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
@@ -135,7 +136,7 @@ function openBrand(name){Object.assign(brandPage,{brand:name,items:[],done:false
 function renderBrandPage(){
   const b=brands.find(x=>x.brand===brandPage.brand)??{brand:brandPage.brand,brand_ko:null};
   const banner=brandPage.items[0]?.image_url,cats=[...new Set(brandPage.items.map(f=>f.category).filter(Boolean))].slice(0,4),following=followedBrands().includes(b.brand);
-  $('#brand').innerHTML=`<div class="brand-banner">${banner?`<img src="${esc(banner)}" alt="">`:''}<button class="icon-btn round" data-screen="${brandChat?'chat':'home'}" aria-label="${esc(t('back'))}">${icon.back}</button><button class="icon-btn round right" data-brand-share aria-label="${esc(t('share.hubNav'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6h14v-6"/></svg></button></div><div class="brand-hero"><i class="brand-badge-lg">${brandBadge(b)}</i><div><h1>${esc(brandLabel(b))}</h1>${b.families?`<p>${esc(t('count',{n:b.families}))}</p>`:''}</div><button class="brand-follow${following?' on':''}" data-follow-brand="${esc(b.brand)}" aria-pressed="${following}">${esc(following?t('brand.following'):'+ '+t('brand.follow'))}</button></div><p class="brand-headline">${esc(t('brand.headline',{brand:brandLabel(b)}))}</p><p class="page-sub">${esc(t('brand.followNote'))}</p>${cats.length?`<div class="brand-tags">${cats.map(c=>`<span>#${esc(categoryLabel(c).replace(/\s+/g,''))}</span>`).join('')}</div>`:''}<div class="home-tabs brand-tabs"><button class="on" aria-selected="true">${esc(t('brand.tab.products'))}</button></div><div class="catalog-grid">${brandPage.items.map(familyCard).join('')}</div>${brandPage.failed?`<p class="empty" role="status">${esc(t('loadFailed'))} <button data-brand-retry>${esc(t('retry'))}</button></p>`:brandPage.done?(brandPage.items.length?'':`<p class="empty">${esc(t('brand.empty'))}</p>`):`<p class="empty" id="brand-more">${esc(t('loading'))}</p>`}`;
+  $('#brand').innerHTML=`<div class="brand-banner">${banner?`<img src="${esc(banner)}" alt="">`:''}<button class="icon-btn round" data-screen="${brandChat?'chat':'home'}" aria-label="${esc(t('back'))}">${icon.back}</button><button class="icon-btn round right" data-brand-share aria-label="${esc(t('share.hubNav'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6h14v-6"/></svg></button></div><div class="brand-hero"><i class="brand-badge-lg">${brandBadge(b)}</i><div><h1>${esc(brandLabel(b))}</h1>${b.families?`<p>${esc(t('count',{n:b.families}))}</p>`:''}</div><button class="brand-follow${following?' on':''}" data-follow-brand="${esc(b.brand)}" aria-pressed="${following}">${esc(following?t('brand.following'):'+ '+t('brand.follow'))}</button></div><p class="brand-headline">${esc(t('brand.headline',{brand:brandLabel(b)}))}</p><p class="page-sub">${esc(t('brand.followNote'))}</p>${cats.length?`<div class="brand-tags">${cats.map(c=>`<span>#${esc(categoryLabel(c).replace(/\s+/g,''))}</span>`).join('')}</div>`:''}<div class="home-tabs brand-tabs"><button class="on" aria-selected="true">${esc(t('brand.tab.products'))}</button></div>${productSortControls()}<div class="catalog-grid">${rankProducts(brandPage.items).map(familyCard).join('')}</div>${brandPage.failed?`<p class="empty" role="status">${esc(t('loadFailed'))} <button data-brand-retry>${esc(t('retry'))}</button></p>`:brandPage.done?(brandPage.items.length?'':`<p class="empty">${esc(t('brand.empty'))}</p>`):`<p class="empty" id="brand-more">${esc(t('loading'))}</p>`}`;
   brandObserver?.disconnect();const more=$('#brand-more');if(!more)return;
   if(!brandPage.items.length){loadBrandPage();return}
   brandObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))loadBrandPage()},{rootMargin:'600px'});brandObserver.observe(more);
@@ -154,14 +155,14 @@ const savedCard=p=>`<article class="saved-card"><button class="product-open" dat
 function interestRow(){const p=readInterests(),list=p?[...['skincare','makeup'].filter(g=>p[g]).map(g=>t('onb.g.'+g)),...p.concerns.map(c=>t('onb.c.'+c))]:[];return `<button class="interest-row" data-onb-manage><span><b>${esc(t('onb.manage'))}</b><small>${esc(list.length?list.join(' · '):t('onb.none'))}</small></span><span aria-hidden="true">›</span></button>`}
 let activityTab='saved';
 // Recently viewed products on this device (revisit.js).
-const recentList=()=>{const list=readRecent();return list.length?`<div class="recent-list">${list.map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:`<p class="empty">${esc(t('activity.recentEmpty'))}</p>`};
+const recentList=()=>{const list=readRecent();return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:`<p class="empty">${esc(t('activity.recentEmpty'))}</p>`};
 // Products saved on this device that have a family key (for 알림 and 상품 공유).
 const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
 const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
 function renderSaved(){
-  const list=products.filter(p=>state.favorites.includes(p.id)),n=list.length;
+  const list=rankProducts(products.filter(p=>state.favorites.includes(p.id))),n=list.length;
   const hint=n===0?t('saved.hint'):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="logo-head actions-only"><span><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><h1 class="page-title">${esc(t('nav.activity'))}</h1><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms','recent'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`${n===0?`<p class="page-sub">${esc(hint)}</p>`:''}<div class="saved-grid">${list.map(savedCard).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>${profileCard()}${interestRow()}`;
+  $('#saved').innerHTML=`<div class="logo-head actions-only"><span><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><h1 class="page-title">${esc(t('nav.activity'))}</h1><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms','recent'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`${n===0?`<p class="page-sub">${esc(hint)}</p>`:''}${productSortControls()}<div class="saved-grid">${list.map(savedCard).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>${profileCard()}${interestRow()}`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
@@ -192,18 +193,18 @@ async function settingsAction(a){
 function renderSearch(){
   const q=$('#search').value.trim(),box=$('#search-results');
   if(!q){box.innerHTML=`<button class="explore-link" data-screen="home">${esc(t('section.products'))} ${icon.chevron}</button><p class="empty search-empty">${esc(t('search.recentEmpty'))}</p>`;return}
-  const items=search(products,q,'전체');
-  box.innerHTML=(items.length?`<div class="heading"><div><h2>${esc(t('section.products'))}</h2></div><span>${esc(t('count',{n:items.length}))}</span></div><div class="product-grid">${items.map(card).join('')}</div>`:'')+'<div id="search-catalog" class="catalog-results"></div>';
+  const items=rankProducts(search(products,q,'전체'));
+  box.innerHTML=productSortControls()+(items.length?`<div class="heading"><div><h2>${esc(t('section.products'))}</h2></div><span>${esc(t('count',{n:items.length}))}</span></div><div class="product-grid">${items.map(card).join('')}</div>`:'')+'<div id="search-catalog" class="catalog-results"></div>';
   if(q.length>=2)renderCatalogSearch(q);
 }
 function updateCount(){const n=state.favorites.length;$('#count').textContent=n;$('#count').hidden=!n}
 // Home: available products, then the Korean-brand catalog by category.
 function renderList(){
-  const items=search(products,'',category);
+  const items=rankProducts(search(products,'',category));
   updateCount();
   $('#list-title').textContent=t('section.products');
   $('#result-count').textContent=t('count',{n:items.length});
-  $('#products').innerHTML=(items.length?items.map(card).join(''):`<p class="empty">${esc(t('empty.category'))}</p>`)+'<div id="catalog-results" class="catalog-results"></div>';
+  $('#products').innerHTML=productSortControls()+(items.length?items.map(card).join(''):`<p class="empty">${esc(t('empty.category'))}</p>`)+'<div id="catalog-results" class="catalog-results"></div>';
   renderCatalogBrowse(true);
   if(screen==='saved')renderSaved();
 }
@@ -212,7 +213,7 @@ let catalogTimer,catalogSeq=0;
 let searchSeq=0;
 function renderCatalogSearch(q){clearTimeout(catalogTimer);const seq=++searchSeq;
   catalogTimer=setTimeout(async()=>{let list;try{list=await searchCatalog(q)}catch{list=null}if(seq!==searchSeq||!$('#search-catalog'))return;const tracked=new Set(products.map(p=>p.sku));list=(list||[]).filter(c=>!tracked.has(c.sku));
-    $('#search-catalog').innerHTML=list===null?'':`<div class="heading"><div><h2>${esc(t('section.more'))}</h2><p>${esc(t('section.moreHint'))}</p></div><span>${esc(t('count',{n:list.length}))}</span></div>`+(list.length?`<div class="catalog-grid">${list.map(catalogCard).join('')}</div>`:`<p class="empty">${esc(t('empty.catalogSearch'))}</p>`);
+    $('#search-catalog').innerHTML=list===null?'':`<div class="heading"><div><h2>${esc(t('section.more'))}</h2><p>${esc(t('section.moreHint'))}</p></div><span>${esc(t('count',{n:list.length}))}</span></div>`+(list.length?`<div class="catalog-grid">${rankProducts(list).map(catalogCard).join('')}</div>`:`<p class="empty">${esc(t('empty.catalogSearch'))}</p>`);
   },350)}
 // Home browsing of the Korean-brand catalog by category, loaded page by page as the user scrolls.
 const browse={category:null,items:[],done:false,loading:false};let observer;
@@ -220,7 +221,7 @@ function renderCatalogBrowse(reset){
   const box=$('#catalog-results');if(!box)return;
   if(reset&&browse.category!==category){Object.assign(browse,{category,items:[],done:false});catalogSeq++}
   const tracked=new Set(products.map(p=>p.sku));
-  box.innerHTML=`<div class="heading"><div><h2>${esc(t('section.all'))}</h2><p>${esc(t('family.pick'))}</p></div></div><div class="catalog-grid">${browse.items.map(familyCard).join('')}</div>${browse.done?(browse.items.length?'':`<p class="empty">${esc(t('empty.products'))}</p>`):`<p class="empty" id="catalog-more">${esc(t('loading'))}</p>`}`;
+  box.innerHTML=`<div class="heading"><div><h2>${esc(t('section.all'))}</h2><p>${esc(t('family.pick'))}</p></div></div><div class="catalog-grid">${rankProducts(browse.items).map(familyCard).join('')}</div>${browse.done?(browse.items.length?'':`<p class="empty">${esc(t('empty.products'))}</p>`):`<p class="empty" id="catalog-more">${esc(t('loading'))}</p>`}`;
   observer?.disconnect();
   const more=$('#catalog-more');if(!more)return;
   // First page loads right away; later pages load when the sentinel comes near the viewport.
@@ -319,3 +320,14 @@ loadProducts().then(({products:list,source,exportedAt})=>{
 auth.handleCallback().catch(error=>{const clean=new URL(location.href);for(const key of ['code','state','error','error_description'])clean.searchParams.delete(key);history.replaceState({},'',clean.toString());toast(error?.message||t('account.failed'))}).finally(()=>auth.restore().then(()=>{if(screen==='settings')renderSettings()}));
 document.addEventListener('profile-change',()=>{if(screen==='saved')renderSaved()});
 if(cachedProfile())refreshProfile();
+
+function redrawProductLists(){
+  if(screen==='brand')renderBrandPage();
+  else if(screen==='search')renderSearch();
+  else if(screen==='saved')renderSaved();
+  else if(screen==='home')renderList();
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-product-sort]');if(b)setProductSort(b.dataset.productSort)});
+document.addEventListener('product-sort-change',redrawProductLists);
+document.addEventListener('product-stats-ready',redrawProductLists);
+loadProductStats();
