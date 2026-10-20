@@ -517,3 +517,12 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .startup-brand-art>img{display:block;width:100%;height:100%;object-fit:contain}
 
 #family-actions>.family-save{flex:0 0 48px;min-width:48px;min-height:48px;position:static}.product-description summary{cursor:pointer;padding:10px 0;font-weight:600}
+
+/* Text-first conversation rows: preserve concern tags, remove thumbnails/card chrome. */
+.room-list-card{border:0;border-bottom:1px solid #e6eaf1;border-radius:0;margin:0;padding:13px 2px;background:transparent;gap:10px;box-shadow:none}
+.room-list-card .room-list-text{gap:5px}
+.room-list-card .room-title-line{display:flex;align-items:center;gap:8px;min-width:0}
+.room-list-card .room-title-line b{font-size:16px;min-width:0}
+.room-list-card .room-count{color:var(--blue);font-size:13px;font-weight:500;flex:none}
+.room-list-card .room-list-text em{font-size:13px;color:#697485;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.room-list-card .room-tags{margin-top:1px}
