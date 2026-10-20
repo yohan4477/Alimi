@@ -20,7 +20,8 @@ test('Google sign-in creates PKCE and state, then redirects to the returned prov
   const requestURL = new URL(calls[0].url);
   assert.equal(requestURL.searchParams.get('provider'), 'google');
   assert.equal(requestURL.searchParams.get('code_challenge_method'), 's256');
-  assert.equal(requestURL.searchParams.get('redirect_to'), 'https://alimi.example/?lang=ko');
+  assert.equal(new URL(requestURL.searchParams.get('redirect_to')).searchParams.get('lang'), 'ko');
+  assert.equal(new URL(requestURL.searchParams.get('redirect_to')).searchParams.get('sb_login_state'), sessionStorage.getItem(AUTH_STORAGE_KEYS.STATE_KEY));
   assert.match(requestURL.searchParams.get('code_challenge'), /^[A-Za-z0-9_-]{43}$/);
   assert.ok(sessionStorage.getItem(AUTH_STORAGE_KEYS.VERIFIER_KEY));
   assert.ok(sessionStorage.getItem(AUTH_STORAGE_KEYS.STATE_KEY));
@@ -31,7 +32,8 @@ test('OAuth callback checks state, exchanges the code, fetches the user, and per
   const storage = new MemoryStorage(), sessionStorage = new MemoryStorage(), calls = [];
   sessionStorage.setItem(AUTH_STORAGE_KEYS.VERIFIER_KEY, 'test-verifier');
   sessionStorage.setItem(AUTH_STORAGE_KEYS.STATE_KEY, 'expected-state');
-  const location = {href: 'https://alimi.example/?code=one-time-code&state=expected-state', replace: value => { location.replaced = value; }};
+  sessionStorage.setItem(AUTH_STORAGE_KEYS.FLOW_TIME, Date.now());
+  const location = {href: 'https://alimi.example/?code=one-time-code&sb_login_state=expected-state', replace: value => { location.replaced = value; }};
   const auth = new GoogleAuth({storage, sessionStorage, location, fetchImpl: async (url, options) => {
     calls.push({url, options});
     return calls.length === 1
@@ -51,9 +53,11 @@ test('OAuth callback rejects a mismatched state before exchanging the code', asy
   const sessionStorage = new MemoryStorage();
   sessionStorage.setItem(AUTH_STORAGE_KEYS.VERIFIER_KEY, 'verifier');
   sessionStorage.setItem(AUTH_STORAGE_KEYS.STATE_KEY, 'right-state');
+  sessionStorage.setItem(AUTH_STORAGE_KEYS.FLOW_TIME, Date.now());
   const auth = new GoogleAuth({sessionStorage, storage: new MemoryStorage(),
-    location: {href: 'https://alimi.example/?code=code&state=wrong-state', replace() {}},
+    location: {href: 'https://alimi.example/?code=code&sb_login_state=wrong-state', replace() {}},
     fetchImpl: async () => { requests++; return response({}); }});
   await assert.rejects(auth.handleCallback(), /could not be verified/i);
   assert.equal(requests, 0);
 });
+

@@ -3,17 +3,21 @@
 import {t} from './i18n.js';
 import {esc} from './util.js';
 import {chatSecret} from './chat-api.js';
-import {AGE_BANDS, CONCERNS, INTERESTS, canShareB2B, gpcOn, getProfile, saveProfile, deleteProfile} from './profile-api.js';
+import {AGE_BANDS, CONCERNS, INTERESTS, canShareB2B, gpcOn, getProfile, saveProfile as saveGuestProfile, deleteProfile as deleteGuestProfile} from './profile-api.js';
 import {SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES} from './community-api.js';
 
 const KEY = 'seoulbeauty-profile-v1';
 let storage; try { storage = localStorage; } catch {}
 const secret = chatSecret(storage);
+const accountOwner=()=>{const id=storage?.getItem('seoulbeauty-data-owner');return id&&id!=='guest'?id:null;};
+// Account profiles use owner-protected preferences; don't overwrite the device's guest identity.
+const saveProfile=(secret,p)=>accountOwner()?Promise.resolve(p):saveGuestProfile(secret,p);
+const deleteProfile=secret=>accountOwner()?Promise.resolve():deleteGuestProfile(secret);
 
 // Local copy of the server profile, so forms can prefill without a round trip.
 export function cachedProfile() { try { return JSON.parse(storage.getItem(KEY)) || null; } catch { return null; } }
 function remember(p) { try { p ? storage.setItem(KEY, JSON.stringify(p)) : storage.removeItem(KEY); } catch {} document.dispatchEvent(new CustomEvent('profile-change')); }
-export async function refreshProfile(fetchImpl = fetch) { try { const p = await getProfile(secret, fetchImpl); remember(p && !Array.isArray(p) ? p : null); } catch {} return cachedProfile(); }
+export async function refreshProfile(fetchImpl = fetch) { if(storage?.getItem('seoulbeauty-data-owner') && storage.getItem('seoulbeauty-data-owner')!=='guest')return cachedProfile(); try { const p = await getProfile(secret, fetchImpl); if(accountOwner())return cachedProfile(); remember(p && !Array.isArray(p) ? p : null); } catch {} return cachedProfile(); }
 
 // Review-form prefill (keys match the write draft in chat.js).
 export function reviewPrefill() {
@@ -94,3 +98,4 @@ document.addEventListener('change', e => {
   const c = e.target.closest('#profile-dialog [data-profile-check]'); if (!c) return;
   draft[c.dataset.profileCheck] = c.checked; render(c.closest('dialog'));
 });
+

@@ -26,7 +26,7 @@ export function readInterests(storage = deviceStorage()) {
   try { return normalize(JSON.parse(storage?.getItem(KEY))); } catch { return null; }
 }
 export function saveInterests(p, storage = deviceStorage()) {
-  try { storage.setItem(KEY, JSON.stringify(normalize(p))); return true; } catch { return false; }
+  try { storage.setItem(KEY, JSON.stringify(normalize(p))); globalThis.document?.dispatchEvent(new CustomEvent('interests-change')); return true; } catch { return false; }
 }
 function deviceStorage() { try { return globalThis.localStorage; } catch { return undefined; } }
 
@@ -130,3 +130,4 @@ globalThis.document?.addEventListener('click', e => {
   document.querySelector('#onboarding ' + sel)?.focus?.();
 });
 globalThis.document?.addEventListener('keydown', e => { if (flow?.step === 'splash' && (e.key === 'Enter' || e.key === ' ')) { flow.step = 'choose'; drawFlow(); } });
+
