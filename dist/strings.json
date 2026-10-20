@@ -2159,5 +2159,17 @@
   "region.noOffers": {
     "ko": "이 지역의 판매처 정보를 준비 중이에요.",
     "en": "Retailer listings for this region are being prepared."
+  },
+  "price.atRetailer": {
+    "ko": "가격은 판매처에서 확인",
+    "en": "Check price at retailer"
+  },
+  "coupang.disclosure": {
+    "ko": "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
+    "en": "SeoulBeauty earns a commission from purchases through this Coupang Partners link."
+  },
+  "detail.ownerLink": {
+    "ko": "등록된 제휴 링크",
+    "en": "Registered affiliate link"
   }
 }
