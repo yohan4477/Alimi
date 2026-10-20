@@ -1,3 +1,5 @@
+import {label as experienceLabel,productKey} from './room-experiences.js';
+import {mountRoomExperiences} from './room-experience-ui.js';
 import {shouldSuggestSetup,snoozeSetup} from './onboarding-nudge.js';
 import {region, inRegion} from './region.js';
 import {regionButton} from './region-picker.js';
@@ -6,7 +8,7 @@ import {productSortControls,rankProducts,aggregateProductStats} from './product-
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
 import {createDemoChatStore} from './demo-chat-store.js';
-import {demoRooms, demoMessages, demoEntries, createDemoProductRoom} from './demo-fixtures.js';
+import {demoRooms, demoMessages, demoEntries, demoRoomExperiences, createDemoProductRoom} from './demo-fixtures.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
@@ -33,6 +35,7 @@ const likedKey = 'seoulbeauty-chat-hearts-' + secret;
 let liked; try { liked = new Set(JSON.parse(storage.getItem(likedKey)) || []); } catch { liked = new Set(); }
 const liking = new Set();
 let unreadMessages = 0;
+let roomExperienceRows = [], roomExperienceController = null;
 const chat = {rooms: [], room: null, messages: [], nickname: '', myTag: '', item: null, replyTo: null, menuFor: null, poll: null, sending: false};
 const view = {mode: 'posts', post: null, comments: [], commentItem: null, draft: null};
 let onClose = () => {}, toast = () => {}, pickFor = 'chat';
@@ -352,9 +355,10 @@ async function submitPost() {
 // Live chat inside a topic.
 async function startLive(room) {
   const draft=roomDrafts.get(room.id);
+  roomExperienceRows = []; roomExperienceController = null;
   chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
   const setupNudge = shouldSuggestSetup(readInterests(), storage) ? `<aside id="setup-nudge" class="setup-nudge"><b>${esc(t('onb.nudgeTitle'))}</b><p>${esc(t('onb.nudgeHint'))}</p><div><button class="text-link" data-onb-manage data-onb-context="chat">${esc(t('onb.manage'))}</button><button class="text-btn" data-setup-snooze>${esc(t('onb.snooze'))}</button></div></aside>` : '';
-  body(`${setupNudge}<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
+  body(`<section id="room-experiences" class="room-experiences" aria-label="${locale().startsWith('ko')?'이 방의 사용 경험':'Room experiences'}"></section>${setupNudge}<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
   {
     $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
@@ -364,6 +368,7 @@ async function startLive(room) {
     chat.messages = [...(demoMessages[room.id] || []), ...demoChat.messages(room.id)];
     $('#chat-form .chat-rules').textContent = locale().startsWith('ko') ? '데모 대화 · 작성한 메시지는 이 기기에만 저장돼요' : 'Demo chat · Messages stay on this device';
     renderLog(true);
+    mountExperiences(room);
     return;
   }
   try {
@@ -373,7 +378,12 @@ async function startLive(room) {
   } catch { if(chat.room?.id!==room.id||!$('#chat-log'))return; $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
   track('chat_open',null,{room:room.id,entry_mode:roomFindMode});
   renderLog(true);
+  mountExperiences(room);
   startPolling();
+}
+function mountExperiences(room) {
+  const host = $('#room-experiences');
+  if (host) roomExperienceController = mountRoomExperiences(host,{room,messages:chat.messages,author:chat.myTag,secret,storage,seed:demoRoomExperiences[room.id]??[],blocked:readBlocked(storage),toast,onChange:rows=>{if(chat.room?.id===room.id){roomExperienceRows=rows;renderLog(false);}}});
 }
 const SEEN_KEY = 'seoulbeauty-seen-v1';
 const readSeen = () => { try { return JSON.parse(storage.getItem(SEEN_KEY)) || {}; } catch { return {}; } };
@@ -390,6 +400,15 @@ function nicknameColor(nickname) {
   return NICK_COLORS[hash];
 }
 
+function experienceBadge(message) {
+  const key=productKey(message.item??chat.room?.topic_product);
+  const row=roomExperienceRows.find(r=>r.author_tag===message.author_tag&&r.product_key===key);
+  if(!row)return '';
+  const ko=locale().startsWith('ko');
+  const facts=[experienceLabel('skin',row.skin,ko),experienceLabel('period',row.period,ko),row.repeat==='first'?'':experienceLabel('repeat',row.repeat,ko)];
+  if(row.status==='curious')facts.push(experienceLabel('status',row.status,ko));
+  return facts.filter(Boolean).length?`<small class="chat-experience-badge">${esc(facts.filter(Boolean).join(' · '))}</small>`:'';
+}
 function renderLog(scroll) {
   const log = $('#chat-log'); if (!log) return;
   const near = log.scrollHeight - log.scrollTop - log.clientHeight < 120;
@@ -406,7 +425,7 @@ function renderLog(scroll) {
     const elapsed = prev ? Date.parse(m.created_at) - Date.parse(prev.created_at) : Infinity;
     const grouped = !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
-    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!mine && !grouped ? `<b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b>` : ''}<div class="msg-line"><div class="msg-content">${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><time class="msg-time">${esc(time(m.created_at))}</time></div></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
+    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!mine && !grouped ? `<b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b>${experienceBadge(m)}` : ''}<div class="msg-line"><div class="msg-content">${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><time class="msg-time">${esc(time(m.created_at))}</time></div></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
@@ -418,6 +437,7 @@ function renderLog(scroll) {
   else { log.scrollTop = oldTop; }
   const latest = $('#chat-latest');
   if (latest) { latest.hidden = unreadMessages === 0; latest.textContent = t('chat.newMessages', {n: unreadMessages}); }
+  roomExperienceController?.updateMessages(chat.messages);
   log.onscroll = () => { if (log.scrollHeight - log.scrollTop - log.clientHeight < 120) { unreadMessages = 0; if(chat.room&&chat.messages.length)markSeen(chat.room.id,chat.messages.at(-1).created_at); if (latest) latest.hidden = true; } };
 }
 function renderContext() {
