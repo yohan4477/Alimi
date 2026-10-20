@@ -1,3 +1,4 @@
+import productImages from './demo-product-images.json' with {type:'json'};
 // Isolated synthetic chat examples for presentation. Not actual users or KPIs.
 const topics=['여드름 진정','속건조 해결','민감성 피부','모공 관리','선크림 추천','장벽 회복','지성 피부','환절기 관리','기미 잡티','탄력 관리','스킨케어 입문','토너패드','립 조합','쿨톤 메이크업','웜톤 메이크업','쿠션 비교','컨실러','지속력 메이크업','내추럴 메이크업','데일리 메이크업','브러시 퍼프','눈썹 메이크업','글로우 매트','퍼스널 컬러','COSRX 후기','롬앤 틴트','클리오 쿠션','K뷰티 입문','미국 K뷰티','해외 직구','여행용 파우치','운동 후 관리','출근 메이크업','뷰티 질문','클렌징 루틴','틴트 발색'];
 const concerns=['acne','dry','sensitive','pores','sensitive','dry','sebum','sensitive','spots','firmness','dry','pores','lip','shade','shade','cushion','base','longwear','base','lip','base','longwear','base','shade','acne','lip','cushion','sensitive','lip','base','longwear','sebum','longwear','dry','acne','shade'];
@@ -22,13 +23,13 @@ export const demoProducts = [
   ['drg-cream','닥터지','레드 블레미쉬 수딩 크림','여름에 쓰기에는 무겁지 않나요?','저는 얇게 펴 바르는 편이에요.'],
   ['goodal-serum','구달','청귤 비타C 세럼','다른 세럼이랑 같이 쓰세요?','저는 한 번에 하나씩 바꿔보는 중이에요.'],
   ['peripera-tint','페리페라','잉크 무드 글로이 틴트','립 조합 추천받고 싶어요.','저는 연한 색을 베이스로 먼저 발라요.']
-].map(([id,brand,name,question,answer])=>({id,brand,name,label:`${brand} ${name}`,question,answer}));
+].map(([id,brand,name,question,answer])=>({id,brand,name,image_url:productImages[id],label:`${brand} ${name}`,question,answer}));
 for (const [i, product] of demoProducts.entries()) {
   for (let j=0;j<2;j++) {
     const id=`demo-product-${i}-${j}`, title=`${product.label} · ${j?'조합·비교':'사용 후기'}`;
     const room={id,title_ko:title,title_en:title,intro_ko:`${product.label} 사용 경험을 나눠요.`,intro_en:`Share experiences with ${product.label}.`,kind:'topic',tag:[5,6,7,11].includes(i)?'makeup':'skin',concerns:[[5,7,11].includes(i)?'lip':i===6?'cushion':'dry'],members:8+(i*3+j)%25,messages_24h:4+(i+j)%13,sort:36+i*2+j,last_message_at:new Date(Date.UTC(2026,9,20,7)-i*60000-j*30000).toISOString(),demo:true,topic_product:product};
     demoRooms.push(room);
-    demoMessages[id]=Array.from({length:24},(_,k)=>({id:950000+i*100+j*30+k,room_id:id,nickname:names[(i+j+k)%names.length],author_tag:`demo-author-${(i+j+k)%12}`,body:[product.question,product.answer,`${product.name} 써본 분들의 다른 경험도 듣고 싶어요.`,'저도 비슷한 고민이에요. 피부 타입이나 쓰는 양에 따라 다를 것 같아요.','구매 전에 여기서 경험을 더 들어보려고요.','사용 순서도 함께 알려주셔서 도움됐어요.'][k%6],likes:(i+j+k)%7,item:k%4===0?{demo:true,family_key:product.id,brand:product.brand,name:product.name,label:product.label}:null,reply_to:null,created_at:new Date(demoNow-(23-k)*3600000-i*60000).toISOString(),demo:true}));
+    demoMessages[id]=Array.from({length:24},(_,k)=>({id:950000+i*100+j*30+k,room_id:id,nickname:names[(i+j+k)%names.length],author_tag:`demo-author-${(i+j+k)%12}`,body:[product.question,product.answer,`${product.name} 써본 분들의 다른 경험도 듣고 싶어요.`,'저도 비슷한 고민이에요. 피부 타입이나 쓰는 양에 따라 다를 것 같아요.','구매 전에 여기서 경험을 더 들어보려고요.','사용 순서도 함께 알려주셔서 도움됐어요.'][k%6],likes:(i+j+k)%7,item:k%4===0?{demo:true,family_key:product.id,image_url:product.image_url,brand:product.brand,name:product.name,label:product.label}:null,reply_to:null,created_at:new Date(demoNow-(23-k)*3600000-i*60000).toISOString(),demo:true}));
   }
 }
 export function createDemoProductRoom({title,intro='',tag='talk',concerns=[],productName}) {

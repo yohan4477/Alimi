@@ -47,5 +47,5 @@ test('demo conversations expose all twelve attached products within the recent s
  assert.equal(Object.values(demoMessages).flat().length,1440);
  const products=mentionedProducts(demoEntries());
  assert.equal(products.length,12);
- assert.ok(products.every(g=>g.rooms.size===2 && g.entries.length>0 && g.item.demo));
+ assert.ok(products.every(g=>g.rooms.size===2 && g.entries.length>0 && g.item.demo && /^https:\/\//.test(g.item.image_url)));
 });
