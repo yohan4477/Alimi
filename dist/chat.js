@@ -78,7 +78,7 @@ export async function openChat(opts = {}) {
   if (version !== communityOpenVersion) return;
   track('community_open', null);
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
-  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
+  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   const showLaunch = initial && readInterests()?.done;
   const finish = showLaunch ? beginStartupLoading({label: t('loading'), line1: t('splash.line1'), line2: t('splash.line2')}) : () => {};
   finishStartup = finish;
@@ -260,7 +260,7 @@ let joinThen = () => {};
 function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null;
   const other = mode === 'posts' ? 'live' : 'posts';
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div>${!room.demo ? `<button class="room-invite" data-chat-action="share-room" aria-label="${esc(t('share.invite'))}">${icon.share}<span>${esc(t('share.invite'))}</span></button>` : ''}<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div>${!room.demo ? `<button class="room-invite" data-chat-action="share-room" aria-label="${esc(t('share.invite'))}">${icon.share}<span>${esc(t('share.invite'))}</span></button>` : ''}${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : ''}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
   if (room.demo) { startLive(room); return; }
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
@@ -642,7 +642,7 @@ document.addEventListener('click', async e => {
     } catch { toast(t('chat.err.other')); }
   }
   else if (b.dataset.chatRoom) { const r = chat.rooms.find(x => x.id === b.dataset.chatRoom); if (r) openTopic(r, 'live'); }
-  else if (b.dataset.post && $('#chat') && !$('#chat').hidden) openPost(+b.dataset.post);
+  else if (b.dataset.post && !b.closest('#family-dialog') && $('#chat') && !$('#chat').hidden) openPost(+b.dataset.post);
   else if (b.dataset.chatPick) picked1(+b.dataset.chatPick);
   else if (b.dataset.chatMenu) openMenu(+b.dataset.chatMenu);
   else if (b.dataset.communityMenu) openCommunityMenu(b.dataset.communityMenu);
@@ -685,3 +685,4 @@ document.addEventListener('product-sort-change',()=>{if(home&&homeTab==='discove
 document.addEventListener('product-stats-ready',()=>{if(home&&homeTab==='discover'&&$('#community-home'))drawHome()});
 
 document.addEventListener('click',e=>{if(e.target.closest('[data-setup-snooze]')){snoozeSetup(storage);document.getElementById('setup-nudge')?.remove();}});
+
