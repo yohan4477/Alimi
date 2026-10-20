@@ -131,6 +131,7 @@ try {
   await preview.locator('[data-onboard-room="demo-1"]').click();
   assert.ok(await preview.getByText('이 방은 기획 시안에서만 열립니다.',{exact:false}).isVisible());
   await page.getByRole('tab',{name:'디자인 리뷰',exact:true}).click();
+  await page.locator('#sb-design > details > summary').click();
   assert.ok(await page.getByText('맞춤 추천을 추가하되,',{exact:false}).first().isVisible());
   assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),8);
   // Loading preview reuses launch assets; costume/avatar controls are gone.
