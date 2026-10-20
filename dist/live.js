@@ -81,7 +81,7 @@ export function familiesPageUrl(category, offset, limit = 24, brand = null) {
   const params = new URLSearchParams({select: FAMILY_FIELDS, order: 'sort_key.desc', offset: String(offset), limit: String(limit)});
   if (category && category !== '전체') params.set('category', 'eq.' + category);
   if (brand) params.set('brand', 'eq.' + brand);
-  params.set('market','eq.'+market);
+  params.set('market','eq.'+market); params.set('currency','eq.'+currency);
   return SUPABASE_URL + '/rest/v1/catalog_region_families?' + params;
 }
 export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
@@ -89,9 +89,13 @@ export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl 
   try { rows=await restGet(familiesPageUrl(category,offset,limit,brand),fetchImpl); }
   catch(e) {
     if(!/HTTP 404/.test(e.message)) throw e;
-    // Legacy API has no region aggregate. Group only explicitly scoped catalog rows.
-    const p=new URLSearchParams({select:CATALOG_FIELDS+',base_name',active:'eq.true',market:'eq.'+market,currency:'eq.'+currency,order:'sku.desc',offset:String(offset),limit:String(limit)});
-    if(category && category!=='전체')p.set('category','eq.'+category); if(brand)p.set('brand','eq.'+brand);
+    // Legacy view supplies identity/order only. Never reuse its cross-market prices.
+    const index=new URL(familiesPageUrl(category,offset,limit,brand));
+    index.pathname='/rest/v1/catalog_families';index.searchParams.delete('market');index.searchParams.delete('currency');
+    index.searchParams.set('select','family_key');
+    const keys=(await restGet(index.href,fetchImpl)).map(f=>f.family_key).filter(Boolean);
+    if(!keys.length)return [];
+    const p=new URLSearchParams({select:CATALOG_FIELDS+',base_name',active:'eq.true',market:'eq.'+market,currency:'eq.'+currency,family_key:'in.('+keys.map(k=>JSON.stringify(k)).join(',')+')',order:'sku.desc',limit:'1000'});
     const items=await restGet(SUPABASE_URL+'/rest/v1/catalog_items?'+p,fetchImpl);
     const groups=new Map(); for(const i of items) { if(!i.family_key)continue; const f=groups.get(i.family_key); if(f){f.min_price_minor=Math.min(f.min_price_minor,i.price_minor);f.max_price_minor=Math.max(f.max_price_minor,i.price_minor);f.variants++;}else groups.set(i.family_key,{...i,base_name:i.base_name??i.name,min_price_minor:i.price_minor,max_price_minor:i.price_minor,variants:1}); } rows=[...groups.values()];
   }

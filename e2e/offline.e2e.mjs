@@ -142,7 +142,7 @@ try {
     await page.fill('#chat-text', 'Yes, it is light');
     await page.click('#chat-form .chat-send');
     await page.waitForSelector('.chat-msg >> text=Yes, it is light');
-    await page.click('[data-chat-menu="11"]');
+    await page.locator('.chat-msg[data-id="11"]').press('Enter');
     await page.click('[data-chat-action="block"]');
     assert.equal(await page.locator('.chat-msg >> text=Anyone tried snail?').count(), 0);
     await page.click('.room-back');

@@ -27,3 +27,15 @@ test('language changes preserve deep-link target; region changes open the chosen
  assert.equal(shareUrl({room:'u-a'},href),'https://seoulbeauty.me/kr?room=u-a');
  assert.equal(shareUrl({product:'a'},'https://seoulbeauty.me/us?lang=ko#x'),'https://seoulbeauty.me/us?product=a');
 });
+
+test('pre-migration catalog fallback uses family identities but only regional offer prices',async()=>{
+ const {fetchFamiliesPage}=await import('../dist/live.js');const calls=[];
+ const rows=await fetchFamiliesPage('전체',0,24,async url=>{
+  const u=new URL(url);calls.push(u);
+  if(u.pathname.endsWith('catalog_region_families'))return {ok:false,status:404};
+  if(u.pathname.endsWith('catalog_families')){assert.equal(u.searchParams.get('select'),'family_key');assert.equal(u.searchParams.has('currency'),false);return {ok:true,json:async()=>[{family_key:'serum'}]};}
+  assert.equal(u.searchParams.get('market'),'eq.US');assert.equal(u.searchParams.get('currency'),'eq.USD');
+  return {ok:true,json:async()=>[{family_key:'serum',market:'US',currency:'USD',brand:'Test',name:'Serum',price_minor:1800}]};
+ });
+ assert.equal(rows[0].minPrice,18);assert.equal(calls.length,3);
+});

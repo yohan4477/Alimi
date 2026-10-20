@@ -106,7 +106,7 @@ try {
     assert.equal(await page.locator('#join-live').count(),0,'anonymous reading and composing require no join step');
     await page.waitForSelector('#chat-text');
     assert.equal(await page.getAttribute('#chat-text', 'placeholder'), '메시지를 입력하세요...');
-    await page.click('[data-chat-menu="1"]');
+    await page.locator('.chat-msg[data-id="1"]').press('Enter');
     await page.click('[data-chat-action="reply"]');
     await page.click('[data-chat-action="attach"]');
     await page.fill('#chat-pick-q', 'anua');
@@ -116,10 +116,10 @@ try {
     await page.waitForSelector('.chat-msg .chat-item');
     assert.equal(posted.p_reply_to, 1);
     assert.ok(posted.p_sku, 'searched item is attached by reference');
-    await page.click('[data-chat-menu="1"]');
+    await page.locator('.chat-msg[data-id="1"]').press('Enter');
     await page.click('[data-chat-action="report"]');
     await page.click('[data-chat-report="spam"]');
-    await page.click('[data-chat-menu="1"]');
+    await page.locator('.chat-msg[data-id="1"]').press('Enter');
     await page.click('[data-chat-action="block"]');
     assert.equal(await page.locator('.chat-msg >> text=추천 좀 해주세요').count(), 0, 'blocked author is hidden');
     await page.click('[data-chat-action="rooms"]');
