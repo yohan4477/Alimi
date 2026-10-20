@@ -1,0 +1,8 @@
+// Isolated synthetic chat examples for presentation. Not actual users or KPIs.
+const topics=['여드름 진정','속건조 해결','민감성 피부','모공 관리','선크림 추천','장벽 회복','지성 피부','환절기 관리','기미 잡티','탄력 관리','스킨케어 입문','토너패드','립 조합','쿨톤 메이크업','웜톤 메이크업','쿠션 비교','컨실러','지속력 메이크업','내추럴 메이크업','데일리 메이크업','브러시 퍼프','눈썹 메이크업','글로우 매트','퍼스널 컬러','COSRX 후기','롬앤 틴트','클리오 쿠션','K뷰티 입문','미국 K뷰티','해외 직구','여행용 파우치','운동 후 관리','출근 메이크업','뷰티 질문','클렌징 루틴','틴트 발색'];
+const concerns=['acne','dry','sensitive','pores','sensitive','dry','sebum','sensitive','spots','firmness','dry','pores','lip','shade','shade','cushion','base','longwear','base','lip','base','longwear','base','shade','acne','lip','cushion','sensitive','lip','base','longwear','sebum','longwear','dry','acne','shade'];
+const q=['요즘 어떤 제품 쓰세요?','비슷한 고민 있으신 분?','다른 분 경험도 궁금해요.','이 조합 써본 분 계세요?','피부 타입별로 차이가 있나요?','구매 전에 후기 더 들어보고 싶어요.'];
+const a=['저도 그게 궁금해요!','저는 소량으로 테스트해봤어요.','저는 건성이라 조금 달랐어요.','사용감은 괜찮았는데 개인차가 있어요.','좋은 정보 감사합니다.','저도 며칠 더 써보려고요.'];
+const names=['루나','피치','민트','제이','소라','코코','로지','모카','나나','하늘','유니','달빛'];
+export const demoRooms=topics.map((title,i)=>({id:'demo-'+i,title_ko:title,title_en:title,intro_ko:title+'에 대해 편하게 이야기해요.',intro_en:'Discuss '+title+'.',kind:'topic',tag:i<12?'skin':i<24?'makeup':'talk',concerns:[concerns[i]],members:5+(i*7)%41,messages_24h:3+(i*5)%18,sort:i,last_message_at:new Date(Date.UTC(2026,9,20,3)-i*60000).toISOString(),demo:true}));
+export const demoMessages=Object.fromEntries(demoRooms.map((r,i)=>[r.id,Array.from({length:24},(_,j)=>({id:900000+i*100+j,room_id:r.id,nickname:names[(i+j)%12],author_tag:'demo-author-'+((i+j)%12),body:j%2?q[(i+j)%6]:a[(i+j)%6],likes:(i+j)%9,item:null,reply_to:null,created_at:new Date(Date.UTC(2026,9,18,5)+i*60000+j*3600000).toISOString(),demo:true}))]));
