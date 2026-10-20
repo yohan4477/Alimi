@@ -555,3 +555,22 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .setup-nudge{background:#f1f6ff;border-radius:12px;padding:12px 14px;margin:8px 0;color:var(--ink)}
 .setup-nudge b{font-size:14px}.setup-nudge p{font-size:12px;line-height:1.5;color:#6b7385;margin:5px 0}
 .setup-nudge>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.setup-nudge button{min-height:44px;font-size:12px}.setup-nudge .text-btn{color:#6b7385}
+
+/* Compact conversation: inline clocks and consecutive-author groups. */
+#chat-log .chat-msg{margin:12px 0 0;grid-template-columns:minmax(0,1fr) 44px;gap:6px}
+#chat-log .chat-msg.grouped{margin-top:4px}
+#chat-log .msg-main{gap:4px}
+#chat-log .chat-nick{font-size:12px;line-height:16px;margin:0 0 0 4px}
+#chat-log .msg-line{display:flex;align-items:flex-end;gap:6px;max-width:100%;min-width:0}
+#chat-log .chat-msg.mine .msg-line{flex-direction:row-reverse}
+#chat-log .msg-content{min-width:0;max-width:100%}
+#chat-log .chat-bubble{padding:8px 11px;border-radius:13px}
+#chat-log .chat-bubble p{font-size:16px;line-height:1.4;overflow-wrap:anywhere}
+#chat-log .msg-time{flex:none;white-space:nowrap;font-size:10px;line-height:14px;padding-bottom:2px}
+#chat-log .chat-heart{width:44px;min-height:36px;gap:4px;margin-bottom:0;font-size:11px}
+#chat-log .chat-heart svg{width:18px;height:18px}
+#chat-log .chat-date{margin:14px 0 8px}
+#chat-log .chat-item{width:100%;min-width:0;margin-top:4px;padding:8px;gap:8px}
+#chat-log .chat-item img,#chat-log .chat-item .no-photo{width:44px;height:44px;object-fit:contain}
+#chat-log .chat-item>span{min-width:0}
+#chat-log .chat-msg:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
