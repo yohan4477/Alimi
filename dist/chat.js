@@ -1,5 +1,6 @@
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
+import {demoRooms, demoMessages} from './demo-fixtures.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
@@ -45,6 +46,7 @@ const itemCard = (it, ref = '') => `<button class="chat-item" ${it.family_key ? 
 const shell = inner => { $('#chat').innerHTML = inner; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
+let demoActive = false;
 let firstCommunityLoad = true, communityOpenVersion = 0;
 let finishStartup = () => {};
 export async function openChat(opts = {}) {
@@ -120,7 +122,14 @@ async function loadCatalogPictures(rooms) {
 async function renderHome() {
   const version = ++homeVersion;
   rememberDraft(); stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room">＋ ${esc(t('room.new'))}</button>`);
+  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? '실제' : '데모'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room">＋ ${esc(t('room.new'))}</button>`);
+  if (demoActive) {
+    chat.rooms = demoRooms;
+    home = {hot:demoRooms.slice(0,6),topics:demoRooms,recent:[],previews:new Map(),partial:false,joined:[],images:new Map(),products:[]};
+    homeTab = 'rooms';
+    drawHome();
+    return;
+  }
   let posts = [], joined = [], postsFailed = false;
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
@@ -192,6 +201,7 @@ function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null;
   const other = mode === 'posts' ? 'live' : 'posts';
   shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div><div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
+  if (room.demo) { startLive(room); return; }
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
@@ -288,6 +298,12 @@ async function startLive(room) {
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
   }
+  if (room.demo) {
+    chat.messages = demoMessages[room.id] || [];
+    $('#chat-form').innerHTML = '<p class="chat-rules">데모 모드 · 가상 대화 (읽기 전용)</p>';
+    renderLog(true);
+    return;
+  }
   try {
     const messages = await fetchMessages(room.id);
     if(chat.room?.id!==room.id||!$('#chat-log'))return;
@@ -337,6 +353,7 @@ function renderContext() {
     (chat.item ? `<div class="chat-chip">${esc(brandLabel(chat.item))} · ${esc(chat.item.name)}<button type="button" data-chat-action="item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : '');
 }
 async function send() {
+  if (chat.room?.demo) return;
   const box = $('#chat-text'); if(!box||!chat.room)return;const text = box.value.trim(),roomId=chat.room.id,item=chat.item,replyTo=chat.replyTo;
   if (chat.sending || (!text && !chat.item)) return;
   chat.sending = true;box.disabled=true;
@@ -353,6 +370,7 @@ async function send() {
   finally { chat.sending = false;box.disabled=false; }
 }
 function startPolling() {
+  if (chat.room?.demo) return;
   stopPolling();
   chat.poll = setInterval(async () => {
     if (!chat.room || document.hidden || view.mode !== 'live') return;
@@ -477,7 +495,8 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
-  if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
+  if (a === 'toggle-demo') { demoActive = !demoActive; home = null; chat.rooms = []; homeTab = 'rooms'; renderHome(); }
+  else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (HOME_TABS.includes(b.dataset.homeTab)) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
@@ -487,7 +506,7 @@ document.addEventListener('click', async e => {
   else if (b.dataset.chatReply) { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
   else if (a === 'share-room' && chat.room) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
   else if (a === 'find-topic') openStart();
-  else if (a === 'create-room') openCreateRoom();
+  else if (a === 'create-room') { if (demoActive) return; openCreateRoom(); }
   else if (a === 'room-submit') submitRoom();
   else if (b.dataset.roomTag) { keepRoomText(); newRoom.tag = b.dataset.roomTag; renderCreateRoom(); $(`[data-room-tag="${newRoom.tag}"]`).focus(); }
   else if (b.dataset.roomConcern) { keepRoomText(); const id = b.dataset.roomConcern; newRoom.concerns = newRoom.concerns.includes(id) ? newRoom.concerns.filter(c => c !== id) : [...newRoom.concerns, id]; renderCreateRoom(); $(`[data-room-concern="${id}"]`).focus(); }
@@ -536,6 +555,7 @@ document.addEventListener('click', async e => {
   else if (b.dataset.communityMenu) openCommunityMenu(b.dataset.communityMenu);
   else if (b.dataset.communitySave && view.post) { toggleSavedPost(view.post); renderPost(); }
   else if (b.dataset.chatLike) {
+    if (chat.room?.demo) return;
     const id = +b.dataset.chatLike;
     if ($('#chat-menu')?.open) $('#chat-menu').close();
     if (liking.has(id)) return;
