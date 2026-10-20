@@ -586,10 +586,18 @@ document.addEventListener('seoulbeauty-create-room', openCreateRoom);
 
 // Read-only sample for the Explore overview, with the same visibility rules as Community.
 export async function loadExploreMentions() {
-  if(home?.products)return home.products;
   const [rooms,posts]=await Promise.all([fetchRooms(),fetchPosts(null,40)]);
   const entries=visiblePosts(posts).map(p=>({...p,source:'post'}));
   const results=await Promise.allSettled(activeRooms(rooms).map(async r=>(await fetchMessages(r.id)).map(m=>({...m,room_id:r.id,source:'chat'}))));
   for(const result of results)if(result.status==='fulfilled')entries.push(...visible(result.value,readBlocked(storage)));
-  return mentionedProducts(entries,readBlocked(storage));
+  const blocked=readBlocked(storage),groups=new Map(),seen=new Set(),now=Date.now();
+  for(const e of entries){
+    const age=now-Date.parse(e.created_at),id=e.source+':'+e.id;
+    if(!e.item||blocked.includes(e.author_tag)||!Number.isFinite(age)||age<0||age>86400000||seen.has(id))continue;
+    seen.add(id);
+    const key=e.item.family_key||[e.item.retailer,e.item.market,e.item.sku].join(':');
+    if(!groups.has(key))groups.set(key,{item:e.item,entries:[]});
+    groups.get(key).entries.push(e);
+  }
+  return [...groups.values()].sort((a,b)=>b.entries.length-a.entries.length);
 }
