@@ -113,6 +113,7 @@ export const postRow = p => `<button class="post-row" data-post="${p.id}"><span 
 // 추천: guide, trending rooms with a real product picture, recommended rooms. 발견: products and questions
 // from conversations. Every number shown is a real count from the fetched sample.
 const HOME_TABS = ['rec', 'rooms', 'discover'];
+let topicRoomLimit = 3, productGroupLimit = 3;
 let homeVersion = 0, homeTab = demoActive ? 'rooms' : 'rec', home = null, catalogPics = null;
 let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
 export function openProductRoomsNext(query = '') {
@@ -173,8 +174,10 @@ function drawHome() {
     const trend = hot.length ? sectionHead(t('home.trending'), '') + hot.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') : '';
     box.innerHTML = `${mine}${trend}${sectionHead(t('home.recRooms'), '', `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
   } else if (homeTab === 'rooms') {
-    box.innerHTML = `<div class="room-find-modes" role="group" aria-label="${esc(t('rooms.findBy'))}"><button data-room-find="topics" aria-pressed="${roomFindMode === 'topics'}">${esc(t('home.topics'))}</button><button data-room-find="products" aria-pressed="${roomFindMode === 'products'}">${esc(t('rooms.byProduct'))}</button></div>${roomFindMode === 'products' ? `<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><p class="home-note">${esc(t('rooms.productHint'))}</p><div id="product-room-results" aria-live="polite"></div>` : `${sectionHead(t('home.topics'), '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`}`;
-    if (roomFindMode === 'products') drawProductRooms();
+    const productIds = new Set(productRoomGroups(topics, home.popular ?? []).flatMap(g => g.rooms.map(r => r.id)));
+    const topicRooms = topics.filter(r => !productIds.has(r.id));
+    box.innerHTML = `<section class="room-topic-section">${sectionHead(t('home.topics'), '')}${topicRooms.slice(0, topicRoomLimit).map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') || `<p class="empty">${esc(t('home.quiet'))}</p>`}${topicRooms.length > topicRoomLimit ? `<button class="text-link" data-chat-action="more-topic-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}</section><section class="room-product-section">${sectionHead(t('rooms.byProduct'), '')}<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><div id="product-room-results" aria-live="polite"></div></section>`;
+    drawProductRooms();
   } else if (homeTab === 'discover') {
     const mentioned = products.length ? `<div class="mentioned-products">${rankProducts(products, undefined, demoActive ? aggregateProductStats(demoEntries()) : undefined).map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${productSortControls()}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
@@ -188,6 +191,7 @@ function drawProductRooms() {
   const query = productRoomQuery.trim(), all = productRoomGroups(home.topics, home.popular ?? []);
   const words = query.toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const groups = all.filter(g => words.every(w => g.name.toLocaleLowerCase().includes(w)));
+  const shownGroups = query ? groups : groups.slice(0, productGroupLimit);
   const selected = all.find(g => g.id === selectedProductGroup);
   const rooms = selected?.rooms ?? findProductRooms(home.topics, query);
   const create = query || selected ? `<button class="text-link product-room-create" data-chat-action="create-product-room">＋ ${esc(t('rooms.productCreate'))}</button>` : '';
@@ -196,7 +200,7 @@ function drawProductRooms() {
     return;
   }
   if (groups.length) {
-    box.innerHTML = `<h3 class="chat-section">${esc(t('rooms.productsActive'))}</h3>${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${groups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>`;
+    box.innerHTML = `${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${shownGroups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>${!query && groups.length > productGroupLimit ? `<button class="text-link" data-chat-action="more-product-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}`;
   } else if (query && rooms.length) {
     box.innerHTML = `<p class="home-note">${esc(t('rooms.productCount', {n:rooms.length}))}</p>${rooms.map(r => roomListCard(r, {attrs: `data-chat-room="${esc(r.id)}" data-live="1"`})).join('')}${create}`;
   } else {
@@ -543,7 +547,8 @@ document.addEventListener('click', async e => {
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (HOME_TABS.includes(b.dataset.homeTab)) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
-  else if (b.dataset.roomFind) { roomFindMode = b.dataset.roomFind; drawHome(); if (roomFindMode === 'products') $('#room-product-query')?.focus(); }
+  else if (a === 'more-topic-rooms') { topicRoomLimit += 6; drawHome(); }
+  else if (a === 'more-product-rooms') { productGroupLimit += 6; drawProductRooms(); }
   else if (b.dataset.productRoomGroup) { selectedProductGroup = b.dataset.productRoomGroup; drawProductRooms(); }
   else if (a === 'product-list-back') { selectedProductGroup = null; drawProductRooms(); }
   else if (a === 'create-product-room') {
