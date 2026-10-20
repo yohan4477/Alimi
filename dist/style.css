@@ -468,9 +468,9 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 
 .icon-btn[data-screen="alerts"]{position:relative}
 
-/* Keep optional onboarding fields compact and readable. */
-.ob-profile-field{display:flex;flex-direction:column;gap:12px;margin-top:28px;font-weight:600}
-.ob-profile-field select{width:100%;min-height:48px;padding:12px;border:1px solid #e3e7ee;border-radius:12px;background:white;color:#0f1b3d;font:inherit}
+/* Profile options share the onboarding button style. */
+.ob-profile-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ob-profile-choices button{padding:10px 12px;line-height:1.4}
 #community-create{width:100%;min-height:44px;margin:12px 0}
 
 /* First request only: reuse the launch photo; never cover a background refresh. */
