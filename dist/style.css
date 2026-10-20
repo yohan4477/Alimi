@@ -254,8 +254,8 @@ body.onboarding-open{overflow:hidden}
 .onboarding{position:fixed;inset:0;z-index:50;background:#fff;overflow:auto}
 .onboarding[hidden]{display:none}
 .ob-splash{min-height:100dvh;display:flex;flex-direction:column;align-items:center;background:linear-gradient(#e6f0fe,#e5f0fe);cursor:pointer;overflow:hidden;max-width:600px;margin:0 auto}
-.ob-line1{margin:64px 0 0;font-size:22px;font-weight:500;color:#3d6fd8}
-.ob-line2{margin:4px 0 0;font-size:26px;font-weight:800;color:var(--sb-navy)}
+.ob-line1{margin:64px 0 0;font-size:18px;font-weight:500;color:#3d6fd8}
+.ob-line2{margin:4px 0 0;font-size:22px;font-weight:800;color:var(--sb-navy)}
 .ob-logo{width:min(300px,76%);height:auto;margin:30px 0 0}
 .ob-photo{width:100%;height:auto;margin-top:auto;display:block}
 .ob-screen{max-width:600px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;background:#fff}
@@ -264,23 +264,23 @@ body.onboarding-open{overflow:hidden}
 .ob-back svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2}
 .ob-logo-small{height:62px;width:auto}
 .ob-scroll{flex:1;padding:12px 24px 24px;overflow:auto}
-.ob-scroll h1{font-size:27px;font-weight:900;color:var(--sb-navy);margin:18px 0 0;line-height:1.3;letter-spacing:-.6px;word-break:keep-all}
+.ob-scroll h1{font-size:22px;font-weight:900;color:var(--sb-navy);margin:18px 0 0;line-height:1.3;letter-spacing:-.6px;word-break:keep-all}
 .ob-scroll h1:focus{outline:none}
-.ob-sub{white-space:pre-line;font-size:18px;color:var(--sb-gray);margin:10px 0 0;line-height:1.5}
-.ob-scroll h2{font-size:18px;font-weight:800;color:var(--sb-navy);margin:36px 0 14px}
+.ob-sub{white-space:pre-line;font-size:15px;color:var(--sb-gray);margin:10px 0 0;line-height:1.5}
+.ob-scroll h2{font-size:16px;font-weight:800;color:var(--sb-navy);margin:36px 0 14px}
 .ob-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.ob-fields button{display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;border-radius:18px;border:1px solid #e3e7ee;background:var(--sb-chip);color:var(--sb-navy);font-size:18px;font-weight:800}
+.ob-fields button{display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;border-radius:18px;border:1px solid #e3e7ee;background:var(--sb-chip);color:var(--sb-navy);font-size:16px;font-weight:800}
 .ob-fields button.on,.ob-keywords button.on{background:var(--sb-blue2);border-color:var(--sb-blue2);color:#fff}
 .ob-fields svg,.ob-keywords svg,.ob-filters svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ob-keywords{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.ob-keywords button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;border-radius:26px;border:1px solid #e3e7ee;background:#fff;color:var(--sb-navy);font-size:16px;font-weight:600;padding:0 6px}
+.ob-keywords button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;border-radius:26px;border:1px solid #e3e7ee;background:#fff;color:var(--sb-navy);font-size:14px;font-weight:600;padding:0 6px}
 .ob-hint{color:var(--sb-gray);font-size:14px}
 .ob-foot{padding:12px 24px 16px;background:#fff;position:sticky;bottom:0}
-.ob-next{width:100%;min-height:58px;border:0;border-radius:14px;background:var(--sb-blue2);color:#fff;font-size:19px;font-weight:800}
+.ob-next{width:100%;min-height:58px;border:0;border-radius:14px;background:var(--sb-blue2);color:#fff;font-size:16px;font-weight:800}
 .ob-step{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px}
 .ob-step span{width:170px;height:7px;border-radius:7px;background:#e4e8ef;overflow:hidden}
 .ob-step i{display:block;height:100%;background:var(--sb-blue2);border-radius:7px}
-.ob-step small{font-size:15px;color:var(--sb-gray)}
+.ob-step small{font-size:13px;color:var(--sb-gray)}
 .ob-filters{display:flex;gap:10px;overflow-x:auto;margin:24px -24px 0;padding:2px 24px;scrollbar-width:none}
 .ob-filters button{flex:none;display:flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border-radius:999px;border:0;background:var(--sb-chip);color:var(--sb-navy);font-size:16px;font-weight:600}
 .ob-filters button.on{background:var(--sb-blue2);color:#fff;padding:0 26px;font-weight:800}
