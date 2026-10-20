@@ -139,6 +139,7 @@ try {
     await page.click('.room-list-card[data-chat-room="acne"]');
     await page.click('.room-notice[data-topic-mode="posts"]');
     await page.click('[data-chat-action="write"]');
+    await page.click('#chat-join [data-chat-action="join-ok"]');
     await page.click('[data-write-kind="question"]');
     await page.fill('#write-title', '끈적이지 않는 선크림 추천해 주세요');
     await page.click('[data-write-reason="texture"]');
