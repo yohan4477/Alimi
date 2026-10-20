@@ -131,7 +131,7 @@ export const postRow = p => `<button class="post-row" data-post="${p.id}"><span 
 // from conversations. Every number shown is a real count from the fetched sample.
 const HOME_TABS = ['rec', 'rooms', 'discover'];
 let topicRoomLimit = 3, productGroupLimit = 3;
-let homeVersion = 0, homeTab = demoActive ? 'rooms' : 'rec', home = null, catalogPics = null;
+let homeVersion = 0, homeTab = 'rec', home = null, catalogPics = null;
 let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
 export function openProductRoomsNext(query = '') {
   pendingRoom = null; pendingPost = null; homeTab = 'rooms'; roomFindMode = 'products'; productRoomQuery = String(query).trim(); selectedProductGroup = null;
@@ -580,7 +580,7 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
-  if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rooms'; renderHome(); }
+  if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rec'; renderHome(); }
   else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
