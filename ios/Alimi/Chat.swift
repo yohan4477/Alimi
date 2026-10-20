@@ -420,7 +420,7 @@ struct ChatRoomView: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 22) {
+                LazyVStack(alignment: .leading, spacing: 0) {
                     if shown.isEmpty { Text(L("chat.empty")).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.top, 40) }
                     ForEach(Array(shown.enumerated()), id: \.element.id) { index, m in
                         if index == 0 || !ChatTime.sameDay(shown[index - 1].createdAt, m.createdAt) {
@@ -431,9 +431,10 @@ struct ChatRoomView: View {
                             }.padding(.vertical, 8)
                         }
                         MessageRow(message: m, parent: m.replyTo.flatMap { id in shown.first { $0.id == id } }, mine: m.authorTag == ChatAPI.myTag,
-                                   replies: shown.filter { $0.replyTo == m.id }.count, liked: likedIDs.contains(m.id), liking: likingIDs.contains(m.id), jump: { if let id = m.replyTo { withAnimation { proxy.scrollTo(id, anchor: .center) } } },
+                                   grouped: index > 0 && ChatTime.grouped(shown[index - 1], m), replies: shown.filter { $0.replyTo == m.id }.count, liked: likedIDs.contains(m.id), liking: likingIDs.contains(m.id), jump: { if let id = m.replyTo { withAnimation { proxy.scrollTo(id, anchor: .center) } } },
                                    open: { purchaseRef = "chat-\(m.id)"; openFamily = $0 }, like: { like(m) }, reply: { replyTo = m },
                                    report: { reporting = m }, block: { ChatAPI.block(m.authorTag); blocked = ChatAPI.blocked; notice = L("chat.blocked") }, savePost: { savingMessage = m })
+                            .padding(.top, index > 0 && ChatTime.grouped(shown[index - 1], m) ? 4 : 12)
                             .id(m.id)
                     }
                     Color.clear.frame(height: 1).id("chat-bottom")
@@ -563,6 +564,7 @@ struct MessageRow: View {
     let message: ChatMessage
     let parent: ChatMessage?
     let mine: Bool
+    var grouped = false
     var replies = 0
     var liked = false
     var liking = false
@@ -575,23 +577,31 @@ struct MessageRow: View {
     var savePost: (() -> Void)? = nil
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
-            VStack(alignment: mine ? .trailing : .leading, spacing: 6) {
-                if !mine { Text(message.nickname).font(.system(size: 13, weight: .semibold)).foregroundStyle(nicknameColor) }
-                bubble.contextMenu { menu }
-                if let item = message.item { ChatProductCard(item: item, open: open).contextMenu { menu } }
-                Text(ChatTime.clock(message.createdAt)).font(.system(size: 11)).foregroundStyle(Color.sbGray)
+            VStack(alignment: mine ? .trailing : .leading, spacing: 4) {
+                if !mine && !grouped { Text(message.nickname).font(.system(size: 13, weight: .semibold)).foregroundStyle(nicknameColor) }
+                HStack(alignment: .bottom, spacing: 6) {
+                    if mine { clock }
+                    VStack(alignment: .leading, spacing: 4) {
+                        bubble.contextMenu { menu }
+                        if let item = message.item { ChatProductCard(item: item, open: open).contextMenu { menu } }
+                    }
+                    if !mine { clock }
+                }
             }.frame(maxWidth: .infinity, alignment: mine ? .trailing : .leading).padding(.leading, mine ? 24 : 0)
             Button(action: like) {
                 HStack(spacing: 6) {
                     Text(String(message.likes)).font(.system(size: 13)).foregroundStyle(Color.sbGray)
                     Image(systemName: liked ? "heart.fill" : "heart").font(.system(size: 20))
                         .foregroundStyle(liked ? Color(rgb: 0xED2850) : Color.sbGray)
-                }.frame(width: 54, height: 44, alignment: .trailing).contentShape(Rectangle())
-            }.buttonStyle(.plain).disabled(liking).padding(.bottom, 16)
+                }.frame(width: 44, height: 36, alignment: .trailing).contentShape(Rectangle())
+            }.buttonStyle(.plain).disabled(liking)
                 .accessibilityLabel(L("chat.like") + " " + String(message.likes))
                 .accessibilityValue(liked ? "Selected" : "Not selected")
                 .accessibilityIdentifier("chat-heart-\(message.id)")
         }
+    }
+    private var clock: some View {
+        Text(ChatTime.clock(message.createdAt)).font(.system(size: 10)).foregroundStyle(Color.sbGray).fixedSize().padding(.bottom, 2)
     }
     private var nicknameColor: Color {
         let colors: [UInt32] = [0x147B86, 0x2463EB, 0x8056A3, 0x99601B]
@@ -613,8 +623,8 @@ struct MessageRow: View {
                 }
                 if !message.body.isEmpty { Text(message.body).font(.system(size: 16)).foregroundStyle(Color.sbNavy) }
             }
-            .padding(.horizontal, 16).padding(.vertical, 13)
-            .background(mine ? Color.sbTagBg : Color(rgb: 0xF1F4F9), in: RoundedRectangle(cornerRadius: 18))
+            .padding(.horizontal, 11).padding(.vertical, 8)
+            .background(mine ? Color.sbTagBg : Color(rgb: 0xF1F4F9), in: RoundedRectangle(cornerRadius: 13))
             .accessibilityIdentifier("chat-message-\(message.id)")
         }
     }
@@ -639,6 +649,12 @@ struct MessageRow: View {
 }
 
 enum ChatTime {
+    static func grouped(_ previous: ChatMessage, _ current: ChatMessage) -> Bool {
+        guard previous.authorTag == current.authorTag, sameDay(previous.createdAt, current.createdAt),
+              let first = ISODate.parse(previous.createdAt), let second = ISODate.parse(current.createdAt) else { return false }
+        return (0...300).contains(second.timeIntervalSince(first))
+    }
+
     static func sameDay(_ a: String, _ b: String) -> Bool {
         guard let first = ISODate.parse(a), let second = ISODate.parse(b) else { return false }
         return Calendar.current.isDate(first, inSameDayAs: second)

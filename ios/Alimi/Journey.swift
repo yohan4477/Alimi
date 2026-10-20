@@ -343,7 +343,7 @@ struct CommunityHome: View {
     @EnvironmentObject var store: AlimiStore
     @StateObject private var model = CommunityHomeModel()
     @State private var tab = HomeTab.rec
-    @State private var byProduct = false
+    @State private var topicLimit = 5
     @State private var interests = Interests.load()
     @State private var creating = false
     @State private var openFamily: ProductFamily?
@@ -452,12 +452,11 @@ struct CommunityHome: View {
             .accessibilityIdentifier("edit-interests")
     }
     @ViewBuilder private var allRooms: some View {
-        HStack(spacing: 20) {
-            Button { byProduct = false } label: { UnderlineSectionTab(title: L("home.topics"), selected: !byProduct) }
-            Button { byProduct = true } label: { UnderlineSectionTab(title: L("rooms.byProduct"), selected: byProduct) }
-        }.buttonStyle(.plain)
-        if byProduct { ProductRoomFinder(model: model, open: { path.append($0) }) }
-        else { ForEach(model.topics) { room in roomLink(room, note: room.intro) } }
+        SectionHead(title: L("home.topics"))
+        ForEach(Array(model.topics.prefix(topicLimit))) { room in roomLink(room, note: room.intro) }
+        if model.topics.count > topicLimit { Button(L("home.seeAll")) { topicLimit += 10 } }
+        SectionHead(title: L("rooms.byProduct"))
+        ProductRoomFinder(model: model, open: { path.append($0) })
     }
     @ViewBuilder private var discover: some View {
         SectionHead(title: L("home.mentioned"), sub: L("home.scope"))

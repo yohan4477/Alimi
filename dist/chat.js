@@ -115,6 +115,7 @@ export const postRow = p => `<button class="post-row" data-post="${p.id}"><span 
 // 추천: guide, trending rooms with a real product picture, recommended rooms. 발견: products and questions
 // from conversations. Every number shown is a real count from the fetched sample.
 const HOME_TABS = ['rec', 'rooms', 'discover'];
+let topicRoomLimit = 3, productGroupLimit = 3;
 let homeVersion = 0, homeTab = demoActive ? 'rooms' : 'rec', home = null, catalogPics = null;
 let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
 export function openProductRoomsNext(query = '') {
@@ -134,7 +135,8 @@ async function loadCatalogPictures(rooms) {
 async function renderHome() {
   const version = ++homeVersion;
   rememberDraft(); stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? 'online' : 'offline'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="service-context">${regionButton()}</div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? 'offline' : 'online'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="service-context">${regionButton()}</div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+
 
   if (demoActive) {
     chat.rooms = demoRooms;
@@ -178,8 +180,10 @@ function drawHome() {
     const trend = hot.length ? sectionHead(t('home.trending'), '') + hot.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') : '';
     box.innerHTML = `${mine}${trend}${sectionHead(t('home.recRooms'), '', `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
   } else if (homeTab === 'rooms') {
-    box.innerHTML = `<div class="room-find-modes" role="group" aria-label="${esc(t('rooms.findBy'))}"><button data-room-find="topics" aria-pressed="${roomFindMode === 'topics'}">${esc(t('home.topics'))}</button><button data-room-find="products" aria-pressed="${roomFindMode === 'products'}">${esc(t('rooms.byProduct'))}</button></div>${roomFindMode === 'products' ? `<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><p class="home-note">${esc(t('rooms.productHint'))}</p><div id="product-room-results" aria-live="polite"></div>` : `${sectionHead(t('home.topics'), '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`}`;
-    if (roomFindMode === 'products') drawProductRooms();
+    const productIds = new Set(productRoomGroups(topics, home.popular ?? []).flatMap(g => g.rooms.map(r => r.id)));
+    const topicRooms = topics.filter(r => !productIds.has(r.id));
+    box.innerHTML = `<section class="room-topic-section">${sectionHead(t('home.topics'), '')}${topicRooms.slice(0, topicRoomLimit).map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') || `<p class="empty">${esc(t('home.quiet'))}</p>`}${topicRooms.length > topicRoomLimit ? `<button class="text-link" data-chat-action="more-topic-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}</section><section class="room-product-section">${sectionHead(t('rooms.byProduct'), '')}<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><div id="product-room-results" aria-live="polite"></div></section>`;
+    drawProductRooms();
   } else if (homeTab === 'discover') {
     const mentioned = products.length ? `<div class="mentioned-products">${rankProducts(products, undefined, demoActive ? aggregateProductStats(demoEntries()) : undefined).map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${productSortControls()}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
@@ -193,6 +197,7 @@ function drawProductRooms() {
   const query = productRoomQuery.trim(), all = productRoomGroups(home.topics, home.popular ?? []);
   const words = query.toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const groups = all.filter(g => words.every(w => g.name.toLocaleLowerCase().includes(w)));
+  const shownGroups = query ? groups : groups.slice(0, productGroupLimit);
   const selected = all.find(g => g.id === selectedProductGroup);
   const rooms = selected?.rooms ?? findProductRooms(home.topics, query);
   const create = query || selected ? `<button class="text-link product-room-create" data-chat-action="create-product-room">＋ ${esc(t('rooms.productCreate'))}</button>` : '';
@@ -201,7 +206,8 @@ function drawProductRooms() {
     return;
   }
   if (groups.length) {
-    box.innerHTML = `<h3 class="chat-section">${esc(t('rooms.productsActive'))}</h3>${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${groups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small><small>${esc(g.rooms.slice(0,2).map(r=>roomIntro(r)||roomTitle(r)).join(' · '))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>`;
+    box.innerHTML = `${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${shownGroups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small><small>${esc(g.rooms.slice(0,2).map(r=>roomIntro(r)||roomTitle(r)).join(' · '))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>${!query && groups.length > productGroupLimit ? `<button class="text-link" data-chat-action="more-product-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}`;
+
   } else if (query && rooms.length) {
     box.innerHTML = `<p class="home-note">${esc(t('rooms.productCount', {n:rooms.length}))}</p>${rooms.map(r => roomListCard(r, {attrs: `data-chat-room="${esc(r.id)}" data-live="1"`})).join('')}${create}`;
   } else {
@@ -367,14 +373,18 @@ function renderLog(scroll) {
   if ((scroll||near) && chat.room && chat.messages.length) markSeen(chat.room.id, chat.messages.at(-1).created_at);
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
   let previousDay = '';
-  log.innerHTML = list.length ? list.map(m => {
+  log.innerHTML = list.length ? list.map((m, index) => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
     const day = new Intl.DateTimeFormat(locale(), {year:'numeric', month:'long', day:'numeric'}).format(new Date(m.created_at));
     const divider = day !== previousDay ? `<div class="chat-date"><span>${esc(day)}</span></div>` : '';
+    const prev = list[index - 1];
+    const elapsed = prev ? Date.parse(m.created_at) - Date.parse(prev.created_at) : Infinity;
+    const grouped = !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
-    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}"><div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<time class="msg-time">${esc(time(m.created_at))}</time></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
+    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!mine && !grouped ? `<b class="chat-nick">${esc(m.nickname)}</b>` : ''}<div class="msg-line"><div class="msg-content">${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><time class="msg-time">${esc(time(m.created_at))}</time></div></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
+  log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
   let press;
   log.onpointerdown = e => { if (e.target.closest('button')) return; const row = e.target.closest('.chat-msg'); if (row) press = setTimeout(() => openMenu(+row.dataset.id), 550); };
   log.onpointerup = log.onpointercancel = log.onpointermove = () => clearTimeout(press);
@@ -539,12 +549,13 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
-  if (a === 'toggle-demo') { demoActive = !demoActive; home = null; chat.rooms = []; homeTab = 'rooms'; renderHome(); }
+  if (a === 'toggle-demo') { demoActive = !demoActive; home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rooms'; renderHome(); }
   else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (HOME_TABS.includes(b.dataset.homeTab)) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
-  else if (b.dataset.roomFind) { roomFindMode = b.dataset.roomFind; drawHome(); if (roomFindMode === 'products') $('#room-product-query')?.focus(); }
+  else if (a === 'more-topic-rooms') { topicRoomLimit += 6; drawHome(); }
+  else if (a === 'more-product-rooms') { productGroupLimit += 6; drawProductRooms(); }
   else if (b.dataset.productRoomGroup) { selectedProductGroup = b.dataset.productRoomGroup; drawProductRooms(); }
   else if (a === 'product-list-back') { selectedProductGroup = null; drawProductRooms(); }
   else if (a === 'create-product-room') {
