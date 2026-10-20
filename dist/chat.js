@@ -362,14 +362,18 @@ function renderLog(scroll) {
   if ((scroll||near) && chat.room && chat.messages.length) markSeen(chat.room.id, chat.messages.at(-1).created_at);
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
   let previousDay = '';
-  log.innerHTML = list.length ? list.map(m => {
+  log.innerHTML = list.length ? list.map((m, index) => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
     const day = new Intl.DateTimeFormat(locale(), {year:'numeric', month:'long', day:'numeric'}).format(new Date(m.created_at));
     const divider = day !== previousDay ? `<div class="chat-date"><span>${esc(day)}</span></div>` : '';
+    const prev = list[index - 1];
+    const elapsed = prev ? Date.parse(m.created_at) - Date.parse(prev.created_at) : Infinity;
+    const grouped = !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
-    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}" data-id="${m.id}"><div class="msg-main"><div class="msg-meta">${mine ? '' : `<b class="chat-nick">${esc(m.nickname)}</b>`}<button class="chat-menu" data-chat-menu="${m.id}" aria-label="${esc(t('chat.more'))}">⋯</button></div>${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<time class="msg-time">${esc(time(m.created_at))}</time></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
+    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!mine && !grouped ? `<b class="chat-nick">${esc(m.nickname)}</b>` : ''}<div class="msg-line"><div class="msg-content">${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><time class="msg-time">${esc(time(m.created_at))}</time></div></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
+  log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
   let press;
   log.onpointerdown = e => { if (e.target.closest('button')) return; const row = e.target.closest('.chat-msg'); if (row) press = setTimeout(() => openMenu(+row.dataset.id), 550); };
   log.onpointerup = log.onpointercancel = log.onpointermove = () => clearTimeout(press);
