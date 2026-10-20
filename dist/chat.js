@@ -5,6 +5,7 @@ import {findProductRooms,productRoomGroups} from './room-search.js';
 import {productSortControls,rankProducts,aggregateProductStats} from './product-sort.js';
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
+import {createDemoChatStore} from './demo-chat-store.js';
 import {demoRooms, demoMessages, demoEntries, createDemoProductRoom} from './demo-fixtures.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
@@ -27,6 +28,7 @@ import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, 
 import {$, esc} from './util.js';
 let storage; try { storage = localStorage; } catch {}
 const secret = chatSecret(storage);
+const demoChat = createDemoChatStore(storage);
 const likedKey = 'seoulbeauty-chat-hearts-' + secret;
 let liked; try { liked = new Set(JSON.parse(storage.getItem(likedKey)) || []); } catch { liked = new Set(); }
 const liking = new Set();
@@ -335,6 +337,7 @@ document.addEventListener('change', async e => {
   renderWrite();
 });
 async function submitPost() {
+  if (chat.room?.demo) return;
   keepDraftText(); const d = view.draft;
   try {
     const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
@@ -358,8 +361,8 @@ async function startLive(room) {
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
   }
   if (room.demo) {
-    chat.messages = demoMessages[room.id] || [];
-    $('#chat-form').innerHTML = '<p class="chat-rules">데모 모드 · 가상 대화 (읽기 전용)</p>';
+    chat.messages = [...(demoMessages[room.id] || []), ...demoChat.messages(room.id)];
+    $('#chat-form .chat-rules').textContent = locale().startsWith('ko') ? '데모 대화 · 작성한 메시지는 이 기기에만 저장돼요' : 'Demo chat · Messages stay on this device';
     renderLog(true);
     return;
   }
@@ -424,11 +427,17 @@ function renderContext() {
     (chat.item ? `<div class="chat-chip">${esc(brandLabel(chat.item))} · ${esc(chat.item.name)}<button type="button" data-chat-action="item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : '');
 }
 async function send() {
-  if (chat.room?.demo) return;
   const box = $('#chat-text'); if(!box||!chat.room)return;const text = box.value.trim(),roomId=chat.room.id,item=chat.item,replyTo=chat.replyTo;
   if (chat.sending || (!text && !chat.item)) return;
   chat.sending = true;box.disabled=true;
   try {
+    if (chat.room.demo) {
+      const {message, persisted} = demoChat.send(roomId, text, item, replyTo, chat.myTag);
+      chat.messages.push(message); roomDrafts.delete(roomId);
+      box.value = ''; chat.item = null; chat.replyTo = null; renderContext(); renderLog(true);
+      if (!persisted) toast(locale().startsWith('ko') ? '기기 저장이 안 돼요. 이번 실행 중에만 유지됩니다.' : 'Storage unavailable. Messages last for this session only.');
+      return;
+    }
     const m = await postMessage(secret, roomId, text, item, replyTo);
     roomDrafts.delete(roomId);
     if (!homeJoined.some(j => j.room_id === roomId)) homeJoined.unshift({room_id: roomId, last: m});
@@ -484,7 +493,7 @@ let menuTarget = null;
 function openMenu(id) {
   chat.menuFor = chat.messages.find(m => m.id === id); if (!chat.menuFor) return;
   const mine = chat.menuFor.author_tag === chat.myTag; menuTarget = {type: 'chat', id};
-  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button>${mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
+  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button>${chat.room?.demo ? '' : mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
   $('#chat-menu').showModal();
 }
 function openCommunityMenu(spec) {
@@ -617,14 +626,14 @@ document.addEventListener('click', async e => {
   else if (a === 'item-cancel') { chat.item = null; renderContext(); }
   else if (a === 'menu-close') $('#chat-menu').close();
   else if (a === 'reply') { chat.replyTo = chat.menuFor.id; $('#chat-menu').close(); renderContext(); $('#chat-text').focus(); }
-  else if (a === 'save-as-post') { const m = chat.menuFor; $('#chat-menu').close(); openWrite({kind: 'recommend', title: m.body.slice(0, 60), body: m.body, item: m.item, fromMessage: m.id}); }
+  else if (a === 'save-as-post' && !chat.room?.demo) { const m = chat.menuFor; $('#chat-menu').close(); openWrite({kind: 'recommend', title: m.body.slice(0, 60), body: m.body, item: m.item, fromMessage: m.id}); }
   else if (a === 'report') openReport();
   else if (a === 'block') {
     block(storage, menuTarget.type === 'chat' ? chat.menuFor.author_tag : menuTarget.author); $('#chat-menu').close();
     if (menuTarget.type === 'chat') renderLog(false); else if (menuTarget.type === 'post') openTopic(chat.room ?? chat.rooms[0], 'posts'); else renderPost();
     toast(t('chat.blocked'));
   }
-  else if (b.dataset.chatReport) {
+  else if (b.dataset.chatReport && !chat.room?.demo) {
     $('#chat-menu').close();
     try {
       if (menuTarget.type === 'chat') await reportMessage(secret, chat.menuFor.id, b.dataset.chatReport);
