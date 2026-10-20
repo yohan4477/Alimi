@@ -17,7 +17,7 @@
 @media(min-width:600px){main{max-width:520px}.product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style></head>
 <body><main>
-<header id="brand-header" hidden><a class="logo" href="/kr" aria-label="Seoul Beauty 홈"><img src="/seoul-beauty-logo.svg" alt="Seoul Beauty — Beauty Lives Together" width="260" height="99"></a></header>
+
 <div class="progress" aria-label="진행 상황"><span class="on"></span><span></span><span></span></div>
 <section class="scene" id="step-1"><div class="eyebrow">뷰티 경험 찾기 · 1 / 4</div><h1>이 중에 눈에 익은<br>화장품 있어?</h1><p>사용했거나 궁금했던 제품을 선택해 봐.</p><div id="product-grid" class="product-grid"></div><div id="count" class="selection-count">여러 개 선택할 수 있어요.</div></section>
 <section class="scene" id="step-2" hidden><button class="back" data-back="1">← 이전</button><div class="eyebrow">선택한 제품 · 2 / 4</div><h1>어떤 제품 이야기부터<br>해볼까?</h1><p>선택한 제품들이야.</p><div class="options" id="focus-list"></div></section>
@@ -36,7 +36,7 @@ const imagePaths={
 const q=new URLSearchParams(location.search),room=q.get('room'),validRoom=room&&/^[a-zA-Z0-9_-]{1,100}$/.test(room),destination=new URL('/kr',location.origin);if(validRoom)destination.searchParams.set('room',room);const url=destination.pathname+destination.search;
 const $=s=>document.querySelector(s),selected=new Set();let stepNow=1,focus='',usage='',topic='';
 const progress=[...document.querySelectorAll('.progress span')];
-function step(n){stepNow=n;$('#brand-header').hidden=n!==4;document.querySelectorAll('.scene').forEach((el,i)=>el.hidden=i!==n-1);progress.forEach((p,i)=>p.classList.toggle('on',i<n));$('#next').hidden=n!==1;$('#continue').hidden=n!==4;$('#skip').hidden=n===4;$('#next').disabled=!selected.size;if(n===2)renderFocus()}
+function step(n){stepNow=n;document.querySelectorAll('.scene').forEach((el,i)=>el.hidden=i!==n-1);progress.forEach((p,i)=>p.classList.toggle('on',i<n));$('#next').hidden=n!==1;$('#continue').hidden=n!==4;$('#skip').hidden=n===4;$('#next').disabled=!selected.size;if(n===2)renderFocus()}
 function remember(){try{sessionStorage.setItem('sb-invite-discovery',JSON.stringify({products:[...selected],focus,usage,topic,at:Date.now()}))}catch{}}
 function go(){remember();location.assign(url)}
 $('#skip').onclick=go;$('#continue').onclick=remember;$('#continue').href=url;$('#next').onclick=()=>selected.size&&step(2);
