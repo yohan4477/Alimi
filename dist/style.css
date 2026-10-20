@@ -526,3 +526,7 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .room-list-card .room-count{color:var(--blue);font-size:13px;font-weight:500;flex:none}
 .room-list-card .room-list-text em{font-size:13px;color:#697485;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .room-list-card .room-tags{margin-top:1px}
+
+/* Read-only synthetic chat mode toggle in community header. */
+.demo-toggle{border:1px solid #cbdcf7;border-radius:999px;background:#f1f6ff;color:#1463e8;font-size:12px;font-weight:700;padding:6px 10px;white-space:nowrap;cursor:pointer}
+.demo-toggle[aria-pressed="true"]{background:#1463e8;color:#fff;border-color:#1463e8}
