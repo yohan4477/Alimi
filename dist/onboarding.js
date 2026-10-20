@@ -3,7 +3,7 @@
 // Choices stay on this device; they are not sent anywhere and never infer skin or demographic facts.
 import {t} from './i18n.js';
 import {esc} from './util.js';
-import {pickCard, concernsOf} from './room-card.js';
+import {concernsOf} from './room-card.js';
 
 export const GROUPS = ['skincare', 'makeup'];
 // Stable ids shared with the admin planning preview; only labels are translated.
@@ -62,9 +62,8 @@ const icon = {
   leaf: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19 14 10"/></svg>',
   grid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
 };
-const FILTERS = ['rec', 'skincare', 'makeup', 'all'];
 const logoBar = () => `<div class="ob-bar"><button type="button" class="ob-back" data-onb="back" aria-label="${esc(t('back'))}">${icon.back}</button><img class="ob-logo-small" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"></div>`;
-const stepBar = n => `<div class="ob-step" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="${n}" aria-label="${esc(t('onb.step', {n}))}"><span><i style="width:${n * 100 / 3}%"></i></span><small>${n}/3</small></div>`;
+const stepBar = n => `<div class="ob-step" role="progressbar" aria-valuemin="1" aria-valuemax="2" aria-valuenow="${n}" aria-label="${esc(t('onb.step', {n}))}"><span><i style="width:${n * 100 / 2}%"></i></span><small>${n}/2</small></div>`;
 
 // opts: step ('splash' | 'choose'), load() → {rooms, pictures: Map}, onRoom(room), onClose()
 export function openOnboarding(opts) {
@@ -73,7 +72,6 @@ export function openOnboarding(opts) {
     draft: saved ? {...saved, concerns: [...saved.concerns]} : {version: 1, skincare: false, makeup: false, concerns: [], done: false}};
   const box = document.getElementById('onboarding');
   box.hidden = false; document.body.classList.add('onboarding-open');
-  Promise.resolve(opts.load?.()).then(d => { if (flow && d) { flow.rooms = d.rooms ?? []; flow.pictures = d.pictures ?? new Map(); if (flow.step === 'rooms') drawFlow(); } }, () => {});
   drawFlow();
   if (flow.step === 'splash' && !new URLSearchParams(location.search).has('holdSplash')) setTimeout(() => { if (flow?.step === 'splash') { flow.step = 'choose'; drawFlow(); } }, 1800);
 }
@@ -83,14 +81,7 @@ function closeFlow(room) {
   saveInterests({...f.draft, done: true});
   flow = null;
   const box = document.getElementById('onboarding'); box.hidden = true; box.innerHTML = ''; document.body.classList.remove('onboarding-open');
-  f.onClose?.(); if (room) f.onRoom?.(room);
-}
-function filtered() {
-  const {rooms, draft, filter} = flow, topics = rooms.filter(r => r.kind !== 'brand');
-  const inGroup = g => r => (r.tag === (g === 'skincare' ? 'skin' : 'makeup')) || concernsOf(r).some(c => CONCERNS.find(x => x.id === c)?.group === g);
-  if (filter === 'rec') return recommendRooms(rooms, draft, 6).map(x => x.room);
-  if (filter === 'all') return topics;
-  return topics.filter(inGroup(filter));
+  f.onClose?.();
 }
 function drawFlow() {
   const box = document.getElementById('onboarding'); if (!flow || !box) return;
@@ -106,30 +97,26 @@ function drawFlow() {
   }
   if (step === 'profile') {
     const choices = (key, values, current, label) => `<div class="ob-keywords ob-profile-choices" role="group" aria-label="${esc(t(key === 'ageRange' ? 'onb.age' : 'onb.skin'))}">${values.map(v => `<button type="button" data-onb-profile="${key}" data-onb-value="${esc(v)}" aria-pressed="${v === (current || '')}" class="${v === (current || '') ? 'on' : ''}">${esc(label(v))}</button>`).join('')}</div>`;
-    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',['<18','18–24','25–34','35–44','45+'],draft.ageRange,v=>v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.next'))}</button>${stepBar(2)}</div></div>`;
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.optional'))}</h1><p class="ob-sub">${esc(t('onb.private'))}</p><h2>${esc(t('onb.age'))}</h2>${choices('ageRange',['<18','18–24','25–34','35–44','45+'],draft.ageRange,v=>v)}${draft.skincare ? `<h2>${esc(t('onb.skin'))}</h2>${choices('skinType',['dry','oily','combination','normal',''],draft.skinType,v=>v ? t('onb.skin.'+v) : t('onb.unknown'))}` : ''}</div><div class="ob-foot"><button class="ob-next" data-onb="profile-next">${esc(t('onb.finishBrowse'))}</button>${stepBar(2)}</div></div>`;
     return;
   }
-  const chosen = visibleConcerns(draft).map(c => c.id).filter(id => draft.concerns.includes(id));
-  const list = filtered();
-  box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q1'))}</h1><p class="ob-sub">${esc(t('onb.s1'))}</p><div class="ob-filters">${FILTERS.map(f => `<button type="button" data-onb-filter="${f}" aria-pressed="${flow.filter === f}" class="${flow.filter === f ? 'on' : ''}">${f === 'skincare' ? icon.leaf : f === 'makeup' ? icon.makeup : f === 'all' ? icon.grid : ''}<span>${esc(t('onb.filter.' + f))}</span></button>`).join('')}</div><div class="ob-rooms">${list.map(r => pickCard(r, {image: flow.pictures.get(r.id), highlight: chosen, attrs: `data-onb-room="${esc(r.id)}"`})).join('')}${!flow.rooms.length ? `<p class="ob-hint">${esc(t('loading'))}</p>` : ''}</div></div><div class="ob-foot"><button class="text-link" data-onb="create">+ ${esc(t('room.new'))}</button>${stepBar(3)}</div></div>`;
 }
 globalThis.document?.addEventListener('click', e => {
   if (!flow) return;
-  const b = e.target.closest('[data-onb],[data-onb-group],[data-onb-concern],[data-onb-filter],[data-onb-room],[data-onb-profile]');
+  const b = e.target.closest('[data-onb],[data-onb-group],[data-onb-concern],[data-onb-profile]');
   if (!b || !document.getElementById('onboarding')?.contains(b)) return;
   const a = b.dataset.onb, d = flow.draft;
   if (a === 'splash') flow.step = 'choose';
-  else if (a === 'back') { if (flow.step === 'rooms') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow(null); return; } }
+  else if (a === 'back') { if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow(null); return; } }
   else if (a === 'next') { if (!d.skincare && !d.makeup) { closeFlow(null); return; } flow.step = 'profile'; }
-  else if (a === 'profile-next') flow.step = 'rooms';
+  else if (a === 'profile-next') { closeFlow(null); return; }
   else if (a === 'create') { closeFlow(null); document.dispatchEvent(new CustomEvent('seoulbeauty-create-room')); return; }
   else if (b.dataset.onbProfile) d[b.dataset.onbProfile] = b.dataset.onbValue || null;
   else if (b.dataset.onbGroup) { const g = b.dataset.onbGroup; d[g] = !d[g]; flow.draft = normalize(d); }
   else if (b.dataset.onbConcern) { const id = b.dataset.onbConcern; d.concerns = d.concerns.includes(id) ? d.concerns.filter(c => c !== id) : [...d.concerns, id]; }
-  else if (b.dataset.onbFilter) flow.filter = b.dataset.onbFilter;
-  else if (b.dataset.onbRoom) { closeFlow(flow.rooms.find(r => r.id === b.dataset.onbRoom)); return; }
+
   drawFlow();
-  const sel = b.dataset.onbProfile ? `[data-onb-profile="${b.dataset.onbProfile}"][data-onb-value="${b.dataset.onbValue}"]` : b.dataset.onbGroup ? `[data-onb-group="${b.dataset.onbGroup}"]` : b.dataset.onbConcern ? `[data-onb-concern="${b.dataset.onbConcern}"]` : b.dataset.onbFilter ? `[data-onb-filter="${b.dataset.onbFilter}"]` : '#onb-title';
+  const sel = b.dataset.onbProfile ? `[data-onb-profile="${b.dataset.onbProfile}"][data-onb-value="${b.dataset.onbValue}"]` : b.dataset.onbGroup ? `[data-onb-group="${b.dataset.onbGroup}"]` : b.dataset.onbConcern ? `[data-onb-concern="${b.dataset.onbConcern}"]` : '#onb-title';
   document.querySelector('#onboarding ' + sel)?.focus?.();
 });
 globalThis.document?.addEventListener('keydown', e => { if (flow?.step === 'splash' && (e.key === 'Enter' || e.key === ' ')) { flow.step = 'choose'; drawFlow(); } });

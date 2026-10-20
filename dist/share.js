@@ -18,7 +18,7 @@ export async function share({title, url}, toast = () => {}, nav = globalThis.nav
 // What a shared link asks to open on arrival.
 export function sharedTarget(search = globalThis.location?.search ?? '') {
   const q = new URLSearchParams(search), room = q.get('room'), product = q.get('product');
-  if (room && /^[a-z0-9-]{2,30}$/.test(room)) return {room};
+  if (room && /^[a-z0-9-]{2,64}$/.test(room)) return {room};
   if (product && product.length <= 200) return {product};
   return null;
 }

@@ -1,6 +1,7 @@
+import {findProductRooms,productRoomGroups} from './room-search.js';
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
-import {demoRooms, demoMessages} from './demo-fixtures.js';
+import {demoRooms, demoMessages, createDemoProductRoom} from './demo-fixtures.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
@@ -46,7 +47,7 @@ const itemCard = (it, ref = '') => `<button class="chat-item" ${it.family_key ? 
 const shell = inner => { $('#chat').innerHTML = inner; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
-let demoActive = false;
+let demoActive = new URLSearchParams(globalThis.location?.search ?? '').get('demo') === '1';
 let firstCommunityLoad = true, communityOpenVersion = 0;
 let finishStartup = () => {};
 export async function openChat(opts = {}) {
@@ -110,7 +111,14 @@ export const postRow = p => `<button class="post-row" data-post="${p.id}"><span 
 // 추천: guide, trending rooms with a real product picture, recommended rooms. 발견: products and questions
 // from conversations. Every number shown is a real count from the fetched sample.
 const HOME_TABS = ['rec', 'rooms', 'discover'];
-let homeVersion = 0, homeTab = 'rec', home = null, catalogPics = null;
+let homeVersion = 0, homeTab = demoActive ? 'rooms' : 'rec', home = null, catalogPics = null;
+let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
+export function openProductRoomsNext(query = '') {
+  pendingRoom = null; pendingPost = null; homeTab = 'rooms'; roomFindMode = 'products'; productRoomQuery = String(query).trim(); selectedProductGroup = null;
+}
+export function openRoomListNext() {
+  pendingRoom = null; pendingPost = null; homeTab = 'rooms'; roomFindMode = 'topics'; productRoomQuery = ''; selectedProductGroup = null;
+}
 // Top catalog products per category (real images) to illustrate rooms; loaded once, never blocks the home.
 async function loadCatalogPictures(rooms) {
   if (catalogPics) return catalogPics;
@@ -164,7 +172,8 @@ function drawHome() {
     const trend = hot.length ? sectionHead(t('home.trending'), '') + hot.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') : '';
     box.innerHTML = `${mine}${trend}${sectionHead(t('home.recRooms'), '', `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
   } else if (homeTab === 'rooms') {
-    box.innerHTML = `${sectionHead(t('home.topics'), '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`;
+    box.innerHTML = `<div class="room-find-modes" role="group" aria-label="${esc(t('rooms.findBy'))}"><button data-room-find="topics" aria-pressed="${roomFindMode === 'topics'}">${esc(t('home.topics'))}</button><button data-room-find="products" aria-pressed="${roomFindMode === 'products'}">${esc(t('rooms.byProduct'))}</button></div>${roomFindMode === 'products' ? `<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><p class="home-note">${esc(t('rooms.productHint'))}</p><div id="product-room-results" aria-live="polite"></div>` : `${sectionHead(t('home.topics'), '')}${topics.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('')}`}`;
+    if (roomFindMode === 'products') drawProductRooms();
   } else if (homeTab === 'discover') {
     const mentioned = products.length ? `<div class="mentioned-products">${products.map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
@@ -173,6 +182,29 @@ function drawHome() {
 
   }
 }
+function drawProductRooms() {
+  const box = $('#product-room-results'); if (!box || !home) return;
+  const query = productRoomQuery.trim(), all = productRoomGroups(home.topics, home.popular ?? []);
+  const words = query.toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  const groups = all.filter(g => words.every(w => g.name.toLocaleLowerCase().includes(w)));
+  const selected = all.find(g => g.id === selectedProductGroup);
+  const rooms = selected?.rooms ?? findProductRooms(home.topics, query);
+  const create = query || selected ? `<button class="text-link product-room-create" data-chat-action="create-product-room">＋ ${esc(t('rooms.productCreate'))}</button>` : '';
+  if (selected) {
+    box.innerHTML = `<button class="text-link" data-chat-action="product-list-back">‹ ${esc(t('rooms.productAll'))}</button><h3 class="chat-section">${esc(selected.name)}</h3>${rooms.map(r => roomListCard(r, {attrs: `data-chat-room="${esc(r.id)}" data-live="1"`})).join('')}${create}`;
+    return;
+  }
+  if (groups.length) {
+    box.innerHTML = `<h3 class="chat-section">${esc(t('rooms.productsActive'))}</h3>${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${groups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}"><span><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>`;
+  } else if (query && rooms.length) {
+    box.innerHTML = `<p class="home-note">${esc(t('rooms.productCount', {n:rooms.length}))}</p>${rooms.map(r => roomListCard(r, {attrs: `data-chat-room="${esc(r.id)}" data-live="1"`})).join('')}${create}`;
+  } else {
+    box.innerHTML = `<p class="empty">${esc(t(query?'rooms.productEmpty':'rooms.noProductRooms'))}</p>${create}`;
+  }
+}
+document.addEventListener('input', e => {
+  if (e.target.id === 'room-product-query') { productRoomQuery = e.target.value; selectedProductGroup = null; drawProductRooms(); }
+});
 let homeJoined = [];
 function renderJoined() {
   shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('activity.chats'))}</h1></div><div class="chat-rooms">${homeJoined.map(j => { const r=chat.rooms.find(r=>r.id===j.room_id);return r ? roomListCard(r, {image: home?.images.get(r.id), note: j.last?.body || roomIntro(r)}) : ''; }).join('')}</div>`);
@@ -200,7 +232,7 @@ let joinThen = () => {};
 function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null;
   const other = mode === 'posts' ? 'live' : 'posts';
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div><div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button>${roomThumb(room, home?.images.get(room.id))}<div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div>${!room.demo ? `<button class="room-invite" data-chat-action="share-room" aria-label="${esc(t('share.invite'))}">${icon.share}<span>${esc(t('share.invite'))}</span></button>` : ''}<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div></div><button class="room-notice" data-topic-mode="${other}"><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span><i aria-hidden="true">›</i></button><div id="topic-body"></div>`);
   if (room.demo) { startLive(room); return; }
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
@@ -459,12 +491,12 @@ function openStart() {
 }
 // Free room creation: any subject. Field and concern tags are optional and only help others find the room.
 const ROOM_TAGS = ['talk', 'skin', 'makeup'], TAG_GROUP = {skin: 'skincare', makeup: 'makeup'};
-const newRoom = {tag: 'talk', concerns: [], title: '', intro: '', error: '', busy: false};
-function openCreateRoom() {
+const newRoom = {productName: '', tag: 'talk', concerns: [], title: '', intro: '', error: '', busy: false};
+function openCreateRoom(productName = '') {
   $('#chat-start')?.open && $('#chat-start').close();
   const sel = readInterests();
   newRoom.tag = sel?.skincare && !sel.makeup ? 'skin' : sel?.makeup && !sel.skincare ? 'makeup' : 'talk';
-  Object.assign(newRoom, {concerns: [...(sel?.concerns ?? [])], title: '', intro: '', error: '', busy: false});
+  Object.assign(newRoom, {productName: String(productName), concerns: [...(sel?.concerns ?? [])], title: String(productName).slice(0, 40), intro: '', error: '', busy: false});
   let dlg = $('#room-create'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'room-create'; dlg.className = 'chat-dialog post-write room-create'; dlg.setAttribute('aria-labelledby', 'room-create-title'); document.body.append(dlg); }
   renderCreateRoom(); dlg.showModal(); $('#room-title').focus();
 }
@@ -473,13 +505,18 @@ function renderCreateRoom() {
   const group = TAG_GROUP[newRoom.tag], offered = CONCERNS.filter(c => !group || c.group === group);
   newRoom.concerns = newRoom.concerns.filter(id => offered.some(c => c.id === id));
   const chip = (attr, id, on, label) => `<button type="button" ${attr}="${id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(label)}</button>`;
-  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t('room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${offered.map(c => chip('data-room-concern', c.id, newRoom.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div><p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t('room.create'))}</button>`;
+  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t(demoActive ? 'rooms.demoCreate' : 'room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${offered.map(c => chip('data-room-concern', c.id, newRoom.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div><p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t('room.create'))}</button>`;
 }
 async function submitRoom() {
   keepRoomText();
   if (newRoom.title.trim().length < 3) { newRoom.error = t('chat.err.short'); renderCreateRoom(); $('#room-title').focus(); return; }
   newRoom.busy = true; newRoom.error = ''; renderCreateRoom();
   try {
+    if (demoActive) {
+      const room = createDemoProductRoom({...newRoom, productName: newRoom.productName || newRoom.title});
+      chat.rooms = demoRooms; $('#room-create').close(); newRoom.busy = false; home = null;
+      toast(t('rooms.demoCreated')); openTopic(room, 'live'); return;
+    }
     const id = await createRoom(secret, newRoom);
     chat.rooms = await fetchRooms().catch(() => chat.rooms);
     $('#room-create').close(); toast(t('room.created'));
@@ -500,11 +537,18 @@ document.addEventListener('click', async e => {
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
   else if (HOME_TABS.includes(b.dataset.homeTab)) { homeTab = b.dataset.homeTab; document.querySelectorAll('[data-home-tab][role=tab]').forEach(x => { const on = x.dataset.homeTab === homeTab; x.setAttribute('aria-selected', on); x.classList.toggle('on', on); }); drawHome(); }
+  else if (b.dataset.roomFind) { roomFindMode = b.dataset.roomFind; drawHome(); if (roomFindMode === 'products') $('#room-product-query')?.focus(); }
+  else if (b.dataset.productRoomGroup) { selectedProductGroup = b.dataset.productRoomGroup; drawProductRooms(); }
+  else if (a === 'product-list-back') { selectedProductGroup = null; drawProductRooms(); }
+  else if (a === 'create-product-room') {
+    const selected = productRoomGroups(home?.topics ?? [], home?.popular ?? []).find(g=>g.id===selectedProductGroup);
+    openCreateRoom(selected?.name ?? productRoomQuery);
+  }
   else if (a === 'room-more') { const m = $('#room-menu'); if (m) { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); } }
   else if (b.dataset.chatJump) { $('#chat-log [data-id="' + b.dataset.chatJump + '"]')?.scrollIntoView({block:'center', behavior:'smooth'}); }
   else if (a === 'copy') { try { await navigator.clipboard.writeText(chat.menuFor.body || chat.menuFor.item?.name || ''); $('#chat-menu').close(); } catch { toast(t('chat.err.other')); } }
   else if (b.dataset.chatReply) { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
-  else if (a === 'share-room' && chat.room) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
+  else if (a === 'share-room' && chat.room && !chat.room.demo) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
   else if (a === 'find-topic') openStart();
   else if (a === 'create-room') { if (demoActive) return; openCreateRoom(); }
   else if (a === 'room-submit') submitRoom();
@@ -582,4 +626,4 @@ export async function onboardingData() {
 }
 export const openRoomById = id => { pendingRoom = id; };
 
-document.addEventListener('seoulbeauty-create-room', openCreateRoom);
+document.addEventListener('seoulbeauty-create-room', () => openCreateRoom());
