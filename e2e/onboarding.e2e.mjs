@@ -16,8 +16,7 @@ try {
   });
   await page.goto(base+'?lang='+lang);
   const ob=page.locator('#onboarding');assert.equal(await ob.isHidden(),true,'setup does not block first visit');
-  await page.locator('#tabbar [data-screen="saved"]').click();
-  await page.locator('#saved [data-onb-manage]').click();
+  await page.locator('#chat .edit-interests').click();
   await ob.locator('[data-onb-group="skincare"]').click();
   await ob.locator('[data-onb-group="makeup"]').click();
   assert.equal(await ob.locator('[data-onb-concern]').count(),14);

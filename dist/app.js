@@ -6,7 +6,7 @@ import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
-import {profileCard,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
+import {openProfile,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
 import {openProductRoomsNext,openRoomListNext,openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData} from './chat.js';
 import {renderMyRooms,renderAlerts,renderShareHub,addRecent,readRecent,loadRevisit,unreadCount} from './revisit.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
@@ -156,17 +156,27 @@ async function loadBrandPage(){
 // Saved (관심상품): favorites in a 3-column grid, padded with "+ Add" slots until there are three.
 const savedCard=p=>`<article class="saved-card"><button class="product-open" data-product="${esc(p.id)}"><div class="visual">${art(p)}</div><div class="brand">${esc(brandLabel(p))}</div><div class="product-name">${esc(p.name)}</div><strong>${usd(p.price)}</strong></button><button class="heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="true">♥</button></article>`;
 // Interests chosen in the community guide; tapping reopens the guide there to change or clear them.
-function interestRow(){const p=readInterests(),list=p?[...['skincare','makeup'].filter(g=>p[g]).map(g=>t('onb.g.'+g)),...p.concerns.map(c=>t('onb.c.'+c))]:[];return `<button class="interest-row" data-onb-manage><span><b>${esc(t('onb.manage'))}</b><small>${esc(list.length?list.join(' · '):t('onb.none'))}</small></span><span aria-hidden="true">›</span></button>`}
+function interestRow(){
+  const p=readInterests(),skin=cachedProfile()?.skin_type??p?.skinType;
+  const list=[skin&&t('skin.'+skin),...(p?.concerns??[]).map(c=>t('onb.c.'+c))].filter(Boolean).slice(0,3);
+  return `<button class="interest-row" data-activity-profile><span><b>${esc(t('activity.profile'))}</b><small>${esc(list.length?list.join(' · '):t('activity.profileHint'))}</small></span><span aria-hidden="true">›</span></button>`;
+}
+function openActivityProfile(){
+  let dlg=$('#activity-profile-dialog');if(!dlg){dlg=document.createElement('dialog');dlg.id='activity-profile-dialog';document.body.append(dlg)}
+  dlg.innerHTML=`<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('activity.profile'))}</h2><button class="interest-row" data-activity-skin><span><b>${esc(t('profile.title'))}</b><small>${esc(t('activity.skinHint'))}</small></span><span aria-hidden="true">›</span></button><button class="interest-row" data-activity-interests><span><b>${esc(t('activity.interests'))}</b><small>${esc(t('activity.interestsHint'))}</small></span><span aria-hidden="true">›</span></button>`;dlg.showModal();
+}
+const activityEmpty=(message,kind)=>`<div class="activity-empty"><p>${esc(message)}</p><button class="text-link" data-activity-browse="${kind}">${esc(t(kind==='rooms'?'activity.browseRooms':'activity.browseProducts'))} ›</button></div>`;
 let activityTab='saved';
 // Recently viewed products on this device (revisit.js).
-const recentList=()=>{const list=readRecent();return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:`<p class="empty">${esc(t('activity.recentEmpty'))}</p>`};
+const recentList=()=>{const list=readRecent();return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:activityEmpty(t('activity.recentEmpty'),'products')};
 // Products saved on this device that have a family key (for 알림 and 상품 공유).
 const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
 const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
 function renderSaved(){
   const list=rankProducts(products.filter(p=>state.favorites.includes(p.id))),n=list.length;
   const hint=n===0?t('saved.hint'):t('saved.count',{n});
-  $('#saved').innerHTML=`<div class="logo-head activity-head"><h1 class="page-title">${esc(t('nav.activity'))}</h1>${regionButton()}<span><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms','recent'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`${n===0?`<p class="page-sub">${esc(hint)}</p>`:''}${productSortControls()}<div class="saved-grid">${list.map(savedCard).join('')}</div>${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>${profileCard()}${interestRow()}`;
+  $('#saved').innerHTML=`<div class="logo-head activity-head"><h1 class="page-title">${esc(t('nav.activity'))}</h1>${regionButton()}<span><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${['saved','rooms','recent'].map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(t('activity.tab.'+k))}</button>`).join('')}</div><div role="tabpanel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`${n===0?activityEmpty(t('activity.savedEmpty'),'products'):productSortControls()+`<div class="saved-grid">${list.map(savedCard).join('')}</div>`}${readSavedPosts().length?`<h3 class="chat-section">${esc(t('saved.posts'))}</h3>${readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join('')}`:''}`}</div>${interestRow()}`;
+
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
@@ -267,7 +277,7 @@ localizePage();
 const arrival=sharedTarget();if(arrival){const appLink=document.createElement('a');appLink.className='text-link';appLink.textContent=t('share.openApp');appLink.href='seoulbeauty://open?'+new URLSearchParams({...arrival,region});document.body.prepend(appLink);}if(arrival?.room)openRoomNext(arrival.room);
 show('chat');
 if(arrival?.product)openFamily(arrival.product);
-const startGuide=(step,returnToChat=false)=>openOnboarding({step,returnToChat,load:onboardingData,onClose:target=>{if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
+const startGuide=(step,returnToChat=false,returnToActivity=false)=>openOnboarding({step,returnToChat:returnToChat||returnToActivity,load:onboardingData,onClose:target=>{if(returnToActivity){renderSaved();return;}if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
 loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if('productRooms' in b.dataset){const name=b.dataset.productRooms;$('#family-dialog').open&&$('#family-dialog').close();openProductRoomsNext(name);show('chat');return}
@@ -275,6 +285,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.familyShare){share({title:$('#family-name').textContent,url:shareUrl({product:b.dataset.familyShare})},toast);return}
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`).focus();return}
+  if('activityProfile' in b.dataset){openActivityProfile();return}
+  if('activitySkin' in b.dataset){$('#activity-profile-dialog').close();openProfile();return}
+  if('activityInterests' in b.dataset){$('#activity-profile-dialog').close();startGuide('choose',false,true);return}
+  if('activityBrowse' in b.dataset){if(b.dataset.activityBrowse==='rooms'){openRoomListNext();show('chat')}else show('home');return}
   if('onbManage' in b.dataset){startGuide('choose',b.dataset.onbContext==='chat');return}
   if('familyPhoto' in b.dataset){const url=familyPhotos()[+b.dataset.familyPhoto];familySelection=Math.max(0,familyList.findIndex(v=>v.image_url===url));drawFamilySelection();return}
   if('familyOption' in b.dataset){familySelection=+b.dataset.familyOption;drawFamilySelection();return}

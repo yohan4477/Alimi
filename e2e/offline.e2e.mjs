@@ -85,7 +85,8 @@ try {
   });
   await step('profile: under 13 saves nothing, B2B locked under 16, concerns need health consent, Do Not Sell', async () => {
     await page.click('#tabbar [data-screen="saved"]');
-    await page.click('#saved [data-profile-open]');
+    await page.click('#saved [data-screen="settings"]');
+    await page.click('#settings [data-profile-open]');
     await page.click('#profile-dialog [data-value="under13"]');
     assert.equal(await page.isDisabled('#profile-dialog [data-profile-save]'), true);
     await page.click('#profile-dialog [data-value="13-15"]');
@@ -100,8 +101,7 @@ try {
     await page.waitForSelector('#profile-dialog:not([open])', {state: 'attached'});
     const sent = profiles.at(-1);
     assert.deepEqual([sent.age_band, sent.skin_type, sent.skin_tone, sent.concerns, sent.consent_b2b], ['25-34', 'oily', 'deep', ['acne'], false]);
-    await page.waitForSelector('#saved .profile-card >> text=25');
-    await page.click('#saved [data-screen="settings"]');
+    await page.waitForSelector('#settings:not([hidden])');
     await page.click('#settings [data-set="do-not-sell"]');
     await page.waitForFunction(n => document.querySelector('#toast')?.classList.contains('show'), null);
     assert.equal(profiles.at(-1).opt_out_sale, true);

@@ -1,4 +1,36 @@
 {
+  "activity.profile": {
+    "ko": "내 프로필·관심 고민",
+    "en": "My profile & interests"
+  },
+  "activity.profileHint": {
+    "ko": "피부 정보와 관심 고민 관리",
+    "en": "Manage skin details and interests"
+  },
+  "activity.skinHint": {
+    "ko": "비슷한 피부의 후기 확인·리뷰 작성에 사용해요",
+    "en": "For similar-skin reviews and review forms"
+  },
+  "activity.interests": {
+    "ko": "관심 분야·고민",
+    "en": "Interests & concerns"
+  },
+  "activity.interestsHint": {
+    "ko": "관심 있는 대화를 찾는 데 사용해요",
+    "en": "Find conversations that match your interests"
+  },
+  "activity.savedEmpty": {
+    "ko": "아직 저장한 상품이 없어요. 다시 보고 싶은 상품을 저장해 보세요.",
+    "en": "No saved products yet. Save products you want to revisit."
+  },
+  "activity.browseProducts": {
+    "ko": "상품 둘러보기",
+    "en": "Browse products"
+  },
+  "activity.browseRooms": {
+    "ko": "대화방 둘러보기",
+    "en": "Browse conversations"
+  },
   "chat.rulesTitle": {
     "ko": "대화 이용 안내",
     "en": "Community guidelines"
@@ -1564,10 +1596,22 @@
     "ko": "본인 설정하기",
     "en": "Personal settings"
   },
-  "onb.save": {"ko":"저장하고 대화 계속하기","en":"Save and continue chatting"},
-  "onb.nudgeTitle": {"ko":"본인 설정을 하면 도움이 돼요","en":"Personal settings can help"},
-  "onb.nudgeHint": {"ko":"관심 분야와 고민을 설정하면 관련 대화를 찾기 쉬워요. 지금 바로 대화해도 괜찮아요.","en":"Set your interests and concerns to find relevant conversations. You can keep chatting without setting them."},
-  "onb.snooze": {"ko":"하루 동안 보지 않기","en":"Hide for 24 hours"},
+  "onb.save": {
+    "ko": "저장하고 대화 계속하기",
+    "en": "Save and continue chatting"
+  },
+  "onb.nudgeTitle": {
+    "ko": "본인 설정을 하면 도움이 돼요",
+    "en": "Personal settings can help"
+  },
+  "onb.nudgeHint": {
+    "ko": "관심 분야와 고민을 설정하면 관련 대화를 찾기 쉬워요. 지금 바로 대화해도 괜찮아요.",
+    "en": "Set your interests and concerns to find relevant conversations. You can keep chatting without setting them."
+  },
+  "onb.snooze": {
+    "ko": "하루 동안 보지 않기",
+    "en": "Hide for 24 hours"
+  },
   "onb.none": {
     "ko": "아직 고르지 않았어요",
     "en": "Not chosen yet"

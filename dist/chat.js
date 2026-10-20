@@ -228,7 +228,7 @@ export async function renderMyConversations(box) {
     const tag = chat.myTag || await tagOf(secret);
     const [rooms, joined] = await Promise.all([chat.rooms.length ? chat.rooms : fetchRooms(), fetchMyRooms(tag)]);
     if (!box.isConnected) return;
-    box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2>${joined.length ? joined.map(j => { const r=rooms.find(r=>r.id===j.room_id);return r ? roomListCard(r, {image: home?.images.get(r.id), note: j.last?.body || roomIntro(r), fresh: hasNewSince(j.last, readSeen()[r.id]), attrs: `data-open-room="${esc(r.id)}"`}) : ''; }).join('') : `<p class="home-note">${esc(t('chat.mineEmpty'))}</p>`}`;
+    box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2>${joined.length ? joined.map(j => { const r=rooms.find(r=>r.id===j.room_id);return r ? roomListCard(r, {image: home?.images.get(r.id), note: j.last?.body || roomIntro(r), fresh: hasNewSince(j.last, readSeen()[r.id]), attrs: `data-open-room="${esc(r.id)}"`}) : ''; }).join('') : `<div class="activity-empty"><p>${esc(t('chat.mineEmpty'))}</p><button class="text-link" data-activity-browse="rooms">${esc(t('activity.browseRooms'))} ›</button></div>`}`;
   } catch { if(box.isConnected)box.innerHTML = `<p class="home-note">${esc(t('home.retry'))}</p>`; }
 }
 
@@ -365,6 +365,14 @@ function markSeen(roomId, iso) {
   try { storage.setItem(SEEN_KEY, JSON.stringify({...seen, [roomId]: iso})); } catch {}
 }
 export const hasNewSince = (last, seenIso) => Boolean(last?.created_at && seenIso && last.created_at > seenIso);
+// Stable nickname colors shared with iPhone; dark enough on white.
+const NICK_COLORS = ['#147B86','#2463AB','#8056A3','#99601B','#B43F67','#397845','#5265A0','#9C4F32'];
+function nicknameColor(nickname) {
+  let hash = 0;
+  for (const byte of new TextEncoder().encode(nickname)) hash = (hash * 31 + byte) % NICK_COLORS.length;
+  return NICK_COLORS[hash];
+}
+
 function renderLog(scroll) {
   const log = $('#chat-log'); if (!log) return;
   const near = log.scrollHeight - log.scrollTop - log.clientHeight < 120;
@@ -381,7 +389,7 @@ function renderLog(scroll) {
     const elapsed = prev ? Date.parse(m.created_at) - Date.parse(prev.created_at) : Infinity;
     const grouped = !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
-    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!mine && !grouped ? `<b class="chat-nick">${esc(m.nickname)}</b>` : ''}<div class="msg-line"><div class="msg-content">${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b>${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><time class="msg-time">${esc(time(m.created_at))}</time></div></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
+    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!mine && !grouped ? `<b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b>` : ''}<div class="msg-line"><div class="msg-content">${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><time class="msg-time">${esc(time(m.created_at))}</time></div></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
