@@ -1,0 +1,44 @@
+/* SeoulBeauty Conversation UI Kit v0.1
+   Scoped opt-in visual components. Based on the chat-native Beauty Pick approved concept.
+   Intentionally NOT imported into production style.css yet. */
+.sbui {
+ --sbui-bg:#fff; --sbui-ink:#222; --sbui-muted:#92969b;
+ --sbui-border:#eceef0; --sbui-primary:#0786ff;
+ --sbui-soft:#f5f7fa; --sbui-blue-soft:#f3f7ff;
+ --sbui-rose:#bf7890; --sbui-coral:#eca392;
+ --sbui-radius-sm:8px; --sbui-radius-md:12px; --sbui-radius-lg:16px;
+ --sbui-space-1:4px; --sbui-space-2:8px; --sbui-space-3:12px;
+ --sbui-space-4:16px; --sbui-space-5:20px;
+ font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+ color:var(--sbui-ink);background:var(--sbui-bg);font-size:15px;line-height:1.5;
+}
+.sbui *{box-sizing:border-box}
+.sbui button,.sbui input,.sbui textarea{font:inherit}
+.sbui button{cursor:pointer}
+.sbui button:focus-visible,.sbui textarea:focus-visible{outline:2px solid var(--sbui-primary);outline-offset:2px}
+.sbui .sbui-chat-header{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:12px 16px;border-bottom:1px solid var(--sbui-border)}
+.sbui .sbui-chat-title{font-weight:700;font-size:16px}
+.sbui .sbui-chat-subtitle{font-size:12px;color:var(--sbui-muted)}
+.sbui .sbui-message{max-width:88%;padding:12px 14px;border-radius:16px;background:var(--sbui-soft);margin:12px 0}
+.sbui .sbui-message--mine{margin-left:auto;background:#eef7ff}
+.sbui .sbui-author{font-size:12px;font-weight:600;margin-bottom:5px}
+.sbui .sbui-caption{font-size:12px;color:var(--sbui-muted)}
+.sbui .sbui-badge{display:inline-block;padding:4px 8px;border-radius:8px;background:var(--sbui-blue-soft);color:#426eaf;font-size:11px;font-weight:600}
+.sbui .sbui-poll-card{border:1px solid var(--sbui-border);border-radius:var(--sbui-radius-lg);padding:16px;margin:14px 0;background:#fff}
+.sbui .sbui-poll-title{font-size:16px;line-height:1.4;font-weight:700;margin:12px 0}
+.sbui .sbui-poll-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sbui .sbui-poll-option{display:flex;flex-direction:column;gap:8px;text-align:left;background:white;border:1px solid var(--sbui-border);border-radius:12px;padding:8px;min-height:145px}
+.sbui .sbui-poll-option[aria-pressed=true]{border:2px solid var(--sbui-primary);background:#f7fbff}
+.sbui .sbui-poll-swatch{width:100%;height:86px;border-radius:8px;background:#ddd}
+.sbui .sbui-poll-swatch--rose{background:var(--sbui-rose)}
+.sbui .sbui-poll-swatch--coral{background:var(--sbui-coral)}
+.sbui .sbui-poll-option-label{font-size:13px;font-weight:650}
+.sbui .sbui-btn{border:0;border-radius:10px;min-height:44px;padding:10px 14px;background:var(--sbui-primary);color:white;font-weight:600}
+.sbui .sbui-btn--secondary{background:var(--sbui-soft);color:#50647c}
+.sbui .sbui-btn--icon{min-height:44px;min-width:44px;padding:8px;border:1px solid var(--sbui-border);background:white;color:var(--sbui-ink)}
+.sbui .sbui-composer{display:flex;align-items:flex-end;gap:8px;border-top:1px solid var(--sbui-border);padding:12px 16px;background:white}
+.sbui .sbui-composer textarea,.sbui .sbui-field{border:1px solid var(--sbui-border);border-radius:12px;background:#fff;min-height:44px;padding:11px 12px;flex:1;min-width:0}
+.sbui .sbui-option-note{font-size:12px;color:var(--sbui-muted);margin-top:8px}
+.sbui .sbui-result{padding:12px;background:var(--sbui-soft);border-radius:12px;margin-top:12px}
+.sbui .sbui-divider{height:1px;background:var(--sbui-border);margin:14px 0}
+@media(max-width:340px){.sbui .sbui-poll-options{gap:6px}.sbui .sbui-poll-card{padding:12px}.sbui .sbui-poll-option{padding:6px}}
