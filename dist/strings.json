@@ -2579,5 +2579,33 @@
   "exp.anonNote": {
     "ko": "닉네임 대신 익명 이름으로 게시돼요.",
     "en": "Posted under your anonymous name."
+  },
+  "product.tab.summary": {
+    "ko": "요약",
+    "en": "Summary"
+  },
+  "product.tab.talk": {
+    "ko": "대화",
+    "en": "Talk"
+  },
+  "product.tab.sellers": {
+    "ko": "판매처",
+    "en": "Sellers"
+  },
+  "product.tab.related": {
+    "ko": "관련 제품",
+    "en": "Related"
+  },
+  "product.sellers": {
+    "ko": "판매처 선택",
+    "en": "Choose a seller"
+  },
+  "product.sellerBuy": {
+    "ko": "구매하기",
+    "en": "Buy"
+  },
+  "product.sellerNote": {
+    "ko": "판매처의 가격, 배송비, 배송 기간은 변동될 수 있어요. 각 사이트에서 최신 정보를 확인하세요.",
+    "en": "Prices, shipping and delivery times can change. Check each site for the latest."
   }
 }
