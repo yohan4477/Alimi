@@ -784,6 +784,14 @@
     "ko": "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
     "en": "As a Coupang Partners affiliate, SeoulBeauty earns a commission from qualifying purchases."
   },
+  "oliveyoung.name": {
+    "ko": "올리브영 US",
+    "en": "OLIVE YOUNG US"
+  },
+  "oliveyoung.note": {
+    "ko": "미국 배송 · 올리브영 US에서 같은 상품 검색",
+    "en": "Ships in the US · searches OLIVE YOUNG US for this product"
+  },
   "buy.at": {
     "ko": "{retailer}에서 보기",
     "en": "View at {retailer}"

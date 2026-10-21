@@ -31,6 +31,10 @@ This reads the official feed's `description`, converts HTML to plain text and wr
 
 Viewers whose device time zone is `Asia/Seoul` also see a Coupang row on the product page. It links to `/api/coupang?q=<brand + name>&ref=`, which signs a Coupang Partners Open API deeplink request on the server and redirects (302) to the tracked search link; successful links are cached at the CDN for a day. Set `COUPANG_ACCESS_KEY` and `COUPANG_SECRET_KEY` in Vercel. Without keys, or when Coupang refuses, the plain search page opens without commission. The row shows Coupang's required disclosure sentence. Coupang ships within Korea only, so US viewers do not see the row.
 
+## OLIVE YOUNG US (Rakuten Advertising)
+
+OLIVE YOUNG moved its US affiliate programme to Rakuten Advertising on 2026-05-29; the older global programme does not cover US shoppers. In the US market (`/us`) the product page shows an OLIVE YOUNG US row linking to `/api/oliveyoung?q=<brand + name>&ref=`, which redirects (302) to a LinkShare deep link (`click.linksynergy.com/deeplink?id&mid&murl&u1`) around the OLIVE YOUNG US search page. `u1` carries the post/chat ref. Set `RAKUTEN_PUBLISHER_ID` (encrypted publisher ID from the Rakuten link tools) and `OLIVEYOUNG_US_MID` (the advertiser's MID) in Vercel after approval. Without them the plain search page opens without commission. The existing affiliate disclaimer on the product page covers the FTC disclosure.
+
 ## Measurement and future B2B
 
 Measure community/post views → product card → variant/merchant click → confirmed affiliate order → net commission. `clickref` uses post/comment/chat IDs, never review text or skin attributes. External orders/refunds remain dependent on affiliate reporting; clicks are not purchases.

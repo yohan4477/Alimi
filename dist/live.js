@@ -164,6 +164,14 @@ export function coupangUrl(item, ref = null) {
   if (ref) params.set('ref', String(ref).replace(/[^\w-]/g, '').slice(0, 20));
   return '/api/coupang?' + params;
 }
+// OLIVE YOUNG US (Rakuten Advertising) for the US market. The US site is in English, so the English brand.
+export function oliveYoungUrl(item, ref = null) {
+  const q = [item.brand, item.name].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (!q) return null;
+  const params = new URLSearchParams({q});
+  if (ref) params.set('ref', String(ref).replace(/[^\w-]/g, '').slice(0, 20));
+  return '/api/oliveyoung?' + params;
+}
 export const unitName = unit => (unit === 'ml' || unit === 'g' ? '10' + unit : unit === 'pcs' ? '1pc' : unit);
 
 // One page of the Korean-brand catalog for home browsing, optionally limited to a category.
