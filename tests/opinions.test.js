@@ -7,5 +7,7 @@ test('brand onboarding saves only explicit choices',()=>{
  saveOpinion('brand:COSRX','want_to_try',storage);
  assert.equal(readOpinion('brand:COSRX',storage).choice,'want_to_try');
  assert.throws(()=>saveOpinion('brand:COSRX','fake',storage));
- assert.ok(brandSeed.includes('COSRX'));
+ assert.ok(brandSeed.includes('ANUA'));
+ assert.ok(brandSeed.includes('BIODANCE'));
+ assert.ok(!brandSeed.includes('COSRX'));
 });
