@@ -12,7 +12,7 @@ Code and tests are ready. Production activation is NOT verified. The connected S
 2. Configure Google with its registered client ID/secret. Enable Kakao using its REST API key and client secret. Kakao can omit email: enable email-optional sign-in, and allow the `profile_nickname` consent scope.
 3. For each provider, copy the callback URL displayed in Supabase into its developer console. Do not use the web app URL as the provider's Supabase callback.
 4. Allow the app return URLs for the deployed `/kr` and `/us` paths on `https://seoulbeauty.me` (and only the actual additional production hosts in use). The login flow appends `sb_login_state` plus existing query parameters. Verify return URL matching against these parameters. Site URL must also point to the production app. Avoid broad preview-host wildcards.
-5. Apply `scripts/account-preferences.sql` to this app project in SQL Editor, then check the ownership policies. This file is an installation script, not a recorded CLI migration; CLI was unavailable in the implementation environment.
+5. Done 2026-10-21: `account_preferences` is applied as migration `supabase/migrations/20261021000000_account_preferences.sql` (same SQL as `scripts/account-preferences.sql`). Anonymous REST reads return `permission denied`; owner-only RLS policy `account_preferences_owner` is in place.
 6. Complete the provider-specific review / consent requirements in the Kakao and Naver developer consoles.
 
 ## Naver custom OAuth provider
