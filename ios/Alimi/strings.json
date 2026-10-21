@@ -2181,12 +2181,12 @@
     "en": "Retailer listings for this region are being prepared."
   },
   "account.kakao": {
-    "ko": "카카오로 로그인",
-    "en": "Continue with Kakao"
+    "ko": "카카오 로그인",
+    "en": "Log in with Kakao"
   },
   "account.naver": {
-    "ko": "네이버로 로그인",
-    "en": "Continue with Naver"
+    "ko": "네이버 로그인",
+    "en": "Log in with NAVER"
   },
   "account.cancelled": {
     "ko": "로그인이 취소됐어요. 다시 시도해 주세요.",
