@@ -8,7 +8,7 @@ export function mergeRetailerRankings(entries, catalogProducts = []) {
   const result = new Map();
   for (const e of entries) {
     if (!['ulta_us','oliveyoung_global'].includes(e.source)) throw Error('Unknown ranking source');
-    if (!Number.isInteger(e.rank) || e.rank < 1 || !/^\\d{4}-\\d{2}-\\d{2}$/.test(e.observedOn)) throw Error('Invalid ranking observation');
+    if (!Number.isInteger(e.rank) || e.rank < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(e.observedOn)) throw Error('Invalid ranking observation');
     const match = (e.ean && byEan.get(String(e.ean))) || byName.get([e.brand,e.name,e.size,e.option].map(norm).join(':'));
     const id = match ? productIdentity(match) : productIdentity(e);
     const item = result.get(id) ?? {id, brand:e.brand, name:e.name, size:e.size??null, option:e.option??null, catalogSlug:match?.slug??null, sources:[]};
