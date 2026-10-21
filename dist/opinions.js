@@ -5,7 +5,9 @@ export function saveOpinion(productId,choice,storage=globalThis.localStorage){
  if(!productId || !CHOICES.includes(choice)) throw Error('Invalid opinion');
  let data={};try{data=JSON.parse(storage.getItem(KEY)||'{}')||{}}catch{}
  data[productId]={choice,updatedAt:new Date().toISOString()};
- storage.setItem(KEY,JSON.stringify(data));return data[productId];
+ storage.setItem(KEY,JSON.stringify(data));
+ globalThis.document?.dispatchEvent(new Event('opinions-change'));
+ return data[productId];
 }
 export function readOpinion(productId,storage=globalThis.localStorage){
  try{return JSON.parse(storage.getItem(KEY)||'{}')?.[productId]??null}catch{return null}
