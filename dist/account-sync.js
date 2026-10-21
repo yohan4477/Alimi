@@ -3,7 +3,7 @@ import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './supabase.js';
 export const SYNC_KEYS=['alimi-live-v1','seoulbeauty-catalog-saves-v1','seoulbeauty-interests-v1','seoulbeauty-profile-v1'];
 const OWNER='seoulbeauty-data-owner',cache=id=>'seoulbeauty-account-cache:'+id,pending=id=>'seoulbeauty-account-pending:'+id;
 export class AccountSync {
-  constructor(auth,{storage=globalThis.localStorage,fetchImpl=fetch,onChange=()=>{},onStatus=()=>{}}={}){Object.assign(this,{auth,storage,fetch:fetchImpl,onChange,onStatus,userId:null,baseline:{},dirty:{},ready:false,queue:Promise.resolve(),generation:0});}
+  constructor(auth,{storage=globalThis.localStorage,fetchImpl=(...a)=>fetch(...a),onChange=()=>{},onStatus=()=>{}}={}){Object.assign(this,{auth,storage,fetch:fetchImpl,onChange,onStatus,userId:null,baseline:{},dirty:{},ready:false,queue:Promise.resolve(),generation:0});}
   read(){return Object.fromEntries(SYNC_KEYS.map(k=>[k,this.storage.getItem(k)]));}
   apply(data){for(const key of SYNC_KEYS){const value=data[key];if(typeof value==='string')this.storage.setItem(key,value);else this.storage.removeItem(key);}}
   parse(key){try{return JSON.parse(this.storage.getItem(key)||'{}')}catch{return {}}}
