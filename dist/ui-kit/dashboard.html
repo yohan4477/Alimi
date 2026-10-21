@@ -1,0 +1,41 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SeoulBeauty UI Library · Workspace</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;color:#222;background:#f5f7fa;--primary:#0786ff}
+*{box-sizing:border-box}body{margin:0}header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;background:#fff;border-bottom:1px solid #eceef0}header strong{font-size:18px}header small{color:#92969b}
+.layout{display:grid;grid-template-columns:235px minmax(300px,1fr) minmax(300px,420px);gap:18px;max-width:1460px;margin:20px auto;padding:0 16px}aside,.workspace,.inspector{background:white;border:1px solid #eceef0;border-radius:14px;padding:16px;min-width:0}.item{display:block;width:100%;border:1px solid transparent;border-radius:10px;padding:12px;text-align:left;background:white;margin:5px 0;cursor:pointer}.item.active{background:#f0f6ff;border-color:#c6ddff;color:#0756bc}.item strong{display:block}.item small{display:block;color:#7e8796;margin-top:4px}.pill{display:inline-block;font-size:11px;color:#1463e8;background:#ecf4ff;padding:4px 8px;border-radius:7px}
+h1{font-size:21px;margin:12px 0 4px}h2{font-size:15px;margin:8px 0 14px}.desc{color:#778292;font-size:13px;line-height:1.5}.preview{height:665px;border:1px solid #e1e5ec;border-radius:16px;overflow:hidden;background:#f4f5f7;display:flex;justify-content:center}.phone{width:390px;max-width:100%;height:100%;border:0;background:white}label{display:block;font-size:12px;font-weight:650;margin:15px 0 6px}textarea,input,select{width:100%;border:1px solid #dfe3e9;border-radius:9px;padding:10px 12px;font:inherit;background:white}textarea{min-height:100px;resize:vertical}
+button{font:inherit}.action{padding:10px 12px;border-radius:9px;background:#0786ff;border:0;color:white;cursor:pointer;font-weight:600}.secondary{background:#f0f3f8;color:#28364a}.tools{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.tiny{font-size:11px;color:#8a94a3}.swatches{display:flex;gap:7px;margin-top:10px}.swatches i{display:inline-block;width:26px;height:26px;border-radius:8px;border:1px solid #e5e7eb}
+@media(max-width:1100px){.layout{grid-template-columns:200px minmax(280px,1fr)}.inspector{grid-column:2}}@media(max-width:660px){.layout{display:flex;flex-direction:column;margin:8px auto}.preview{height:550px}header{padding:14px}}
+</style></head><body>
+<header><strong>SeoulBeauty <span style="color:#0786ff">UI Library</span></strong><small>디자인 작업 공간 · 로컬 저장 · 운영 관리자 인증 미연동</small></header>
+<div class="layout">
+<aside><span class="pill">Component catalog v0.1</span><h2>컴포넌트</h2>
+<button class="item active" data-item="poll"><strong>대화형 A/B 투표</strong><small>선택 → 이유 → 후속 질문</small></button>
+<button class="item" data-item="conversation"><strong>대화방 스타일</strong><small>메시지·카드·입력창</small></button>
+<button class="item" data-item="tokens"><strong>스타일 토큰</strong><small>색상·글꼴·간격</small></button>
+<hr style="border:0;border-top:1px solid #eceef0;margin:20px 0">
+<p class="desc">현재 승인한 대화형 투표 UI를 첫 번째 라이브러리 항목으로 보관해. 다른 화면에도 재사용할 수 있어.</p>
+</aside>
+<section class="workspace"><span class="pill" id="type">Interaction / Poll</span><h1 id="name">대화형 A/B 투표</h1><p class="desc" id="description">기존 채팅 흐름 안에서 선택·의견·경험을 연결하는 인터랙티브 원본 미리보기</p>
+<div class="tools"><button class="action secondary" id="reload">미리보기 초기화</button><button class="action secondary" id="copyPath">파일 경로 복사</button><a id="newTab" href="../beauty-pick-preview.html" target="_blank" rel="noopener" class="action" style="text-decoration:none">큰 화면으로 열기 ↗</a></div>
+<div class="preview"><iframe id="frame" class="phone" title="선택한 UI의 실제 동작 미리보기" src="../beauty-pick-preview.html"></iframe></div>
+<p class="tiny">이 미리보기는 HTML로 동작하므로 투표·입력 테스트 가능. 예시 사용자와 선택은 실제 서버에 저장되지 않아.</p>
+</section>
+<aside class="inspector"><span class="pill">Library management</span><h2>선택한 컴포넌트 정보</h2>
+<label for="status">검토 상태</label><select id="status"><option value="draft">초안</option><option value="review">검토 중</option><option value="approved">디자인 승인</option></select>
+<label for="notes">디자인 변경 메모</label><textarea id="notes" placeholder="이 화면에서 유지할 점, 수정할 점을 기록하세요."></textarea>
+<button class="action" id="save">현재 메모 저장</button><p class="tiny" id="saveInfo">설정과 메모는 현재 브라우저에만 저장돼. GitHub 파일을 변경하지 않아.</p>
+<hr style="border:0;border-top:1px solid #eceef0;margin:20px 0">
+<h2>디자인 기준</h2><div class="swatches"><i style="background:#0786ff" title="Blue"></i><i style="background:#222" title="Ink"></i><i style="background:#92969b" title="Muted"></i><i style="background:#eceef0" title="Border"></i><i style="background:#f5f7fa" title="Surface"></i></div>
+<p class="desc">메인 색 #0786ff · 본문 #222 · 구분선 #eceef0 · iOS 시스템 글꼴 · 둥근 카드</p>
+<button class="action secondary" id="copyCss">CSS 파일 경로 복사</button><hr style="border:0;border-top:1px solid #eceef0;margin:20px 0"><h2>개발 연결</h2>
+<p class="desc">원본은 GitHub UI Kit / PR #160. 실제 앱에서는 운영 권한·서버 투표·신고·알림 기능을 별도로 구현해야 해.</p>
+</aside></div>
+<script>
+const defs={poll:{name:'대화형 A/B 투표',type:'Interaction / Poll',description:'투표 선택, 이유 대화, 경험 표시, 선택 이후 기록을 한 흐름에서 확인',url:'../beauty-pick-preview.html'},conversation:{name:'대화방 스타일',type:'Components / Chat',description:'메시지 버블, 투표 카드, 버튼, 입력창의 일관된 시각 규칙',url:'./demo.html'},tokens:{name:'스타일 토큰',type:'Foundations / Tokens',description:'공통 색상·글꼴·간격과 기본 컴포넌트 스타일 확인',url:'./demo.html'}};
+let selected='poll';const el=id=>document.getElementById(id);
+function key(){return 'sbui-library-v01-'+selected}
+function show(id){selected=id;const d=defs[id];document.querySelectorAll('[data-item]').forEach(b=>b.classList.toggle('active',b.dataset.item===id));el('name').textContent=d.name;el('type').textContent=d.type;el('description').textContent=d.description;el('frame').src=d.url;el('newTab').href=d.url;let stored={};try{stored=JSON.parse(localStorage.getItem(key())||'{}')}catch{}el('status').value=stored.status||'draft';el('notes').value=stored.notes||'';el('saveInfo').textContent='변경 메모는 현재 브라우저에만 저장됩니다.'}
+document.querySelectorAll('[data-item]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.item)));el('reload').onclick=()=>{el('frame').src=defs[selected].url};el('save').onclick=()=>{try{localStorage.setItem(key(),JSON.stringify({status:el('status').value,notes:el('notes').value}));el('saveInfo').textContent='이 브라우저에 저장됐습니다. (GitHub·서버 미반영)'}catch{el('saveInfo').textContent='브라우저 저장에 실패했어요.'}};
+async function copy(s){try{await navigator.clipboard.writeText(s)}catch{window.prompt('파일 경로 복사',s)}}el('copyPath').onclick=()=>copy(defs[selected].url);el('copyCss').onclick=()=>copy('dist/ui-kit/seoulbeauty-ui.css');show('poll');
+</script></body></html>
