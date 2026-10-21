@@ -102,6 +102,10 @@ function drawFlow() {
     box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">Have you heard of ${esc(brand)}?</h1><p class="ob-sub">Tell us what you think. Your answer stays on this device for now.</p><div class="ob-keywords">${Object.entries(labels).map(([key,label])=>`<button type="button" data-onb-opinion="${key}" aria-pressed="${choice===key}" class="${choice===key?'on':''}">${esc(label)}</button>`).join('')}</div><p class="ob-hint">${(flow.brandIndex??0)+1} / ${introLimit} · No community results yet</p></div><div class="ob-foot"><button type="button" class="ob-next" data-onb="brand-next">Next →</button><button type="button" class="text-btn" data-onb="brand-skip">Skip</button></div></div>`;
     return;
   }
+  if (step === 'opinion-done') {
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title">Thanks for sharing!</h1><p class="ob-sub">Your opinions are saved on this device. Explore products and see what others think.</p><p class="ob-hint">You don't need an account to continue.</p></div><div class="ob-foot"><button type="button" class="ob-next" data-onb="explore">Explore Seoul Beauty →</button><button type="button" class="text-btn" data-onb="save-google">Save across devices with Google</button></div></div>`;
+    return;
+  }
   if (step === 'choose') {
     const concerns = visibleConcerns(draft), field = draft.skincare || draft.makeup;
     box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">${esc(t('onb.q0'))}</h1><p class="ob-sub">${esc(t('onb.s0'))}</p><h2>${esc(t('onb.fields'))}</h2><div class="ob-fields">${GROUPS.map(g => `<button type="button" data-onb-group="${g}" aria-pressed="${draft[g]}" class="${draft[g] ? 'on' : ''}">${draft[g] ? icon.check : ''}${icon[g]}<span>${esc(t('onb.g.' + g))}</span></button>`).join('')}</div><h2>${esc(t('onb.keywords'))}</h2>${concerns.length ? `<div class="ob-keywords">${concerns.map(c => { const on = draft.concerns.includes(c.id); return `<button type="button" data-onb-concern="${c.id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${on ? icon.check : ''}<span>${esc(t('onb.c.' + c.id))}</span></button>`; }).join('')}</div>` : `<p class="ob-hint">${esc(t('onb.pickField'))}</p>`}</div><div class="ob-foot"><button type="button" class="ob-next" data-onb="next">${esc(field ? t('onb.next') : t('onb.browse'))}</button>${stepBar(1)}</div></div>`;
@@ -124,8 +128,10 @@ globalThis.document?.addEventListener('click', e => {
   const a = b.dataset.onb, d = flow.draft;
   if (a === 'splash') flow.step = 'brands';
   else if (b.dataset.onbOpinion) {saveOpinion('brand:'+brandSeed[flow.brandIndex??0],b.dataset.onbOpinion);}
-  else if (a === 'brand-next') {flow.brandIndex=(flow.brandIndex??0)+1;if(flow.brandIndex>=Math.min(5,brandSeed.length))flow.step='choose';}
-  else if (a === 'brand-skip') flow.step='choose';
+  else if (a === 'brand-next') {flow.brandIndex=(flow.brandIndex??0)+1;if(flow.brandIndex>=Math.min(5,brandSeed.length))flow.step='opinion-done';}
+  else if (a === 'brand-skip') flow.step='opinion-done';
+  else if (a === 'explore') {closeFlow(null);return;}
+  else if (a === 'save-google') {closeFlow({cancelled:true});document.dispatchEvent(new CustomEvent('seoulbeauty-google-signin-request'));return;}
   else if (a === 'back') { if (flow.step === 'products') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else if (flow.step === 'brands') { closeFlow({cancelled:true}); return; } else { closeFlow({cancelled:true}); return; } }
   else if (a === 'next') { flow.step = !d.skincare && !d.makeup && !flow.returnToChat ? 'products' : 'profile'; }
   else if (a === 'profile-next') { if(flow.returnToChat){closeFlow(null);return;} flow.step = 'products'; }
