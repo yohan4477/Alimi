@@ -5,7 +5,7 @@ const FLOW_TIME='seoulbeauty-auth-started';
 export const PROVIDERS={google:{id:'google',scopes:'openid email profile'},kakao:{id:'kakao',scopes:'profile_nickname'},naver:{id:'custom:naver',scopes:''}};
 const b64=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 export class GoogleAuth {
-  constructor({fetchImpl=fetch,storage=globalThis.localStorage,sessionStorage=globalThis.sessionStorage,location=globalThis.location}={}){Object.assign(this,{fetch:fetchImpl,storage,sessionStorage,location,session:null,user:null,pending:null,epoch:0});}
+  constructor({fetchImpl=(...a)=>fetch(...a),storage=globalThis.localStorage,sessionStorage=globalThis.sessionStorage,location=globalThis.location}={}){Object.assign(this,{fetch:fetchImpl,storage,sessionStorage,location,session:null,user:null,pending:null,epoch:0});}
   async request(path,{method='GET',token,body}={}){
     const r=await this.fetch(`${SUPABASE_URL}/auth/v1/${path}`,{method,headers:{apikey:SUPABASE_PUBLISHABLE_KEY,...(token?{Authorization:`Bearer ${token}`} : {}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});
     const data=await r.json().catch(()=>({}));
@@ -21,9 +21,10 @@ export class GoogleAuth {
     for(const k of ['code','state','error','error_description','sb_login_state'])redirect.searchParams.delete(k);
     // Supabase owns upstream OAuth state. Bind our callback through redirect_to + PKCE.
     redirect.searchParams.set('sb_login_state',nonce);
-    const params=new URLSearchParams({provider:config.id,redirect_to:redirect.href,code_challenge:challenge,code_challenge_method:'s256',skip_http_redirect:'true'});
+    // Supabase answers authorize with a 302 even with skip_http_redirect; fetch would hit CORS, so navigate.
+    const params=new URLSearchParams({provider:config.id,redirect_to:redirect.href,code_challenge:challenge,code_challenge_method:'s256'});
     if(config.scopes)params.set('scopes',config.scopes);
-    try{const {url}=await this.request(`authorize?${params}`);if(!url||new URL(url).protocol!=='https:')throw Error(t('account.failed'));this.location.assign(url);}catch(e){this.clearFlow();throw e;}
+    this.location.assign(`${SUPABASE_URL}/auth/v1/authorize?${params}`);
   }
   clearFlow(){for(const k of [VERIFIER_KEY,STATE_KEY,FLOW_TIME])this.sessionStorage.removeItem(k);}
   async handleCallback(){
