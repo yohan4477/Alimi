@@ -579,6 +579,27 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 
 .activity-empty{padding:28px 0 32px;grid-column:1/-1}.activity-empty p{font-size:14px;line-height:1.65;color:#7d8aa0;margin:0 0 12px}.activity-empty .text-link{min-height:44px;padding:8px 0}#saved>.interest-row{margin-top:24px;border-top:1px solid #e6eaf1;padding-top:18px}#activity-profile-dialog .interest-row{text-align:left;width:100%}
 
+/* Self-reported room facts, folded by default and independent of the composer. */
+.room-experiences{margin:8px 0 12px;border:1px solid #e6eaf0;border-radius:10px;background:#fff;font-size:13px;overflow:hidden}
+.experience-heading{display:flex;align-items:center;padding:0 10px;background:#f7f8fa;gap:6px}
+.experience-heading button{text-align:left;flex:1;font-size:13px;font-weight:600;padding:12px 0;line-height:1.5;min-height:44px}
+.experience-demo{display:block;padding:3px 10px;color:#667085;font-size:11px}
+#room-experience-content{padding:0 12px 10px;max-height:48dvh;overflow-y:auto}
+#room-experience-content[hidden]{display:none}
+.room-experiences h3{font-size:13px;margin:12px 0 6px}.room-experiences p{line-height:1.6;margin:6px 0}
+.room-experiences small,.experience-note{font-size:11px;color:#667085;line-height:1.5}
+.experience-product{padding:10px 0;border-top:1px solid #edf0f3}.experience-product b{font-size:13px}
+.experience-product button,.experience-entry button{color:var(--blue);font-size:12px;min-height:40px;padding:6px}
+.experience-product button{display:block}.experience-entry{padding:4px 8px;display:flex;align-items:center;flex-wrap:wrap;gap:3px}.experience-entry span{font-size:12px;flex:1}
+.experience-editor{padding:12px;max-height:50dvh;overflow:auto;border-top:1px solid #edf0f3}
+.experience-editor fieldset{border:0;padding:0;margin:14px 0}.experience-editor legend{font-size:12px;margin-bottom:6px}
+.experience-choices{display:flex;gap:6px;flex-wrap:wrap}.experience-choices button{border:1px solid #dce2e9;border-radius:8px;padding:8px 10px;min-height:36px;font-size:12px;background:white}
+.experience-choices button[aria-pressed=true]{border-color:var(--blue);background:#eef4ff;color:var(--blue)}
+.experience-editor select{display:block;width:100%;font-size:16px;padding:8px;margin-top:6px;background:white;border:1px solid #dce2e9;border-radius:8px}
+.experience-actions{display:flex;gap:10px;flex-wrap:wrap}.experience-actions button{min-height:44px;font-size:13px;color:var(--blue)}
+.experience-editor [role=alert]{color:#b42318}.room-experiences button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.chat-experience-badge{display:block;font-size:10px;line-height:1.4;color:#667085;margin:0 0 3px}
 
 .auth-button.auth-kakao{background:#fee500;color:#191919;border-color:#fee500}.auth-button.auth-naver{background:#03c75a;color:#fff;border-color:#03c75a}.auth-button:disabled{opacity:.55;cursor:wait}
 

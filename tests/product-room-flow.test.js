@@ -43,9 +43,9 @@ test('onboarding stores a button-selected age and completes into browsing withou
 test('demo conversations expose all twelve attached products within the recent sample',async()=>{
  const {demoRooms,demoMessages,demoEntries}=await import('../dist/demo-fixtures.js');
  const {mentionedProducts}=await import('../dist/community-home.js');
- assert.equal(demoRooms.length,60);
- assert.equal(Object.values(demoMessages).flat().length,1440);
- const products=mentionedProducts(demoEntries());
+ assert.equal(demoRooms.filter(r=>!r.id.startsWith('demo-experience-')).length,60);
+ assert.equal(Object.entries(demoMessages).filter(([id])=>!id.startsWith('demo-experience-')).flatMap(([,rows])=>rows).length,1440);
+ const products=mentionedProducts(demoEntries().filter(m=>!m.room_id.startsWith('demo-experience-')));
  assert.equal(products.length,12);
  assert.ok(products.every(g=>g.rooms.size===2 && g.entries.length>0 && g.item.demo && /^https:\/\//.test(g.item.image_url)));
 });
