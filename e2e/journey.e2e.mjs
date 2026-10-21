@@ -49,7 +49,7 @@ try {
  // Not yet a member: the header offers join, which asks for the rules first and then opens live chat.
  {
   const {ctx,page,errors}=await open(base+'?lang=en');
-  await page.locator('[data-home-tab="rooms"][role="tab"]').click();
+  await page.locator('.home-links [data-home-tab="rooms"]').click();
   await page.locator('.room-list-card[data-chat-room="tint"]').click();
 
   await page.locator('#chat-text').waitFor();

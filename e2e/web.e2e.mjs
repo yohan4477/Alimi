@@ -99,13 +99,13 @@ try {
     await page.click('#tabbar [data-screen="chat"]');
     await page.route('**/rest/v1/community_posts*', r => r.fulfill({json: []}));
     assert.ok(await page.isVisible('#tabbar'), 'tab bar stays on chat');
-    await page.click('[data-home-tab="rooms"][role="tab"]');
+    await page.click('.home-links [data-home-tab="rooms"]');
     await page.click('.room-list-card[data-chat-room="acne"]');
     // Opens on the chat, readable; the join bar shows the rules and unlocks the composer.
     await page.waitForSelector('.chat-msg >> text=추천 좀 해주세요');
     assert.equal(await page.locator('#join-live').count(),0,'anonymous reading and composing require no join step');
     await page.waitForSelector('#chat-text');
-    assert.equal(await page.getAttribute('#chat-text', 'placeholder'), '메시지를 입력하세요...');
+    assert.equal(await page.getAttribute('#chat-text', 'placeholder'), '대화에 참여해보세요...');
     await page.locator('.chat-msg[data-id="1"]').press('Enter');
     await page.click('[data-chat-action="reply"]');
     await page.click('[data-chat-action="attach"]');
@@ -135,7 +135,7 @@ try {
     await page.route('**/rest/v1/community_comments*', r => r.fulfill({json: []}));
     await page.route('**/rest/v1/rpc/add_comment', r => { commented = r.request().postDataJSON(); r.fulfill({json: {id: 9, post_id: 41, author_tag: 'me', nickname: 'Dewy Panda', body: commented.p_body, item: null, likes: 0, created_at: new Date().toISOString()}}); });
     await page.click('#tabbar [data-screen="chat"]');
-    await page.click('[data-home-tab="rooms"][role="tab"]');
+    await page.click('.home-links [data-home-tab="rooms"]');
     await page.click('.room-list-card[data-chat-room="acne"]');
     await page.click('.room-notice[data-topic-mode="posts"]');
     await page.click('[data-chat-action="write"]');

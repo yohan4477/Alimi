@@ -30,14 +30,14 @@ try{
  if(process.env.QA_FONT_DIR)await page.route('**/__qa-fonts/*',route=>route.fulfill({path:process.env.QA_FONT_DIR+'/files/'+new URL(route.request().url()).pathname.split('/').at(-1)}));
  await page.goto(base+'?lang=ko');
  if(process.env.QA_FONT_DIR){let css=await readFile(process.env.QA_FONT_DIR+'/400.css','utf8');css+=await readFile(process.env.QA_FONT_DIR+'/700.css','utf8');await page.addStyleTag({content:css.replaceAll('./files/','/__qa-fonts/')+"\nbody,button,input,textarea{font-family:'Noto Sans KR',sans-serif !important}"});await page.evaluate(()=>document.fonts.ready);}
-await page.locator('.room-list-card').first().waitFor();
+await page.locator('.hot-row').first().waitFor();
  await page.screenshot({path:`artifacts/handoff/${label}-community.png`});
  await page.click('#tabbar [data-screen="saved"]');await page.screenshot({path:`artifacts/handoff/${label}-saved.png`});
  if(!process.env.CAPTURE_ONLY){
   assert.equal(await page.locator('#saved .add-slot').count(),0);
   assert.equal(await page.locator('.activity-tabs .on').evaluate(el=>getComputedStyle(el).borderBottomWidth),'2px');
  }
- await page.click('#tabbar [data-screen="chat"]');await page.locator('.room-list-card').first().click();await page.locator('#chat-log .chat-item').waitFor();
+ await page.click('#tabbar [data-screen="chat"]');await page.locator('.hot-row').first().click();await page.locator('#chat-log .chat-item').waitFor();
  await page.locator('#chat-text').waitFor();await page.fill('#chat-text','이 색상 질문을 작성 중이에요');
  await page.locator('#chat-log .chat-item').click();await page.locator('#family-dialog[open] #family-price').waitFor();
  await page.screenshot({path:`artifacts/handoff/${label}-product.png`});
@@ -56,15 +56,15 @@ await page.locator('.room-list-card').first().waitFor();
   assert.equal(sends,1);assert.equal(events.filter(e=>e.name==='chat_send').length,0);
   assert.equal(await page.locator('#chat-text').inputValue(),'이 색상 질문을 작성 중이에요');
   assert.match(await page.locator('#chat-context').innerText(),/02/);
-  await page.click('.room-back');await page.locator('.room-list-card').first().click();await page.locator('#chat-text').waitFor();
+  await page.click('.room-back');await page.locator('.hot-row').first().click();await page.locator('#chat-text').waitFor();
   assert.equal(await page.locator('#chat-text').inputValue(),'이 색상 질문을 작성 중이에요');
   assert.match(await page.locator('#chat-context').innerText(),/02/);
   failSend=false;await page.click('#chat-form .chat-send');await page.waitForFunction(()=>document.querySelector('#chat-text').value==='');
   assert.equal(sends,2);assert.equal(events.filter(e=>e.name==='chat_send').length,1);
-  await page.click('.room-back');await page.locator('.room-list-card').first().waitFor();await page.click('#tabbar [data-screen="saved"]');assert.equal(await page.locator('#saved .add-slot').count(),0);
+  await page.click('.room-back');await page.locator('.hot-row').first().waitFor();await page.click('#tabbar [data-screen="saved"]');assert.equal(await page.locator('#saved .add-slot').count(),0);
   await page.locator('#saved [data-product]').first().click();await page.locator('#detail:not([hidden])').waitFor();
   assert.match(await page.locator('#detail h1').innerText(),/02/);
-  await page.reload();await page.locator('.room-list-card').first().waitFor();await page.click('#tabbar [data-screen="saved"]');
+  await page.reload();await page.locator('.hot-row').first().waitFor();await page.click('#tabbar [data-screen="saved"]');
   assert.match(await page.locator('#saved').innerText(),/02/);
   assert.deepEqual(errors,[]);console.log('ok - exact SKU price/link/save, failed send keeps draft/card, retry counts success once, room return and saved reload');
  }

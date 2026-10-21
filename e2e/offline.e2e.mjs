@@ -109,7 +109,7 @@ try {
   });
   await step('community: topic posts, post detail with comment card carrying clickref', async () => {
     await page.click('#tabbar [data-screen="chat"]');
-    await page.click('#chat [data-home-tab="rooms"][role="tab"]');
+    await page.click('#chat .home-links [data-home-tab="rooms"]');
     await page.click('#chat .room-list-card[data-chat-room="acne"]');
     // Rooms open on the chat; the notice banner leads to the posts board.
     await page.click('#chat .room-notice');

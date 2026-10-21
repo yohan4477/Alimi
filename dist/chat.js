@@ -48,6 +48,12 @@ async function tagOf(s) {
   return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 24);
 }
 const time = iso => new Intl.DateTimeFormat(locale(), {hour: '2-digit', minute: '2-digit'}).format(new Date(iso));
+// "3시간 전" / "3 hours ago" for the last activity of a room.
+export function relTime(iso, now = Date.now()) {
+  const at = Date.parse(iso ?? ''); if (!Number.isFinite(at)) return '';
+  const s = Math.max(0, (now - at) / 1000), f = new Intl.RelativeTimeFormat(locale(), {numeric: 'auto'});
+  return s < 60 ? f.format(0, 'second') : s < 3600 ? f.format(-Math.floor(s / 60), 'minute') : s < 86400 ? f.format(-Math.floor(s / 3600), 'hour') : f.format(-Math.floor(s / 86400), 'day');
+}
 // ref = where the card was seen ("post-12", "comment-4", "chat-88"); passed on to the product sheet / Awin.
 const itemCard = (it, ref = '') => it.demo ? `<button class="chat-item" data-demo-product="${esc(it.label)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="${esc(it.name)}" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(it.brand)} · ${esc(t('rooms.demoProducts'))}</small><b>${esc(it.name)}</b></span></button>` : `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}" data-sku="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"` : `data-chat-product="${esc(JSON.stringify(it))}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
 const shell = inner => { $('#chat').innerHTML = inner; };
@@ -82,10 +88,14 @@ export async function openChat(opts = {}) {
   const showLaunch = initial && readInterests()?.done;
   const finish = showLaunch ? beginStartupLoading({label: t('loading'), line1: t('splash.line1'), line2: t('splash.line2')}) : () => {};
   finishStartup = finish;
+  if (!keepHomeTab) homeTab = 'rec';
+  keepHomeTab = false;
   try { await renderHome(); } finally { finish(); }
 }
+// Inside a room the composer gets the bottom of the screen: the tab bar hides (style.css).
+function inRoom(on) { if (on) document.documentElement.dataset.room = '1'; else delete document.documentElement.dataset.room; }
 // Called when the user switches to another tab: stop polling until the community screen is opened again.
-export function leaveChat() { rememberDraft(); communityOpenVersion++; finishStartup(); stopPolling(); chat.room = null; }
+export function leaveChat() { rememberDraft(); communityOpenVersion++; finishStartup(); stopPolling(); chat.room = null; inRoom(false); }
 // Product sheet "대화에 첨부": only while a live room's composer is on screen.
 export const canAttachToChat = () => Boolean(chat.room && $('#chat-text'));
 export function attachToChat(it) {
@@ -99,7 +109,14 @@ const icon = {
   people: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M15 5.2a3.2 3.2 0 0 1 0 6M17 14a5 5 0 0 1 3.5 5"/></svg>',
   back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
   pen: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></svg>',
-  comment: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>'
+  comment: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg>',
+  more: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>',
+  notice: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l6 4V6L7 10zM16 9a4 4 0 0 1 0 6"/></svg>',
+  reply: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4A8 8 0 1 1 20 12z"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  send: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-4 16-4-6.5z"/><path d="m12 13.5 8-9.5"/></svg>',
+  spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5-8 9.5z"/></svg>'
 };
 const roomIcon = r => r.kind === 'brand'
   ? `<i class="room-ico brand">${`<span>${esc(brandInitials(r.brand ?? r.title_en))}</span>` + (r.logo_url ? `<img src="${esc(r.logo_url)}" alt="" loading="lazy">` : '')}</i>`
@@ -133,11 +150,12 @@ const HOME_TABS = ['rec', 'rooms', 'discover'];
 let topicRoomLimit = 3, productGroupLimit = 3;
 let homeVersion = 0, homeTab = 'rec', home = null, catalogPics = null;
 let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
+let keepHomeTab = false;
 export function openProductRoomsNext(query = '') {
-  pendingRoom = null; pendingPost = null; homeTab = 'rooms'; roomFindMode = 'products'; productRoomQuery = String(query).trim(); selectedProductGroup = null;
+  pendingRoom = null; pendingPost = null; homeTab = 'rooms'; keepHomeTab = true; roomFindMode = 'products'; productRoomQuery = String(query).trim(); selectedProductGroup = null;
 }
 export function openRoomListNext() {
-  pendingRoom = null; pendingPost = null; homeTab = 'rooms'; roomFindMode = 'topics'; productRoomQuery = ''; selectedProductGroup = null;
+  pendingRoom = null; pendingPost = null; homeTab = 'rooms'; keepHomeTab = true; roomFindMode = 'topics'; productRoomQuery = ''; selectedProductGroup = null;
 }
 // Top catalog products per category (real images) to illustrate rooms; loaded once, never blocks the home.
 async function loadCatalogPictures(rooms) {
@@ -149,8 +167,10 @@ async function loadCatalogPictures(rooms) {
 }
 async function renderHome() {
   const version = ++homeVersion;
-  rememberDraft(); stopPolling(); chat.room = null; view.post = null;
-  shell(`<div class="logo-head center"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? 'offline' : 'online'}</button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div><div class="service-context">${regionButton()}</div><div class="home-tabs" role="tablist" aria-label="${esc(t('community.title'))}">${HOME_TABS.map(k => `<button role="tab" id="home-tab-${k}" data-home-tab="${k}" aria-selected="${homeTab === k}" aria-controls="community-home" class="${homeTab === k ? 'on' : ''}">${esc(t('home.tab.' + k))}</button>`).join('')}</div><div class="chat-rooms" id="community-home" role="tabpanel" aria-labelledby="home-tab-${homeTab}">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+  rememberDraft(); stopPolling(); chat.room = null; view.post = null; inRoom(false);
+  // Journey 1 home: wordmark left, alerts / search right, hero, then trending conversations. No sub-tabs:
+  // topic / product / brand browsing lives in the 탐색 tab; 대화방 and 발견 open as sub-pages with a back button.
+  shell(`<div class="logo-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span class="sb-head-actions"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${demoActive ? 'offline' : 'online'}</button><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></span></div><div class="service-context">${regionButton()}</div><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
 
 
   if (demoActive) {
@@ -182,6 +202,9 @@ async function renderHome() {
   }, () => {});
 }
 const trendCard = r => `<button class="trend-card" data-chat-room="${esc(r.id)}" data-live="1"><span class="trend-img">${home.images.get(r.id) ? `<img src="${esc(home.images.get(r.id))}" alt="" loading="lazy">` : roomThumb(r)}</span><b>${esc(roomTitle(r))}</b><small>${esc(t('room.newToday', {n: r.messages_24h}))}</small></button>`;
+// Home list row (journey 1): picture, title, latest line, real members and last activity.
+const hotRow = (r, image, note) => `<button class="hot-row" data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}>${roomThumb(r, image)}<span class="hot-text"><b>${esc(roomTitle(r))}</b>${note ? `<small>${esc(note)}</small>` : ''}<span class="hot-meta"><span>${icon.people}${esc(t('room.joined', {n: r.members ?? 0}))}</span>${r.last_message_at ? `<span>${icon.clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>`;
+const homeHero = () => `<section class="home-hero"><div class="home-hero-text"><h1>${esc(t('home.hero.title'))}</h1><p>${esc(t('home.hero.sub'))}</p><button class="hero-cta" data-screen="search">${esc(t('home.hero.cta'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div><img src="assets/splash-photo.webp" alt="" width="196" height="236"></section>`;
 const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big-head-row"><div><h2 class="big-head">${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div><button class="text-link" ${more}>${esc(t('home.seeAll'))} ›</button></div>`;
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
 function drawHome() {
@@ -193,18 +216,23 @@ function drawHome() {
     const interests = readInterests();
     const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (hot.length ? hot : topics).slice(0, 4);
     const mine = home.revisit?.activity?.length ? sectionHead(t('rooms.mine'), '', `<button class="text-link" data-screen="rooms">${esc(t('home.seeAll'))} ›</button>`) + home.revisit.activity.slice(0, 2).map(a => joinedCard(a, images.get(a.room.id))).join('') : '';
-    const trend = hot.length ? sectionHead(t('home.trending'), '') + hot.map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') : '';
-    box.innerHTML = `${mine}${trend}${sectionHead(t('home.recRooms'), '', `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`)}${picks.map(r => roomListCard(r, {image: images.get(r.id), highlight: interests?.concerns ?? [], attrs: `data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}`})).join('')}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button>`;
-  } else if (homeTab === 'rooms') {
+    const seeAll = `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`;
+    const trend = hot.length ? sectionHead(t('home.hot'), '', seeAll) + hot.map(r => hotRow(r, images.get(r.id), previews.get(r.id) || roomIntro(r))).join('') : '';
+    const pickIds = new Set(hot.map(r => r.id)), rest = picks.filter(r => !pickIds.has(r.id));
+    box.innerHTML = `${homeHero()}${mine}${trend}${rest.length ? sectionHead(t('home.recRooms'), '', hot.length ? '' : seeAll) + rest.map(r => hotRow(r, images.get(r.id), roomIntro(r))).join('') : ''}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<div class="home-links"><button class="text-link" data-home-tab="rooms">${esc(t('home.tab.rooms'))} ›</button><button class="text-link" data-home-tab="discover">${esc(t('home.mentioned'))} ›</button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button></div>`;
+    return;
+  }
+  const sub = key => `<div class="page-bar home-sub"><button class="icon-btn" data-home-tab="rec" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t(key))}</h1></div>`;
+  if (homeTab === 'rooms') {
     const productIds = new Set(productRoomGroups(topics, home.popular ?? []).flatMap(g => g.rooms.map(r => r.id)));
     const topicRooms = topics.filter(r => !productIds.has(r.id));
-    box.innerHTML = `<section class="room-topic-section">${sectionHead(t('home.topics'), '')}${topicRooms.slice(0, topicRoomLimit).map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') || `<p class="empty">${esc(t('home.quiet'))}</p>`}${topicRooms.length > topicRoomLimit ? `<button class="text-link" data-chat-action="more-topic-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}</section><section class="room-product-section">${sectionHead(t('rooms.byProduct'), '')}<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><div id="product-room-results" aria-live="polite"></div></section>`;
+    box.innerHTML = `${sub('home.tab.rooms')}<section class="room-topic-section">${sectionHead(t('home.topics'), '')}${topicRooms.slice(0, topicRoomLimit).map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') || `<p class="empty">${esc(t('home.quiet'))}</p>`}${topicRooms.length > topicRoomLimit ? `<button class="text-link" data-chat-action="more-topic-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}</section><section class="room-product-section">${sectionHead(t('rooms.byProduct'), '')}<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><div id="product-room-results" aria-live="polite"></div></section>`;
     drawProductRooms();
   } else if (homeTab === 'discover') {
     const mentioned = products.length ? `<div class="mentioned-products">${rankProducts(products, undefined, demoActive ? aggregateProductStats(demoEntries()) : undefined).map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${productSortControls()}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
     // Discovery reflects actual conversation mentions, including an honest empty state.
-    box.innerHTML = `${talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
+    box.innerHTML = `${sub('home.tab.discover')}${talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
 
   }
 }
@@ -235,6 +263,7 @@ document.addEventListener('input', e => {
 });
 let homeJoined = [];
 function renderJoined() {
+  inRoom(false);
   shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('activity.chats'))}</h1></div><div class="chat-rooms">${homeJoined.map(j => { const r=chat.rooms.find(r=>r.id===j.room_id);return r ? roomListCard(r, {image: home?.images.get(r.id), note: j.last?.body || roomIntro(r)}) : ''; }).join('')}</div>`);
 }
 
@@ -258,9 +287,10 @@ let joinThen = () => {};
 
 // Topic: header + Posts / Live chat switch. The two never share one stream.
 function openTopic(room, mode = 'live') {
-  rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null;
+  rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null; inRoom(true);
   const other = mode === 'posts' ? 'live' : 'posts';
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><div class="room-title-line"><h1>${esc(roomTitle(room))}</h1><span class="room-count">${icon.people} ${room.members ?? 0}</span></div></div>${!room.demo ? `<button class="room-invite" data-chat-action="share-room" aria-label="${esc(t('share.invite'))}">${icon.share}<span>${esc(t('share.invite'))}</span></button>` : ''}${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">⋮</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : ''}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span aria-hidden="true">📣</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
+  // Journey 3 room header: back, centred title with real member count, ⋯ menu (share / posts ↔ live).
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(t('room.joined', {n: room.members ?? 0}))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
   if (room.demo) { startLive(room); return; }
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
@@ -274,7 +304,7 @@ async function renderTopicPosts(room) {
 
 // Post detail with comments; each comment may carry a product card.
 async function openPost(id) {
-  stopPolling();
+  stopPolling(); inRoom(true);
   shell(`<div class="page-bar"><button class="icon-btn" data-chat-action="${chat.room ? 'topic' : 'rooms'}" aria-label="${esc(t('back'))}">${icon.back}</button></div><div id="post-view" class="post-view">${loadingMarkup(t('loading'))}</div>`);
   let post, comments; try { [post, comments] = await Promise.all([fetchPost(id), fetchComments(id)]); } catch { post = null; }
   if (!$('#post-view')) return;
@@ -354,7 +384,7 @@ async function startLive(room) {
   const draft=roomDrafts.get(room.id);
   chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
   const setupNudge = shouldSuggestSetup(readInterests(), storage) ? `<aside id="setup-nudge" class="setup-nudge"><b>${esc(t('onb.nudgeTitle'))}</b><p>${esc(t('onb.nudgeHint'))}</p><div><button class="text-link" data-onb-manage data-onb-context="chat">${esc(t('onb.manage'))}</button><button class="text-btn" data-setup-snooze>${esc(t('onb.snooze'))}</button></div></aside>` : '';
-  body(`${setupNudge}<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.typeHere'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`);
+  body(`${setupNudge}<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><div class="composer-tools"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><button type="button" class="exp-open" data-chat-action="experience">${icon.spark}<span>${esc(t('exp.open'))}</span></button></div><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">${icon.plus}</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.composePh'))}"></textarea><button class="chat-send" aria-label="${esc(t('chat.send'))}">${icon.send}</button></div></form>`);
   {
     $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
@@ -406,7 +436,8 @@ function renderLog(scroll) {
     const elapsed = prev ? Date.parse(m.created_at) - Date.parse(prev.created_at) : Infinity;
     const grouped = !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
-    return `${divider}<article class="chat-msg${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!mine && !grouped ? `<b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b>` : ''}<div class="msg-line"><div class="msg-content">${parent || m.body ? `<div class="chat-bubble">${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p>${esc(m.body)}</p>` : ''}</div>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><time class="msg-time">${esc(time(m.created_at))}</time></div></div><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><span>${m.likes || 0}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button></article>`;
+    // Journey 3 feed row: nickname · time, text, product card, ♡ / 답글. No avatars (removed by product decision).
+    return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b><time class="msg-time">${esc(time(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p class="msg-body">${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
@@ -487,6 +518,41 @@ function picked1(i) {
   else if (pickFor === 'write') { view.draft.item = it; renderWrite(); }
   else { chat.item = it; renderContext(); $('#chat-text')?.focus(); }
 }
+
+// Journey 4 "경험 공유하기": optional chips + free text, sent as one ordinary chat message in this room.
+// Nothing is required and nothing is stored apart from the message itself.
+const EXP = {used: ['yes', 'now', 'no'], period: ['lt1w', '1w1m', '1m3m', 'gt3m'], skin: ['dry', 'oily', 'combination', 'sensitive', 'unsure'],
+  good: ['moist', 'lasting', 'cover', 'light', 'color', 'gentle', 'other']};
+const EXP_MULTI = ['skin', 'good'];
+let exp = null;
+const expLabel = (group, v) => group === 'skin' ? t(v === 'unsure' ? 'exp.skin.unsure' : 'skin.' + v) : t(`exp.${group}.${v}`);
+function openExperience() {
+  if (!chat.room) return;
+  exp = {used: null, period: null, skin: [], good: [], note: $('#chat-text')?.value ?? ''};
+  let dlg = $('#exp-sheet'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'exp-sheet'; dlg.className = 'exp-sheet'; dlg.setAttribute('aria-labelledby', 'exp-title'); document.body.append(dlg); }
+  renderExperience(); dlg.showModal();
+}
+function renderExperience() {
+  const room = chat.room, image = home?.images?.get(room.id);
+  const group = (g, title, hint = '') => `<fieldset class="exp-group"><legend>${esc(t(title))}${hint ? ` <span>${esc(t(hint))}</span>` : ''}</legend><div class="exp-chips">${EXP[g].map(v => { const on = EXP_MULTI.includes(g) ? exp[g].includes(v) : exp[g] === v; return `<button type="button" data-exp="${g}:${v}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(expLabel(g, v))}</button>`; }).join('')}</div></fieldset>`;
+  const usedIt = exp.used !== 'no';
+  $('#exp-sheet').innerHTML = `<div class="exp-bar"><button type="button" class="icon-btn" data-chat-action="exp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div><h2 id="exp-title">${esc(t('exp.title'))}</h2><small>${esc(t('exp.optional'))}</small></div></div><div class="exp-body"><div class="exp-room">${roomThumb(room, image)}<b>${esc(roomTitle(room))}</b></div>${group('used', 'exp.used')}${usedIt ? group('period', 'exp.period') : ''}${group('skin', 'exp.skin')}${usedIt ? group('good', 'exp.good', 'exp.choose') : ''}<label class="exp-note"><span class="sr-only">${esc(t('exp.title'))}</span><textarea id="exp-note" rows="3" maxlength="400" placeholder="${esc(t('exp.notePh'))}">${esc(exp.note)}</textarea><small id="exp-count">${exp.note.length}/400</small></label></div><div class="exp-actions"><button type="button" class="primary" data-chat-action="exp-submit">${esc(t('exp.submit'))}</button><button type="button" class="text-btn" data-chat-action="exp-close">${esc(t('exp.skip'))}</button></div>`;
+}
+function experienceText() {
+  const head = [exp.used && expLabel('used', exp.used), exp.used !== 'no' && exp.period && expLabel('period', exp.period), ...exp.skin.map(v => expLabel('skin', v))].filter(Boolean).join(' · ');
+  const good = exp.used !== 'no' && exp.good.length ? t('exp.goodLine', {v: exp.good.map(v => expLabel('good', v)).join(', ')}) : '';
+  return [head, good, exp.note.trim()].filter(Boolean).join('\n').slice(0, 500);
+}
+function submitExperience() {
+  exp.note = $('#exp-note')?.value ?? exp.note;
+  const text = experienceText();
+  if (!text) { toast(t('exp.empty')); return; }
+  $('#exp-sheet').close();
+  const box = $('#chat-text'); if (!box) return;
+  box.value = text;
+  send();
+}
+document.addEventListener('input', e => { if (e.target.id === 'exp-note' && exp) { exp.note = e.target.value; const c = $('#exp-count'); if (c) c.textContent = `${exp.note.length}/400`; } });
 
 // Menus: chat messages (reply / save as post for mine / report / block) and posts or comments (report / block).
 let menuTarget = null;
@@ -620,6 +686,10 @@ document.addEventListener('click', async e => {
   else if (a === 'write-item-cancel') { keepDraftText(); view.draft.item = null; renderWrite(); }
   else if (a === 'write-submit') { e.preventDefault(); submitPost(); }
   else if (a === 'attach') openPicker('chat');
+  else if (a === 'experience') openExperience();
+  else if (a === 'exp-close') $('#exp-sheet')?.close();
+  else if (a === 'exp-submit') submitExperience();
+  else if (b.dataset.exp && exp) { const [g, v] = b.dataset.exp.split(':'); exp.note = $('#exp-note')?.value ?? exp.note; if (EXP_MULTI.includes(g)) exp[g] = exp[g].includes(v) ? exp[g].filter(x => x !== v) : [...exp[g], v]; else exp[g] = exp[g] === v ? null : v; renderExperience(); $(`[data-exp="${g}:${v}"]`)?.focus(); }
   else if (a === 'attach-comment') askRules(chat.room ?? {title_en: '', title_ko: '', intro_en: '', intro_ko: ''}, () => openPicker('comment'));
   else if (a === 'comment-item-cancel') { view.commentItem = null; renderPost(); }
   else if (a === 'reply-cancel') { chat.replyTo = null; renderContext(); }
@@ -675,6 +745,14 @@ export async function onboardingData() {
   return {rooms, products: productRoomGroups(rooms, pics?.popular ?? []), pictures: pics ? topicPictures(rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map()};
 }
 export const openRoomById = id => { pendingRoom = id; };
+// Rooms and their pictures for the 탐색 tab (explore.js); same sources as the community home.
+export async function exploreData() {
+  if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms();
+  if (demoActive) return {rooms: chat.rooms, images: home?.images ?? roomImages(demoEntries()), popular: []};
+  const pics = await loadCatalogPictures(chat.rooms).catch(() => null);
+  const images = home?.images ?? (pics ? topicPictures(chat.rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map());
+  return {rooms: chat.rooms, images, popular: pics?.popular ?? []};
+}
 
 document.addEventListener('seoulbeauty-create-room', () => openCreateRoom());
 
