@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-21",
+  "note": "Retailer-visible ordering snapshots, not sales volume. Ulta /shop/k-beauty/all sorted Best Sellers, including category products not strictly Korean-owned; Olive Young Global mobile Best Sellers in US$ locale, not proven US-only ranking. Sponsored or promotional interstitials are excluded; variants and sets are kept distinct. No images copied.",
+  "rankings": [
+    {
+      "source": "ulta_us",
+      "market": "US",
+      "rankingType": "best_sellers_listing_order",
+      "sourceUrl": "https://www.ulta.com/shop/k-beauty/all",
+      "products": [
+        {
+          "rank": 1,
+          "brand": "Dr. Althea",
+          "name": "345 Relief Cream"
+        },
+        {
+          "rank": 2,
+          "brand": "ANUA",
+          "name": "Azelaic Acid 10 Hyaluron Redness Soothing Serum"
+        },
+        {
+          "rank": 3,
+          "brand": "medicube",
+          "name": "Zero Pore Pad"
+        },
+        {
+          "rank": 4,
+          "brand": "Hero Cosmetics",
+          "name": "Mighty Patch Original Acne Pimple Patches"
+        },
+        {
+          "rank": 5,
+          "brand": "ANUA",
+          "name": "PDRN Hyaluronic Acid 100 Moisturizing Cream"
+        },
+        {
+          "rank": 6,
+          "brand": "ANUA",
+          "name": "PDRN Hyaluronic Acid Hydrating Capsule Mist"
+        },
+        {
+          "rank": 7,
+          "brand": "medicube",
+          "name": "PDRN Pink Collagen Volume Multi Balm"
+        },
+        {
+          "rank": 8,
+          "brand": "medicube",
+          "name": "PDRN Pink Collagen Gel Mask"
+        },
+        {
+          "rank": 9,
+          "brand": "ANUA",
+          "name": "Niacinamide 10 TXA 4 Serum for Brightening and Dark Spots"
+        },
+        {
+          "rank": 10,
+          "brand": "PEACH & LILY",
+          "name": "Glass Skin Ginseng Collagen Mask"
+        },
+        {
+          "rank": 11,
+          "brand": "ANUA",
+          "name": "Heartleaf Quercetinol Pore Deep Cleansing Foam"
+        },
+        {
+          "rank": 12,
+          "brand": "ANUA",
+          "name": "Heartleaf Pore Control Cleansing Oil"
+        },
+        {
+          "rank": 13,
+          "brand": "celimax",
+          "name": "The Vita-A Retinal 0.1% Shot Booster Treatment"
+        },
+        {
+          "rank": 14,
+          "brand": "Dr. Althea",
+          "name": "345 Relief Cream Mist"
+        },
+        {
+          "rank": 15,
+          "brand": "Hero Cosmetics",
+          "name": "Mighty Patch Invisible+ Daytime Hydrocolloid Acne Pimple Patches"
+        },
+        {
+          "rank": 16,
+          "brand": "Dr. Althea",
+          "name": "147 Barrier Cream"
+        },
+        {
+          "rank": 17,
+          "brand": "medicube",
+          "name": "PDRN Pink Peptide Serum"
+        },
+        {
+          "rank": 18,
+          "brand": "PEACH & LILY",
+          "name": "Glass Skin Refining Serum"
+        },
+        {
+          "rank": 19,
+          "brand": "ANUA",
+          "name": "5-Step Glass Skin Routine Set"
+        },
+        {
+          "rank": 20,
+          "brand": "medicube",
+          "name": "PDRN Pink Caffeine Collagen Eye Patch"
+        }
+      ]
+    },
+    {
+      "source": "oliveyoung_global",
+      "market": "Global",
+      "rankingType": "best_sellers_homepage_order",
+      "sourceUrl": "https://m.global.oliveyoung.com/",
+      "products": [
+        {
+          "rank": 1,
+          "brand": "BIODANCE",
+          "name": "Real Deep Mask 16 Sheets (3 Options)"
+        },
+        {
+          "rank": 2,
+          "brand": "ILO",
+          "name": "Collagen Double Set (Type 1 Collagen Biotin Ampoule 20 ea)"
+        },
+        {
+          "rank": 3,
+          "brand": "MEDIHEAL",
+          "name": "Essential Mask Sheet 10ea Set (+1ea) (OY-Exclusive)"
+        },
+        {
+          "rank": 4,
+          "brand": "fwee",
+          "name": "3D Voluming Gloss Set (Earl Grey Edition)"
+        },
+        {
+          "rank": 5,
+          "brand": "Dr. Althea",
+          "name": "345 Relief Cream 50ml Set (+10ml*2ea+Tube Wringer)"
+        },
+        {
+          "rank": 6,
+          "brand": "celimax",
+          "name": "The Vita A Retinal Shot Tightening Booster 15ml Set (+3ml)"
+        },
+        {
+          "rank": 7,
+          "brand": "ABOUT_TONE",
+          "name": "Skin Layer Fit Blusher"
+        },
+        {
+          "rank": 8,
+          "brand": "FOODOLOGY",
+          "name": "Coleology Cutting Jelly 30 Sticks"
+        },
+        {
+          "rank": 9,
+          "brand": "BANILA CO",
+          "name": "Clean It Zero Original Cleansing Balm 100ml Double Set"
+        },
+        {
+          "rank": 10,
+          "brand": "so natural",
+          "name": "All Day Tight Makeup Setting Fixx 120ml Double Set"
+        },
+        {
+          "rank": 11,
+          "brand": "Anua",
+          "name": "PDRN Hyaluronic Capsule 100 Serum 30ml Refill Set"
+        },
+        {
+          "rank": 12,
+          "brand": "UNOVE",
+          "name": "Deep Damage Repair Hair Mask 320mL Double Pack"
+        },
+        {
+          "rank": 13,
+          "brand": "ILO",
+          "name": "Collagen Double Set Sanrio Edition"
+        },
+        {
+          "rank": 14,
+          "brand": "ILLIYOON",
+          "name": "Ceramide Ato Lotion Double Pack 600ml+600ml"
+        },
+        {
+          "rank": 15,
+          "brand": "SKIN1004",
+          "name": "Madagascar Centella Hyalu-Cica Water-Fit Sun Serum 50ml x2 Set"
+        },
+        {
+          "rank": 16,
+          "brand": "MEDIHEAL",
+          "name": "Essential Mask Sheet 20ea"
+        },
+        {
+          "rank": 17,
+          "brand": "Dr.Jart+",
+          "name": "The Makeup Premium Beauty Balm 40ml"
+        },
+        {
+          "rank": 18,
+          "brand": "DELIGHT PROJECT",
+          "name": "Protein Shake 45g x7"
+        },
+        {
+          "rank": 19,
+          "brand": "S.NATURE",
+          "name": "Aqua Squalane Moisturizing Cream 60ml+60ml Sanrio Edition"
+        },
+        {
+          "rank": 20,
+          "brand": "BIODANCE",
+          "name": "Real Deep Mask Sheet 7 Sheets Set"
+        }
+      ]
+    }
+  ]
+}

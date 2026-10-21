@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {productReadiness,launchReadiness} from '../scripts/launch-readiness.mjs';
+const at='2026-10-21T06:00:00Z',now=new Date(at);
+const item={internalProductId:'anua-200ml',brand:'ANUA',name:'Cleansing oil',size:'200ml',option:null,retailerSku:'123',category:'cosmetics',market:'US',currency:'USD',retailer:'Example',match:{status:'exact',evidenceUrl:'https://example.org/item'},advertiser:{status:'approved',evidenceUrl:'https://example.org/account',checkedAt:at},merchantProductUrl:'https://example.org/item',trackedAffiliateUrl:'https://tracking.example.org/item',linkVerification:{status:'verified',checkedAt:at},observedAt:at,priceMinor:1800,availability:'in_stock',contentUses:[]};
+test('an otherwise verified exact variant can pass independently of whole launch',()=>{assert.equal(productReadiness(item,now).ready,true);assert.equal(launchReadiness({products:[item]},now).ready,false)});
+test('approval alone is insufficient for unknown variant, stale quote, or missing rights',()=>{assert.equal(productReadiness({...item,size:null},now).ready,false);assert.equal(productReadiness({...item,observedAt:'2026-10-19'},now).ready,false);assert.equal(productReadiness({...item,contentUses:['product_image']},now).ready,false);assert.equal(productReadiness({...item,advertiser:{status:'pending'}},now).ready,false)});
+test('global rankings, ordinary links and unseen products cannot activate US launch',()=>{assert.equal(productReadiness({...item,market:'Global'},now).ready,false);assert.equal(productReadiness({...item,trackedAffiliateUrl:item.merchantProductUrl},now).ready,false);assert.equal(launchReadiness({products:[],checks:{}},now).ready,false)});
