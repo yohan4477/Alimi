@@ -1317,8 +1317,8 @@
     "en": "Continue with Google"
   },
   "account.signedIn": {
-    "ko": "Google 계정으로 로그인됨",
-    "en": "Signed in with Google"
+    "ko": "{provider} 계정으로 로그인됨",
+    "en": "Signed in with {provider}"
   },
   "account.signout": {
     "ko": "로그아웃",
