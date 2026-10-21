@@ -219,6 +219,7 @@ setInterval(()=>{if(!document.hidden)restoreAccount()},60000);
 window.addEventListener('online',()=>restoreAccount().then(()=>accountSync.flush()));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreAccount()});
 window.addEventListener('storage',e=>{if(e.key==='alimi-auth-session-v1')location.reload()});
+document.addEventListener('seoulbeauty-google-signin-request',()=>{if(!auth.user)authAction('google');});
 async function authAction(a){
   if(authBusy)return;authBusy=true;renderSettings();
   try{
