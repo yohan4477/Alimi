@@ -16,7 +16,7 @@ import {readInterests,openOnboarding} from './onboarding.js';
 import {share,shareUrl,sharedTarget} from './share.js';
 import {buyUrl,coupangUrl,inKorea,oliveYoungUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
 import {$,esc} from './util.js';
-import {renderExplore,refreshExplore} from './explore.js';
+import {renderExplore,refreshExplore,searchRooms,exploreRow} from './explore.js';
 let storage;try{storage=localStorage}catch{}
 let state=readState(storage),products=[],selected=null,category='전체',timer,detailOpen=false;
 const product=id=>products.find(p=>p.id===id);
@@ -273,9 +273,14 @@ function renderSearch(){
   const q=$('#search').value.trim(),box=$('#search-results');
   if(!q){renderExplore(box,brandGrid);return}
   const items=rankProducts(search(products,q,'전체'));
-  box.innerHTML=productSortControls()+(items.length?`<div class="heading"><div><h2>${esc(t('section.products'))}</h2></div><span>${esc(t('count',{n:items.length}))}</span></div><div class="product-grid">${items.map(card).join('')}</div>`:'')+'<div id="search-catalog" class="catalog-results"></div>';
+  // 2-3: one query, filtered as 전체 / 대화방 / 제품 / 브랜드 (filter only hides sections; nothing refetches).
+  const lower=q.toLocaleLowerCase(),brandHits=brands.filter(b=>[b.brand,b.brand_ko,brandLabel(b)].some(v=>String(v??'').toLocaleLowerCase().includes(lower)));
+  box.dataset.filter=searchFilter;
+  box.innerHTML=`<div class="search-filters" role="group" aria-label="${esc(t('search.title'))}">${SEARCH_FILTERS.map(k=>`<button data-search-filter="${k}" aria-pressed="${searchFilter===k}" class="${searchFilter===k?'on':''}">${esc(t('search.filter.'+k))}</button>`).join('')}</div><section class="search-sec" data-kind="rooms"><h2 class="explore-head-title">${esc(t('search.filter.rooms'))}</h2><div id="search-rooms">${loadingMarkup(t('loading'))}</div></section>${brandHits.length?`<section class="search-sec" data-kind="brands"><h2 class="explore-head-title">${esc(t('search.filter.brands'))}</h2><div class="brand-grid">${brandHits.slice(0,12).map(b=>`<button class="brand-item" data-brand="${esc(b.brand)}"><i>${brandBadge(b)}</i><small>${esc(brandLabel(b))}</small></button>`).join('')}</div></section>`:''}<section class="search-sec" data-kind="products">`+productSortControls()+(items.length?`<div class="heading"><div><h2>${esc(t('section.products'))}</h2></div><span>${esc(t('count',{n:items.length}))}</span></div><div class="product-grid">${items.map(card).join('')}</div>`:'')+'<div id="search-catalog" class="catalog-results"></div></section>';
   if(q.length>=2)renderCatalogSearch(q);
+  const seq=++roomSearchSeq;searchRooms(q).then(({rooms,images})=>{const el=$('#search-rooms');if(seq!==roomSearchSeq||!el)return;el.innerHTML=rooms.length?rooms.slice(0,8).map(r=>exploreRow(r,images.get(r.id))).join(''):`<p class="empty">${esc(t('search.roomsEmpty'))}</p>`},()=>{const el=$('#search-rooms');if(seq===roomSearchSeq&&el)el.innerHTML=`<p class="empty">${esc(t('home.retry'))}</p>`});
 }
+const SEARCH_FILTERS=['all','rooms','products','brands'];let searchFilter='all',roomSearchSeq=0;
 function updateCount(){const n=state.favorites.length;$('#count').textContent=n;$('#count').hidden=!n}
 // Home: available products, then the Korean-brand catalog by category.
 function renderList(){
@@ -399,6 +404,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.brand){openBrand(b.dataset.brand);return}
   if('brandsRetry' in b.dataset){loadBrandStrip();return}
   if('brandRetry' in b.dataset){brandPage.failed=false;renderBrandPage();return}
+  if(b.dataset.searchFilter){searchFilter=b.dataset.searchFilter;$('#search-results').dataset.filter=searchFilter;document.querySelectorAll('[data-search-filter]').forEach(x=>{const on=x.dataset.searchFilter===searchFilter;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on)});return}
   if(b.dataset.auth){authAction(b.dataset.auth);return}
   if(b.dataset.screen){show(b.dataset.screen);return}
   if(b.dataset.set){settingsAction(b.dataset.set);return}

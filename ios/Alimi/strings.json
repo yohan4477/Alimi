@@ -2431,5 +2431,69 @@
   "activity.postsEmpty": {
     "ko": "저장한 글이 없어요. 대화방 글에서 저장을 누르면 여기에 모여요.",
     "en": "No saved posts yet. Tap Save on a post to keep it here."
+  },
+  "explore.sort.pop": {
+    "ko": "인기순",
+    "en": "Popular"
+  },
+  "explore.sort.new": {
+    "ko": "최신순",
+    "en": "Latest"
+  },
+  "explore.sort.cmt": {
+    "ko": "댓글순",
+    "en": "Most talk"
+  },
+  "search.filter.all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "search.filter.rooms": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "search.filter.products": {
+    "ko": "제품",
+    "en": "Products"
+  },
+  "search.filter.brands": {
+    "ko": "브랜드",
+    "en": "Brands"
+  },
+  "search.roomsEmpty": {
+    "ko": "검색어와 맞는 대화방이 없어요.",
+    "en": "No rooms match your search."
+  },
+  "room.lastActive": {
+    "ko": "최근 {t}",
+    "en": "Active {t}"
+  },
+  "room.intro": {
+    "ko": "대화 소개",
+    "en": "About this room"
+  },
+  "room.related": {
+    "ko": "관련 대화",
+    "en": "Related rooms"
+  },
+  "related.title": {
+    "ko": "관련 대화 추천",
+    "en": "Related conversations"
+  },
+  "related.product": {
+    "ko": "같은 제품",
+    "en": "Same product"
+  },
+  "related.brand": {
+    "ko": "같은 브랜드",
+    "en": "Same brand"
+  },
+  "related.concern": {
+    "ko": "비슷한 고민",
+    "en": "Similar concerns"
+  },
+  "related.empty": {
+    "ko": "아직 이 기준으로 연결된 대화방이 없어요.",
+    "en": "No rooms linked this way yet."
   }
 }

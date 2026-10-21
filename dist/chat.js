@@ -15,7 +15,8 @@ import {share, shareUrl} from './share.js';
 // Live chat polls every few seconds while open.
 import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
-import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine} from './room-card.js';
+import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine, concernsOf, roomTags} from './room-card.js';
+import {exploreRow} from './explore.js';
 import {loadRevisit, joinedCard, ago as timeAgo} from './revisit.js';
 import {readInterests, recommendRooms, CONCERNS, canCreateRooms} from './onboarding.js';
 import {track} from './events.js';
@@ -428,7 +429,7 @@ function renderLog(scroll) {
   if ((scroll||near) && chat.room && chat.messages.length) markSeen(chat.room.id, chat.messages.at(-1).created_at);
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
   let previousDay = '';
-  log.innerHTML = list.length ? list.map((m, index) => {
+  log.innerHTML = roomIntroCard() + (list.length ? list.map((m, index) => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
     const day = new Intl.DateTimeFormat(locale(), {year:'numeric', month:'long', day:'numeric'}).format(new Date(m.created_at));
     const divider = day !== previousDay ? `<div class="chat-date"><span>${esc(day)}</span></div>` : '';
@@ -438,7 +439,7 @@ function renderLog(scroll) {
     previousDay = day;
     // Journey 3 feed row: nickname · time, text, product card, ♡ / 답글. No avatars (removed by product decision).
     return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b><time class="msg-time">${esc(time(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p class="msg-body">${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></div></article>`;
-  }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`;
+  }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`);
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
   let press;
@@ -517,6 +518,36 @@ function picked1(i) {
   if (pickFor === 'comment') { view.commentItem = it; renderPost(); $('#comment-text')?.focus(); }
   else if (pickFor === 'write') { view.draft.item = it; renderWrite(); }
   else { chat.item = it; renderContext(); $('#chat-text')?.focus(); }
+}
+
+// Journey 2-4 room preview card at the top of the conversation: picture, real members / last activity, tags,
+// and 2-5 related rooms. Reading needs no login or join step.
+function roomIntroCard() {
+  const r = chat.room; if (!r) return '';
+  const image = home?.images?.get(r.id) ?? r.topic_product?.image_url;
+  const stats = [t('room.joined', {n: r.members ?? 0}), r.last_message_at ? t('room.lastActive', {t: relTime(r.last_message_at)}) : ''].filter(Boolean).join(' · ');
+  return `<section class="room-intro-card">${image ? `<img class="room-intro-photo" src="${esc(image)}" alt="" loading="lazy">` : ''}<div class="room-intro-head">${image ? '' : roomThumb(r)}<div><h2>${esc(roomTitle(r))}</h2><small>${esc(stats)}</small></div></div>${concernsOf(r).length ? `<div class="room-tags">${roomTags(r)}</div>` : ''}<button class="text-link" data-chat-action="related">${esc(t('room.related'))} ›</button></section>`;
+}
+const RELATED = ['product', 'brand', 'concern'];
+let relatedTab = 'concern';
+function relatedRooms(kind) {
+  const r = chat.room, others = chat.rooms.filter(x => x.id !== r.id);
+  const product = r.topic_product, brand = product?.brand ?? (r.kind === 'brand' ? r.brand : null);
+  if (kind === 'product') return product ? others.filter(x => (x.topic_product?.id ?? x.topic_product?.label) === (product.id ?? product.label)) : [];
+  if (kind === 'brand') return brand ? others.filter(x => x.topic_product?.brand === brand || (x.kind === 'brand' && x.brand === brand)) : [];
+  const mine = concernsOf(r);
+  return others.filter(x => x.kind !== 'brand' && (concernsOf(x).some(c => mine.includes(c)) || (!mine.length && x.tag === r.tag)))
+    .sort((a, b) => (b.messages_24h ?? 0) - (a.messages_24h ?? 0)).slice(0, 12);
+}
+function openRelated() {
+  if (!chat.room) return;
+  relatedTab = RELATED.find(k => relatedRooms(k).length) ?? 'concern'; // most specific link first
+  let dlg = $('#related-rooms'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'related-rooms'; dlg.className = 'chat-dialog related-rooms'; dlg.setAttribute('aria-labelledby', 'related-title'); document.body.append(dlg); }
+  drawRelated(); if (!dlg.open) dlg.showModal();
+}
+function drawRelated() {
+  const list = relatedRooms(relatedTab);
+  $('#related-rooms').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="related-title">${esc(t('related.title'))}</h2><div class="related-tabs" role="group">${RELATED.map(k => `<button data-related-tab="${k}" aria-pressed="${relatedTab === k}" class="${relatedTab === k ? 'on' : ''}">${esc(t('related.' + k))}</button>`).join('')}</div><div class="related-list">${list.length ? list.map(x => exploreRow(x, home?.images?.get(x.id), 'data-related-room')).join('') : `<p class="empty">${esc(t('related.empty'))}</p>`}</div>`;
 }
 
 // Journey 4 "경험 공유하기": optional chips + free text, sent as one ordinary chat message in this room.
@@ -687,6 +718,9 @@ document.addEventListener('click', async e => {
   else if (a === 'write-submit') { e.preventDefault(); submitPost(); }
   else if (a === 'attach') openPicker('chat');
   else if (a === 'experience') openExperience();
+  else if (a === 'related') openRelated();
+  else if (b.dataset.relatedTab) { relatedTab = b.dataset.relatedTab; drawRelated(); $(`[data-related-tab="${relatedTab}"]`)?.focus(); }
+  else if (b.dataset.relatedRoom) { const r = chat.rooms.find(x => x.id === b.dataset.relatedRoom); $('#related-rooms').close(); if (r) openTopic(r, 'live'); }
   else if (a === 'exp-close') $('#exp-sheet')?.close();
   else if (a === 'exp-submit') submitExperience();
   else if (b.dataset.exp && exp) { const [g, v] = b.dataset.exp.split(':'); exp.note = $('#exp-note')?.value ?? exp.note; if (EXP_MULTI.includes(g)) exp[g] = exp[g].includes(v) ? exp[g].filter(x => x !== v) : [...exp[g], v]; else exp[g] = exp[g] === v ? null : v; renderExperience(); $(`[data-exp="${g}:${v}"]`)?.focus(); }

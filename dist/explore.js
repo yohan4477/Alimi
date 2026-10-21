@@ -6,11 +6,12 @@ import {roomTitle, roomIntro} from './chat-api.js';
 import {roomThumb, roomCategory} from './room-card.js';
 import {productRoomGroups} from './room-search.js';
 import {loadingMarkup} from './loading-companion.js';
-import {exploreData} from './chat.js';
+import {exploreData, relTime} from './chat.js';
 
 export const EXPLORE_TABS = ['topic', 'product', 'brand', 'all'];
 const CATS = ['skin', 'makeup', 'sun', 'etc'];
-let tab = 'topic', cat = null, last = null, seq = 0;
+let tab = 'topic', cat = null, psort = 'pop', last = null, seq = 0;
+const clock = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg>';
 
 const catIcon = {
   skin: '<path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/>',
@@ -27,7 +28,7 @@ export function roomField(r) {
 }
 const busiest = rooms => [...rooms].sort((a, b) => (b.messages_24h ?? 0) - (a.messages_24h ?? 0) || (a.sort ?? 0) - (b.sort ?? 0));
 
-export const exploreRow = (r, image) => `<button class="explore-row" data-open-room="${esc(r.id)}">${roomThumb(r, image)}<span class="explore-text"><span class="explore-title"><b>${esc(roomTitle(r))}</b>${r.messages_24h > 0 ? `<span class="explore-badge" aria-label="${esc(t('room.newToday', {n: r.messages_24h}))}">${r.messages_24h}</span>` : ''}</span>${roomIntro(r) ? `<small>${esc(roomIntro(r))}</small>` : ''}<span class="explore-meta">${people}${esc(t('room.joined', {n: r.members ?? 0}))}</span></span></button>`;
+export const exploreRow = (r, image, attr = 'data-open-room') => `<button class="explore-row" ${attr}="${esc(r.id)}">${roomThumb(r, image)}<span class="explore-text"><span class="explore-title"><b>${esc(roomTitle(r))}</b>${r.messages_24h > 0 ? `<span class="explore-badge" aria-label="${esc(t('room.newToday', {n: r.messages_24h}))}">${r.messages_24h}</span>` : ''}</span>${roomIntro(r) ? `<small>${esc(roomIntro(r))}</small>` : ''}<span class="explore-meta"><span>${people}${esc(t('room.joined', {n: r.members ?? 0}))}</span>${r.last_message_at ? `<span>${clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>`;
 const rows = (list, images) => list.length ? list.map(r => exploreRow(r, images.get(r.id))).join('') : `<p class="empty">${esc(t('explore.empty'))}</p>`;
 const head = key => `<h2 class="explore-head-title">${esc(t(key))}</h2>`;
 
@@ -41,8 +42,10 @@ function panel({rooms, images, popular}, brands) {
     return `<div class="explore-cats">${CATS.map(c => `<button data-explore-cat="${c}" aria-pressed="${cat === c}" class="${cat === c ? 'on' : ''}"><span class="explore-cat-ico ec-${c}"><svg viewBox="0 0 24 24" aria-hidden="true">${catIcon[c]}</svg></span>${esc(t('explore.cat.' + c))}</button>`).join('')}</div>${head('explore.popular')}${rows(list, images)}`;
   }
   if (tab === 'product') {
-    const groups = productRoomGroups(talk, popular);
-    return `${head('explore.productRooms')}${groups.length ? groups.map(g => `<button class="explore-row" ${g.rooms.length === 1 ? `data-open-room="${esc(g.rooms[0].id)}"` : `data-product-rooms="${esc(g.name)}"`}>${g.image_url ? `<span class="room-thumb"><img src="${esc(g.image_url)}" alt="" loading="lazy"></span>` : roomThumb(g.rooms[0])}<span class="explore-text"><span class="explore-title"><b>${esc(g.name)}</b></span><small>${esc(roomTitle(g.rooms[0]))}</small><span class="explore-meta">${people}${esc(t('rooms.productCount', {n: g.rooms.length}))}</span></span></button>`).join('') : `<p class="empty">${esc(t('rooms.noProductRooms'))}</p>`}`;
+    // 2-2: 인기순 = members, 최신순 = latest message, 댓글순 = messages today; all summed over the product's rooms.
+    const sum = (g, f) => g.rooms.reduce((n, r) => n + (f(r) ?? 0), 0), latest = g => g.rooms.map(r => r.last_message_at ?? '').sort().at(-1) ?? '';
+    const groups = productRoomGroups(talk, popular).sort(psort === 'new' ? (a, b) => latest(b).localeCompare(latest(a)) : psort === 'cmt' ? (a, b) => sum(b, r => r.messages_24h) - sum(a, r => r.messages_24h) : (a, b) => sum(b, r => r.members) - sum(a, r => r.members));
+    return `<div class="explore-sorts" role="group" aria-label="${esc(t('explore.productRooms'))}">${['pop', 'new', 'cmt'].map(k => `<button data-explore-sort="${k}" aria-pressed="${psort === k}" class="${psort === k ? 'on' : ''}">${esc(t('explore.sort.' + k))}</button>`).join('')}</div>${head('explore.productRooms')}${groups.length ? groups.map(g => `<button class="explore-row" ${g.rooms.length === 1 ? `data-open-room="${esc(g.rooms[0].id)}"` : `data-product-rooms="${esc(g.name)}"`}>${g.image_url ? `<span class="room-thumb"><img src="${esc(g.image_url)}" alt="" loading="lazy"></span>` : roomThumb(g.rooms[0])}<span class="explore-text"><span class="explore-title"><b>${esc(g.name)}</b></span><small>${esc(roomTitle(g.rooms[0]))}</small><span class="explore-meta">${people}${esc(t('rooms.productCount', {n: g.rooms.length}))}</span></span></button>`).join('') : `<p class="empty">${esc(t('rooms.noProductRooms'))}</p>`}`;
   }
   if (tab === 'brand') {
     const brandRooms = busiest(rooms.filter(r => r.kind === 'brand'));
@@ -65,7 +68,17 @@ export async function renderExplore(box, brands = () => '') {
 export const refreshExplore = () => { if (last?.box.isConnected && last.box.querySelector('#explore-panel')) renderExplore(last.box, last.brands); };
 
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-explore-tab],[data-explore-cat]'); if (!b || !last) return;
-  if (b.dataset.exploreTab) { tab = b.dataset.exploreTab; renderExplore(last.box, last.brands).then(() => last.box.querySelector(`#explore-tab-${tab}`)?.focus()); }
+  const b = e.target.closest('[data-explore-tab],[data-explore-cat],[data-explore-sort]'); if (!b || !last) return;
+  if (b.dataset.exploreSort) { psort = b.dataset.exploreSort; renderExplore(last.box, last.brands); }
+  else if (b.dataset.exploreTab) { tab = b.dataset.exploreTab; renderExplore(last.box, last.brands).then(() => last.box.querySelector(`#explore-tab-${tab}`)?.focus()); }
   else { cat = cat === b.dataset.exploreCat ? null : b.dataset.exploreCat; renderExplore(last.box, last.brands); }
 });
+
+// 2-3 search: rooms whose title or intro holds every word, topic and brand rooms alike.
+export async function searchRooms(query) {
+  const words = String(query).normalize('NFKC').toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return {rooms: [], images: new Map()};
+  const {rooms, images} = await exploreData();
+  const text = r => [r.title_ko, r.title_en, r.intro_ko, r.intro_en, r.brand].join(' ').normalize('NFKC').toLocaleLowerCase();
+  return {rooms: busiest(rooms.filter(r => words.every(w => text(r).includes(w)))), images};
+}
