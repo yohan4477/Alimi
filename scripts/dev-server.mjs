@@ -4,13 +4,15 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createAdminHandler} from '../api/admin.js';
 import {createCoupangHandler} from '../api/coupang.js';
+import {createOliveYoungHandler} from '../api/oliveyoung.js';
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
 const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'};
-export function createLocalServer({adminHandler = createAdminHandler({env: {...process.env, ADMIN_ORIGIN: process.env.ADMIN_ORIGIN || 'http://localhost:3000'}}), coupangHandler = createCoupangHandler()} = {}) {
+export function createLocalServer({adminHandler = createAdminHandler({env: {...process.env, ADMIN_ORIGIN: process.env.ADMIN_ORIGIN || 'http://localhost:3000'}}), coupangHandler = createCoupangHandler(), oliveYoungHandler = createOliveYoungHandler()} = {}) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     if (['/admin','/admin/','/api/admin'].includes(url.pathname)) return adminHandler(req, res);
     if (url.pathname === '/api/coupang') return coupangHandler(req, res);
+    if (url.pathname === '/api/oliveyoung') return oliveYoungHandler(req, res);
     if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405); return res.end(); }
     let name;
     try { name = decodeURIComponent(url.pathname); } catch { res.writeHead(400); return res.end(); }
