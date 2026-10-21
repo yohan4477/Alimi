@@ -10,4 +10,5 @@ export function saveOpinion(productId,choice,storage=globalThis.localStorage){
 export function readOpinion(productId,storage=globalThis.localStorage){
  try{return JSON.parse(storage.getItem(KEY)||'{}')?.[productId]??null}catch{return null}
 }
-export const brandSeed=['TIRTIR','fwee','rom&nd','medicube','COSRX','ANUA','LANEIGE'];
+// Derived from observed Ulta and Olive Young top-20; not from Stylevana catalog.
+export const brandSeed=['Dr. Althea','ANUA','medicube','Hero Cosmetics','PEACH & LILY','celimax','BIODANCE','ILO','MEDIHEAL','fwee','ABOUT_TONE','FOODOLOGY','BANILA CO','so natural','UNOVE','ILLIYOON','SKIN1004','Dr.Jart+','DELIGHT PROJECT','S.NATURE'];
