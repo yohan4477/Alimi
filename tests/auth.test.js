@@ -10,14 +10,17 @@ class MemoryStorage {
 }
 const response = (data, status = 200) => ({ok: status >= 200 && status < 300, status, json: async () => data});
 
-test('Google sign-in creates PKCE and state, then redirects to the returned provider URL', async () => {
+test('Google sign-in creates PKCE and state, then navigates to Supabase authorize', async () => {
   const calls = [], sessionStorage = new MemoryStorage();
   const location = {origin: 'https://alimi.example', pathname: '/', search: '?lang=ko', assign: url => { location.assigned = url; }};
   const auth = new GoogleAuth({sessionStorage, location, storage: new MemoryStorage(), fetchImpl: async (url, options) => {
     calls.push({url, options}); return response({url: 'https://accounts.google.com/o/oauth2/auth'});
   }});
   await auth.startGoogleLogin();
-  const requestURL = new URL(calls[0].url);
+  assert.equal(calls.length, 0);
+  const requestURL = new URL(location.assigned);
+  assert.equal(requestURL.pathname, '/auth/v1/authorize');
+  assert.equal(requestURL.searchParams.has('skip_http_redirect'), false);
   assert.equal(requestURL.searchParams.get('provider'), 'google');
   assert.equal(requestURL.searchParams.get('code_challenge_method'), 's256');
   assert.equal(new URL(requestURL.searchParams.get('redirect_to')).searchParams.get('lang'), 'ko');
@@ -25,7 +28,13 @@ test('Google sign-in creates PKCE and state, then redirects to the returned prov
   assert.match(requestURL.searchParams.get('code_challenge'), /^[A-Za-z0-9_-]{43}$/);
   assert.ok(sessionStorage.getItem(AUTH_STORAGE_KEYS.VERIFIER_KEY));
   assert.ok(sessionStorage.getItem(AUTH_STORAGE_KEYS.STATE_KEY));
-  assert.equal(location.assigned, 'https://accounts.google.com/o/oauth2/auth');
+});
+
+test('default fetch is called unbound-safe (browser fetch throws Illegal invocation when this is not Window)', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = function (url) { if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation'); return Promise.resolve(response({ok: true})); };
+  try { assert.deepEqual(await new GoogleAuth({storage: new MemoryStorage(), sessionStorage: new MemoryStorage()}).request('settings'), {ok: true}); }
+  finally { globalThis.fetch = original; }
 });
 
 test('OAuth callback checks state, exchanges the code, fetches the user, and persists the session', async () => {
