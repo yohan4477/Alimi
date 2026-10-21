@@ -3,6 +3,7 @@
 // Choices stay on this device; they are not sent anywhere and never infer skin or demographic facts.
 import {t} from './i18n.js';
 import {esc} from './util.js';
+import {brandSeed,saveOpinion,readOpinion} from './opinions.js';
 import {concernsOf} from './room-card.js';
 
 export const GROUPS = ['skincare', 'makeup'];
@@ -76,7 +77,7 @@ export function openOnboarding(opts) {
   drawFlow();
   const current = flow;
   opts.load?.().then(data=>{if(flow===current){flow.products=data.products??[];if(flow.step==='products')drawFlow();}},()=>{});
-  if (flow.step === 'splash' && !new URLSearchParams(location.search).has('holdSplash')) setTimeout(() => { if (flow?.step === 'splash') { flow.step = 'choose'; drawFlow(); } }, 1800);
+  if (flow.step === 'splash' && !new URLSearchParams(location.search).has('holdSplash')) setTimeout(() => { if (flow?.step === 'splash') { flow.step = 'brands'; drawFlow(); } }, 1800);
 }
 export const onboardingOpen = () => Boolean(flow);
 function closeFlow(target) {
@@ -91,6 +92,13 @@ function drawFlow() {
   const {step, draft} = flow;
   if (step === 'splash') {
     box.innerHTML = `<div class="ob-splash" data-onb="splash" role="button" tabindex="0" aria-label="${esc(t('onb.next'))}"><p class="ob-line1">${esc(t('splash.line1'))}</p><p class="ob-line2">${esc(t('splash.line2'))}</p><img class="ob-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="300" height="90"><img class="ob-photo" src="assets/splash-photo.webp" alt="" width="776" height="1085"></div>`;
+    return;
+  }
+  if (step === 'brands') {
+    const brand = brandSeed[flow.brandIndex ?? 0];
+    const choice = readOpinion('brand:'+brand)?.choice;
+    const labels = {tried_liked:'I use it and like it',tried_disliked:'I tried it, not for me',want_to_try:'I know it / curious',not_familiar:'Never heard of it'};
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">Have you heard of ${esc(brand)}?</h1><p class="ob-sub">Tell us what you think. Your answer stays on this device for now.</p><div class="ob-keywords">${Object.entries(labels).map(([key,label])=>`<button type="button" data-onb-opinion="${key}" aria-pressed="${choice===key}" class="${choice===key?'on':''}">${esc(label)}</button>`).join('')}</div><p class="ob-hint">${(flow.brandIndex??0)+1} / ${brandSeed.length} · No community results yet</p></div><div class="ob-foot"><button type="button" class="ob-next" data-onb="brand-next">Next →</button><button type="button" class="text-btn" data-onb="brand-skip">Skip</button></div></div>`;
     return;
   }
   if (step === 'choose') {
@@ -110,11 +118,14 @@ function drawFlow() {
 }
 globalThis.document?.addEventListener('click', e => {
   if (!flow) return;
-  const b = e.target.closest('[data-onb],[data-onb-group],[data-onb-concern],[data-onb-profile],[data-onb-product]');
+  const b = e.target.closest('[data-onb],[data-onb-group],[data-onb-concern],[data-onb-profile],[data-onb-product],[data-onb-opinion]');
   if (!b || !document.getElementById('onboarding')?.contains(b)) return;
   const a = b.dataset.onb, d = flow.draft;
-  if (a === 'splash') flow.step = 'choose';
-  else if (a === 'back') { if (flow.step === 'products') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else { closeFlow({cancelled:true}); return; } }
+  if (a === 'splash') flow.step = 'brands';
+  else if (b.dataset.onbOpinion) {saveOpinion('brand:'+brandSeed[flow.brandIndex??0],b.dataset.onbOpinion);}
+  else if (a === 'brand-next') {flow.brandIndex=(flow.brandIndex??0)+1;if(flow.brandIndex>=brandSeed.length)flow.step='choose';}
+  else if (a === 'brand-skip') flow.step='choose';
+  else if (a === 'back') { if (flow.step === 'products') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else if (flow.step === 'brands') { closeFlow({cancelled:true}); return; } else { closeFlow({cancelled:true}); return; } }
   else if (a === 'next') { flow.step = !d.skincare && !d.makeup && !flow.returnToChat ? 'products' : 'profile'; }
   else if (a === 'profile-next') { if(flow.returnToChat){closeFlow(null);return;} flow.step = 'products'; }
   else if (b.dataset.onbProduct) { closeFlow({productQuery:b.dataset.onbProduct}); return; }
@@ -129,5 +140,5 @@ globalThis.document?.addEventListener('click', e => {
   const sel = b.dataset.onbProfile ? `[data-onb-profile="${b.dataset.onbProfile}"][data-onb-value="${b.dataset.onbValue}"]` : b.dataset.onbGroup ? `[data-onb-group="${b.dataset.onbGroup}"]` : b.dataset.onbConcern ? `[data-onb-concern="${b.dataset.onbConcern}"]` : '#onb-title';
   document.querySelector('#onboarding ' + sel)?.focus?.();
 });
-globalThis.document?.addEventListener('keydown', e => { if (flow?.step === 'splash' && (e.key === 'Enter' || e.key === ' ')) { flow.step = 'choose'; drawFlow(); } });
+globalThis.document?.addEventListener('keydown', e => { if (flow?.step === 'splash' && (e.key === 'Enter' || e.key === ' ')) { flow.step = 'brands'; drawFlow(); } });
 
