@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>여정 4 · 제품 사용 경험 공유 (선택)</title>
+<style>
+:root{--blue:#1463E8;--ink:#17233D;--sub:#4A5672;--grey:#7A8499;--line:#EEF1F6;--chip:#F3F5F9;--soft:#F1F6FF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;color:var(--ink);background:#fff;padding:24px 20px 40px}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.page{max-width:1600px;margin:0 auto}
+/* header */
+.hd{display:flex;gap:24px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-bottom:22px}
+.hd-l{display:flex;gap:18px;align-items:center}
+.num{width:72px;height:72px;border-radius:50%;background:var(--blue);color:#fff;font-size:42px;font-weight:800;display:grid;place-items:center;flex:none}
+.hd h1{font-size:38px;font-weight:800;letter-spacing:-.02em}
+.hd p{font-size:20px;color:var(--sub);margin-top:4px}
+.goal{background:var(--soft);border-radius:16px;padding:16px 22px;min-width:420px}
+.goal h2{color:var(--blue);font-size:17px;margin-bottom:6px}
+.goal li{list-style:none;display:flex;gap:8px;align-items:center;font-size:15px;color:var(--sub);margin:4px 0}
+.goal svg{width:18px;height:18px;stroke:var(--blue);stroke-width:3;flex:none}
+/* row */
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:0 18px}
+.col{position:relative;min-width:0}
+.ttl{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:30px;padding:4px 14px 4px 4px;height:44px}
+.pill{background:var(--blue);color:#fff;font-weight:800;font-size:18px;border-radius:30px;padding:0 14px;height:36px;display:grid;place-items:center;flex:none}
+.ttl b{font-size:17px;font-weight:800;white-space:nowrap}.ttl b i{font-style:normal;font-weight:500;color:var(--sub)}
+.cap{font-size:13px;color:var(--grey);text-align:center;margin:8px 0 10px;line-height:1.5;height:40px}
+.wrap{width:242px;height:523px;margin:0 auto;position:relative}
+.arrow{position:absolute;right:-27px;top:300px;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;z-index:5;box-shadow:0 1px 6px rgba(20,99,232,.3)}
+.arrow svg{width:20px;height:20px;stroke-width:2.6}
+.card{margin-top:10px;background:var(--soft);border-radius:14px;padding:14px 14px 12px;display:flex;gap:12px;min-height:128px}
+.card>svg{width:38px;height:38px;color:var(--blue);flex:none;stroke-width:1.6}
+.card h3{font-size:16px;font-weight:800;color:var(--blue);margin-bottom:6px}
+.card ul{padding-left:14px;font-size:13px;color:var(--sub);line-height:1.65}
+.effect{margin-top:14px;background:var(--soft);border-radius:16px;padding:16px 22px;display:grid;grid-template-columns:auto repeat(4,1fr);gap:20px;align-items:center}
+.effect>h2{color:var(--blue);font-size:24px;font-weight:800}
+.ef{display:flex;gap:12px;align-items:center;border-left:1px solid #D9E2F2;padding-left:18px}
+.ef svg{width:38px;height:38px;color:var(--blue);flex:none;stroke-width:1.6}
+.ef b{display:block;font-size:15px;margin-bottom:2px}.ef span{font-size:13px;color:var(--sub)}
+/* phone */
+.phone{position:absolute;left:0;top:0;width:390px;height:844px;transform:scale(.62);transform-origin:0 0;border-radius:44px;background:#111;padding:8px;box-shadow:0 8px 24px rgba(23,35,61,.18)}
+.scr{background:#fff;border-radius:36px;height:100%;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.sb{height:44px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:6px 28px 0;font-weight:700;font-size:15px;position:relative}
+.sb:after{content:"";position:absolute;left:50%;top:8px;width:110px;height:28px;margin-left:-55px;background:#111;border-radius:16px}
+.sb span:last-child{display:flex;gap:5px;align-items:center}.sb svg{width:17px;height:17px;stroke-width:2}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:6px 14px 8px;flex:none}
+.nav svg{width:22px;height:22px}
+.nav .t{text-align:center;font-weight:700;font-size:15px;line-height:1.3}.nav .t small{display:block;font-weight:400;font-size:11px;color:var(--grey)}
+.nav.c{justify-content:center;position:relative;min-height:40px}.nav.c>:first-child{position:absolute;left:14px}
+.body{flex:1;overflow:hidden;padding:0 16px}
+.msg{display:flex;gap:10px;padding:14px 0 8px}
+.msg img.av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:none;background:var(--chip)}
+.msg .nm{font-weight:700;font-size:14px}.msg .nm small{font-weight:400;color:var(--grey);margin-left:6px;font-size:12px}
+.msg p{font-size:13.5px;line-height:1.55;color:var(--sub);margin-top:4px}
+.mt{display:flex;gap:18px;margin-top:6px;font-size:12.5px;color:var(--grey);align-items:center}
+.mt span{display:flex;gap:5px;align-items:center}.mt svg{width:16px;height:16px}.mt .h{color:#F0457A}.mt .h svg{fill:#F0457A;stroke:#F0457A}
+.compose{flex:none;padding:8px 14px 12px;border-top:1px solid var(--line)}
+.crow{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.plus{width:36px;height:36px;border:1px solid #DDE3EE;border-radius:50%;display:grid;place-items:center;color:var(--sub)}.plus svg{width:18px;height:18px}
+.share{background:var(--blue);color:#fff;border-radius:22px;padding:0 18px;height:36px;display:flex;gap:6px;align-items:center;font-weight:700;font-size:13px}.share svg{width:16px;height:16px}
+.inp{display:flex;align-items:center;background:var(--chip);border-radius:20px;padding:0 14px;height:40px}
+.inp input{flex:1;border:0;background:none;outline:0;font-size:13px;min-width:0}.inp input::placeholder{color:var(--grey)}.inp svg{width:18px;height:18px;color:var(--grey)}
+/* sheet 2 */
+.hero{margin:10px 0 0;height:80px;border-radius:10px;background:#F7E3E0;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover}
+.pn{text-align:center;font-weight:700;font-size:14.5px;margin:12px 0 22px}
+.q{font-size:18px;font-weight:800;margin-bottom:14px}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.opt{height:96px;border:1.5px solid transparent;background:var(--chip);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:12.5px;color:var(--sub);position:relative;text-align:center;line-height:1.3}
+.opt>svg{width:30px;height:30px;color:var(--grey);stroke-width:1.5}
+.opt.on{background:#fff;border-color:var(--blue);color:var(--blue);font-weight:700}.opt.on>svg{color:var(--blue)}
+.opt .ck{display:none;position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--blue);place-items:center}
+.opt.on .ck{display:grid}.ck svg{width:12px;height:12px;stroke:#fff;stroke-width:3}
+.hint{text-align:center;font-size:13px;color:var(--grey);line-height:1.6;margin-top:22px}
+.big{display:block;width:100%;height:50px;border-radius:10px;background:var(--blue);color:#fff;font-weight:700;font-size:16px}
+.skip{text-align:center;font-size:13.5px;color:var(--sub);margin-top:14px}.skip button{color:var(--blue)}
+/* sheet 3 */
+.sec{font-weight:800;font-size:15px;margin:14px 0 8px}.sec small{font-weight:400;color:var(--grey);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{height:32px;padding:0 13px;border-radius:16px;background:var(--chip);font-size:12.5px;color:var(--sub);white-space:nowrap}
+.chip.on{background:var(--blue);color:#fff;font-weight:700}
+.ban{height:66px;margin:2px -16px 0;background:#F7E3E0;overflow:hidden}.ban img{height:100%;width:100%;object-fit:cover}
+/* 4-4 */
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.sum div{background:var(--soft);border-radius:10px;padding:9px 0;text-align:center;font-size:11px;color:var(--grey)}.sum b{display:block;font-size:14px;color:var(--blue);margin-top:3px}
+.ta{margin-top:14px;width:100%;height:150px;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13.5px;line-height:1.65;color:var(--sub);resize:none;outline:0;background:#fff}
+.cnt{text-align:right;font-size:12px;color:var(--grey);margin:6px 2px 8px}
+.ph{display:flex;gap:10px}.ph>*{width:74px;height:74px;border-radius:10px;overflow:hidden;position:relative;flex:none}
+.ph .cam{background:var(--chip);display:grid;place-items:center;color:var(--sub)}.ph .cam svg{width:24px;height:24px}
+.ph img{width:100%;height:100%;object-fit:cover}
+.x{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#2A3550;display:grid;place-items:center}.x svg{width:10px;height:10px;stroke:#fff;stroke-width:3}
+.anon{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px;font-weight:700;font-size:14.5px}
+.tg{width:48px;height:28px;border-radius:14px;background:#C9D1E0;position:relative;transition:.15s}.tg:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}
+.tg.on{background:var(--blue)}.tg.on:after{left:23px}
+/* 4-5 */
+.me{background:#FDEDE8;margin:4px -16px 0;padding:12px 16px 8px}
+.tag{display:flex;gap:5px;margin:6px 0 4px}.tag span{font-size:11px;border-radius:10px;padding:2px 8px;background:#fff;color:var(--blue);font-weight:600}.tag span:first-child{background:var(--blue);color:#fff}
+.pics{display:flex;gap:8px;margin:8px 0 6px}.pics div{flex:1;height:70px;border-radius:8px;overflow:hidden;position:relative}.pics img{width:100%;height:100%;object-fit:cover}
+.underline{height:2px;width:70px;background:var(--blue);margin-left:12px;flex:none}
+@media(max-width:1300px){.row{grid-template-columns:repeat(3,1fr);row-gap:30px}.col:nth-child(3) .arrow{display:none}}
+@media(max-width:900px){body{padding:16px 12px}.goal{min-width:0;width:100%}.hd h1{font-size:28px}.row{grid-template-columns:1fr;gap:44px}
+.wrap{width:351px;height:760px}.phone{transform:scale(.9)}.arrow{right:auto;left:50%;top:auto;bottom:-38px;margin-left:-15px;transform:rotate(90deg)}.col:nth-child(3) .arrow{display:grid}
+.effect{grid-template-columns:1fr}.ef{border-left:0;padding-left:0}}
+.col:last-child .arrow{display:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+<defs>
+<symbol id="back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/></symbol>
+<symbol id="morev" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M12 20s-7.500-4.600-7.500-10A4.300 4.300 0 0112 7.600 4.300 4.300 0 0119.500 10c0 5.400-7.500 10-7.500 10z"/></symbol>
+<symbol id="reply" viewBox="0 0 24 24"><path d="M12 4a8 8 0 00-6.900 12L4 20l4.200-1.100A8 8 0 1012 4z"/></symbol>
+<symbol id="send" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="pen" viewBox="0 0 24 24"><path d="M4 20l1-4L16.500 4.500a2 2 0 013 3L8 19z"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7"/></symbol>
+<symbol id="circcheck" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M7.500 12.500l3 3 6-6.500"/></symbol>
+<symbol id="person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7z"/></symbol>
+<symbol id="chat" viewBox="0 0 24 24"><path d="M12 4C7 4 3 7.400 3 11.500c0 2.200 1.200 4.200 3.100 5.500L5 21l4.200-2.200c.9.200 1.800.3 2.800.3 5 0 9-3.400 9-7.600S17 4 12 4z"/><circle cx="8.500" cy="11.500" r=".6" fill="currentColor"/><circle cx="12" cy="11.500" r=".6" fill="currentColor"/><circle cx="15.500" cy="11.500" r=".6" fill="currentColor"/></symbol>
+<symbol id="cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.500"/></symbol>
+<symbol id="tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.500" cy="8.500" r="1.200"/></symbol>
+<symbol id="list" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h1M8 12h1M8 16h1M12 8h5M12 12h5M12 16h5"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.500"/><path d="M2 20c0-4 3-6.500 7-6.500s7 2.500 7 6.500"/><circle cx="17" cy="9" r="2.800"/><path d="M17 14c3 0 5 2 5 5"/></symbol>
+<symbol id="bars" viewBox="0 0 24 24"><rect x="3" y="13" width="4" height="8" fill="currentColor"/><rect x="10" y="8" width="4" height="13" fill="currentColor"/><rect x="17" y="3" width="4" height="18" fill="currentColor"/></symbol>
+<symbol id="sig" viewBox="0 0 24 24"><path d="M4 20v-3M9 20v-6M14 20v-9M19 20V6"/></symbol>
+<symbol id="wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0120 0M5.500 12.500a10 10 0 0113 0M9 16a5 5 0 016 0"/></symbol>
+<symbol id="batt" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="3" fill="currentColor"/></symbol>
+</defs>
+</svg>
+<div class="page">
+
+<header class="hd">
+  <div class="hd-l"><div class="num">4</div><div><h1>제품 사용 경험 공유 (선택)</h1><p>채팅을 방해하지 않고, 자연스럽게 제품 사용 경험을 공유할 수 있는 단계</p></div></div>
+  <div class="goal"><h2>핵심 목표</h2><ul>
+    <li><svg><use href="#check"/></svg>제품 사용 경험을 쉽고 빠르게 공유할 수 있다</li>
+    <li><svg><use href="#check"/></svg>필수 입력 없이 선택적으로 작성할 수 있다</li>
+    <li><svg><use href="#check"/></svg>작성된 경험이 대화와 제품 정보에 자연스럽게 반영된다</li></ul></div>
+</header>
+
+<div class="row">
+
+<!-- 4-1 -->
+<section class="col">
+  <div class="ttl"><span class="pill">4-1</span><b>작성 시작하기</b></div>
+  <p class="cap">채팅방에서 '경험 공유' 버튼을 통해<br>언제든지 작성 가능</p>
+  <div class="wrap"><div class="phone"><div class="scr">
+    <div class="sb"><span>9:41</span><span><svg><use href="#sig"/></svg><svg><use href="#wifi"/></svg><svg><use href="#batt"/></svg></span></div>
+    <div class="nav"><svg><use href="#back"/></svg><div class="t">TIRTIR 마스크 핏 레드 쿠션<small>124명 참여</small></div><svg><use href="#more"/></svg></div>
+    <div class="body">
+      <div class="msg"><img class="av" src="assets/mia.png" alt=""><div><div class="nm">Mia<small>3시간 전</small></div><p>건성 피부인데 이 쿠션 괜찮을까요?<br>지금 쓰는 제품은 3시간 뒤에 너무 뜨는데 비슷한 경험 있으신가요? 😅</p><div class="mt"><span class="h"><svg><use href="#heart"/></svg>24</span><span><svg><use href="#reply"/></svg>답글 12</span></div></div></div>
+      <div class="msg"><img class="av" src="assets/sophie.png" alt=""><div><div class="nm">Sophie<small>4시간 전</small></div><p>저도 같은 문제 있었는데 핑크 쿠션이 촉촉하고 지속력이 괜찮았어요!</p><div class="mt"><span class="h"><svg><use href="#heart"/></svg>18</span><span><svg><use href="#reply"/></svg>답글 6</span></div></div></div>
+      <div class="msg"><img class="av" src="assets/lily.png" alt=""><div><div class="nm">Lily<small>5시간 전</small></div><p>세럼이랑 크림은 어떤 조합으로 쓰세요?<br>지금 쓰는 게 조금 부족한 것 같아요.</p><div class="mt"><span class="h"><svg><use href="#heart"/></svg>12</span><span><svg><use href="#reply"/></svg>답글 8</span></div></div></div>
+    </div>
+    <div class="compose"><div class="crow"><button class="plus" aria-label="추가"><svg><use href="#plus"/></svg></button><button class="share"><svg><use href="#tag"/></svg>경험 공유하기</button></div>
+      <label class="inp"><input placeholder="대화에 참여해보세요..."><svg><use href="#send"/></svg></label></div>
+  </div></div><span class="arrow"><svg><use href="#next"/></svg></span></div>
+  <div class="card"><svg><use href="#pen"/></svg><div><h3>진입 방법</h3><ul><li>채팅방 하단 '경험 공유하기' 버튼</li><li>일반 채팅과 동일한 위치에 배치</li><li>언제든지 작성 가능</li></ul></div></div>
+</section>
+
+<!-- 4-2 -->
+<section class="col">
+  <div class="ttl"><span class="pill">4-2</span><b>사용 여부 선택</b></div>
+  <p class="cap">처음에 간단한 질문만으로<br>빠르게 시작</p>
+  <div class="wrap"><div class="phone"><div class="scr">
+    <div class="sb"><span>9:41</span><span><svg><use href="#sig"/></svg><svg><use href="#wifi"/></svg><svg><use href="#batt"/></svg></span></div>
+    <div class="nav c"><svg><use href="#close"/></svg><div class="t">제품 사용 경험을 공유해주세요</div></div>
+    <div class="body">
+      <div class="hero"><img src="assets/j4-cushion-hero.png" alt=""></div>
+      <div class="pn">TIRTIR 마스크 핏 레드 쿠션</div>
+      <div class="q">이 제품을 사용해보셨나요?</div>
+      <div class="opts" data-single>
+        <button class="opt on"><span class="ck"><svg><use href="#check"/></svg></span><svg><use href="#check"/></svg>사용했어요</button>
+        <button class="opt"><span class="ck"><svg><use href="#check"/></svg></span><svg><use href="#person"/></svg>사용 중이에요</button>
+        <button class="opt"><span class="ck"><svg><use href="#check"/></svg></span><svg><use href="#chat"/></svg>사용한 적<br>없어요</button>
+      </div>
+      <p class="hint">선택 후 추가 정보를 입력할 수 있어요<br>(모든 항목은 선택사항입니다)</p>
+      <div style="height:112px"></div>
+      <button class="big">다음</button>
+      <p class="skip"><button>건너뛰기</button> (일반 채팅에 작성)</p>
+    </div>
+  </div></div><span class="arrow"><svg><use href="#next"/></svg></span></div>
+  <div class="card"><svg><use href="#circcheck"/></svg><div><h3>기본 질문 (필수)</h3><ul><li>사용했어요 / 사용 중이에요 / 사용한 적 없어요</li><li>선택 후 추가 질문으로 이동</li><li>건너뛰기하여 바로 채팅 작성 가능</li></ul></div></div>
+</section>
+
+<!-- 4-3 -->
+<section class="col">
+  <div class="ttl"><span class="pill">4-3</span><b>사용 경험 상세 <i>(선택)</i></b></div>
+  <p class="cap">사용 기간, 피부 타입, 결과 등을<br>선택적으로 입력</p>
+  <div class="wrap"><div class="phone"><div class="scr">
+    <div class="sb"><span>9:41</span><span><svg><use href="#sig"/></svg><svg><use href="#wifi"/></svg><svg><use href="#batt"/></svg></span></div>
+    <div class="nav c"><svg><use href="#back"/></svg><div class="t">사용 경험 추가 (선택)</div></div>
+    <div class="body">
+      <div class="ban"><img src="assets/j4-banner.png" alt=""></div>
+      <div class="pn" style="margin:4px 0 0">TIRTIR 마스크 핏 레드 쿠션</div>
+      <div class="sec">사용 기간</div>
+      <div class="chips" data-single><button class="chip">1주 미만</button><button class="chip on">1주~1개월</button><button class="chip">1~3개월</button><button class="chip">3개월~6개월</button><button class="chip">6개월 이상</button></div>
+      <div class="sec">내 피부 타입 <small>(복수 선택 가능)</small></div>
+      <div class="chips"><button class="chip on">건성</button><button class="chip">지성</button><button class="chip">복합성</button><button class="chip">민감성</button><button class="chip">여드름성</button><button class="chip">잘 모르겠어요</button></div>
+      <div class="sec">사용 후 가장 큰 변화는?</div>
+      <div class="chips"><button class="chip on">촉촉함</button><button class="chip">지속력</button><button class="chip">커버력</button><button class="chip">트러블 개선</button><button class="chip">색상</button><button class="chip">자극 없음</button><button class="chip">기타</button></div>
+    </div>
+  </div></div><span class="arrow"><svg><use href="#next"/></svg></span></div>
+  <div class="card"><svg><use href="#list"/></svg><div><h3>상세 정보 (선택)</h3><ul><li>사용 기간</li><li>피부 타입 (복수 선택 가능)</li><li>주요 효과 (복수 선택 가능)</li><li>모든 항목은 건너뛰기 가능</li></ul></div></div>
+</section>
+
+<!-- 4-4 -->
+<section class="col">
+  <div class="ttl"><span class="pill">4-4</span><b>자유로운 경험 작성</b></div>
+  <p class="cap">선택한 정보를 바탕으로<br>내 경험을 자유롭게 작성</p>
+  <div class="wrap"><div class="phone"><div class="scr">
+    <div class="sb"><span>9:41</span><span><svg><use href="#sig"/></svg><svg><use href="#wifi"/></svg><svg><use href="#batt"/></svg></span></div>
+    <div class="nav c"><svg><use href="#close"/></svg><div class="t">경험 작성하기</div></div>
+    <div class="body">
+      <div class="sum"><div>사용 기간<b>1주~1개월</b></div><div>피부 타입<b>건성</b></div><div>주요 효과<b>촉촉함</b></div></div>
+      <textarea class="ta" maxlength="500">저는 한 달 정도 사용했는데
+건성 피부에도 정말 촉촉하고 좋았어요!
+오후에도 크게 들뜨지 않고
+커버력도 만족스러웠어요.
+다만 여름에는 조금 무거울 수도 있을 것 같아요. 건성 분들께 추천합니다 😊</textarea>
+      <div class="cnt">128/500</div>
+      <div class="sec" style="margin-top:8px;font-size:14px">사진 첨부 <small>(선택)</small></div>
+      <div class="ph"><button class="cam" aria-label="사진 추가"><svg><use href="#cam"/></svg></button>
+        <div><img src="assets/j4-photo-cushion.png" alt=""><span class="x"><svg><use href="#close"/></svg></span></div>
+        <div><img src="assets/j4-photo-swatch.png" alt=""><span class="x"><svg><use href="#close"/></svg></span></div></div>
+      <div class="anon"><span>익명으로 게시하기</span><button class="tg on" role="switch" aria-checked="true" aria-label="익명으로 게시하기"></button></div>
+      <button class="big">게시하기</button>
+    </div>
+  </div></div><span class="arrow"><svg><use href="#next"/></svg></span></div>
+  <div class="card"><svg><use href="#pen"/></svg><div><h3>작성 내용 (대화 + 경험)</h3><ul><li>선택 정보를 바탕으로 자유롭게 작성</li><li>사진 첨부 가능 (선택)</li><li>익명 게시 옵션 제공</li><li>일반 채팅과 동일하게 작성 가능</li></ul></div></div>
+</section>
+
+<!-- 4-5 -->
+<section class="col">
+  <div class="ttl"><span class="pill">4-5</span><b>작성 완료 및 반영</b></div>
+  <p class="cap">작성된 경험이 채팅방과<br>제품 정보에 자연스럽게 반영</p>
+  <div class="wrap"><div class="phone"><div class="scr">
+    <div class="sb"><span>9:41</span><span><svg><use href="#sig"/></svg><svg><use href="#wifi"/></svg><svg><use href="#batt"/></svg></span></div>
+    <div class="nav"><svg><use href="#back"/></svg><div class="t">TIRTIR 마스크 핏 레드 쿠션<small>124명 참여</small></div><svg><use href="#more"/></svg></div>
+    <div class="underline"></div>
+    <div class="body">
+      <div class="me"><div class="msg" style="padding:0"><img class="av" src="assets/j4-me.png" alt=""><div style="flex:1"><div class="nm" style="display:flex;align-items:center">나<small style="margin-right:auto">방금 전</small><svg style="width:18px;height:18px;color:var(--sub)"><use href="#morev"/></svg></div>
+        <div class="tag"><span>사용했어요</span><span>1주~1개월</span><span>건성</span></div></div></div>
+        <p style="font-size:13.5px;line-height:1.55;color:var(--sub);margin-top:6px">한 달 정도 사용했는데 건성 피부에도 정말 촉촉하고 좋았어요! 오후에도 크게 들뜨지 않고 커버력도 만족스러웠어요. 다만 여름에는 조금 무거울 수도 있을 것 같아요. 건성 분들께 추천합니다 😊</p>
+        <div class="pics"><div><img src="assets/j4-photo-cushion.png" alt=""><span class="x"><svg><use href="#close"/></svg></span></div><div><img src="assets/j4-swatch.png" alt=""></div></div>
+        <div class="mt"><span class="h"><svg><use href="#heart"/></svg>12</span><span><svg><use href="#reply"/></svg>답글 4</span></div></div>
+      <div class="msg"><img class="av" src="assets/mia.png" alt=""><div><div class="nm">Mia<small>3시간 전</small></div><p>건성 피부인데 이 쿠션 괜찮을까요?<br>지금 쓰는 제품은 3시간 뒤에 너무 뜨는데 비슷한 경험 있으신가요? 😅</p><div class="mt"><span class="h"><svg><use href="#heart"/></svg>24</span><span><svg><use href="#reply"/></svg>답글 12</span></div></div></div>
+    </div>
+    <div class="compose" style="border:0"><label class="inp"><input placeholder="대화에 참여해보세요..."><svg><use href="#send"/></svg></label></div>
+  </div></div></div>
+  <div class="card"><svg><use href="#chat"/></svg><div><h3>대화에 자연스럽게 반영</h3><ul><li>채팅방 경험 메시지로 표시</li><li>사용 정보 태그 노출</li><li>다른 사용자의 질문과 답변 유도</li><li>제품 페이지에도 경험 데이터 활용</li></ul></div></div>
+</section>
+</div>
+
+<footer class="effect">
+  <h2>기대 효과</h2>
+  <div class="ef"><svg><use href="#users"/></svg><div><b>더 많은 실제 사용 경험 확보</b><span>선택형 입력으로 참여 부담 감소</span></div></div>
+  <div class="ef"><svg><use href="#chat"/></svg><div><b>대화 활성화</b><span>경험 공유가 추가 질문과 답변으로 연결</span></div></div>
+  <div class="ef"><svg><use href="#circcheck"/></svg><div><b>신뢰도 있는 제품 정보</b><span>실제 사용자 경험 기반의 정보 축적</span></div></div>
+  <div class="ef"><svg><use href="#bars"/></svg><div><b>구매 전환 증가</b><span>다양한 사용 경험을 통해 구매 결정에 도움</span></div></div>
+</footer>
+</div>
+<script>
+document.addEventListener('click',function(e){
+  var t=e.target.closest('.chip,.opt,.tg');if(!t)return;
+  if(t.classList.contains('tg')){t.classList.toggle('on');t.setAttribute('aria-checked',t.classList.contains('on'));return}
+  var g=t.parentNode;
+  if(g.hasAttribute('data-single')){[].forEach.call(g.children,function(c){c.classList.remove('on')});t.classList.add('on')}
+  else t.classList.toggle('on');
+});
+</script>
+</body>
+</html>

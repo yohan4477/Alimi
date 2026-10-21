@@ -24,7 +24,7 @@ try {
    return route.fulfill({json:[]});
   });
   await page.goto(base+'?lang='+lang);
-  await page.locator('.room-list-card[data-live]').first().waitFor();
+  await page.locator('.hot-row[data-live]').first().waitFor();
   assert.equal(await page.locator('#tabbar button').count(),3);
   assert.equal(await page.locator('#chat').isVisible(),true);
   assert.equal(await page.locator('#browse').isVisible(),false);
@@ -32,18 +32,18 @@ try {
   await page.locator('#chat .home-alerts').click();
   await page.locator('#alerts .alert-filters').waitFor();
   await page.locator('#alerts [data-screen="chat"]').click();
-  await page.locator('.room-list-card[data-live]').first().waitFor();
+  await page.locator('.hot-row[data-live]').first().waitFor();
   // 추천 tab: trending card and recommended room; user-authored text stays verbatim in either UI language.
-  assert.ok(await page.locator('.room-list-card[data-chat-room="tint"]').count()>=1);
+  assert.ok(await page.locator('.hot-row[data-chat-room="tint"]').count()>=1);
   // 발견 tab: products mentioned in conversations.
-  await page.locator('[data-home-tab="discover"][role="tab"]').click();
+  await page.locator('.home-links [data-home-tab="discover"]').click();
   assert.equal(await page.locator('.mentioned-products article').count(),1);
   assert.match(await page.locator('#community-home').innerText(),lang==='en'?/Products in the conversation/:/대화에 나온 제품/);
-  await page.locator('[data-home-tab="rec"][role="tab"]').click();
-  await page.locator('.room-list-card[data-live]').first().click();
+  await page.locator('.home-sub [data-home-tab="rec"]').click();
+  await page.locator('.hot-row[data-live]').first().click();
   // Reading and composing are available without joining.
   await page.locator('#chat-log .chat-item').waitFor();
-  assert.equal(await page.locator('#chat-log .chat-bubble p').first().innerText(),messages[0].body);
+  assert.equal(await page.locator('#chat-log .msg-body').first().innerText(),messages[0].body);
   assert.equal(await page.locator('#join-live, .room-join').count(),0);
   await page.locator('#chat-text').waitFor();
   const heart=page.locator('[data-chat-like="1"]');
@@ -56,8 +56,10 @@ try {
   await page.waitForFunction(()=>document.querySelector('[data-chat-like="1"]').getAttribute('aria-pressed')==='false');
   assert.equal(await heart.locator('span').innerText(),'0');
   assert.equal(await page.locator('.chat-date').count(),1);
-  const edge=await heart.boundingBox(), row=await page.locator('.chat-msg').boundingBox();
-  assert.ok(Math.abs(edge.x+edge.width-row.x-row.width)<2,'heart at row right edge');
+  // Journey 3 feed row: ♡ sits in the action row under the message text.
+  const edge=await heart.boundingBox(), text=await page.locator('#chat-log .msg-body').first().boundingBox();
+  assert.equal(await heart.evaluate(e=>e.parentElement.classList.contains('msg-actions')),true);
+  assert.ok(edge.y>=text.y+text.height-1,'heart below the message text');
 
   await page.locator('#chat-log .chat-item').click();
   await page.locator('#family-dialog[open] #family-price').waitFor();
@@ -83,7 +85,7 @@ try {
   await page.locator('.room-back').click();
   await page.locator('#tabbar [data-screen="saved"]').click();
   await page.locator('[data-activity-tab="rooms"]').click();
-  await page.locator('#activity-conversations h2').waitFor();
+  await page.locator('#activity-conversations h2').waitFor({state:'attached'}); // tab label already names the list; heading kept for screen readers
   assert.match(await page.locator('#saved h1').innerText(),lang==='en'?/My activity/:/내 활동/);
   assert.deepEqual(errors,[]);
   console.log('ok - '+lang+' community home, product mentions, original conversation, product sheet return, activity and mobile width');

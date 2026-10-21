@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Journey 2 - 대화 탐색 (커뮤니티)</title>
+<style>
+:root{--blue:#1463E8;--ink:#17233D;--sub:#4A5672;--grey:#7A8499;--line:#EEF1F6;--chip:#F3F5F9;--soft:#F1F6FF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+svg{display:block}
+.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.page{max-width:1600px;margin:0 auto;padding:24px 24px 40px}
+
+/* header */
+.head{display:flex;gap:24px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.title{display:flex;gap:18px;align-items:flex-start}
+.badge{flex:none;width:62px;height:62px;border-radius:50%;background:var(--blue);color:#fff;font-size:38px;font-weight:700;display:grid;place-items:center}
+.title h1{font-size:40px;font-weight:800;line-height:1.15}
+.title p{margin-top:8px;font-size:19px;color:var(--sub)}
+.goal{background:var(--soft);border-radius:16px;padding:16px 22px;min-width:420px;max-width:520px}
+.goal h2{font-size:17px;color:var(--blue);margin-bottom:8px}
+.goal li{list-style:none;display:flex;gap:8px;font-size:14px;color:var(--ink);line-height:1.5;margin-top:5px}
+.goal li svg{flex:none;width:17px;height:17px;color:var(--blue);margin-top:2px;stroke-width:3}
+
+/* sub screens */
+.row{display:flex;gap:0;margin-top:28px;align-items:flex-start}
+.col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;position:relative}
+.col+.col{margin-left:22px}
+.col .arrow{position:absolute;right:-26px;top:315px;width:30px;height:30px;color:var(--blue);stroke-width:2.6;z-index:2}
+.cap{align-self:stretch;background:var(--soft);border-radius:30px 30px 14px 14px;padding:10px 16px 10px 10px;margin-bottom:12px;min-height:94px}
+.cap h3{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800}
+.pill{flex:none;background:var(--blue);color:#fff;border-radius:20px;padding:3px 13px;font-size:18px;font-weight:800}
+.cap p{font-size:13.5px;color:var(--sub);line-height:1.45;margin:6px 0 0 6px}
+.fit{width:242px;height:523px}
+.phone{width:390px;height:844px;transform:scale(.62);transform-origin:top left;border-radius:44px;background:#fff;border:9px solid #0f1522;box-shadow:0 0 0 2px #cfd5df;position:relative;overflow:hidden}
+
+/* phone internals */
+.sb{height:46px;display:flex;align-items:center;justify-content:space-between;padding:6px 26px 0;font-size:14px;font-weight:700;position:relative;flex:none}
+.sb::after{content:"";position:absolute;left:50%;top:7px;width:104px;height:30px;margin-left:-52px;border-radius:16px;background:#0f1522}
+.sb i{display:flex;gap:5px;font-style:normal;font-size:13px}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff}
+.scroll{flex:1;overflow:hidden;position:relative}
+.brand{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex:none}
+.logo{height:34px;width:120px;overflow:hidden}
+.logo img{height:46px;width:auto;display:block}
+.brand .ic{width:24px;height:24px}
+.tabs{display:flex;justify-content:space-around;border-bottom:1px solid var(--line);flex:none}
+.tabs button{padding:11px 4px;font-size:14px;color:var(--sub);border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--blue);font-weight:700;border-color:var(--blue)}
+.pad{padding:0 20px}
+.cats{display:flex;justify-content:space-between;padding:16px 20px 6px}
+.cat{width:52px;text-align:center;font-size:12.5px;color:var(--sub)}
+.cat b{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;margin:0 auto 6px;background:var(--chip);font-size:24px}
+.sec{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 4px}
+.sec h4{font-size:17px;font-weight:800}
+.sec a{font-size:13px;color:var(--blue);font-weight:600;display:flex;align-items:center;gap:2px}
+.sec a .ic{width:12px;height:12px;stroke-width:2.6}
+.item{display:flex;gap:14px;padding:12px 20px;align-items:center;border-bottom:1px solid transparent;position:relative}
+.ticon{flex:none;width:64px;height:64px;border-radius:14px;display:grid;place-items:center;font-size:32px;overflow:hidden}
+.ticon img{width:100%;height:100%;object-fit:cover}
+.t-blue{background:#E8F2FF;color:#1E7BF0}.t-red{background:#FFE7E8;color:#E5484D}.t-org{background:#FFF0DD;color:#F59A23}.t-pink{background:#FFE6EC;color:#E8365D}
+.itx{flex:1;min-width:0}
+.itx b{display:block;font-size:15px;font-weight:700;line-height:1.3}
+.itx p{font-size:12.5px;color:var(--grey);line-height:1.4;margin-top:2px}
+.meta{display:flex;gap:14px;font-size:12px;color:var(--grey);margin-top:5px}
+.meta span{display:flex;align-items:center;gap:4px}
+.meta .ic{width:13px;height:13px}
+.chev{width:16px;height:16px;color:var(--grey);flex:none}
+.search{display:flex;align-items:center;gap:8px;background:var(--chip);border-radius:12px;padding:0 12px;height:42px;margin:12px 20px}
+.search .ic{width:18px;height:18px;color:var(--grey);flex:none}
+.search input{border:0;background:none;outline:0;flex:1;font-size:14px;min-width:0}
+.chips{display:flex;gap:8px;padding:0 20px 8px;flex-wrap:nowrap}
+.chips button{padding:6px 16px;border-radius:18px;background:var(--chip);font-size:13px;color:var(--sub)}
+.chips button.on{background:var(--blue);color:#fff;font-weight:700}
+.bar{display:flex;border-top:1px solid var(--line);background:#fff;padding:8px 0 26px;flex:none}
+.bar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:var(--grey)}
+.bar .ic{width:24px;height:24px}
+.bar .on{color:var(--blue);font-weight:700}
+.bar .on .ic{fill:currentColor}
+.home{width:130px;height:5px;border-radius:3px;background:#0f1522;margin:0 auto 8px}
+.srch{display:flex;align-items:center;gap:10px;padding:4px 16px 8px;flex:none}
+.srch .search{flex:1;margin:0;background:var(--chip)}
+.srch .back{width:22px;height:22px}
+.srch .cancel{font-size:14px;color:var(--blue);font-weight:600}
+.item .meta{margin-top:4px}
+.hero{height:96px;margin:0 20px 0 0;position:relative}
+.heroimg{width:100%;height:100%;object-fit:cover;display:block;margin:0}
+.circ{position:absolute;left:12px;top:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.9);display:grid;place-items:center;color:var(--ink)}
+.circ .ic{width:16px;height:16px}
+.rtitle{padding:12px 20px 0;font-size:17px;font-weight:800}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:8px 20px 4px}
+.rrow span{font-size:13px;color:var(--sub)}
+.join{background:var(--blue);color:#fff;border-radius:10px;padding:9px 20px;font-size:14px;font-weight:700}
+.rdesc{padding:10px 20px 0;font-size:13px;color:var(--sub);line-height:1.5;border:1px solid #D9E3F5;margin:8px 20px 0;border-radius:6px;padding:8px 10px}
+.tags{display:flex;gap:10px;padding:10px 20px 0;font-size:12px;color:var(--blue)}
+.msg{display:flex;gap:10px;padding:10px 20px}
+.msg img{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:none;background:var(--chip)}
+.msg b{font-size:13.5px}.msg small{font-size:11.5px;color:var(--grey);margin-left:6px}
+.msg p{font-size:13px;color:var(--sub);line-height:1.45;margin-top:3px}
+.msg .meta{margin-top:5px}
+.heart{color:#E5484D}
+.input{display:flex;align-items:center;gap:8px;margin:4px 20px 8px;border:1px solid #D9E3F5;border-radius:10px;padding:0 12px;height:42px;flex:none}
+.input input{flex:1;border:0;outline:0;font-size:13px;min-width:0;background:none}
+.input .ic{width:20px;height:20px;color:var(--blue)}
+.rec{display:flex;gap:12px;padding:10px 20px;align-items:center;border-bottom:1px solid var(--line)}
+.rec .ticon{width:64px;height:64px;border-radius:10px}
+.rec .meta{margin-top:5px}
+.rhead{padding:6px 20px 10px;font-size:18px;font-weight:800}
+.sub-h{padding:12px 20px 2px;font-size:16px;font-weight:800}
+
+/* policy row */
+.policy{display:grid;grid-template-columns:1fr 1.15fr 1.15fr 1.15fr 1.15fr;gap:14px;margin-top:22px}
+.pc{border-radius:16px;padding:16px 18px;background:var(--soft);min-width:0}
+.pc.lead{background:#fff;border:1px solid var(--line)}
+.pc.lead h3{font-size:19px;line-height:1.35;font-weight:800}
+.pc.lead p{margin-top:16px;font-size:14px;color:var(--sub);line-height:1.5}
+.pc h4{font-size:17px;font-weight:800;margin-bottom:6px}
+.pc li{font-size:13.5px;line-height:1.5;color:var(--sub);margin-left:14px}
+.pc.pk{background:#FFF1F2}.pc.pk h4{color:#E5484D}
+.pc.bl h4{color:var(--blue)}
+.pc.gr{background:#EFFAF3}.pc.gr h4{color:#1F9D55}
+.pc.ot{background:#F6F7FA}
+.pics{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pics>div{width:56px;text-align:center;font-size:12px;color:var(--sub)}
+.pics .bx{width:56px;height:56px;border-radius:12px;background:#fff;display:grid;place-items:center;font-size:28px;margin-bottom:4px;overflow:hidden;font-weight:800;color:var(--ink)}
+.pics .bx img{width:100%;height:100%;object-fit:cover}
+.pics .bx.sm{font-size:12px;letter-spacing:-.3px}
+.pics .bx.sm.i{font-size:11px;color:#1463E8}
+
+@media(max-width:1200px){.goal{min-width:0;max-width:none;width:100%}.policy{grid-template-columns:1fr 1fr}}
+@media(max-width:1500px) and (min-width:900px){.row{flex-wrap:wrap;gap:20px}.col{flex:0 0 30%}.col+.col{margin-left:0}.col .arrow{display:none}}
+@media(max-width:899px){
+ .page{padding:16px}
+ .title h1{font-size:28px}.title p{font-size:15px}.badge{width:48px;height:48px;font-size:28px}
+ .row{flex-direction:column;gap:30px;align-items:center}
+ .col{width:100%;max-width:420px;flex:none}.col+.col{margin-left:0}
+ .col .arrow{position:static;transform:rotate(90deg);margin:0;order:9}
+ .fit{width:351px;height:760px}
+ .phone{transform:scale(.9)}
+ .policy{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3c3.2 4 6 7 6 10.5a6 6 0 0 1-12 0C6 10 8.8 7 12 3z"/></symbol>
+<symbol id="i-face" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 14c1 1.6 2 2.3 3.5 2.3s2.5-.7 3.5-2.3M9 10h.01M15 10h.01M6 7.5c1.5-2 4-3 6-3s4.5 1 6 3"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.3M12 19.2v2.3M2.5 12h2.3M19.2 12h2.3M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></symbol>
+<symbol id="i-lips" viewBox="0 0 24 24"><path d="M2.5 12.5c3-1.6 5-3.2 6.5-3.2 1.2 0 2 .7 3 .7s1.8-.7 3-.7c1.5 0 3.5 1.6 6.5 3.2-2.5 4.5-5.5 6-9.5 6s-7-1.5-9.5-6z"/><path d="M2.5 12.5c3 1 6 1.3 9.5 1.3s6.500-.3 9.500-1.300"/></symbol>
+<symbol id="i-brush" viewBox="0 0 24 24"><path d="M15.5 3.5l5 5-8.200 8.200-5-5z"/><path d="M7.300 11.700c-2 .5-3.300 2-3.300 4.800 0 1.500-.5 2.800-1 3.500 3.500.5 6.500-.5 7.500-3.500"/></symbol>
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.500 0 2-1 1.500-2s0-2.500 1.500-2.500H17a4 4 0 0 0 4-4C21 7 17 3 12 3z"/><path d="M7.500 11h.01M10 7.500h.01M14.500 7.500h.01"/></symbol>
+<symbol id="i-bottle" viewBox="0 0 24 24"><rect x="7.500" y="2.500" width="9" height="4" rx="1"/><rect x="5.500" y="6.500" width="13" height="15" rx="2.500"/><path d="M12 11v4M10 13h4"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.500-3.500"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.500-4.500-7.500-10.200A4.300 4.300 0 0 1 12 7.300a4.300 4.300 0 0 1 7.500 2.500C19.500 15.500 12 20 12 20z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5.500h16v11H11l-4.500 3.500v-3.500H4z"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16M13 5l7 7-7 7"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.500l5 5L20 6.500"/></symbol>
+<symbol id="i-house" viewBox="0 0 24 24"><path d="M3.500 11L12 3.500 20.500 11v9.500h-6v-6h-5v6h-6z"/></symbol>
+<symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.500 8.500l-2 5-5 2 2-5z"/></symbol>
+<symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.500 20.500c.8-4 3.800-6 7.500-6s6.700 2 7.500 6z"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L3 10.500l7 3 3 7z"/><path d="M10 13.500L21 3"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.500 6a3 3 0 0 0 5 0zM20 7l-2.500 6a3 3 0 0 0 5 0z"/></symbol>
+<symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.200"/><path d="M3 19c.5-3.500 3-5 6-5s5.500 1.500 6 5z"/><circle cx="17" cy="9" r="2.500"/><path d="M17 14c2.500 0 4 1.300 4.500 4"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.500 10.900c.6.5 1 1.200 1 2.100h5c0-.9.4-1.600 1-2.100A6 6 0 0 0 12 3z"/></symbol>
+<symbol id="i-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.500 9.500a2.500 2.500 0 1 1 3.500 2.300c-.7.400-1 .9-1 1.700M12 17h.01"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.500"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.300L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.300L4 15M4 20v-5h5"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5 12.500a10 10 0 0 1 14 0M8.500 16a5 5 0 0 1 7 0"/></symbol>
+</defs>
+</svg>
+
+<div class="page">
+ <header class="head">
+  <div class="title">
+   <div class="badge">2</div>
+   <div><h1>대화 탐색 (커뮤니티)</h1><p>주제별 / 제품별 인기 대화를 둘러보고 관심 있는 실제 대화를 발견하는 단계</p></div>
+  </div>
+  <div class="goal">
+   <h2>핵심 목표</h2>
+   <ul>
+    <li><svg class="ic"><use href="#i-check"/></svg>주제 / 제품 / 브랜드 등 다양한 대화를 쉽게 탐색할 수 있다</li>
+    <li><svg class="ic"><use href="#i-check"/></svg>제품별 대화는 실제 제품 이미지, 그 외는 아이콘으로 표시한다</li>
+    <li><svg class="ic"><use href="#i-check"/></svg>로그인 없이도 대화를 열람할 수 있고, 관심 대화를 빠르게 찾을 수 있다</li>
+   </ul>
+  </div>
+ </header>
+
+ <main class="row">
+
+  <!-- 2-1 -->
+  <section class="col">
+   <div class="cap"><h3><span class="pill">2-1</span>주제별 대화 탐색</h3><p>상단 탭에서 주제를 선택하고<br>아이콘으로 관심 주제를 쉽게 찾기</p></div>
+   <div class="fit"><div class="phone"><div class="screen">
+    <div class="sb"><span>9:41</span><i><svg class="ic" width="14" height="14"><use href="#i-wifi"/></svg></i></div>
+    <div class="brand"><div class="logo"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty"></div><svg class="ic"><use href="#i-search"/></svg></div>
+    <div class="tabs" data-tabs><button class="on">주제별</button><button>제품별</button><button>브랜드별</button><button>전체</button></div>
+    <div class="scroll">
+     <div class="cats">
+      <div class="cat"><b style="background:#E8F2FF;color:#1E7BF0"><svg class="ic"><use href="#i-drop"/></svg></b>스킨케어</div>
+      <div class="cat"><b style="background:#FFE7E8;color:#E5484D"><svg class="ic"><use href="#i-brush"/></svg></b>메이크업</div>
+      <div class="cat"><b><svg class="ic" style="color:#5b6577"><use href="#i-palette"/></svg></b>선케어</div>
+      <div class="cat"><b><svg class="ic" style="color:#5b6577"><use href="#i-bottle"/></svg></b>바디</div>
+      <div class="cat"><b><svg class="ic" style="color:#5b6577"><use href="#i-grid"/></svg></b>기타</div>
+     </div>
+     <div class="sec"><h4>인기 주제별 대화</h4><a>전체보기<svg class="ic"><use href="#i-chev"/></svg></a></div>
+     <div class="item"><div class="ticon t-blue"><svg class="ic"><use href="#i-drop"/></svg></div><div class="itx"><b>건성 피부 고민</b><p>속건조, 각질, 보습 방법을<br>함께 이야기해요.</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>142</span><span><svg class="ic"><use href="#i-clock"/></svg>3시간 전</span></div></div></div>
+     <div class="item"><div class="ticon t-red"><svg class="ic"><use href="#i-face"/></svg></div><div class="itx"><b>여드름 &amp; 트러블</b><p>트러블 관리, 추천 제품, 생활습관</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>118</span><span><svg class="ic"><use href="#i-clock"/></svg>1시간 전</span></div></div></div>
+     <div class="item"><div class="ticon t-org"><svg class="ic"><use href="#i-sun"/></svg></div><div class="itx"><b>선크림 고민</b><p>선크림 추천, 사용감, 백탁 등</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>96</span><span><svg class="ic"><use href="#i-clock"/></svg>5시간 전</span></div></div></div>
+     <div class="item"><div class="ticon t-pink"><svg class="ic"><use href="#i-lips"/></svg></div><div class="itx"><b>립 메이크업</b><p>지속력, 색상 추천, 립 조합</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>84</span><span><svg class="ic"><use href="#i-clock"/></svg>8시간 전</span></div></div></div>
+    </div>
+    <nav class="bar"><button><svg class="ic"><use href="#i-house"/></svg>커뮤니티</button><button class="on"><svg class="ic"><use href="#i-compass"/></svg>탐색</button><button><svg class="ic"><use href="#i-person"/></svg>내 활동</button></nav>
+   </div></div></div>
+   <svg class="ic arrow"><use href="#i-arrow"/></svg>
+  </section>
+
+  <!-- 2-2 -->
+  <section class="col">
+   <div class="cap"><h3><span class="pill">2-2</span>제품별 대화 탐색</h3><p>제품별 탭에서 실제 제품 사진으로<br>인기 제품 대화를 확인</p></div>
+   <div class="fit"><div class="phone"><div class="screen">
+    <div class="sb"><span>9:41</span><i><svg class="ic" width="14" height="14"><use href="#i-wifi"/></svg></i></div>
+    <div class="brand"><div class="logo"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty"></div><svg class="ic"><use href="#i-search"/></svg></div>
+    <div class="tabs" data-tabs><button>주제별</button><button class="on">제품별</button><button>브랜드별</button><button>전체</button></div>
+    <label class="search"><svg class="ic"><use href="#i-search"/></svg><input placeholder="제품명, 브랜드를 검색해보세요."></label>
+    <div class="chips" data-tabs><button class="on">인기순</button><button>최신순</button><button>댓글순</button></div>
+    <div class="scroll">
+     <div class="item"><div class="ticon"><img src="assets/j2-a1.png" alt=""></div><div class="itx"><b>TIRTIR 마스크 핏 레드 쿠션</b><p>지속력 어때요? 건성도 괜찮을까요?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>186</span><span><svg class="ic"><use href="#i-clock"/></svg>2시간 전</span></div></div></div>
+     <div class="item"><div class="ticon"><img src="assets/j2-a2.png" alt=""></div><div class="itx"><b>COSRX 스네일 에센스</b><p>민감성 피부도 사용해본 사람?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>142</span><span><svg class="ic"><use href="#i-clock"/></svg>4시간 전</span></div></div></div>
+     <div class="item"><div class="ticon"><img src="assets/j2-a3.png" alt=""></div><div class="itx"><b>라운드랩 자작나무 수분크림</b><p>수분감, 사용감 후기 궁금해요!</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>128</span><span><svg class="ic"><use href="#i-clock"/></svg>6시간 전</span></div></div></div>
+     <div class="item"><div class="ticon"><img src="assets/j2-a4.png" alt=""></div><div class="itx"><b>클리오 킬커버 쿠션</b><p>커버력과 지속력 비교해요</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>96</span><span><svg class="ic"><use href="#i-clock"/></svg>8시간 전</span></div></div></div>
+    </div>
+    <nav class="bar"><button><svg class="ic"><use href="#i-house"/></svg>커뮤니티</button><button class="on"><svg class="ic"><use href="#i-compass"/></svg>탐색</button><button><svg class="ic"><use href="#i-person"/></svg>내 활동</button></nav>
+   </div></div></div>
+   <svg class="ic arrow"><use href="#i-arrow"/></svg>
+  </section>
+
+  <!-- 2-3 -->
+  <section class="col">
+   <div class="cap"><h3><span class="pill">2-3</span>검색으로 대화 찾기</h3><p>제품명, 브랜드명, 고민 키워드로<br>원하는 대화를 빠르게 검색</p></div>
+   <div class="fit"><div class="phone"><div class="screen">
+    <div class="sb"><span>9:41</span><i><svg class="ic" width="14" height="14"><use href="#i-wifi"/></svg></i></div>
+    <div class="srch"><svg class="ic back"><use href="#i-back"/></svg><label class="search"><svg class="ic"><use href="#i-search"/></svg><input value="선크림"></label><button class="cancel">취소</button></div>
+    <div class="tabs" data-tabs><button class="on">전체</button><button>주제</button><button>제품</button><button>브랜드</button></div>
+    <div class="scroll">
+     <div class="item"><div class="ticon t-org"><svg class="ic"><use href="#i-sun"/></svg></div><div class="itx"><b>선크림 추천해주세요!</b><p>지성 피부에 맞는 선크림 있을까요?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>96</span><span><svg class="ic"><use href="#i-chat"/></svg>2시간 전</span></div></div></div>
+     <div class="item"><div class="ticon"><img src="assets/j2-b1.png" alt=""></div><div class="itx"><b>라운드랩 자작나무 선크림</b><p>백탁 있나요? 사용감 궁금해요</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>84</span><span><svg class="ic"><use href="#i-chat"/></svg>3시간 전</span></div></div></div>
+     <div class="item"><div class="ticon"><img src="assets/j2-b2.png" alt=""></div><div class="itx"><b>센텔라 선크림 후기</b><p>민감성 피부도 사용 가능할까요?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>72</span><span><svg class="ic"><use href="#i-chat"/></svg>5시간 전</span></div></div></div>
+     <div class="item"><div class="ticon"><img src="assets/j2-b3.png" alt=""></div><div class="itx"><b>선크림과 메이크업 조합</b><p>메이크업 전에 바르는 순서 궁금해요</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>68</span><span><svg class="ic"><use href="#i-chat"/></svg>6시간 전</span></div></div></div>
+     <div class="item"><div class="ticon" style="background:#E8F2FF;color:#1E7BF0"><svg class="ic"><use href="#i-chat"/></svg></div><div class="itx"><b>선크림 재추천해주세요!</b><p>여름철 무기자차 vs 유기자차?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>54</span><span><svg class="ic"><use href="#i-chat"/></svg>12시간 전</span></div></div></div>
+    </div>
+    <nav class="bar"><button><svg class="ic"><use href="#i-house"/></svg>커뮤니티</button><button class="on"><svg class="ic"><use href="#i-compass"/></svg>탐색</button><button><svg class="ic"><use href="#i-person"/></svg>내 활동</button></nav>
+   </div></div></div>
+   <svg class="ic arrow"><use href="#i-arrow"/></svg>
+  </section>
+
+  <!-- 2-4 -->
+  <section class="col">
+   <div class="cap"><h3><span class="pill">2-4</span>대화방 미리보기</h3><p>대화방을 열어 최근 대화 내용을<br>확인하고 참여 여부를 결정</p></div>
+   <div class="fit"><div class="phone"><div class="screen">
+    <div style="position:relative;height:150px;flex:none"><img class="heroimg" style="height:150px;object-position:center" src="assets/j2-hero.png" alt=""><div class="sb" style="position:absolute;left:0;right:0;top:0;background:none"><span>9:41</span></div><button class="circ" style="top:50px" aria-label="새로고침"><svg class="ic"><use href="#i-back"/></svg></button></div>
+    <div class="rtitle">라운드랩 자작나무 수분 선크림</div>
+    <div class="rrow"><span>124명 참여 · 최근 3시간 전</span><button class="join">참여하기</button></div>
+    <div class="tabs" data-tabs style="margin-top:6px"><button class="on" style="flex:1">대화 소개</button><button style="flex:1">최근 대화</button></div>
+    <div class="scroll">
+     <div class="rdesc">라운드랩 자작나무 수분 선크림에 대한 실제 사용 경험, 사용감, 메이크업 궁합 등을 자유롭게 이야기하는 공간이에요.</div>
+     <div class="tags"><span>#선크림</span><span>#라운드랩</span><span>#수분</span><span>#백탁</span><span>#지성</span></div>
+     <div class="sub-h" style="padding-top:16px">최근 대화 <span style="font-weight:500;color:var(--grey);font-size:14px">(124)</span></div>
+     <div class="msg"><img src="assets/mia.png" alt=""><div><b>Mia</b><small>2시간 전</small><p>저 지성피부인데도 정말 가볍고 좋았어요! 메이크업 전에 발라도 밀리지 않아요.</p><div class="meta"><span class="heart"><svg class="ic" style="fill:currentColor"><use href="#i-heart"/></svg>24</span><span><svg class="ic"><use href="#i-chat"/></svg>답글 8</span></div></div></div>
+     <div class="msg"><img src="assets/sophie.png" alt=""><div><b>Sophie</b><small>4시간 전</small><p>백탁 거의 없고 촉촉해서 데일리로 좋아요.</p></div></div>
+    </div>
+    <label class="input"><input placeholder="대화에 참여해보세요..."><svg class="ic"><use href="#i-send"/></svg></label>
+    <div class="home"></div>
+   </div></div></div>
+   <svg class="ic arrow"><use href="#i-arrow"/></svg>
+  </section>
+
+  <!-- 2-5 -->
+  <section class="col">
+   <div class="cap"><h3><span class="pill">2-5</span>관련 대화 추천</h3><p>현재 대화와 관련된 다른 대화방도<br>함께 추천하여 더 많은 대화를 발견</p></div>
+   <div class="fit"><div class="phone"><div class="screen">
+    <div class="sb"><span>9:41</span><i><svg class="ic" width="14" height="14"><use href="#i-wifi"/></svg></i></div>
+    <div class="rhead" style="padding-top:10px;font-size:17px">관련 대화 추천</div>
+    <div class="tabs" data-tabs><button class="on">같은 제품</button><button>같은 브랜드</button><button>비슷한 고민</button></div>
+    <div class="scroll">
+     <div class="rec"><div class="ticon"><img src="assets/j2-c1.png" alt=""></div><div class="itx"><b>라운드랩 독도 토너</b><p>토너와 선크림 함께 사용해요?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>72</span></div></div><svg class="ic chev"><use href="#i-chev"/></svg></div>
+     <div class="rec"><div class="ticon"><img src="assets/j2-c2.png" alt=""></div><div class="itx"><b>라운드랩 수분크림</b><p>수분크림과 선크림 조합 후기</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>64</span></div></div><svg class="ic chev"><use href="#i-chev"/></svg></div>
+     <div class="rec"><div class="ticon t-org"><svg class="ic"><use href="#i-sun"/></svg></div><div class="itx"><b>선크림 추천해 주세요!</b><p>지성 피부 선크림 추천</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>96</span></div></div><svg class="ic chev"><use href="#i-chev"/></svg></div>
+     <div class="rec"><div class="ticon" style="background:#F1F3F8;color:#4A5672"><svg class="ic"><use href="#i-scale"/></svg></div><div class="itx"><b>무기자차 vs 유기자차</b><p>어떤게 더 좋을까요?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>84</span></div></div><svg class="ic chev"><use href="#i-chev"/></svg></div>
+     <div class="sub-h">비슷한 제품 대화</div>
+     <div class="rec"><div class="ticon"><img src="assets/j2-c5.png" alt=""></div><div class="itx"><b>아누아 어성초 선크림</b><p>사용감, 백탁 후기 궁금해요</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>52</span></div></div><svg class="ic chev"><use href="#i-chev"/></svg></div>
+     <div class="rec"><div class="ticon"><img src="assets/j2-c6.png" alt=""></div><div class="itx"><b>이니스프리 선크림</b><p>지속력과 유분감 어떤가요?</p><div class="meta"><span><svg class="ic"><use href="#i-heart"/></svg>48</span></div></div><svg class="ic chev"><use href="#i-chev"/></svg></div>
+    </div>
+    <div class="home" style="margin-top:8px"></div>
+   </div></div></div>
+  </section>
+ </main>
+
+ <section class="policy">
+  <div class="pc lead"><h3>채팅방 유형별<br>이미지 정책</h3><p>채팅방 유형에 따라<br>다른 이미지 사용</p></div>
+  <div class="pc pk"><h4>제품별 대화</h4><ul><li>실제 제품 이미지 사용</li><li>이미지가 없으면 기본 제품 아이콘</li></ul>
+   <div class="pics"><div class="bx"><img src="assets/cushion_s.png" alt=""></div><div class="bx"><img src="assets/bottle_a.png" alt=""></div><div class="bx"><img src="assets/bottle_b.png" alt=""></div><div class="bx" style="color:#7A8499"><svg class="ic"><use href="#i-bottle"/></svg></div></div></div>
+  <div class="pc bl"><h4>주제별 대화</h4><ul><li>피부 고민, 메이크업 등 주제 아이콘 사용</li></ul>
+   <div class="pics"><div><div class="bx" style="color:#1E7BF0"><svg class="ic"><use href="#i-drop"/></svg></div>건조함</div><div><div class="bx" style="color:#E5484D"><svg class="ic"><use href="#i-face"/></svg></div>여드름</div><div><div class="bx" style="color:#F59A23"><svg class="ic"><use href="#i-sun"/></svg></div>선케어</div><div><div class="bx" style="color:#E8365D"><svg class="ic"><use href="#i-lips"/></svg></div>메이크업</div><div><div class="bx" style="color:#4A5672"><svg class="ic"><use href="#i-dots"/></svg></div>기타</div></div></div>
+  <div class="pc gr"><h4>브랜드별 대화</h4><ul><li>공식 브랜드 로고 사용 (사용 권한 확인)</li></ul>
+   <div class="pics"><div><div class="bx sm">TIRTIR</div></div><div><div class="bx sm">COSRX</div></div><div><div class="bx sm i">라운드랩</div></div><div><div class="bx sm i">innisfree</div></div><div><div class="bx" style="color:#4A5672"><svg class="ic"><use href="#i-dots"/></svg></div>기타</div></div></div>
+  <div class="pc ot"><h4>기타 / 혼합 대화</h4><ul><li>자유 주제, 복합 주제는 기본 아이콘 사용</li></ul>
+   <div class="pics"><div><div class="bx"><svg class="ic"><use href="#i-chat"/></svg></div>자유 주제</div><div><div class="bx"><svg class="ic"><use href="#i-people"/></svg></div>사용 후기</div><div><div class="bx"><svg class="ic"><use href="#i-bulb"/></svg></div>꿀팁 공유</div><div><div class="bx"><svg class="ic"><use href="#i-q"/></svg></div>질문</div><div><div class="bx"><svg class="ic"><use href="#i-dots"/></svg></div>기타</div></div></div>
+ </section>
+</div>
+
+<script>
+document.querySelectorAll('[data-tabs]').forEach(function(g){
+  g.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b||b.parentNode!==g)return;
+    g.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)});
+  });
+});
+</script>
+</body>
+</html>

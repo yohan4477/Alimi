@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>여정 6 · 재방문 · 저장 · 알림 · 공유</title>
+<style>
+:root{--blue:#1463E8;--ink:#17233D;--sub:#4A5672;--grey:#7A8499;--line:#EEF1F6;--chip:#F3F5F9;--soft:#F1F6FF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;color:var(--ink);background:#fff;padding:24px 20px 40px;max-width:1600px;margin:0 auto}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+svg{display:block}
+.ico{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* header */
+.head{display:flex;gap:24px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-bottom:22px}
+.title{display:flex;gap:18px;align-items:flex-start}
+.num{width:76px;height:76px;border-radius:50%;background:var(--blue);color:#fff;font-size:44px;font-weight:800;display:grid;place-items:center;flex:none}
+.title h1{font-size:40px;font-weight:800;letter-spacing:-.5px;line-height:1.15}
+.title p{margin-top:10px;font-size:19px;color:var(--sub)}
+.goal{background:var(--soft);border-radius:18px;padding:16px 22px;min-width:430px}
+.goal h2{font-size:18px;color:var(--blue);margin-bottom:8px}
+.goal li{list-style:none;display:flex;gap:10px;align-items:center;font-size:16px;line-height:1.75;color:var(--ink)}
+.goal li svg{width:18px;height:18px;color:var(--blue);stroke-width:3;flex:none}
+/* steps */
+.steps{display:flex;align-items:flex-start;justify-content:space-between;gap:0}
+.step{width:272px;flex:none}
+.sh{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:30px;padding:0 14px 0 0;height:42px;margin-bottom:8px}
+.pill{background:var(--blue);color:#fff;font-weight:800;font-size:19px;border-radius:30px;height:42px;padding:0 16px;display:grid;place-items:center}
+.sh b{font-size:20px;font-weight:800}
+.cap{font-size:13.5px;color:var(--grey);line-height:1.6;margin:0 0 10px 8px;min-height:44px}
+.pw{width:242px;height:523px;margin:0 auto}
+.arrow{width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(20,60,140,.18);display:grid;place-items:center;color:var(--blue);flex:none;margin-top:330px}
+.arrow svg{width:22px;height:22px;stroke-width:2.6}
+/* phone */
+.phone{width:390px;height:844px;transform:scale(.62);transform-origin:0 0;border-radius:44px;background:#fff;border:10px solid #111;position:relative;overflow:hidden;font-size:15px}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff}
+.status{height:44px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:6px 26px 0 30px;font-weight:700;font-size:15px;position:relative}
+.status:after{content:"";position:absolute;left:50%;top:8px;width:108px;height:30px;border-radius:20px;background:#111;transform:translateX(-50%)}
+.sig{display:flex;gap:5px;align-items:center}
+.sig i{display:block;background:#111;border-radius:2px}
+.sig .b1{width:16px;height:10px;clip-path:polygon(0 100%,25% 100%,25% 60%,50% 60%,50% 30%,75% 30%,75% 0,100% 0,100% 100%)}
+.sig .b2{width:15px;height:10px;border-radius:50% 50% 0 0}
+.sig .b3{width:24px;height:11px;border-radius:3px}
+.logo{height:34px;width:130px;overflow:hidden;position:relative}
+.logo img{width:130px;display:block}
+.top{height:50px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top.c{position:relative;justify-content:space-between}
+.top h3{font-size:17px;font-weight:700;position:absolute;left:0;right:0;text-align:center;pointer-events:none}
+.top svg{width:24px;height:24px}
+.subtabs{display:flex;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);flex:none}
+.subtabs button{padding:12px 6px;font-size:14px;color:var(--sub);border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.subtabs button.on{color:var(--blue);font-weight:700;border-color:var(--blue)}
+.body{flex:1;overflow:hidden;padding:0 20px}
+.sec{display:flex;justify-content:space-between;align-items:center;margin:20px 0 6px}
+.sec h4{font-size:16.5px;font-weight:800}
+.sec a{font-size:12.5px;color:var(--blue);font-weight:600;display:flex;align-items:center;gap:2px}
+.sec a svg{width:12px;height:12px;stroke-width:2.4}
+.row{display:flex;align-items:center;gap:14px;padding:11px 0;position:relative}
+.th{width:56px;height:56px;border-radius:14px;flex:none;display:grid;place-items:center;overflow:hidden}
+.th svg{width:30px;height:30px}
+.th img{width:100%;height:100%;object-fit:cover}
+.th.bl{background:#EAF2FF;color:var(--blue)}.th.or{background:#FFF3E2;color:#F59A1F}.th.pk{background:#FFEBEE;color:#EF4A5F}.th.pc{background:#FBE3E4}.th.gy{background:#F1F3F6}
+.rt{flex:1;min-width:0}
+.rt b{font-size:15px;font-weight:700;display:block}
+.rt small{display:block;font-size:11.5px;color:var(--grey);margin:3px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{display:flex;gap:10px;font-size:12px;color:var(--sub);align-items:center}
+.meta span{display:flex;align-items:center;gap:4px}
+.meta svg{width:14px;height:14px}
+.bm{width:30px;height:30px;color:var(--grey)}
+.bm svg{width:22px;height:22px}
+.bm.on{color:var(--blue)}.bm.on svg{fill:var(--blue)}
+.chev{color:#9AA3B5;width:20px;height:20px;flex:none}
+.chips{display:flex;gap:10px;padding:14px 20px 4px;flex:none}
+.chips button{height:34px;padding:0 20px;border-radius:17px;background:var(--chip);font-size:13.5px;color:var(--sub)}
+.chips button.on{background:#DCE9FF;color:var(--blue);font-weight:700}
+.chips.bg button.on{background:var(--blue);color:#fff}
+.chips.bg button{padding:0;flex:1;height:38px;border-radius:19px;background:var(--chip)}
+.chips.bg{gap:8px}
+/* tab bar */
+.tabbar{height:78px;flex:none;border-top:1px solid var(--line);display:flex;background:#fff;padding-top:10px}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--grey)}
+.tabbar svg{width:24px;height:24px}
+.tabbar button.on{color:var(--blue);font-weight:700}
+.tabbar button.on svg{fill:currentColor}
+/* notifications */
+.ncard{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;margin-bottom:10px;background:#F4F7FC}
+.ncard.plain{background:#fff;padding:12px 0;border-bottom:1px solid var(--line);border-radius:0;margin:0}
+.ncard .ni{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none}
+.ni svg{width:26px;height:26px}
+.ncard .nt{flex:1;min-width:0}
+.nt b{font-size:14.5px;font-weight:800;display:block}
+.nt p{font-size:12.5px;color:var(--sub);line-height:1.5;margin-top:3px}
+.ncard time{font-size:11.5px;color:var(--grey);flex:none;margin-top:22px}
+.ncard.on-read{opacity:.8}
+.day{font-size:15px;font-weight:800;margin:14px 0 8px}
+/* share */
+.dim{background:#B9BCC2}
+.sheet{flex:1;background:#fff;border-radius:22px 22px 0 0;margin-top:2px;display:flex;flex-direction:column;overflow:hidden}
+.shot{height:104px;margin:0 16px;border-radius:12px;background:#F9CFD3;display:grid;place-items:center;overflow:hidden}
+.shot img{height:140%}
+.prod{text-align:center;margin-top:16px}
+.prod b{font-size:16.5px;font-weight:800}
+.rate{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:6px;font-size:15px}
+.rate svg{width:17px;height:17px;fill:#F5A623;stroke:none}
+.rate em{font-style:normal;color:#F59A1F;font-weight:700}.rate span{color:var(--grey)}
+.prod p{font-size:13px;color:var(--sub);line-height:1.6;margin-top:10px;padding:0 24px}
+.card{margin:16px 16px 0;background:#F4F7FC;border-radius:16px;padding:14px}
+.card .logo{height:26px;width:100px}.card .logo img{width:100px}
+.card .in{display:flex;gap:12px;margin-top:6px}
+.card .in .th{width:70px;height:78px;border-radius:12px;background:#F9CFD3}
+.card .in b{font-size:14px;font-weight:800;display:block}
+.card .in p{font-size:12.5px;color:var(--sub);line-height:1.5;margin-top:3px}
+.card .in small{font-size:12px;color:var(--grey)}
+.apps{display:flex;justify-content:space-between;padding:20px 18px 0}
+.apps button{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--sub)}
+.apps i{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--chip);font-style:normal}
+.apps i svg{width:24px;height:24px}
+.apps .kk{background:#FEE500;color:#3B1E1E}.apps .ig{background:linear-gradient(45deg,#FEDA75,#FA7E1E 25%,#D62976 55%,#962FBF 80%,#4F5BD5);color:#fff}.apps .ms{background:#2DC76D;color:#fff}.apps .lk{color:#5560C8;background:#F0F1F9}
+.imgbtn{margin:auto 16px 24px;height:46px;border:1.5px solid var(--blue);border-radius:23px;color:var(--blue);font-weight:700;font-size:14.5px}
+.imgbtn.done{background:var(--blue);color:#fff}
+/* revisit banner */
+.banner{display:flex;align-items:center;gap:12px;background:#FFE9EC;border-radius:12px;padding:12px 14px;margin:6px 0 0}
+.banner>svg{width:28px;height:28px;color:#EF4A5F;flex:none}
+.banner div{flex:1}.banner b{font-size:13px;color:#D9304A;display:block}.banner small{font-size:12px;color:var(--sub)}
+.banner .chev{color:var(--ink)}
+.rowt{font-size:14.5px}
+/* effects */
+.eff{margin-top:26px;background:var(--soft);border-radius:20px;display:flex;align-items:center;gap:20px;padding:14px 26px;flex-wrap:wrap}
+.eff h2{font-size:24px;color:var(--blue);padding-right:26px;font-weight:800}
+.ef{display:flex;gap:14px;align-items:center;flex:1;min-width:230px;border-left:1px solid #D5E0F2;padding-left:20px}
+.ef svg{width:46px;height:46px;color:var(--blue);flex:none;stroke-width:2}
+.ef b{display:block;font-size:17px;color:var(--blue);font-weight:800}
+.ef span{font-size:14px;color:var(--sub);line-height:1.5}
+@media (max-width:1560px) and (min-width:900px){body{padding:16px 10px}.step{width:250px}.pw{width:224px;height:485px}.phone{transform:scale(.575)}.arrow{margin-left:-4px;margin-right:-4px;width:32px;height:32px}}
+@media (max-width:899px){
+ .goal{min-width:0;width:100%}.title h1{font-size:30px}.title p{font-size:16px}.num{width:56px;height:56px;font-size:32px}
+ .steps{flex-direction:column;align-items:center;gap:20px}
+ .step{width:100%;max-width:370px}
+ .pw{width:351px;height:760px}.phone{transform:scale(.9)}
+ .arrow{margin:0;transform:rotate(90deg)}
+ .ef{border-left:0;padding-left:0}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+<symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M9.5 14.5a2.6 2.6 0 0 0 2 2.3"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+<symbol id="i-lips" viewBox="0 0 24 24"><path d="M2.5 12c3-4 6-4.5 9.5-2 3.500-2.500 6.500-2 9.500 2-3 5-6.500 7-9.500 7s-6.500-2-9.500-7z"/><path d="M3 12h18"/></symbol>
+<symbol id="i-bm" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.500L6 21z"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-8-4.800-8-10.500A4.500 4.500 0 0 1 12 7a4.500 4.500 0 0 1 8 2.500C20 15.200 12 20 12 20z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.500l1.700 2.500 3-.5.800 3 2.800 1.300-1 2.900 1 2.900-2.800 1.300-.8 3-3-.5L12 21.500 10.300 19l-3 .5-.8-3L3.700 15.200l1-2.900-1-2.900L6.500 8.100l.8-3 3 .5z"/></symbol>
+<symbol id="i-house" viewBox="0 0 24 24"><path d="M3.500 11L12 3.500 20.500 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.500a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.500 8.500l-2 5-5 2 2-5z"/></symbol>
+<symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.500 3.500-7 8-7s8 2.500 8 7z"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.500 2h-15z"/><path d="M10 21h4"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H11l-5 4v-4H4z"/><path d="M8.500 10.500h.01M12 10.500h.01M15.500 10.500h.01"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.700 5.600 6.100.8-4.500 4.200 1.200 6.100L12 16.700 6.500 19.700l1.200-6.100L3.200 9.400l6.100-.8z"/></symbol>
+<symbol id="i-mega" viewBox="0 0 24 24"><path d="M3 10v4h3l8 4V6L6 10z"/><path d="M17 9.500c1.500 1 1.500 4 0 5M7 14l1 5h3l-1-4"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.500"/></symbol>
+<symbol id="i-insta" viewBox="0 0 24 24"><rect x="3.500" y="3.500" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17 7h.01" stroke-width="2.500"/></symbol>
+<symbol id="i-msg" viewBox="0 0 24 24"><path d="M12 4C7 4 3.500 7 3.500 11c0 2.200 1.200 4.200 3 5.400L5.500 20l4-2.200c.8.200 1.600.3 2.500.3 5 0 8.500-3 8.500-7S17 4 12 4z" fill="currentColor"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 48 48"><path d="M40 20A16 16 0 0 0 10 16M8 28a16 16 0 0 0 30 4"/><path d="M40 8v12H28M8 40V28h12"/></symbol>
+<symbol id="i-heartbig" viewBox="0 0 48 48"><path d="M24 42S6 31 6 18.500A9.500 9.500 0 0 1 24 14a9.500 9.500 0 0 1 18 4.500C42 31 24 42 24 42z"/></symbol>
+<symbol id="i-share" viewBox="0 0 48 48"><circle cx="38" cy="10" r="5"/><circle cx="10" cy="24" r="5"/><circle cx="38" cy="38" r="5"/><path d="M14.500 21.500l19-9.500M14.500 26.500l19 9.500"/></symbol>
+<symbol id="i-bars" viewBox="0 0 48 48"><rect x="6" y="28" width="9" height="14" rx="2" fill="currentColor"/><rect x="20" y="18" width="9" height="24" rx="2" fill="currentColor"/><rect x="34" y="6" width="9" height="36" rx="2" fill="currentColor"/></symbol>
+</defs></svg>
+
+<header class="head">
+  <div class="title">
+    <div class="num">6</div>
+    <div>
+      <h1>재방문 · 저장 · 알림 · 공유</h1>
+      <p>관심 있는 대화와 제품을 저장하고, 새로운 소식이 있으면 다시 방문하도록 유도하는 단계</p>
+    </div>
+  </div>
+  <section class="goal">
+    <h2>핵심 목표</h2>
+    <ul>
+      <li><svg class="ico"><use href="#i-check"/></svg>관심 있는 대화방과 제품을 쉽게 저장 할 수 있다</li>
+      <li><svg class="ico"><use href="#i-check"/></svg>새로운 대화, 답변, 가격 변동 등을 알림으로 받을 수 있다</li>
+      <li><svg class="ico"><use href="#i-check"/></svg>다른 사람과 경험을 공유하여 커뮤니티가 성장한다</li>
+    </ul>
+  </section>
+</header>
+
+<main class="steps">
+
+<!-- 6-1 -->
+<section class="step">
+  <div class="sh"><span class="pill">6-1</span><b>관심 대화/제품 저장</b></div>
+  <p class="cap">좋은 대화방이나 제품을 저장하여<br>나중에 쉽게 다시 찾기</p>
+  <div class="pw"><div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="sig"><i class="b1"></i><i class="b2"></i><i class="b3"></i></span></div>
+    <div class="top"><div class="logo"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty"></div><button aria-label="검색"><svg class="ico"><use href="#i-search"/></svg></button></div>
+    <div class="subtabs" data-grp><button class="on">주제별</button><button>제품별</button><button>브랜드별</button><button>전체</button></div>
+    <div class="body">
+      <div class="sec"><h4>인기 주제별 대화</h4><a>전체보기<svg class="ico"><use href="#i-chev"/></svg></a></div>
+      <div class="row"><div class="th bl"><svg class="ico"><use href="#i-drop"/></svg></div><div class="rt"><b>건성 피부 고민</b><small>속건조, 적림, 보습 방법 등</small><div class="meta"><span><svg class="ico"><use href="#i-heart"/></svg>142</span></div></div><button class="bm on" aria-label="저장"><svg class="ico"><use href="#i-bm"/></svg></button></div>
+      <div class="row"><div class="th or"><svg class="ico"><use href="#i-sun"/></svg></div><div class="rt"><b>선크림 고민</b><small>선크림 추천, 사용감, 백탁 등</small><div class="meta"><span><svg class="ico"><use href="#i-heart"/></svg>96</span></div></div><button class="bm" aria-label="저장"><svg class="ico"><use href="#i-bm"/></svg></button></div>
+      <div class="row"><div class="th pk"><svg class="ico"><use href="#i-lips"/></svg></div><div class="rt"><b>립 메이크업</b><small>지속력, 색상 추천, 립 조합</small><div class="meta"><span><svg class="ico"><use href="#i-heart"/></svg>84</span></div></div><button class="bm" aria-label="저장"><svg class="ico"><use href="#i-bm"/></svg></button></div>
+      <div class="sec"><h4>인기 제품별 대화</h4><a>전체보기<svg class="ico"><use href="#i-chev"/></svg></a></div>
+      <div class="row"><div class="th pc"><img src="assets/cushion_s.png" alt=""></div><div class="rt"><b>TIRTIR 마스크 핏 레드 쿠션</b><small>지속력 어때요? 건성도 괜찮을까요?</small><div class="meta"><span><svg class="ico"><use href="#i-heart"/></svg>186</span></div></div><button class="bm on" aria-label="저장"><svg class="ico"><use href="#i-bm"/></svg></button></div>
+    </div>
+    <nav class="tabbar" data-active="explore"></nav>
+  </div></div></div>
+</section>
+
+<div class="arrow"><svg class="ico"><use href="#i-chev"/></svg></div>
+
+<!-- 6-2 -->
+<section class="step">
+  <div class="sh"><span class="pill">6-2</span><b>내 저장 목록</b></div>
+  <p class="cap">저장한 대화방과 제품을 한 곳에서<br>관리하고 바로 이동</p>
+  <div class="pw"><div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="sig"><i class="b1"></i><i class="b2"></i><i class="b3"></i></span></div>
+    <div class="top c"><button aria-label="뒤로"><svg class="ico"><use href="#i-back"/></svg></button><h3>내 활동</h3><button aria-label="설정"><svg class="ico"><use href="#i-gear"/></svg></button></div>
+    <div class="subtabs" data-grp><button class="on">저장한 대화</button><button>저장한 제품</button><button>최근 본 제품</button></div>
+    <div class="chips bg" data-grp><button class="on">전체</button><button>주제</button><button>제품</button><button>브랜드</button></div>
+    <div class="body">
+      <div class="row"><div class="th bl"><svg class="ico"><use href="#i-drop"/></svg></div><div class="rt"><b>건성 피부 고민</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-heart"/></svg>142</span><span><svg class="ico"><use href="#i-clock"/></svg>2시간 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th or"><svg class="ico"><use href="#i-sun"/></svg></div><div class="rt"><b>선크림 추천</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-heart"/></svg>96</span><span><svg class="ico"><use href="#i-clock"/></svg>6시간 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th pc"><img src="assets/cushion_s.png" alt=""></div><div class="rt"><b>TIRTIR 마스크 핏 레드 쿠션</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-heart"/></svg>186</span><span><svg class="ico"><use href="#i-clock"/></svg>1시간 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th gy"><img src="assets/j6-tube.png" alt=""></div><div class="rt"><b>라운드랩 자작나무 수분크림</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-heart"/></svg>128</span><span><svg class="ico"><use href="#i-clock"/></svg>3시간 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th pk"><img src="assets/j6-lipstick.png" alt=""></div><div class="rt"><b>립 메이크업 지속력</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-heart"/></svg>84</span><span><svg class="ico"><use href="#i-clock"/></svg>1일 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+    </div>
+    <nav class="tabbar" data-active="me"></nav>
+  </div></div></div>
+</section>
+
+<div class="arrow"><svg class="ico"><use href="#i-chev"/></svg></div>
+
+<!-- 6-3 -->
+<section class="step">
+  <div class="sh"><span class="pill">6-3</span><b>알림 받기</b></div>
+  <p class="cap">새로운 댓글, 답변, 가격 변동 등<br>중요한 소식을 알림으로 확인</p>
+  <div class="pw"><div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="sig"><i class="b1"></i><i class="b2"></i><i class="b3"></i></span></div>
+    <div class="top c"><button aria-label="뒤로"><svg class="ico"><use href="#i-back"/></svg></button><h3>알림</h3><span style="width:24px"></span></div>
+    <div class="chips" data-grp style="padding-top:10px"><button class="on" style="background:var(--blue);color:#fff;font-weight:700">전체</button><button>대화</button><button>제품</button><button>내 활동</button></div>
+    <div class="body" style="padding-top:4px">
+      <div class="day">오늘</div>
+      <div class="ncard"><div class="ni" style="color:var(--blue)"><svg class="ico"><use href="#i-chat"/></svg></div><div class="nt"><b>새로운 댓글이 달렸어요</b><p>'건성 피부 고민'에 3개의 새 댓글이 있어요.</p></div><time>지금</time></div>
+      <div class="ncard"><div class="ni" style="background:#FFEBEE;color:#EF4A5F"><svg class="ico" style="fill:#EF4A5F;stroke:none"><use href="#i-heart"/></svg></div><div class="nt"><b>내 질문에 답변이 왔어요</b><p>'TIRTIR 쿠션 질문'에 답변이 달렸어요.</p><p style="margin-top:2px">$24.00 → $20.50로 변경됐어요.</p></div><time>1시간 전</time></div>
+      <div class="ncard"><div class="ni" style="background:#FFF3E2;color:#F5A623"><svg class="ico" style="fill:#F5A623;stroke:none"><use href="#i-bell"/></svg></div><div class="nt"><b>새로운 대화가 열렸어요</b><p>'가을 메이크업 추천' 대화가 새로 열렸어요.</p></div><time>5시간 전</time></div>
+      <div class="day">이번 주</div>
+      <div class="ncard plain"><div class="ni" style="background:#FFF3E2"><svg class="ico" style="fill:#F5A623;stroke:none"><use href="#i-star"/></svg></div><div class="nt"><b>내가 저장한 제품이 언급됐어요</b><p>'TIRTIR 쿠션'이 다른 대화에서 언급됐어요.</p></div><time>1일 전</time></div>
+      <div class="ncard plain" style="border:0"><div class="ni" style="background:#EAF2FF"><svg class="ico" style="fill:var(--blue);stroke:none"><use href="#i-mega"/></svg></div><div class="nt"><b>추천 대화</b><p>'민감성 선크림 추천' 대화가 인기 대화로 올라왔어요.</p></div><time>2일 전</time></div>
+    </div>
+  </div></div></div>
+</section>
+
+<div class="arrow"><svg class="ico"><use href="#i-chev"/></svg></div>
+
+<!-- 6-4 -->
+<section class="step">
+  <div class="sh"><span class="pill">6-4</span><b>공유하기</b></div>
+  <p class="cap">공유한 대화나 제품을 친구와 공유하여<br>더 많은 사람들이 참여</p>
+  <div class="pw"><div class="phone"><div class="scr dim">
+    <div class="status" style="background:#B9BCC2"><span>9:41</span><span class="sig"><i class="b1"></i><i class="b2"></i><i class="b3"></i></span></div>
+    <div class="sheet">
+      <div class="top c" style="height:56px;border-bottom:1px solid var(--line);margin-bottom:12px"><button aria-label="닫기"><svg class="ico"><use href="#i-x"/></svg></button><h3>공유하기</h3><span style="width:24px"></span></div>
+      <div class="shot"><img src="assets/cushion_big.png" alt=""></div>
+      <div class="prod"><b>TIRTIR 마스크 핏 레드 쿠션</b>
+        <div class="rate"><svg class="ico"><use href="#i-star"/></svg><em>4.6</em><span>(2,184)</span></div>
+        <p>지속력과 커버력이 좋은 쿠션! 건성도 사용할 수 있을까요?</p></div>
+      <div class="card"><div class="logo"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty"></div>
+        <div class="in"><div class="th"><img src="assets/cushion_s.png" alt=""></div><div><b>TIRTIR 마스크 핏 레드 쿠션</b><p>지속력과 커버력이 좋은 쿠션! 건성도 사용 가능할까요?</p><small>seoulbeauty.app</small></div></div></div>
+      <div class="apps">
+        <button><i class="lk"><svg class="ico"><use href="#i-link"/></svg></i>링크 복사</button>
+        <button><i class="kk"><svg class="ico" style="fill:#3B1E1E;stroke:none"><use href="#i-msg"/></svg></i>카카오톡</button>
+        <button><i class="ig"><svg class="ico"><use href="#i-insta"/></svg></i>인스타그램</button>
+        <button><i class="ms"><svg class="ico"><use href="#i-msg"/></svg></i>메시지</button>
+        <button><i><svg class="ico"><use href="#i-dots"/></svg></i>더보기</button>
+      </div>
+      <button class="imgbtn">이미지로 공유하기</button>
+    </div>
+  </div></div></div>
+</section>
+
+<div class="arrow"><svg class="ico"><use href="#i-chev"/></svg></div>
+
+<!-- 6-5 -->
+<section class="step">
+  <div class="sh"><span class="pill">6-5</span><b>재방문 유도</b></div>
+  <p class="cap">알림과 저장 목록을 통해 다시 방문하여<br>지속적으로 대화 참여</p>
+  <div class="pw"><div class="phone"><div class="scr">
+    <div class="status"><span>9:41</span><span class="sig"><i class="b1"></i><i class="b2"></i><i class="b3"></i></span></div>
+    <div class="top"><div class="logo"><img src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty"></div><button aria-label="검색"><svg class="ico"><use href="#i-search"/></svg></button></div>
+    <div class="body">
+      <button class="banner" style="width:100%;text-align:left"><svg class="ico"><use href="#i-bell"/></svg><div><b>저장한 대화에 새 댓글이 있어요!</b><small>지금 확인해보세요.</small></div><svg class="ico chev"><use href="#i-chev"/></svg></button>
+      <div class="sec"><h4>최근 본 대화</h4><a>전체보기<svg class="ico"><use href="#i-chev"/></svg></a></div>
+      <div class="row"><div class="th bl"><svg class="ico"><use href="#i-drop"/></svg></div><div class="rt"><b>건성 피부 고민</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-clock"/></svg>2시간 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th pc"><img src="assets/cushion_s.png" alt=""></div><div class="rt"><b>TIRTIR 마스크 핏 레드 쿠션</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-heart"/></svg>1시간 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th gy"><img src="assets/j6-tube.png" alt=""></div><div class="rt"><b>라운드랩 자작나무 수분크림</b><div class="meta" style="margin-top:6px"><span><svg class="ico"><use href="#i-heart"/></svg>3시간 전 새 댓글</span></div></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="sec"><h4>추천 대화</h4><a>전체보기<svg class="ico"><use href="#i-chev"/></svg></a></div>
+      <div class="row"><div class="th or"><svg class="ico"><use href="#i-sun"/></svg></div><div class="rt"><b>가을 선크림 추천</b><small style="margin:4px 0 0">지금 가장 인기 있는 대화예요!</small></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th pk"><svg class="ico"><use href="#i-drop"/></svg></div><div class="rt"><b>민감성 피부 루틴</b><small style="margin:4px 0 0">비슷한 고민을 가진 사람들이 많아요.</small></div><svg class="ico chev"><use href="#i-chev"/></svg></div>
+      <div class="row"><div class="th pk"><img src="assets/j6-lipstick.png" alt=""></div><div class="rt"><b>가을 립 메이크업</b><small style="margin:4px 0 0">새로 열린 대화예요!</small></div></div>
+    </div>
+    <nav class="tabbar" data-active="home"></nav>
+  </div></div></div>
+</section>
+
+</main>
+
+<section class="eff">
+  <h2>기대 효과</h2>
+  <div class="ef"><svg class="ico"><use href="#i-refresh"/></svg><div><b>재방문 증가</b><span>알림을 통한 지속적인 방문 유도</span></div></div>
+  <div class="ef"><svg class="ico"><use href="#i-heartbig"/></svg><div><b>저장 기능 활용</b><span>관심 대화와 제품을 쉽게 다시 확인</span></div></div>
+  <div class="ef"><svg class="ico"><use href="#i-share"/></svg><div><b>커뮤니티 성장</b><span>공유를 통한 신규 사용자 유입</span></div></div>
+  <div class="ef"><svg class="ico"><use href="#i-bars"/></svg><div><b>구매 전환 증가</b><span>지속적인 대화를 통해 구매 결정에 도움</span></div></div>
+</section>
+
+<script>
+// bottom tab bars: 3 tabs, active one filled blue
+var TABS=[['home','커뮤니티','i-house'],['explore','탐색','i-compass'],['me','내 활동','i-person']];
+document.querySelectorAll('.tabbar').forEach(function(n){
+  n.innerHTML=TABS.map(function(t){
+    return '<button class="'+(n.dataset.active===t[0]?'on':'')+'"><svg class="ico"><use href="#'+t[2]+'"/></svg>'+t[1]+'</button>';
+  }).join('');
+});
+// single-select groups (sub-tabs, chips)
+document.querySelectorAll('[data-grp]').forEach(function(g){
+  g.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    g.querySelectorAll('button').forEach(function(x){x.classList.remove('on');x.style.background='';x.style.color='';x.style.fontWeight='';});
+    b.classList.add('on');
+  });
+});
+// bookmark toggles
+document.querySelectorAll('.bm').forEach(function(b){b.addEventListener('click',function(){b.classList.toggle('on');});});
+// share image button
+document.querySelectorAll('.imgbtn').forEach(function(b){b.addEventListener('click',function(){b.classList.toggle('done');b.textContent=b.classList.contains('done')?'이미지가 저장됐어요':'이미지로 공유하기';});});
+</script>
+</body>
+</html>
