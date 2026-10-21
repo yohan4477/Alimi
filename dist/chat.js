@@ -17,7 +17,8 @@ import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
 import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine, concernsOf, roomTags} from './room-card.js';
 import {exploreRow} from './explore.js';
-import {loadRevisit, joinedCard, ago as timeAgo} from './revisit.js';
+import {readRecentRooms, addRecentRoom} from './saved-rooms.js';
+import {loadRevisit, joinedCard, unreadCount, ago as timeAgo} from './revisit.js';
 import {readInterests, recommendRooms, CONCERNS, canCreateRooms} from './onboarding.js';
 import {track} from './events.js';
 import {t, locale} from './i18n.js';
@@ -220,7 +221,12 @@ function drawHome() {
     const seeAll = `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`;
     const trend = hot.length ? sectionHead(t('home.hot'), '', seeAll) + hot.map(r => hotRow(r, images.get(r.id), previews.get(r.id) || roomIntro(r))).join('') : '';
     const pickIds = new Set(hot.map(r => r.id)), rest = picks.filter(r => !pickIds.has(r.id));
-    box.innerHTML = `${homeHero()}${mine}${trend}${rest.length ? sectionHead(t('home.recRooms'), '', hot.length ? '' : seeAll) + rest.map(r => hotRow(r, images.get(r.id), roomIntro(r))).join('') : ''}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<div class="home-links"><button class="text-link" data-home-tab="rooms">${esc(t('home.tab.rooms'))} ›</button><button class="text-link" data-home-tab="discover">${esc(t('home.mentioned'))} ›</button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button></div>`;
+    // 6-5: a banner only for real unread alerts, then rooms this device opened recently.
+    const unread = home.revisit ? unreadCount(home.revisit.alerts) : 0;
+    const banner = unread ? `<button class="revisit-alert" data-screen="alerts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span><b>${esc(t('home.alertBanner', {n: unread}))}</b><small>${esc(t('home.alertBannerSub'))}</small></span><i aria-hidden="true">›</i></button>` : '';
+    const recentRooms = readRecentRooms().map(id => chat.rooms.find(r => r.id === id)).filter(Boolean).slice(0, 3);
+    const recent = recentRooms.length ? sectionHead(t('home.recentRooms'), '') + recentRooms.map(r => hotRow(r, images.get(r.id), previews.get(r.id) || roomIntro(r))).join('') : '';
+    box.innerHTML = `${banner}${homeHero()}${recent}${mine}${trend}${rest.length ? sectionHead(t('home.recRooms'), '', hot.length ? '' : seeAll) + rest.map(r => hotRow(r, images.get(r.id), roomIntro(r))).join('') : ''}${!hot.length ? `<p class="empty">${esc(t('home.quiet'))}</p>` : ''}<div class="home-links"><button class="text-link" data-home-tab="rooms">${esc(t('home.tab.rooms'))} ›</button><button class="text-link" data-home-tab="discover">${esc(t('home.mentioned'))} ›</button><button class="text-link edit-interests" data-onb-manage>${esc(t(interests?.skincare || interests?.makeup ? 'onb.edit' : 'onb.manage'))}</button></div>`;
     return;
   }
   const sub = key => `<div class="page-bar home-sub"><button class="icon-btn" data-home-tab="rec" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t(key))}</h1></div>`;
@@ -288,7 +294,7 @@ let joinThen = () => {};
 
 // Topic: header + Posts / Live chat switch. The two never share one stream.
 function openTopic(room, mode = 'live') {
-  rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null; inRoom(true);
+  rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null; inRoom(true); addRecentRoom(room.id);
   const other = mode === 'posts' ? 'live' : 'posts';
   // Journey 3 room header: back, centred title with real member count, ⋯ menu (share / posts ↔ live).
   shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(t('room.joined', {n: room.members ?? 0}))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${mode === 'posts' ? esc(t('community.live')) : `<b>${esc(t('room.noticeTitle'))}</b><small>${esc(roomIntro(room))}</small>`}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);

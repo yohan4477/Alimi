@@ -7,6 +7,7 @@ import {roomThumb, roomCategory} from './room-card.js';
 import {productRoomGroups} from './room-search.js';
 import {loadingMarkup} from './loading-companion.js';
 import {exploreData, relTime} from './chat.js';
+import {isSavedRoom, toggleSavedRoom} from './saved-rooms.js';
 
 export const EXPLORE_TABS = ['topic', 'product', 'brand', 'all'];
 const CATS = ['skin', 'makeup', 'sun', 'etc'];
@@ -28,7 +29,9 @@ export function roomField(r) {
 }
 const busiest = rooms => [...rooms].sort((a, b) => (b.messages_24h ?? 0) - (a.messages_24h ?? 0) || (a.sort ?? 0) - (b.sort ?? 0));
 
-export const exploreRow = (r, image, attr = 'data-open-room') => `<button class="explore-row" ${attr}="${esc(r.id)}">${roomThumb(r, image)}<span class="explore-text"><span class="explore-title"><b>${esc(roomTitle(r))}</b>${r.messages_24h > 0 ? `<span class="explore-badge" aria-label="${esc(t('room.newToday', {n: r.messages_24h}))}">${r.messages_24h}</span>` : ''}</span>${roomIntro(r) ? `<small>${esc(roomIntro(r))}</small>` : ''}<span class="explore-meta"><span>${people}${esc(t('room.joined', {n: r.members ?? 0}))}</span>${r.last_message_at ? `<span>${clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>`;
+const bookmark = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
+// 6-1: rows that open a room carry a bookmark to save it on this device.
+export const exploreRow = (r, image, attr = 'data-open-room') => (attr === 'data-open-room' ? `<div class="explore-item">` : '') + `<button class="explore-row" ${attr}="${esc(r.id)}">${roomThumb(r, image)}<span class="explore-text"><span class="explore-title"><b>${esc(roomTitle(r))}</b>${r.messages_24h > 0 ? `<span class="explore-badge" aria-label="${esc(t('room.newToday', {n: r.messages_24h}))}">${r.messages_24h}</span>` : ''}</span>${roomIntro(r) ? `<small>${esc(roomIntro(r))}</small>` : ''}<span class="explore-meta"><span>${people}${esc(t('room.joined', {n: r.members ?? 0}))}</span>${r.last_message_at ? `<span>${clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>` + (attr === 'data-open-room' ? `<button class="room-save${isSavedRoom(r.id) ? ' on' : ''}" data-save-room="${esc(r.id)}" aria-pressed="${isSavedRoom(r.id)}" aria-label="${esc(t('room.save'))}">${bookmark}</button></div>` : '');
 const rows = (list, images) => list.length ? list.map(r => exploreRow(r, images.get(r.id))).join('') : `<p class="empty">${esc(t('explore.empty'))}</p>`;
 const head = key => `<h2 class="explore-head-title">${esc(t(key))}</h2>`;
 
@@ -68,6 +71,8 @@ export async function renderExplore(box, brands = () => '') {
 export const refreshExplore = () => { if (last?.box.isConnected && last.box.querySelector('#explore-panel')) renderExplore(last.box, last.brands); };
 
 document.addEventListener('click', e => {
+  const save = e.target.closest('[data-save-room]');
+  if (save) { const on = toggleSavedRoom(save.dataset.saveRoom); document.querySelectorAll(`[data-save-room="${CSS.escape(save.dataset.saveRoom)}"]`).forEach(x => { x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); }); return; }
   const b = e.target.closest('[data-explore-tab],[data-explore-cat],[data-explore-sort]'); if (!b || !last) return;
   if (b.dataset.exploreSort) { psort = b.dataset.exploreSort; renderExplore(last.box, last.brands); }
   else if (b.dataset.exploreTab) { tab = b.dataset.exploreTab; renderExplore(last.box, last.brands).then(() => last.box.querySelector(`#explore-tab-${tab}`)?.focus()); }

@@ -2607,5 +2607,61 @@
   "product.sellerNote": {
     "ko": "판매처의 가격, 배송비, 배송 기간은 변동될 수 있어요. 각 사이트에서 최신 정보를 확인하세요.",
     "en": "Prices, shipping and delivery times can change. Check each site for the latest."
+  },
+  "home.recentRooms": {
+    "ko": "최근 본 대화",
+    "en": "Recently viewed rooms"
+  },
+  "home.alertBanner": {
+    "ko": "새 알림이 {n}개 있어요!",
+    "en": "You have {n} new alerts!"
+  },
+  "home.alertBannerSub": {
+    "ko": "지금 확인해보세요.",
+    "en": "Take a look now."
+  },
+  "room.save": {
+    "ko": "대화방 저장",
+    "en": "Save room"
+  },
+  "activity.tab.talk": {
+    "ko": "저장한 대화",
+    "en": "Saved talk"
+  },
+  "activity.talkEmpty": {
+    "ko": "저장한 대화방이 없어요. 탐색에서 북마크를 눌러 저장해 보세요.",
+    "en": "No saved rooms yet. Tap the bookmark in Explore to save one."
+  },
+  "activity.filter.all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "activity.filter.topic": {
+    "ko": "주제",
+    "en": "Topics"
+  },
+  "activity.filter.product": {
+    "ko": "제품",
+    "en": "Products"
+  },
+  "activity.filter.brand": {
+    "ko": "브랜드",
+    "en": "Brands"
+  },
+  "share.sheet": {
+    "ko": "공유하기",
+    "en": "Share"
+  },
+  "share.copyLink": {
+    "ko": "링크 복사",
+    "en": "Copy link"
+  },
+  "share.message": {
+    "ko": "메시지",
+    "en": "Message"
+  },
+  "share.more": {
+    "ko": "더보기",
+    "en": "More"
   }
 }

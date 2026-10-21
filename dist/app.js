@@ -17,6 +17,8 @@ import {share,shareUrl,sharedTarget} from './share.js';
 import {buyUrl,coupangUrl,inKorea,oliveYoungUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
 import {$,esc} from './util.js';
 import {renderExplore,refreshExplore,searchRooms,exploreRow} from './explore.js';
+import {exploreData} from './chat.js';
+import {readSavedRooms} from './saved-rooms.js';
 let storage;try{storage=localStorage}catch{}
 let state=readState(storage),products=[],selected=null,category='전체',timer,detailOpen=false;
 const product=id=>products.find(p=>p.id===id);
@@ -105,6 +107,15 @@ async function openFamily(key,ref=null,option={}){
     $('#family-body').innerHTML=`<nav class="family-tabs" aria-label="${esc(t('product.info'))}">${['summary','talk','sellers','related'].map(k=>`<button data-family-jump="${k}">${esc(t('product.tab.'+k))}</button>`).join('')}</nav><div class="family-price-row"><b id="family-price"></b><button class="family-share" data-family-share="${esc(key)}" aria-label="${esc(t('share.product'))}">${esc(t('share.product'))}</button></div><p id="family-option"></p><div id="family-actions"></div>${list.length>1?`<div class="family-options">${list.map((v,i)=>`<button class="variant-row" data-family-option="${i}" aria-pressed="false"><strong>${esc([v.size_label,v.option_label].filter(Boolean).join(' · ')||t('family.default'))}</strong><small>${esc(v.retailer)}</small><b>${usd(v.price)}</b></button>`).join('')}</div>`:''}${sellerRows(list,ref)}<div class="family-facts" data-product-facts>${facts.map(f=>`<div><i class="ff-${f[0]}" aria-hidden="true"></i><small>${esc(f[1])}</small><b>${esc(f[2])}</b></div>`).join('')}</div><button class="text-link product-room-entry" data-product-rooms="${esc(head.name)}">${esc(t('rooms.productTalk'))} ›</button><div id="family-description"></div><p class="chart-note">${esc(t('detail.disclaimer'))}</p>`;
     drawFamilySelection();track('product_view',null,{family:key,sku:head.sku,from:ref??'catalog'});renderProductTalk($('#family-talk'),key);renderSimilar(head,key,version);
   }catch{if(version===familyVersion&&dlg.open)$('#family-body').innerHTML=`<p class="empty">${esc(t('catalogFailed'))}</p>`;}
+}
+// Journey 6-4 공유하기: preview card + 링크 복사 / 메시지 / 더보기 (system share sheet). No tracking parameters.
+function openShareSheet({title,sub='',image,url}){
+  let d=$('#share-sheet');if(!d){d=document.createElement('dialog');d.id='share-sheet';d.className='share-sheet';d.setAttribute('aria-labelledby','share-sheet-title');document.body.append(d)}
+  d.dataset.url=url;d.dataset.title=title;const host=new URL(url).host;
+  const ico={copy:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',msg:'<path d="M5 5h14v11H11l-4 3v-3H5z"/>',more:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'};
+  const btn=(k,label,attrs)=>`<${attrs.startsWith('href')?'a':'button'} class="share-opt so-${k}" ${attrs}><span><svg viewBox="0 0 24 24" aria-hidden="true">${ico[k]}</svg></span>${esc(label)}</${attrs.startsWith('href')?'a':'button'}>`;
+  d.innerHTML=`<div class="family-bar"><form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></form><strong id="share-sheet-title">${esc(t('share.sheet'))}</strong><span></span></div><div class="share-card">${image?`<img src="${esc(image)}" alt="">`:''}<div><small>${esc(sub)}</small><b>${esc(title)}</b><em>${esc(host)}</em></div></div><div class="share-opts">${btn('copy',t('share.copyLink'),'data-share-copy')}${btn('msg',t('share.message'),`href="sms:?&body=${encodeURIComponent(title+' '+url)}"`)}${navigator.share?btn('more',t('share.more'),'data-share-more'):''}</div>`;
+  if(!d.open)d.showModal();
 }
 // Journey 5-5 판매처 선택: the cheapest in-stock option per seller, each with its own (affiliate) link.
 function sellerRows(list,ref){
@@ -208,15 +219,21 @@ function openActivityProfile(){
   dlg.innerHTML=`<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('activity.profile'))}</h2><button class="interest-row" data-activity-skin><span><b>${esc(t('profile.title'))}</b><small>${esc(t('activity.skinHint'))}</small></span><span aria-hidden="true">›</span></button><button class="interest-row" data-activity-interests><span><b>${esc(t('activity.interests'))}</b><small>${esc(t('activity.interestsHint'))}</small></span><span aria-hidden="true">›</span></button>`;dlg.showModal();
 }
 const activityEmpty=(message,kind)=>`<div class="activity-empty"><p>${esc(message)}</p><button class="text-link" data-activity-browse="${kind}">${esc(t(kind==='rooms'?'activity.browseRooms':'activity.browseProducts'))} ›</button></div>`;
-let activityTab='rooms';
+let activityTab='talk';
 // Recently viewed products on this device (revisit.js).
 const recentList=()=>{const list=readRecent();return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:activityEmpty(t('activity.recentEmpty'),'products')};
 // Products saved on this device that have a family key (for 알림 and 상품 공유).
 const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
 const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
 // 내 활동 (journey 6): 참여한 대화방 / 저장한 글 / 최근 본 상품 tabs, then 저장한 제품 and the latest 알림.
-const ACTIVITY_TABS=['rooms','posts','recent'];
-const activityTabLabel=k=>t(k==='posts'?'saved.posts':'activity.tab.'+k);
+const ACTIVITY_TABS=['talk','rooms','recent'];
+const activityTabLabel=k=>t('activity.tab.'+k);
+// 6-2 저장한 대화: bookmarked rooms (전체/주제/제품/브랜드) and saved posts.
+const TALK_FILTERS=['all','topic','product','brand'];let talkFilter='all';
+const roomKind=r=>r.kind==='brand'?'brand':r.topic_product?'product':'topic';
+async function drawSavedTalk(){const box=$('#activity-talk');if(!box)return;let data;try{data=await exploreData()}catch{box.innerHTML=`<p class="home-note">${esc(t('home.retry'))}</p>`;return}if(!box.isConnected)return;
+  const rooms=readSavedRooms().map(id=>data.rooms.find(r=>r.id===id)).filter(Boolean).filter(r=>talkFilter==='all'||roomKind(r)===talkFilter);
+  box.innerHTML=`<div class="search-filters" role="group">${TALK_FILTERS.map(k=>`<button data-talk-filter="${k}" aria-pressed="${talkFilter===k}" class="${talkFilter===k?'on':''}">${esc(t('activity.filter.'+k))}</button>`).join('')}</div>${rooms.length?rooms.map(r=>exploreRow(r,data.images.get(r.id))).join(''):activityEmpty(t('activity.talkEmpty'),'rooms')}${readSavedPosts().length?`<h3 class="explore-head-title">${esc(t('saved.posts'))}</h3>${savedPostRows()}`:''}`}
 const savedPostRows=()=>readSavedPosts().length?readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join(''):activityEmpty(t('activity.postsEmpty'),'rooms');
 let activityAlerts=null;
 const bellIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>';
@@ -227,10 +244,11 @@ function renderSaved(){
     return;
   }
   const more=attrs=>`<button class="text-link" ${attrs}>${esc(t('home.seeAll'))} ›</button>`;
-  $('#saved').innerHTML=`<div class="logo-head activity-head"><h1 class="page-title">${esc(t('nav.activity'))}</h1>${regionButton()}<span><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():savedPostRows()}</div>
+  $('#saved').innerHTML=`<div class="logo-head activity-head"><h1 class="page-title">${esc(t('nav.activity'))}</h1>${regionButton()}<span><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<section id="activity-talk">${loadingMarkup(t('loading'))}</section>`}</div>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('activity.savedProducts'))}</h2>${n?more('data-activity-tab="saved"'):''}</div>${n?`<div class="saved-mini-grid">${list.slice(0,3).map(savedCard).join('')}</div>`:activityEmpty(t('activity.savedEmpty'),'products')}</section>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('alerts.title'))}</h2>${more('data-screen="alerts"')}</div><div id="activity-alerts">${loadingMarkup(t('loading'))}</div></section>${interestRow()}`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
+  if(activityTab==='talk')drawSavedTalk();
   if(!activityAlerts||Date.now()-activityAlerts.at>60000)activityAlerts={at:Date.now(),load:loadRevisit({savedFamilies:savedFamilies()})};
   activityAlerts.load.then(d=>{const box=$('#activity-alerts');if(!box)return;const top=d.alerts.slice(0,2);
     box.innerHTML=top.length?top.map(a=>`<button class="alert-mini" ${a.room?`data-open-room="${esc(a.room.id)}"`:a.family?`data-family="${esc(a.family)}"`:'data-screen="alerts"'}><span class="alert-mini-ico">${bellIcon}</span><span><b>${esc(a.title)}</b><small>${esc(relTime(a.at))}</small></span><i aria-hidden="true">›</i></button>`).join(''):`<p class="home-note">${esc(t('alerts.empty'))}</p>`},()=>{const box=$('#activity-alerts');if(box)box.innerHTML=`<p class="home-note">${esc(t('home.retry'))}</p>`});
@@ -391,7 +409,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.catalogOpen){openCatalogItem(catalogItems.get(b.dataset.catalogOpen));return}
   if('productRooms' in b.dataset){const name=b.dataset.productRooms;$('#family-dialog').open&&$('#family-dialog').close();openProductRoomsNext(name);brandChat=false;detailChat=false;show('chat');return}
   if(b.dataset.openRoom){$('#family-dialog').open&&$('#family-dialog').close();openRoomNext(b.dataset.openRoom);brandChat=false;detailChat=false;show('chat');return}
-  if(b.dataset.familyShare){share({title:$('#family-name').textContent,url:shareUrl({product:b.dataset.familyShare})},toast);return}
+  if(b.dataset.familyShare){openShareSheet({title:$('#family-name').textContent,sub:familyHead?brandLabel(familyHead):'',image:familyCurrent()?.image_url,url:shareUrl({product:b.dataset.familyShare})});return}
+  if(b.dataset.talkFilter){talkFilter=b.dataset.talkFilter;drawSavedTalk();return}
+  if(b.dataset.shareCopy!==undefined){const url=$('#share-sheet').dataset.url;navigator.clipboard.writeText(url).then(()=>toast(t('share.copied')),()=>toast(`${t('share.failed')} ${url}`));return}
+  if(b.dataset.shareMore!==undefined){const d=$('#share-sheet');share({title:d.dataset.title,url:d.dataset.url},toast);return}
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`)?.focus();return}
   if('activityProfile' in b.dataset){openActivityProfile();return}
