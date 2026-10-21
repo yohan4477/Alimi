@@ -2,7 +2,7 @@ import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY} from './supabase.js';
 import {t} from './i18n.js';
 const SESSION_KEY='alimi-auth-session-v1', VERIFIER_KEY='alimi-auth-code-verifier', STATE_KEY='alimi-auth-state';
 const FLOW_TIME='seoulbeauty-auth-started';
-export const PROVIDERS={google:{id:'google',scopes:'openid email profile'},kakao:{id:'kakao',scopes:'profile_nickname'},naver:{id:'custom:naver',scopes:''}};
+export const PROVIDERS={google:{id:'google',scopes:'openid email profile'},kakao:{id:'custom:kakao',scopes:''},naver:{id:'custom:naver',scopes:''}};
 const b64=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 export class GoogleAuth {
   constructor({fetchImpl=(...a)=>fetch(...a),storage=globalThis.localStorage,sessionStorage=globalThis.sessionStorage,location=globalThis.location}={}){Object.assign(this,{fetch:fetchImpl,storage,sessionStorage,location,session:null,user:null,pending:null,epoch:0});}
