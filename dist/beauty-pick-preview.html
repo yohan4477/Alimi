@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SeoulBeauty · Beauty Pick UI prototype</title>
+<style>
+:root{--blue:#0786ff;--ink:#222;--muted:#92969b;--line:#eceef0}*{box-sizing:border-box}
+body{margin:0;background:#f5f7fa;color:var(--ink);font:15px -apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif}
+main{max-width:430px;min-height:100dvh;background:#fff;margin:auto;position:relative;padding-bottom:100px}
+header{padding:18px 18px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+header strong{color:#104eaf;font-size:19px;letter-spacing:-.5px}header span{font-size:11px;color:var(--muted)}
+.tabs{display:flex;border-bottom:1px solid var(--line)}.tabs button{flex:1;text-align:center;border:0;background:white;padding:13px 6px;color:#7d8aa0;font-size:14px}.tabs button.on{color:var(--blue);font-weight:700;border-bottom:2px solid var(--blue)}
+article{padding:18px}.notice{font-size:12px;color:#66748a;background:#f3f7ff;border-radius:10px;padding:11px;margin-bottom:18px}
+h1{font-size:21px;line-height:1.35;margin:7px 0 7px}h2{font-size:16px;margin:16px 0 11px}
+p{line-height:1.5}.muted{color:var(--muted);font-size:12px}.tag{display:inline-block;background:#f2f6fd;border-radius:6px;padding:5px 8px;font-size:11px;color:#426eaf}
+.voteGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.option{border:1px solid var(--line);border-radius:12px;background:white;padding:12px;min-height:158px;text-align:left;cursor:pointer}
+.option[aria-pressed=true]{border:2px solid var(--blue);background:#f7fbff}
+.swatch{display:block;width:100%;height:92px;border-radius:8px;margin-bottom:11px}
+.rose{background:linear-gradient(135deg,#e3a0b4,#b45178)}.coral{background:linear-gradient(135deg,#ffc6a8,#df7d71)}
+button{font:inherit}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.primary,.secondary{border-radius:10px;padding:12px 16px;width:100%;border:0;margin:8px 0}
+.primary{background:var(--blue);color:#fff;font-weight:700}.secondary{background:#f5f7fa;color:#50647c}
+.results{border-radius:12px;background:#f5f8fd;padding:13px;margin:16px 0}.results strong{font-size:13px}
+progress{appearance:none;width:100%;height:9px}progress::-webkit-progress-bar{background:#e4e9f2;border-radius:9px}progress::-webkit-progress-value{background:#0786ff;border-radius:9px}
+.divider{border-top:1px solid var(--line);margin:20px 0}label{display:block;font-weight:600;font-size:13px;margin:14px 0 7px}
+textarea,input{width:100%;padding:13px;border:1px solid #dfe4eb;border-radius:9px;font:inherit}
+.thread{padding:11px 13px;background:#f7f8fa;border-radius:10px;margin:10px 0;font-size:13px;line-height:1.5}
+.btm{height:66px;position:sticky;bottom:0;background:#fff;border-top:1px solid #e6eef9;display:flex;justify-content:space-around;padding:10px 0}
+.btm span{text-align:center;color:var(--muted);font-size:11px}.btm span.active{color:#1463e8;font-weight:700}
+.small{font-size:12px;color:#64748b}#voteInfo{min-height:20px}.hidden{display:none!important}
+</style></head><body><main>
+<header><strong>SeoulBeauty</strong><span>US · offline prototype</span></header>
+<div class="tabs"><button class="on">추천</button><button>대화방</button><button>발견</button></div>
+<article>
+<div class="notice">기능 검토용 시안입니다. 아래 질문과 사용자는 가상 예시이며 실제 투표·서버 저장이 아닙니다.</div>
+<span class="tag">Beauty Pick · 메이크업 선택</span>
+<h1>어떤 립 컬러가 더 잘 어울릴까요?</h1>
+<p>자연스러운 데일리 메이크업을 하고 싶어요. 로즈와 코랄 중에 고민 중이에요.</p>
+<div class="muted">닉네임: BeautyFan · 예시 대화방</div>
+<div class="voteGrid">
+<button class="option" id="rose" aria-pressed="false" type="button"><span class="swatch rose"></span><strong>A · 로즈 핑크</strong><div class="small">쿨한 로즈 계열</div></button>
+<button class="option" id="coral" aria-pressed="false" type="button"><span class="swatch coral"></span><strong>B · 피치 코랄</strong><div class="small">따뜻한 코랄 계열</div></button>
+</div>
+<div id="voteInfo" class="small" aria-live="polite">투표하지 않아도 의견을 남길 수 있어요.</div>
+<button type="button" class="secondary" id="skip">선택 취소 / 기권</button>
+<div class="results"><strong>투표 결과</strong><p class="small">실제 투표 데이터가 없으므로 비율·득표 수를 표시하지 않습니다.</p><div id="choiceResult" aria-live="polite"></div></div>
+<div class="divider"></div>
+<h2>선택 이유를 이야기해 볼까요?</h2>
+<div class="thread"><b>질문자 · 예시</b><div>쿨톤이어도 코랄이 괜찮을까요?</div><span class="muted">가상 예시 메시지</span></div>
+<label for="reason">내 생각·선택 이유 (선택)</label>
+<textarea id="reason" maxlength="500" rows="3" placeholder="왜 그렇게 생각하나요? 직접 사용하지 않았어도 괜찮아요."></textarea>
+<label><input id="used" type="checkbox" style="width:auto"> 내가 직접 사용해 본 제품/색상에 대한 이야기예요 (선택)</label>
+<button type="button" class="primary" id="send">예시 대화에 남기기</button>
+<div id="messages" aria-live="polite"></div>
+<div class="divider"></div>
+<h2>선택한 다음에는?</h2>
+<p class="small">질문자는 실제로 무엇을 골랐고 결과가 어땠는지 나중에 자발적으로 추가할 수 있어요. 지금은 서버에 기록하지 않습니다.</p>
+<label for="outcome">내가 선택한 뒤의 이야기 (선택)</label>
+<textarea id="outcome" maxlength="500" rows="2" placeholder="선택하거나 사용해 본 뒤 이야기 남기기"></textarea>
+<button type="button" class="secondary" id="outcomeSend">후속 결과 미리보기</button>
+<div id="outcomePreview" class="thread hidden"></div>
+</article>
+<nav class="btm" aria-label="기존 앱의 하단 탭"><span class="active">⌂<br>커뮤니티</span><span>⌕<br>탐색</span><span>◯<br>내 활동</span></nav>
+</main>
+<script>
+let selected=null;const qs=id=>document.getElementById(id);
+function choose(id){selected=id;['rose','coral'].forEach(k=>qs(k).setAttribute('aria-pressed',String(k===id)));qs('voteInfo').textContent=id?'이 기기 미리보기에서 '+(id==='rose'?'로즈 핑크':'피치 코랄')+' 선택됨. 실제 집계되지 않습니다.':'기권 상태';qs('choiceResult').textContent=id?'내 선택: '+(id==='rose'?'로즈 핑크':'피치 코랄')+' · 실제 득표수 없음':'';}
+qs('rose').onclick=()=>choose('rose');qs('coral').onclick=()=>choose('coral');qs('skip').onclick=()=>choose(null);
+qs('send').onclick=()=>{const msg=qs('reason').value.trim();if(!msg){qs('messages').textContent='의견을 입력하면 화면에서만 미리볼 수 있어요.';return;}const x=document.createElement('div');x.className='thread';const b=document.createElement('b');b.textContent='내 예시 의견'+(qs('used').checked?' · 사용 경험 자기신고':' · 일반 의견');const d=document.createElement('div');d.textContent=msg;x.append(b,d);qs('messages').replaceChildren(x);};
+qs('outcomeSend').onclick=()=>{const v=qs('outcome').value.trim();qs('outcomePreview').classList.toggle('hidden',!v);qs('outcomePreview').textContent=v?'후속 결과 · 로컬 미리보기: '+v:'';};
+</script></body></html>
