@@ -22,13 +22,25 @@ export class AccountSync {
   }
   async start(){
     const id=this.auth.user?.id;if(!id)return;if(this.userId===id&&this.ready)return;
-    const generation=++this.generation;this.ready=false;this.userId=id;this.switchOwner(id);this.onChange();this.onStatus('loading');
+    const generation=++this.generation;this.ready=false;this.userId=id;
+    const guestBefore=(this.storage.getItem(OWNER)||'guest')==='guest';
+    const guestOpinions=guestBefore?this.storage.getItem('seoulbeauty-opinions-v1'):null;
+    this.switchOwner(id);this.onChange();this.onStatus('loading');
     this.baseline=this.read();this.dirty=this.parse(pending(id));
     try{
       const rows=await this.request('?select=key,value&user_id=eq.'+encodeURIComponent(id));
       if(this.generation!==generation)return;
       const before=this.read(),server=Object.fromEntries(rows.map(r=>[r.key,r.value]));
       for(const key of SYNC_KEYS){if(before[key]!==this.baseline[key])this.dirty[key]=before[key];if(!(key in server)&&before[key]!==null)this.dirty[key]=before[key];}
+      if(guestBefore&&guestOpinions){
+        const parse=v=>{try{const x=JSON.parse(v||'{}');return x&&typeof x==='object'&&!Array.isArray(x)?x:{}}catch{return {}}};
+        const key='seoulbeauty-opinions-v1',merged={...parse(server[key])};
+        for(const [product,opinion] of Object.entries(parse(guestOpinions))){
+          const prior=merged[product];
+          if(!prior||String(opinion?.updatedAt||'')>String(prior?.updatedAt||''))merged[product]=opinion;
+        }
+        if(Object.keys(merged).length){this.dirty[key]=JSON.stringify(merged);}
+      }
       this.storage.setItem(pending(id),JSON.stringify(this.dirty));this.apply({...server,...this.dirty});this.baseline=this.read();this.ready=true;this.onChange();await this.flush();
     }catch{this.onStatus('failed');}
   }
