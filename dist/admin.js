@@ -1,6 +1,28 @@
 // Presentation state only. Authorization is performed on every server request.
 const root = document.getElementById('sb-management');
 if (root) {
+  // Design assets are separate from live member/commerce controls.
+  // Use the same-origin route so this opens the UI Library alongside the existing dashboard.
+  if (!root.querySelector('[data-admin-ui-library]')) {
+    const library = document.createElement('section');
+    library.setAttribute('data-admin-ui-library', '');
+    library.setAttribute('aria-label', 'UI 라이브러리');
+    library.style.cssText = 'margin:12px 0 18px;padding:16px;border:1px solid #e6eef9;border-radius:14px;background:#fff;';
+    const heading = document.createElement('strong');
+    heading.textContent = 'UI 라이브러리';
+    heading.style.cssText = 'display:block;margin-bottom:6px;font-size:16px;color:#222;';
+    const caption = document.createElement('p');
+    caption.textContent = '승인 후보 UI를 실제 모바일 화면처럼 열어보고, 대화형 투표 디자인을 재사용할 수 있습니다.';
+    caption.style.cssText = 'font-size:13px;color:#6b778a;margin:0 0 12px;line-height:1.5;';
+    const link = document.createElement('a');
+    link.href = '/ui-kit/';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'UI 라이브러리 보기 ↗';
+    link.style.cssText = 'display:inline-block;background:#0786ff;color:white;text-decoration:none;padding:11px 14px;border-radius:10px;font-size:13px;font-weight:700;';
+    library.append(heading, caption, link);
+    root.prepend(library);
+  }
   let metricsBusy=false,lastMetricsFetch=0;
   async function refreshMetrics(force=false){
     const status=document.getElementById('metrics-status');if(!status||metricsBusy||(!force&&Date.now()-lastMetricsFetch<60000))return;
