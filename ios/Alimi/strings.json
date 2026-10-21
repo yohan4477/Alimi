@@ -2523,5 +2523,61 @@
   "exp.productHint": {
     "ko": "제품을 선택하면 더 정확한 답변을 받을 수 있어요.",
     "en": "Adding the product helps others answer."
+  },
+  "exp.q.used": {
+    "ko": "이 제품을 사용해보셨나요?",
+    "en": "Have you used this product?"
+  },
+  "exp.q.hint": {
+    "ko": "선택 후 추가 정보를 입력할 수 있어요\n(모든 항목은 선택사항입니다)",
+    "en": "You can add details next\n(everything is optional)"
+  },
+  "exp.next": {
+    "ko": "다음",
+    "en": "Next"
+  },
+  "exp.skipChat": {
+    "ko": "건너뛰기 (일반 채팅으로 작성)",
+    "en": "Skip (write a normal message)"
+  },
+  "exp.detailTitle": {
+    "ko": "사용 경험 추가 (선택)",
+    "en": "Add details (optional)"
+  },
+  "exp.writeTitle": {
+    "ko": "경험 작성하기",
+    "en": "Write your experience"
+  },
+  "exp.multi": {
+    "ko": "(복수 선택 가능)",
+    "en": "(choose any)"
+  },
+  "exp.change": {
+    "ko": "사용 후 가장 큰 변화는?",
+    "en": "Biggest change after using it?"
+  },
+  "exp.good.trouble": {
+    "ko": "트러블 개선",
+    "en": "Fewer breakouts"
+  },
+  "exp.sum.period": {
+    "ko": "사용 기간",
+    "en": "Period"
+  },
+  "exp.sum.skin": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "exp.sum.good": {
+    "ko": "주요 효과",
+    "en": "Main effect"
+  },
+  "exp.post": {
+    "ko": "게시하기",
+    "en": "Post"
+  },
+  "exp.anonNote": {
+    "ko": "닉네임 대신 익명 이름으로 게시돼요.",
+    "en": "Posted under your anonymous name."
   }
 }

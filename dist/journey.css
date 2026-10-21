@@ -201,3 +201,25 @@ html[data-room="1"] #tabbar{display:none}
 .exp-product svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex:none}
 .exp-product span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .exp-hint{margin:6px 2px 0;font-size:11.5px;color:var(--jr-gray)}
+
+/* Journey 4 detail (4-1…4-5): three-step experience sheet and experience tags in the room */
+.exp-bar{align-items:center}
+.exp-bar>div{flex:1;min-width:0}
+.exp-bar h2{margin:0}
+.exp-hero{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px;text-align:center}
+.exp-hero img{width:100%;height:120px;object-fit:contain;border-radius:14px;background:#fff;border:1px solid var(--jr-line)}
+.exp-hero b{font-size:14px;font-weight:800;color:var(--jr-ink)}
+.exp-q{margin:22px 0 12px;font-size:16px;font-weight:800;color:var(--jr-ink)}
+.exp-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.exp-cards button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:96px;padding:10px 6px;border-radius:14px;border:1.5px solid #dce3ee;background:#fff;color:var(--jr-sub);font-size:12.5px;font-weight:600}
+.exp-cards button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.exp-cards button.on{border-color:var(--jr-blue);background:var(--jr-soft);color:var(--jr-blue)}
+.exp-hint.center{text-align:center;white-space:pre-line;margin-top:14px}
+.exp-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin:6px 0 4px}
+.exp-summary div{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px;border-radius:12px;background:var(--jr-soft);text-align:center}
+.exp-summary small{font-size:11px;color:var(--jr-gray)}
+.exp-summary b{font-size:13px;color:var(--jr-blue)}
+.exp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.exp-tags span{padding:3px 10px;border-radius:12px;background:var(--jr-blue);color:#fff;font-size:11.5px;font-weight:700}
+.exp-tags span+span{background:var(--jr-soft);color:var(--jr-blue)}
+#chat-log .chat-msg.mine .exp-tags span+span{background:#fff}

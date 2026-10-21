@@ -444,7 +444,7 @@ function renderLog(scroll) {
     const grouped = logSort === 'all' && !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
     // Journey 3 feed row: nickname · time, text, product card, ♡ / 답글. No avatars (removed by product decision).
-    return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b>${mine ? `<span class="me-tag">${esc(t('chat.meTag'))}</span>` : ''}<time class="msg-time" datetime="${esc(m.created_at)}">${esc(msgTime(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p class="msg-body">${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></div></article>`;
+    return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b>${mine ? `<span class="me-tag">${esc(t('chat.meTag'))}</span>` : ''}<time class="msg-time" datetime="${esc(m.created_at)}">${esc(msgTime(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? msgBody(m.body) : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`);
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
@@ -557,29 +557,59 @@ function drawRelated() {
   $('#related-rooms').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="related-title">${esc(t('related.title'))}</h2><div class="related-tabs" role="group">${RELATED.map(k => `<button data-related-tab="${k}" aria-pressed="${relatedTab === k}" class="${relatedTab === k ? 'on' : ''}">${esc(t('related.' + k))}</button>`).join('')}</div><div class="related-list">${list.length ? list.map(x => exploreRow(x, home?.images?.get(x.id), 'data-related-room')).join('') : `<p class="empty">${esc(t('related.empty'))}</p>`}</div>`;
 }
 
-// Journey 4 "경험 공유하기": optional chips + free text, sent as one ordinary chat message in this room.
-// Nothing is required and nothing is stored apart from the message itself.
+// Journey 4 "경험 공유하기": three optional steps — 4-2 used it?, 4-3 details, 4-4 write — sent as one ordinary
+// chat message in this room. Nothing is required and nothing is stored apart from the message itself.
 const EXP = {used: ['yes', 'now', 'no'], period: ['lt1w', '1w1m', '1m3m', 'gt3m'], skin: ['dry', 'oily', 'combination', 'sensitive', 'unsure'],
-  good: ['moist', 'lasting', 'cover', 'light', 'color', 'gentle', 'other']};
+  good: ['moist', 'lasting', 'cover', 'trouble', 'color', 'gentle', 'other']};
 const EXP_MULTI = ['skin', 'good'];
+const usedIcon = {
+  yes: '<path d="m5 12 4.5 4.5L19 7"/>',
+  now: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+  no: '<path d="M5 6h14v9H11l-4 3v-3H5z"/><path d="m10 9 4 4M14 9l-4 4"/>'
+};
 let exp = null;
 const expLabel = (group, v) => group === 'skin' ? t(v === 'unsure' ? 'exp.skin.unsure' : 'skin.' + v) : t(`exp.${group}.${v}`);
 function openExperience() {
   if (!chat.room) return;
-  exp = {used: null, period: null, skin: [], good: [], note: $('#chat-text')?.value ?? ''};
+  exp = {step: 1, used: null, period: null, skin: [], good: [], note: $('#chat-text')?.value ?? ''};
   let dlg = $('#exp-sheet'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'exp-sheet'; dlg.className = 'exp-sheet'; dlg.setAttribute('aria-labelledby', 'exp-title'); document.body.append(dlg); }
   renderExperience(); dlg.showModal();
 }
 function renderExperience() {
-  const room = chat.room, image = home?.images?.get(room.id);
-  const group = (g, title, hint = '') => `<fieldset class="exp-group"><legend>${esc(t(title))}${hint ? ` <span>${esc(t(hint))}</span>` : ''}</legend><div class="exp-chips">${EXP[g].map(v => { const on = EXP_MULTI.includes(g) ? exp[g].includes(v) : exp[g] === v; return `<button type="button" data-exp="${g}:${v}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(expLabel(g, v))}</button>`; }).join('')}</div></fieldset>`;
-  const usedIt = exp.used !== 'no';
-  $('#exp-sheet').innerHTML = `<div class="exp-bar"><button type="button" class="icon-btn" data-chat-action="exp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div><h2 id="exp-title">${esc(t('exp.title'))}</h2><small>${esc(t('exp.optional'))}</small></div></div><div class="exp-body"><div class="exp-room">${roomThumb(room, image)}<b>${esc(roomTitle(room))}</b></div><button type="button" class="exp-product" data-chat-action="exp-product"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>${chat.item ? esc(`${brandLabel(chat.item)} · ${chat.item.name}`) : esc(t('exp.product'))}</span></button><p class="exp-hint">${esc(t('exp.productHint'))}</p>${group('used', 'exp.used')}${usedIt ? group('period', 'exp.period') : ''}${group('skin', 'exp.skin')}${usedIt ? group('good', 'exp.good', 'exp.choose') : ''}<label class="exp-note"><span class="sr-only">${esc(t('exp.title'))}</span><textarea id="exp-note" rows="3" maxlength="400" placeholder="${esc(t('exp.notePh'))}">${esc(exp.note)}</textarea><small id="exp-count">${exp.note.length}/400</small></label></div><div class="exp-actions"><button type="button" class="primary" data-chat-action="exp-submit">${esc(t('exp.submit'))}</button><button type="button" class="text-btn" data-chat-action="exp-close">${esc(t('exp.skip'))}</button></div>`;
+  const room = chat.room, image = chat.item?.image_url ?? home?.images?.get(room.id) ?? room.topic_product?.image_url;
+  const subject = chat.item ? `${brandLabel(chat.item)} ${chat.item.name}` : roomTitle(room);
+  const chips = (g, title, hint = '') => `<fieldset class="exp-group"><legend>${esc(t(title))}${hint ? ` <span>${esc(t(hint))}</span>` : ''}</legend><div class="exp-chips">${EXP[g].map(v => { const on = EXP_MULTI.includes(g) ? exp[g].includes(v) : exp[g] === v; return `<button type="button" data-exp="${g}:${v}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(expLabel(g, v))}</button>`; }).join('')}</div></fieldset>`;
+  const close = `<button type="button" class="icon-btn" data-chat-action="exp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`;
+  const back = `<button type="button" class="icon-btn" data-chat-action="exp-back" aria-label="${esc(t('back'))}">${icon.back}</button>`;
+  const hero = `<div class="exp-hero">${image ? `<img src="${esc(image)}" alt="">` : roomThumb(room)}<b>${esc(subject)}</b></div>`;
+  let title, bodyHtml, actions;
+  if (exp.step === 1) {
+    title = t('exp.title');
+    bodyHtml = `${hero}<button type="button" class="exp-product" data-chat-action="exp-product"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>${chat.item ? esc(`${brandLabel(chat.item)} · ${chat.item.name}`) : esc(t('exp.product'))}</span></button><h3 class="exp-q">${esc(t('exp.q.used'))}</h3><div class="exp-cards">${EXP.used.map(v => `<button type="button" data-exp="used:${v}" aria-pressed="${exp.used === v}" class="${exp.used === v ? 'on' : ''}"><svg viewBox="0 0 24 24" aria-hidden="true">${usedIcon[v]}</svg><span>${esc(expLabel('used', v))}</span></button>`).join('')}</div><p class="exp-hint center">${esc(t('exp.q.hint'))}</p>`;
+    actions = `<button type="button" class="primary" data-chat-action="exp-next">${esc(t('exp.next'))}</button><button type="button" class="text-btn" data-chat-action="exp-close">${esc(t('exp.skipChat'))}</button>`;
+  } else if (exp.step === 2) {
+    title = t('exp.detailTitle');
+    bodyHtml = `${hero}${chips('period', 'exp.period')}${chips('skin', 'exp.skin', 'exp.multi')}${chips('good', 'exp.change', 'exp.multi')}`;
+    actions = `<button type="button" class="primary" data-chat-action="exp-next">${esc(t('exp.next'))}</button><button type="button" class="text-btn" data-chat-action="exp-next">${esc(t('exp.skip'))}</button>`;
+  } else {
+    title = t('exp.writeTitle');
+    const sum = [['exp.sum.period', exp.period && expLabel('period', exp.period)], ['exp.sum.skin', exp.skin.map(v => expLabel('skin', v)).join(', ')], ['exp.sum.good', exp.good.map(v => expLabel('good', v)).join(', ')]].filter(([, v]) => v);
+    bodyHtml = `${sum.length ? `<div class="exp-summary">${sum.map(([k, v]) => `<div><small>${esc(t(k))}</small><b>${esc(v)}</b></div>`).join('')}</div>` : ''}<label class="exp-note"><span class="sr-only">${esc(t('exp.writeTitle'))}</span><textarea id="exp-note" rows="6" maxlength="400" placeholder="${esc(t('exp.notePh'))}">${esc(exp.note)}</textarea><small id="exp-count">${exp.note.length}/400</small></label><p class="exp-hint">${esc(t('exp.anonNote'))}</p>`;
+    actions = `<button type="button" class="primary" data-chat-action="exp-submit">${esc(t('exp.post'))}</button>`;
+  }
+  $('#exp-sheet').innerHTML = `<div class="exp-bar">${exp.step === 1 ? close : back}<div><h2 id="exp-title">${esc(title)}</h2>${exp.step === 1 ? `<small>${esc(t('exp.optional'))}</small>` : ''}</div>${exp.step === 1 ? '' : close}</div><div class="exp-body">${bodyHtml}</div><div class="exp-actions">${actions}</div>`;
 }
 function experienceText() {
   const head = [exp.used && expLabel('used', exp.used), exp.used !== 'no' && exp.period && expLabel('period', exp.period), ...exp.skin.map(v => expLabel('skin', v))].filter(Boolean).join(' · ');
   const good = exp.used !== 'no' && exp.good.length ? t('exp.goodLine', {v: exp.good.map(v => expLabel('good', v)).join(', ')}) : '';
   return [head, good, exp.note.trim()].filter(Boolean).join('\n').slice(0, 500);
+}
+function stepExperience(dir) {
+  exp.note = $('#exp-note')?.value ?? exp.note;
+  exp.step += dir;
+  if (exp.step === 2 && exp.used === 'no') exp.step += dir; // details only apply to people who used it
+  exp.step = Math.min(3, Math.max(1, exp.step));
+  renderExperience(); $('#exp-sheet .exp-body')?.scrollTo(0, 0);
 }
 function submitExperience() {
   exp.note = $('#exp-note')?.value ?? exp.note;
@@ -591,6 +621,14 @@ function submitExperience() {
   send();
 }
 document.addEventListener('input', e => { if (e.target.id === 'exp-note' && exp) { exp.note = e.target.value; const c = $('#exp-count'); if (c) c.textContent = `${exp.note.length}/400`; } });
+// 4-5: an experience message starts with a line of known choices ("사용했어요 · 1주~1개월 · 건성"); show them as tags.
+function experienceTags(body) {
+  const [first, ...rest] = String(body ?? '').split('\n'), parts = first.split(' · ');
+  const known = new Set(Object.entries(EXP).flatMap(([g, vs]) => vs.map(v => expLabel(g, v))));
+  if (!parts.every(p => known.has(p))) return null;
+  return {tags: parts, text: rest.join('\n')};
+}
+const msgBody = body => { const x = experienceTags(body); return x ? `<div class="exp-tags">${x.tags.map(v => `<span>${esc(v)}</span>`).join('')}</div>${x.text ? `<p class="msg-body">${esc(x.text)}</p>` : ''}` : `<p class="msg-body">${esc(body)}</p>`; };
 
 // Menus: chat messages (reply / save as post for mine / report / block) and posts or comments (report / block).
 let menuTarget = null;
@@ -730,6 +768,8 @@ document.addEventListener('click', async e => {
   else if (b.dataset.relatedRoom) { const r = chat.rooms.find(x => x.id === b.dataset.relatedRoom); $('#related-rooms').close(); if (r) openTopic(r, 'live'); }
   else if (a === 'exp-close') $('#exp-sheet')?.close();
   else if (a === 'exp-submit') submitExperience();
+  else if (a === 'exp-next') stepExperience(1);
+  else if (a === 'exp-back') stepExperience(-1);
   else if (a === 'exp-product') { exp.note = $('#exp-note')?.value ?? exp.note; openPicker('chat'); }
   else if (b.dataset.logSort) { logSort = b.dataset.logSort; document.querySelectorAll('[data-log-sort]').forEach(x => { const on = x.dataset.logSort === logSort; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); }); renderLog(true); }
   else if (b.dataset.exp && exp) { const [g, v] = b.dataset.exp.split(':'); exp.note = $('#exp-note')?.value ?? exp.note; if (EXP_MULTI.includes(g)) exp[g] = exp[g].includes(v) ? exp[g].filter(x => x !== v) : [...exp[g], v]; else exp[g] = exp[g] === v ? null : v; renderExperience(); $(`[data-exp="${g}:${v}"]`)?.focus(); }
