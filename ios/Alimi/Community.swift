@@ -271,7 +271,7 @@ struct CommunityPostView: View {
             .task { await load(); EventLogger.shared.log(.postView, props: ["post": String(post.id), "room": post.room_id]) }
             .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) { Button("OK") {} }
             .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reportTarget != nil }, set: { if !$0 { reportTarget = nil } })) {
-                ForEach(["spam", "abuse", "sexual", "other"], id: \.self) { reason in Button(L("chat.reason." + reason)) { report(reason) } }
+                ForEach(["spam", "abuse", "sexual", "privacy", "threat", "other"], id: \.self) { reason in Button(L("chat.reason." + reason)) { report(reason) } }
             }
     }
     private var reviewFacts: some View {

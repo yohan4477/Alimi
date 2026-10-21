@@ -481,8 +481,8 @@
     "en": "Join {room}?"
   },
   "chat.rules": {
-    "ko": "익명 닉네임으로 대화해요. 욕설·혐오·음란물·홍보·링크는 금지예요. 신고가 쌓인 메시지는 숨겨지고, 위반하면 이용이 제한돼요.",
-    "en": "You'll chat under an anonymous nickname. No harassment, hate, sexual content, spam or links. Reported messages are hidden and repeat offenders are blocked."
+    "ko": "익명 닉네임으로 대화해요. 욕설·혐오·음란물·홍보·링크는 금지예요. 개인정보 노출·위협·음란물 신고는 바로 숨겨지고, 그 밖의 신고는 운영자가 확인해요. 위반하면 이용이 제한돼요.",
+    "en": "You'll chat under an anonymous nickname. No harassment, hate, sexual content, spam or links. Reports of personal information, threats or sexual content hide a message right away; other reports are reviewed by our team. Repeat offenders are blocked."
   },
   "chat.join": {
     "ko": "참여",
@@ -559,6 +559,14 @@
   "chat.reason.sexual": {
     "ko": "음란물",
     "en": "Sexual content"
+  },
+  "chat.reason.privacy": {
+    "ko": "개인정보 노출",
+    "en": "Shares personal information"
+  },
+  "chat.reason.threat": {
+    "ko": "위협·위험",
+    "en": "Threat or danger"
   },
   "chat.reason.other": {
     "ko": "기타",
