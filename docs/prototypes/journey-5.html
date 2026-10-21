@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>여정 5 - 대화 속 제품 발견 → 구매처 이동</title>
+<style>
+:root{--blue:#1463E8;--ink:#17233D;--sub:#4A5672;--grey:#7A8499;--line:#EEF1F6;--chip:#F3F5F9;--soft:#F1F6FF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;background:#fff;color:var(--ink);padding:20px 24px 32px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea{font:inherit}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.wrap{max-width:1640px;margin:0 auto}
+header{display:flex;gap:24px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.ttl{display:flex;gap:18px;align-items:center}
+.num{width:76px;height:76px;border-radius:50%;background:var(--blue);color:#fff;font-size:44px;font-weight:800;display:grid;place-items:center;flex:none}
+h1{font-size:40px;font-weight:800;letter-spacing:-1px;line-height:1.2}
+.ttl p{color:var(--sub);font-size:19px;margin-top:6px}
+.goal{background:var(--soft);border-radius:14px;padding:14px 20px;min-width:430px}
+.goal b{color:var(--blue);font-size:18px}
+.goal li{list-style:none;display:flex;gap:8px;align-items:center;font-size:15px;color:var(--sub);margin-top:8px}
+.goal svg{width:16px;height:16px;stroke:var(--blue);stroke-width:3}
+.row{display:flex;justify-content:space-between;align-items:flex-start;margin-top:20px;gap:6px}
+.col{width:300px;flex:none}
+.hd{background:var(--soft);border-radius:30px;display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;min-height:48px}
+.pill{background:var(--blue);color:#fff;font-weight:800;border-radius:30px;padding:8px 14px;font-size:18px;flex:none}
+.hd b{font-size:19px}
+.cap{font-size:12.5px;color:var(--sub);margin:5px 4px 8px;line-height:1.4;min-height:36px}
+.ph{width:242px;height:523px;margin:0 auto;position:relative}
+.phone{width:390px;height:844px;transform:scale(.62);transform-origin:top left;border:7px solid #101418;border-radius:44px;background:#fff;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 0 0 2px #cfd5df}
+.sb{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 26px 0;font-weight:700;font-size:14px;position:relative}
+.sb:after{content:"";position:absolute;left:50%;top:8px;width:92px;height:26px;margin-left:-46px;background:#101418;border-radius:20px}
+.sb span:last-child{display:flex;gap:4px;align-items:center}
+.sb i{display:block;width:16px;height:9px;background:var(--ink);border-radius:2px}
+.nav{height:46px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:relative}
+.nav b{position:absolute;left:0;right:0;text-align:center;font-size:16px;pointer-events:none}
+.nav small{display:block;font-weight:400;font-size:11px;color:var(--grey)}
+.scr{flex:1;overflow:hidden;position:relative}
+.arrow{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;flex:none;align-self:flex-start;margin:0 -10px;z-index:2;position:relative;top:330px}
+.arrow svg{width:18px;height:18px;stroke-width:2.6}
+.card{background:var(--soft);border-radius:12px;padding:12px 14px;margin-top:10px;display:flex;gap:10px;min-height:96px}
+.card svg{width:34px;height:34px;stroke:var(--blue);stroke-width:1.6}
+.card b{font-size:15px;display:block;margin-bottom:4px}
+.card li{font-size:12.5px;color:var(--sub);list-style:none;line-height:1.55}
+.card li:before{content:"• ";color:var(--grey)}
+.eff{display:flex;align-items:center;background:var(--soft);border-radius:14px;padding:14px 20px;margin-top:14px;flex-wrap:wrap;gap:16px 28px}
+.eff>b{font-size:21px;color:var(--blue);margin-right:20px}
+.eff div{display:flex;gap:12px;align-items:center;flex:1;min-width:250px}
+.eff svg{width:40px;height:40px;stroke:var(--blue);stroke-width:1.6}
+.eff strong{display:block;font-size:15px}.eff span{font-size:12.5px;color:var(--sub)}
+.post{padding:12px 16px 4px}
+.who{display:flex;gap:8px;align-items:center;font-size:13px}
+.who img{width:34px;height:34px;border-radius:50%;object-fit:cover}
+.who b{font-size:13.5px}.who span{color:var(--grey);font-size:12px}
+.txt{font-size:13.5px;line-height:1.5;margin:8px 0}
+.pc{border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;width:100%;text-align:left}
+.pc img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#f5dcd8}
+.pc .t{flex:1;font-size:13.5px;font-weight:600;line-height:1.4}
+.pc .t small{display:block;font-weight:400;font-size:11.5px;color:var(--sub)}
+.pc svg{width:16px;stroke:var(--grey)}
+.rate{color:var(--sub);font-size:12.5px;font-weight:500;display:flex;gap:4px;align-items:center}
+.rate:before{content:"★";color:#F5A623}
+.act{display:flex;gap:20px;margin-top:12px;font-size:12.5px;color:var(--grey);align-items:center}
+.act span{display:flex;gap:4px;align-items:center}.act svg{width:16px;height:16px}
+.act .h{color:#EC4A6A}.act .h svg{fill:#EC4A6A;stroke:#EC4A6A}
+.input{position:absolute;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;gap:10px;padding:0 14px 8px;background:#fff}
+.input .plus{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--blue);color:var(--blue);display:grid;place-items:center}
+.input label{flex:1;background:var(--chip);border-radius:22px;height:40px;display:flex;align-items:center;padding:0 14px;gap:8px}
+.input input{flex:1;border:0;background:none;outline:0;font-size:13px;min-width:0}
+.input label svg{stroke:var(--grey);width:18px;height:18px}
+.hero{margin:6px 14px 0;height:150px;border-radius:12px;background:#f9d9d9;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:contain}
+.pinfo{padding:8px 14px;display:flex;justify-content:space-between;align-items:flex-end}
+.pinfo h2{font-size:18px;line-height:1.25}.pinfo small{font-size:17px}
+.btn{background:var(--blue);color:#fff;border-radius:18px;font-size:13px;font-weight:700;padding:9px 18px}
+.tabs{display:flex;border-bottom:1px solid var(--line);margin:0 14px}
+.tabs button{flex:1;padding:9px 0;font-size:13px;color:var(--grey);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button.on{color:var(--blue);font-weight:700;border-color:var(--blue)}
+.sec{font-size:15px;font-weight:800;padding:12px 14px 6px}
+.kv{padding:0 14px}.kv div{display:flex;gap:10px;font-size:12.5px;padding:4px 0;align-items:center}
+.kv svg{width:11px;height:11px;fill:var(--grey);stroke:none}
+.kv span{width:62px;color:var(--sub)}.kv em{font-style:normal}
+.kw{margin:6px 14px;border:1px solid var(--line);border-radius:12px;padding:10px}
+.kw b{font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{background:var(--soft);color:var(--blue);font-size:12px;font-weight:700;padding:5px 10px;border-radius:14px}
+.seg{display:flex;gap:6px;padding:8px 14px;white-space:nowrap}
+.seg button{background:var(--chip);border-radius:6px;padding:7px 10px;font-size:12.5px;color:var(--sub)}
+.seg button.on{background:var(--soft);color:var(--blue);font-weight:700;box-shadow:inset 0 -2px var(--blue)}
+.bars{margin:0 14px;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+.bars div{display:grid;grid-template-columns:52px 1fr 40px;align-items:center;font-size:13px;padding:5px 0;gap:6px}
+.bars i{display:block;height:10px;border-radius:6px;background:var(--blue)}
+.bars em{font-style:normal;color:var(--sub);text-align:right;font-size:12.5px}
+.rv{padding:8px 14px}
+.rv .st{color:#F5A623;font-size:13px;margin:3px 0 4px 42px}
+.rv p{font-size:13px;line-height:1.45;margin-left:42px}
+.rv .act{margin-left:42px;margin-top:8px}
+.tn{margin:6px 0 0 42px}.tn img{height:62px;width:auto;border-radius:6px}
+.g3{display:flex;gap:8px;padding:0 14px}
+.g3 div{flex:1;font-size:12.5px;font-weight:700}.g3 img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;margin-bottom:5px;background:#eee}
+.g3 small{display:block;font-weight:400;color:var(--sub);font-size:11.5px}
+.g3 .rate{font-size:12px}
+.li{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:13.5px;font-weight:600;width:100%;text-align:left}
+.li img{width:50px;height:48px;border-radius:8px;object-fit:cover}
+.li div{flex:1}.li .rate{font-weight:400}
+.li svg{stroke:var(--grey);width:18px}
+.ask{margin:10px 14px;background:#FDEBEF;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.4}
+.ask b{display:block;font-size:13px}.ask svg{stroke:#EC4A6A;width:34px;height:34px}.ask div{flex:1}
+.ask svg:last-child{width:18px;stroke:var(--sub)}
+.bp{display:flex;gap:10px;padding:8px 14px;align-items:center}
+.bp img{width:82px;height:80px;border-radius:12px;object-fit:cover}
+.bp small{font-size:15px;display:block;font-weight:800}
+.bp b{font-size:15px;display:block;line-height:1.3}
+.shop{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--line)}
+.shop img{width:34px;height:34px;object-fit:contain}
+.shop div{flex:1;font-size:11px;color:var(--grey)}.shop b{font-size:12px;display:block;color:var(--ink)}.shop strong{display:block;font-size:14px;color:var(--ink)}
+.shop .btn{padding:8px 12px;font-size:12px;display:flex;gap:4px;align-items:center;flex:none}
+.shop .btn svg{width:12px;height:12px;stroke-width:2.4}
+.off{background:#E8F0FF;color:var(--blue);font-size:10px;padding:1px 5px;border-radius:4px;margin-left:6px;font-weight:700}
+.note{margin:10px 14px;background:var(--soft);color:var(--sub);font-size:11.5px;line-height:1.5;padding:10px 12px;border-radius:10px}
+@media(max-width:1599px){.row{flex-wrap:wrap;justify-content:center;gap:24px}.arrow{display:none}}
+@media(max-width:899px){
+ body{padding:14px}h1{font-size:26px}.num{width:52px;height:52px;font-size:30px}.goal{min-width:0;width:100%}
+ .col{width:100%;max-width:370px}.ph{width:351px;height:760px}.phone{transform:scale(.9)}
+ .eff>b{width:100%}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0112 7.3 4.3 4.3 0 0119.500 10c0 5.400-7.500 10-7.500 10z"/></symbol>
+<symbol id="chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-4 3.500V16H4z"/></symbol>
+<symbol id="thumb" viewBox="0 0 24 24"><path d="M8 11v9H4v-9zM8 11l4-7c2 0 2.500 1.500 2 3.500L13.500 10H19a1.500 1.500 0 011.500 1.800l-1.200 6.200A2 2 0 0117.400 20H8"/></symbol>
+<symbol id="share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.500"/><circle cx="17" cy="6" r="2.500"/><circle cx="17" cy="18" r="2.500"/><path d="M8.300 10.800l6.400-3.600M8.300 13.200l6.400 3.600"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.500-6.500z"/></symbol>
+<symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.200"/><circle cx="12" cy="12" r="1.200"/><circle cx="19" cy="12" r="1.200"/></symbol>
+<symbol id="ext" viewBox="0 0 24 24"><path d="M8 16L18 6M10 6h8v8"/></symbol>
+<symbol id="doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.500"/><path d="M2.500 20c0-4 3-6 6.500-6s6.500 2 6.500 6"/><circle cx="17" cy="9" r="2.500"/><path d="M17 14c3 0 4.500 1.800 4.500 5"/></symbol>
+<symbol id="grid" viewBox="0 0 24 24"><rect x="3.500" y="3.500" width="7" height="7" rx="1.500"/><rect x="13.500" y="3.500" width="7" height="7" rx="1.500"/><rect x="3.500" y="13.500" width="7" height="7" rx="1.500"/><rect x="13.500" y="13.500" width="7" height="7" rx="1.500"/></symbol>
+<symbol id="link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.700 0l3-3a4 4 0 00-5.700-5.700l-1 1M14 10a4 4 0 00-5.700 0l-3 3a4 4 0 005.700 5.700l1-1"/></symbol>
+<symbol id="cart" viewBox="0 0 24 24"><path d="M3 4h3l2.500 11h9.500l2-8H7"/><circle cx="10" cy="19.500" r="1.500"/><circle cx="17" cy="19.500" r="1.500"/></symbol>
+<symbol id="refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 01-14 5.300M4 12a8 8 0 0114-5.300M18 3v4h-4M6 21v-4h4"/></symbol>
+<symbol id="bar" viewBox="0 0 24 24"><path d="M5 20v-6M12 20V9M19 20V4"/></symbol>
+<symbol id="dot" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" rx="2"/></symbol>
+</defs></svg>
+<div class="wrap">
+<header>
+ <div class="ttl"><div class="num">5</div><div><h1>대화 속 제품 발견 → 제품 정보 확인 → 구매처 이동</h1><p>대화에서 언급된 제품을 자연스럽게 발견하고, 실제 제품 정보와 구매처로 연결되는 단계</p></div></div>
+ <div class="goal"><b>핵심 목표</b><ul>
+  <li><svg class="i"><use href="#check"/></svg>대화 흐름을 방해하지 않고 제품을 자연스럽게 발견할 수 있다</li>
+  <li><svg class="i"><use href="#check"/></svg>제품 정보를 한눈에 확인하고 다른 사람의 경험을 볼 수 있다</li>
+  <li><svg class="i"><use href="#check"/></svg>원하는 판매처로 이동해 쉽게 구매할 수 있다</li></ul></div>
+</header>
+
+<div class="row">
+<!-- 5-1 -->
+<div class="col"><div class="hd"><span class="pill">5-1</span><b>대화 속 제품 발견</b></div>
+<p class="cap">대화 중 언급된 제품이 자동으로<br>제품 카드로 표시되어 쉽게 발견</p>
+<div class="ph"><div class="phone">
+ <div class="sb"><span>9:41</span><span><i></i><i></i></span></div>
+ <div class="nav"><svg class="i"><use href="#back"/></svg><b>건성 피부 고민<small>124명 참여</small></b><svg class="i"><use href="#search"/></svg></div>
+ <div class="scr">
+  <div class="post" style="border-top:1px solid var(--line)"><div class="who"><img src="assets/mia.png" alt=""><b>Mia</b><span>3시간 전</span></div>
+   <p class="txt">저는 TIRTIR 쿠션 쓰고 나서 속당김이 많이 줄었어요! 건성 분들한테 추천해요 😊</p>
+   <button class="pc"><img src="assets/cushion_s.png" alt=""><span class="t"><small>TIRTIR</small>마스크 핏 레드 쿠션<span class="rate">4.6 (2,184)</span></span><svg class="i"><use href="#chev"/></svg></button>
+   <div class="act"><span class="h"><svg class="i"><use href="#heart"/></svg>24</span><span><svg class="i"><use href="#chat"/></svg>답글 8</span></div></div>
+  <div class="post" style="margin-top:10px"><div class="who"><img src="assets/sophie.png" alt=""><b>Sophie</b><span>4시간 전</span></div>
+   <p class="txt">저는 라운드랩 자작나무 수분크림이 진짜 잘 맞았어요. 화장 전에 발라도 밀리지 않아요.</p>
+   <button class="pc"><img src="assets/bottle_a.png" alt=""><span class="t"><small>라운드랩</small>자작나무 수분크림<span class="rate">4.7 (1,532)</span></span><svg class="i"><use href="#chev"/></svg></button>
+   <div class="act"><span class="h"><svg class="i"><use href="#heart"/></svg>18</span><span><svg class="i"><use href="#chat"/></svg>답글 6</span></div></div>
+  <div class="input"><button class="plus"><svg class="i"><use href="#plus"/></svg></button><label><input placeholder="대화에 참여해보세요..."><svg class="i"><use href="#send"/></svg></label></div>
+ </div></div></div>
+ <div class="card"><svg class="i"><use href="#search"/></svg><div><b>제품 발견 방법</b><ul><li>대화 중 제품명이 자동으로 카드 생성</li><li>사용자가 수동으로 제품 태그 가능</li><li>여러 제품이 언급된 경우 모두 표시</li></ul></div></div>
+</div>
+<span class="arrow"><svg class="i"><use href="#chev"/></svg></span>
+
+<!-- 5-2 -->
+<div class="col"><div class="hd"><span class="pill">5-2</span><b>제품 카드 탭</b></div>
+<p class="cap">제품 카드를 누르면 간단한 요약 정보와<br>관련 대화를 바로 확인</p>
+<div class="ph"><div class="phone">
+ <div class="sb"><span>9:41</span><span><i></i><i></i></span></div>
+ <div class="nav"><svg class="i"><use href="#back"/></svg><b>제품 정보</b><svg class="i"><use href="#share"/></svg></div>
+ <div class="scr">
+  <div class="hero"><img src="assets/cushion_big.png" alt=""></div>
+  <div class="pinfo"><div><h2><small>TIRTIR</small><br>마스크 핏 레드 쿠션</h2><span class="rate" style="margin-top:4px">4.6 (2,184)</span></div><button class="btn">구매처 보기</button></div>
+  <img src="assets/j5-thumbs.png" alt="" style="display:block;margin:2px 14px 6px;width:calc(100% - 28px);border-radius:8px">
+  <div class="tabs" data-t><button class="on">요약</button><button>대화 (128)</button><button>사용자 경험</button><button>관련 제품</button></div>
+  <div class="sec">제품 한눈에 보기</div>
+  <div class="kv"><div><svg><use href="#dot"/></svg><span>브랜드</span><em>TIRTIR</em></div><div><svg><use href="#dot"/></svg><span>카테고리</span><em>베이스 메이크업 &gt; 쿠션</em></div><div><svg><use href="#dot"/></svg><span>주요 특징</span><em>얇고 가벼운 밀착, 높은 커버력</em></div><div><svg><use href="#dot"/></svg><span>피부 타입</span><em>모든 피부 (특히 건성, 복합성)</em></div><div><svg><use href="#dot"/></svg><span>색상</span><em>17C, 21N, 23N 등 6종</em></div></div>
+  <div class="kw"><b>이런 키워드로 많이 이야기해요</b><div class="tags"><span class="tag">#커버력</span><span class="tag">#지속력</span><span class="tag">#건성추천</span><span class="tag">#색상</span><span class="tag">#들뜸없음</span><span class="tag">#밀착력</span></div></div>
+ </div></div></div>
+ <div class="card"><svg class="i"><use href="#doc"/></svg><div><b>제품 정보 구성</b><ul><li>제품 이미지, 브랜드, 평점</li><li>간단한 특징 요약</li><li>관련 대화 바로 이동</li></ul></div></div>
+</div>
+<span class="arrow"><svg class="i"><use href="#chev"/></svg></span>
+
+<!-- 5-3 -->
+<div class="col"><div class="hd"><span class="pill">5-3</span><b>실제 사용자 경험 확인</b></div>
+<p class="cap">다른 사람들의 사용 후기와 Before/After,<br>피부 타입별 경험을 확인</p>
+<div class="ph"><div class="phone">
+ <div class="sb"><span>9:41</span><span><i></i><i></i></span></div>
+ <div class="nav"><svg class="i"><use href="#back"/></svg><b>TIRTIR 마스크 핏 레드 쿠션</b></div>
+ <div class="scr">
+  <div class="seg" data-t style="padding:6px 12px"><button>요약</button><button>대화 (128)</button><button class="on">사용자 경험</button><button>관련 제품</button></div>
+  <div class="sec">사용자 경험 요약</div>
+  <div class="bars"><div style="border-bottom:1px solid var(--line)"><span>전체 평점</span><b style="grid-column:2/4;font-size:14px"><span style="color:#F5A623">★</span> <span style="color:#F5A623;font-size:17px">4.6</span> (2,184)</b></div>
+   <div><span>커버력</span><i style="width:85%"></i><em>85%</em></div><div><span>지속력</span><i style="width:78%"></i><em>78%</em></div><div><span>촉촉함</span><i style="width:72%"></i><em>72%</em></div><div><span>밀착력</span><i style="width:81%"></i><em>81%</em></div></div>
+  <div class="seg" data-t style="padding-top:10px"><button class="on">전체</button><button>건성</button><button>지성</button><button>복합성</button><button>민감성</button></div>
+  <div class="rv"><div class="who"><img src="assets/mia.png" alt=""><b>Mia</b><span>2주 전 | 건성</span></div><div class="st">★★★★★ 5</div><p>건성인데도 하루 종일 촉촉했어요! 커버력도 좋고 무너짐이 예쁘게 돼요.</p>
+   <div class="tn"><img src="assets/j5-review.png" alt=""></div>
+   <div class="act"><span class="h"><svg class="i"><use href="#heart"/></svg>24</span><span><svg class="i"><use href="#chat"/></svg>답글 5</span><span style="margin-left:auto"><svg class="i"><use href="#thumb"/></svg>도움이 돼요</span></div></div>
+  <div class="rv"><div class="who"><img src="assets/sophie.png" alt=""><b>Sophie</b><span>3주 전 | 복합성</span></div><div class="st">★★★★☆ 4</div><p>지속력이 진짜 좋아요. 오후에도 크게 무너지지 않고 커버력도 만족스러워요.</p></div>
+ </div></div></div>
+ <div class="card"><svg class="i"><use href="#users"/></svg><div><b>사용자 경험 데이터</b><ul><li>실제 사용자 후기 (텍스트/사진)</li><li>피부 타입별, 사용 기간별 필터</li><li>장점/단점 키워드 요약</li></ul></div></div>
+</div>
+<span class="arrow"><svg class="i"><use href="#chev"/></svg></span>
+
+<!-- 5-4 -->
+<div class="col"><div class="hd"><span class="pill">5-4</span><b>관련 제품 비교</b></div>
+<p class="cap">비슷한 고민/피부 타입의 다른 제품도<br>함께 확인하고 비교</p>
+<div class="ph"><div class="phone">
+ <div class="sb"><span>9:41</span><span><i></i><i></i></span></div>
+ <div class="nav"><svg class="i"><use href="#back"/></svg><b>관련 제품</b></div>
+ <div class="scr">
+  <div class="seg" data-t style="padding:6px 12px"><button>같은 카테고리</button><button class="on">비슷한 피부 타입</button><button>함께 언급된 제품</button></div>
+  <div class="sec">건성 피부에 많이 추천되는 쿠션</div>
+  <div class="g3"><div><img src="assets/clio.png" alt="">CLIO<small>킬커버 쿠션</small><span class="rate">4.5</span></div><div><img src="assets/j5-espoir.png" alt="">espoir<small>프로 테일러 쿠션</small><span class="rate">4.4</span></div><div><img src="assets/hera.png" alt="">HERA<small>블랙 쿠션</small><span class="rate">4.6</span></div></div>
+  <div class="sec" style="padding-top:16px">사용자들이 함께 본 제품</div>
+  <button class="li"><img src="assets/j5-rel1.png" alt=""><div>라네즈 네오 쿠션<span class="rate">4.5 (1,842)</span></div><svg class="i"><use href="#chev"/></svg></button>
+  <button class="li"><img src="assets/j5-rel2.png" alt=""><div>아이오페 에어쿠션<span class="rate">4.4 (1,203)</span></div><svg class="i"><use href="#chev"/></svg></button>
+  <button class="li"><img src="assets/j5-rel3.png" alt=""><div>주문주 쿠션<span class="rate">4.3 (856)</span></div><svg class="i"><use href="#chev"/></svg></button>
+  <div class="ask"><svg class="i"><use href="#chat"/></svg><div><b>비슷한 고민이 있다면?</b>건성 피부 베이스 메이크업 대화방에서 더 많은 후기를 확인해보세요.</div><svg class="i"><use href="#chev"/></svg></div>
+ </div></div></div>
+ <div class="card"><svg class="i"><use href="#grid"/></svg><div><b>관련 제품 추천</b><ul><li>같은 카테고리 제품</li><li>비슷한 피부 타입 추천 제품</li><li>함께 언급된 제품</li></ul></div></div>
+</div>
+<span class="arrow"><svg class="i"><use href="#chev"/></svg></span>
+
+<!-- 5-5 -->
+<div class="col"><div class="hd"><span class="pill">5-5</span><b>구매처 이동</b></div>
+<p class="cap">원하는 판매처를 선택하고 실제 구매<br>페이지로 이동</p>
+<div class="ph"><div class="phone">
+ <div class="sb"><span>9:41</span><span><i></i><i></i></span></div>
+ <div class="nav"><svg class="i"><use href="#back"/></svg><b>구매하기</b><svg class="i"><use href="#more"/></svg></div>
+ <div class="scr">
+  <div class="bp"><img src="assets/j5-buy.png" alt=""><div><small>TIRTIR</small><b>마스크 핏 레드 쿠션</b><span class="rate" style="margin-top:4px">4.6 (2,184)</span></div></div>
+  <div class="sec" style="padding-top:6px;margin-top:4px">판매처 선택</div>
+  <div class="shop"><img src="assets/j5-olive.png" alt=""><div><b>OLIVE YOUNG Global<span class="off">공식</span></b><strong>$24.00</strong>무료배송 (조건부)</div><button class="btn">구매하기<svg class="i"><use href="#ext"/></svg></button></div>
+  <div class="shop"><img src="assets/j5-amazon.png" alt=""><div><b>Amazon</b><strong>$22.90</strong>무료배송 (조건부)</div><button class="btn">구매하기<svg class="i"><use href="#ext"/></svg></button></div>
+  <div class="shop"><img src="assets/j5-style.png" alt=""><div><b>Stylevana</b><strong>$20.50</strong>무료배송 (조건부)</div><button class="btn">구매하기<svg class="i"><use href="#ext"/></svg></button></div>
+  <div class="shop"><img src="assets/j5-yes.png" alt=""><div><b>YesStyle</b><strong>$21.30</strong>무료배송 (조건부)</div><button class="btn">구매하기<svg class="i"><use href="#ext"/></svg></button></div>
+  <div class="shop"><img src="assets/j5-ebay.png" alt=""><div><b>eBay</b><strong>$23.10</strong>무료배송 (조건부)</div><button class="btn">구매하기<svg class="i"><use href="#ext"/></svg></button></div>
+  <p class="note">판매처의 가격, 배송비, 배송 기간은 변동될 수 있습니다. 각 사이트에서 최신 정보를 확인하세요.</p>
+ </div></div></div>
+ <div class="card"><svg class="i"><use href="#link"/></svg><div><b>구매처 연동</b><ul><li>올리브영 Global, Amazon 등</li><li>가격, 배송 정보 표시</li><li>제휴 링크로 구매 페이지 이동</li></ul></div></div>
+</div>
+</div>
+
+<div class="eff"><b>기대 효과</b>
+ <div><svg class="i"><use href="#cart"/></svg><p><strong>제품 발견 증가</strong><span>실제 대화 기반으로 신뢰도 높은 제품 발견</span></p></div>
+ <div><svg class="i"><use href="#users"/></svg><p><strong>구매 전환 증가</strong><span>사용자 경험 확인 후 구매 결정이 쉬워짐</span></p></div>
+ <div><svg class="i"><use href="#refresh"/></svg><p><strong>커뮤니티 활성화</strong><span>제품 경험 공유가 더 활발해짐</span></p></div>
+ <div><svg class="i"><use href="#bar"/></svg><p><strong>제휴 수익 창출</strong><span>다양한 판매처로 연결되어 수익 기회 확대</span></p></div>
+</div>
+</div>
+<script>
+document.querySelectorAll('[data-t]').forEach(function(g){
+  g.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||!g.contains(b))return;
+    g.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)});
+  });
+});
+</script>
+</body>
+</html>
