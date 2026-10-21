@@ -461,7 +461,7 @@ struct ChatRoomView: View {
         .sheet(item: $openFamily) { FamilySheet(family: $0, ref: purchaseRef, attach: { picked in item = picked }).environmentObject(store) }
         .sheet(item: $savingMessage) { CommunityComposer(room: room, fromMessage: $0).environmentObject(store) }
         .confirmationDialog(L("chat.reportTitle"), isPresented: Binding(get: { reporting != nil }, set: { if !$0 { reporting = nil } }), titleVisibility: .visible) {
-            ForEach(["spam", "abuse", "sexual", "other"], id: \.self) { reason in
+            ForEach(["spam", "abuse", "sexual", "privacy", "threat", "other"], id: \.self) { reason in
                 Button(L("chat.reason." + reason)) { report(reason) }
             }
         }
