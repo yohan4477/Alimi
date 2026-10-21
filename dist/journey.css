@@ -188,3 +188,16 @@ html[data-room="1"] #tabbar{display:none}
 .room-intro-card .room-tags span{padding:5px 10px;border-radius:14px;background:var(--jr-soft);color:var(--jr-blue);font-size:12px;font-weight:600}
 .related-rooms .related-list{max-height:60dvh;overflow-y:auto;margin-top:6px}
 #search::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+
+/* Journey 3 detail (3-1…3-5) */
+.room-notice>span:nth-child(2){white-space:normal;display:flex;flex-direction:column;gap:2px;padding:8px 0}
+.room-notice b{font-size:13px;font-weight:700;color:var(--jr-blue)}
+.room-notice small{font-size:12px;color:var(--jr-sub);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.log-sorts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--jr-line);flex-shrink:0}
+.log-sorts button{min-height:42px;font-size:13.5px;color:var(--jr-gray);border:0;background:none;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.log-sorts button.on{color:var(--jr-blue);font-weight:700;border-bottom-color:var(--jr-blue)}
+.me-tag{font-size:11px;font-weight:700;color:var(--jr-blue);background:#fff;border:1px solid #cfe0fb;border-radius:8px;padding:1px 6px}
+.exp-product{display:flex;align-items:center;gap:8px;width:100%;min-height:42px;margin-top:12px;padding:0 14px;border-radius:21px;border:0;background:var(--jr-chip);color:var(--jr-sub);font-size:13px;text-align:left}
+.exp-product svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex:none}
+.exp-product span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exp-hint{margin:6px 2px 0;font-size:11.5px;color:var(--jr-gray)}

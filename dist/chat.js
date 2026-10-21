@@ -291,7 +291,7 @@ function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null; inRoom(true);
   const other = mode === 'posts' ? 'live' : 'posts';
   // Journey 3 room header: back, centred title with real member count, ⋯ menu (share / posts ↔ live).
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(t('room.joined', {n: room.members ?? 0}))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${esc(mode === 'posts' ? t('community.live') : roomIntro(room))}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(t('room.joined', {n: room.members ?? 0}))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${mode === 'posts' ? esc(t('community.live')) : `<b>${esc(t('room.noticeTitle'))}</b><small>${esc(roomIntro(room))}</small>`}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
   if (room.demo) { startLive(room); return; }
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
@@ -385,7 +385,8 @@ async function startLive(room) {
   const draft=roomDrafts.get(room.id);
   chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
   const setupNudge = shouldSuggestSetup(readInterests(), storage) ? `<aside id="setup-nudge" class="setup-nudge"><b>${esc(t('onb.nudgeTitle'))}</b><p>${esc(t('onb.nudgeHint'))}</p><div><button class="text-link" data-onb-manage data-onb-context="chat">${esc(t('onb.manage'))}</button><button class="text-btn" data-setup-snooze>${esc(t('onb.snooze'))}</button></div></aside>` : '';
-  body(`${setupNudge}<div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><div class="composer-tools"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><button type="button" class="exp-open" data-chat-action="experience">${icon.spark}<span>${esc(t('exp.open'))}</span></button></div><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">${icon.plus}</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.composePh'))}"></textarea><button class="chat-send" aria-label="${esc(t('chat.send'))}">${icon.send}</button></div></form>`);
+  logSort = 'all';
+  body(`${setupNudge}<div class="log-sorts" role="group" aria-label="${esc(t('community.live'))}">${LOG_SORTS.map(k => `<button data-log-sort="${k}" aria-pressed="${k === 'all'}" class="${k === 'all' ? 'on' : ''}">${esc(t('chat.sort.' + k))}</button>`).join('')}</div><div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><div class="composer-tools"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><button type="button" class="exp-open" data-chat-action="experience">${icon.spark}<span>${esc(t('exp.open'))}</span></button></div><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">${icon.plus}</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.composePh'))}"></textarea><button class="chat-send" aria-label="${esc(t('chat.send'))}">${icon.send}</button></div></form>`);
   {
     $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
@@ -421,10 +422,15 @@ function nicknameColor(nickname) {
   return NICK_COLORS[hash];
 }
 
+// 3-2: 전체 = conversation order; 최신순 = newest first; 인기순 = most liked first (no grouping or day lines).
+const LOG_SORTS = ['all', 'new', 'top'];
+let logSort = 'all';
+const msgTime = iso => Date.now() - Date.parse(iso) < 86400000 ? relTime(iso) : time(iso);
 function renderLog(scroll) {
   const log = $('#chat-log'); if (!log) return;
-  const near = log.scrollHeight - log.scrollTop - log.clientHeight < 120;
-  const list = visible(chat.messages, readBlocked(storage));
+  const near = logSort === 'all' && log.scrollHeight - log.scrollTop - log.clientHeight < 120;
+  const shown = visible(chat.messages, readBlocked(storage));
+  const list = logSort === 'new' ? [...shown].reverse() : logSort === 'top' ? [...shown].sort((a, b) => (b.likes || 0) - (a.likes || 0) || b.id - a.id) : shown;
   const oldTop=log.scrollTop;
   if ((scroll||near) && chat.room && chat.messages.length) markSeen(chat.room.id, chat.messages.at(-1).created_at);
   const byId = new Map(list.map(m => [m.id, m])); // quotes of blocked authors are hidden too
@@ -432,13 +438,13 @@ function renderLog(scroll) {
   log.innerHTML = roomIntroCard() + (list.length ? list.map((m, index) => {
     const mine = m.author_tag === chat.myTag, parent = m.reply_to ? byId.get(m.reply_to) : null;
     const day = new Intl.DateTimeFormat(locale(), {year:'numeric', month:'long', day:'numeric'}).format(new Date(m.created_at));
-    const divider = day !== previousDay ? `<div class="chat-date"><span>${esc(day)}</span></div>` : '';
+    const divider = logSort === 'all' && day !== previousDay ? `<div class="chat-date"><span>${esc(day)}</span></div>` : '';
     const prev = list[index - 1];
     const elapsed = prev ? Date.parse(m.created_at) - Date.parse(prev.created_at) : Infinity;
-    const grouped = !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
+    const grouped = logSort === 'all' && !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
     // Journey 3 feed row: nickname · time, text, product card, ♡ / 답글. No avatars (removed by product decision).
-    return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b><time class="msg-time">${esc(time(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p class="msg-body">${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></div></article>`;
+    return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(m.nickname)}</b>${mine ? `<span class="me-tag">${esc(t('chat.meTag'))}</span>` : ''}<time class="msg-time" datetime="${esc(m.created_at)}">${esc(msgTime(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(parent.nickname)}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? `<p class="msg-body">${esc(m.body)}</p>` : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}<div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`);
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
@@ -446,7 +452,8 @@ function renderLog(scroll) {
   log.onpointerdown = e => { if (e.target.closest('button')) return; const row = e.target.closest('.chat-msg'); if (row) press = setTimeout(() => openMenu(+row.dataset.id), 550); };
   log.onpointerup = log.onpointercancel = log.onpointermove = () => clearTimeout(press);
 
-  if (scroll || near) { log.scrollTop = log.scrollHeight; unreadMessages = 0; }
+  if (logSort !== 'all') { if (scroll) log.scrollTop = 0; }
+  else if (scroll || near) { log.scrollTop = log.scrollHeight; unreadMessages = 0; }
   else { log.scrollTop = oldTop; }
   const latest = $('#chat-latest');
   if (latest) { latest.hidden = unreadMessages === 0; latest.textContent = t('chat.newMessages', {n: unreadMessages}); }
@@ -517,7 +524,7 @@ function picked1(i) {
   const it = picked[i]; $('#chat-pick').close();
   if (pickFor === 'comment') { view.commentItem = it; renderPost(); $('#comment-text')?.focus(); }
   else if (pickFor === 'write') { view.draft.item = it; renderWrite(); }
-  else { chat.item = it; renderContext(); $('#chat-text')?.focus(); }
+  else { chat.item = it; renderContext(); if ($('#exp-sheet')?.open) renderExperience(); else $('#chat-text')?.focus(); }
 }
 
 // Journey 2-4 room preview card at the top of the conversation: picture, real members / last activity, tags,
@@ -567,7 +574,7 @@ function renderExperience() {
   const room = chat.room, image = home?.images?.get(room.id);
   const group = (g, title, hint = '') => `<fieldset class="exp-group"><legend>${esc(t(title))}${hint ? ` <span>${esc(t(hint))}</span>` : ''}</legend><div class="exp-chips">${EXP[g].map(v => { const on = EXP_MULTI.includes(g) ? exp[g].includes(v) : exp[g] === v; return `<button type="button" data-exp="${g}:${v}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(expLabel(g, v))}</button>`; }).join('')}</div></fieldset>`;
   const usedIt = exp.used !== 'no';
-  $('#exp-sheet').innerHTML = `<div class="exp-bar"><button type="button" class="icon-btn" data-chat-action="exp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div><h2 id="exp-title">${esc(t('exp.title'))}</h2><small>${esc(t('exp.optional'))}</small></div></div><div class="exp-body"><div class="exp-room">${roomThumb(room, image)}<b>${esc(roomTitle(room))}</b></div>${group('used', 'exp.used')}${usedIt ? group('period', 'exp.period') : ''}${group('skin', 'exp.skin')}${usedIt ? group('good', 'exp.good', 'exp.choose') : ''}<label class="exp-note"><span class="sr-only">${esc(t('exp.title'))}</span><textarea id="exp-note" rows="3" maxlength="400" placeholder="${esc(t('exp.notePh'))}">${esc(exp.note)}</textarea><small id="exp-count">${exp.note.length}/400</small></label></div><div class="exp-actions"><button type="button" class="primary" data-chat-action="exp-submit">${esc(t('exp.submit'))}</button><button type="button" class="text-btn" data-chat-action="exp-close">${esc(t('exp.skip'))}</button></div>`;
+  $('#exp-sheet').innerHTML = `<div class="exp-bar"><button type="button" class="icon-btn" data-chat-action="exp-close" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div><h2 id="exp-title">${esc(t('exp.title'))}</h2><small>${esc(t('exp.optional'))}</small></div></div><div class="exp-body"><div class="exp-room">${roomThumb(room, image)}<b>${esc(roomTitle(room))}</b></div><button type="button" class="exp-product" data-chat-action="exp-product"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>${chat.item ? esc(`${brandLabel(chat.item)} · ${chat.item.name}`) : esc(t('exp.product'))}</span></button><p class="exp-hint">${esc(t('exp.productHint'))}</p>${group('used', 'exp.used')}${usedIt ? group('period', 'exp.period') : ''}${group('skin', 'exp.skin')}${usedIt ? group('good', 'exp.good', 'exp.choose') : ''}<label class="exp-note"><span class="sr-only">${esc(t('exp.title'))}</span><textarea id="exp-note" rows="3" maxlength="400" placeholder="${esc(t('exp.notePh'))}">${esc(exp.note)}</textarea><small id="exp-count">${exp.note.length}/400</small></label></div><div class="exp-actions"><button type="button" class="primary" data-chat-action="exp-submit">${esc(t('exp.submit'))}</button><button type="button" class="text-btn" data-chat-action="exp-close">${esc(t('exp.skip'))}</button></div>`;
 }
 function experienceText() {
   const head = [exp.used && expLabel('used', exp.used), exp.used !== 'no' && exp.period && expLabel('period', exp.period), ...exp.skin.map(v => expLabel('skin', v))].filter(Boolean).join(' · ');
@@ -723,6 +730,8 @@ document.addEventListener('click', async e => {
   else if (b.dataset.relatedRoom) { const r = chat.rooms.find(x => x.id === b.dataset.relatedRoom); $('#related-rooms').close(); if (r) openTopic(r, 'live'); }
   else if (a === 'exp-close') $('#exp-sheet')?.close();
   else if (a === 'exp-submit') submitExperience();
+  else if (a === 'exp-product') { exp.note = $('#exp-note')?.value ?? exp.note; openPicker('chat'); }
+  else if (b.dataset.logSort) { logSort = b.dataset.logSort; document.querySelectorAll('[data-log-sort]').forEach(x => { const on = x.dataset.logSort === logSort; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); }); renderLog(true); }
   else if (b.dataset.exp && exp) { const [g, v] = b.dataset.exp.split(':'); exp.note = $('#exp-note')?.value ?? exp.note; if (EXP_MULTI.includes(g)) exp[g] = exp[g].includes(v) ? exp[g].filter(x => x !== v) : [...exp[g], v]; else exp[g] = exp[g] === v ? null : v; renderExperience(); $(`[data-exp="${g}:${v}"]`)?.focus(); }
   else if (a === 'attach-comment') askRules(chat.room ?? {title_en: '', title_ko: '', intro_en: '', intro_ko: ''}, () => openPicker('comment'));
   else if (a === 'comment-item-cancel') { view.commentItem = null; renderPost(); }

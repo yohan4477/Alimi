@@ -2495,5 +2495,33 @@
   "related.empty": {
     "ko": "아직 이 기준으로 연결된 대화방이 없어요.",
     "en": "No rooms linked this way yet."
+  },
+  "room.noticeTitle": {
+    "ko": "이런 이야기를 나눠요",
+    "en": "What we talk about here"
+  },
+  "chat.sort.all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "chat.sort.new": {
+    "ko": "최신순",
+    "en": "Latest"
+  },
+  "chat.sort.top": {
+    "ko": "인기순",
+    "en": "Popular"
+  },
+  "chat.meTag": {
+    "ko": "나",
+    "en": "Me"
+  },
+  "exp.product": {
+    "ko": "제품 검색 (선택)",
+    "en": "Find the product (optional)"
+  },
+  "exp.productHint": {
+    "ko": "제품을 선택하면 더 정확한 답변을 받을 수 있어요.",
+    "en": "Adding the product helps others answer."
   }
 }
