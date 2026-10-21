@@ -2,14 +2,26 @@
 
 Implemented web flow: Google, Kakao, Naver → Supabase PKCE callback → validated user → session restore/refresh → account preferences.
 
-## Deployment status
+## Deployment status (2026-10-21)
+
+Live on https://seoulbeauty.me. Verified with real sign-ins: Google on /kr and /us; Kakao and Naver on /kr. Kakao and Naver buttons appear only in the KR market.
+
+| Provider | Supabase provider | Console | Status |
+|---|---|---|---|
+| Google | built-in `google` | GCP project `seoulbeauty`, consent screen in production, branding verified | Live |
+| Kakao | custom OIDC `custom:kakao` (issuer `https://kauth.kakao.com`, scopes `openid profile_nickname`, email optional) | Kakao app 1616576, OpenID Connect ON, 닉네임 선택 동의 | Live |
+| Naver | custom OAuth2 `custom:naver` (below) | Naver app `SeoulBeauty`, 별명 필수 | 개발 중: only owner/testers until 검수 approval |
+
+The built-in Kakao provider is disabled. It always requests `account_email profile_image`, and `account_email` requires Kakao biz-app verification. Without it, Kakao rejects login with KOE205.
+
+### Earlier status
 
 Code and tests are ready. Production activation is NOT verified. The connected Supabase account only lists `cprwvbprpgldkqqfdhyx`; this app uses `mqsnshnlfwsgabrsmqsz`. A read-only SQL probe to the app project returned `You do not have permission to perform this action`. Do not deploy schema into the unrelated project.
 
 ## Required production setup
 
 1. Open the existing app project: https://supabase.com/dashboard/project/mqsnshnlfwsgabrsmqsz/auth/providers
-2. Configure Google with its registered client ID/secret. Enable Kakao using its REST API key and client secret. Kakao can omit email: enable email-optional sign-in, and allow the `profile_nickname` consent scope.
+2. Configure Google with its registered client ID/secret. Kakao: use the custom OIDC provider `custom:kakao` with the REST API key and client secret, scopes `openid profile_nickname`, and email-optional sign-in. Do not use the built-in Kakao provider (see above).
 3. For each provider, copy the callback URL displayed in Supabase into its developer console. Do not use the web app URL as the provider's Supabase callback.
 4. Allow the app return URLs for the deployed `/kr` and `/us` paths on `https://seoulbeauty.me` (and only the actual additional production hosts in use). The login flow appends `sb_login_state` plus existing query parameters. Verify return URL matching against these parameters. Site URL must also point to the production app. Avoid broad preview-host wildcards.
 5. Done 2026-10-21: `account_preferences` is applied as migration `supabase/migrations/20261021000000_account_preferences.sql` (same SQL as `scripts/account-preferences.sql`). Anonymous REST reads return `permission denied`; owner-only RLS policy `account_preferences_owner` is in place.
