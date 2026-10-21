@@ -43,7 +43,7 @@ export class AccountSync {
       const opinionSources=[server[OPINION_KEY],this.dirty[OPINION_KEY],before[OPINION_KEY]];
       if(opinionSources.some(Boolean)){
         const merged=mergeOpinions(...opinionSources);
-        if(merged!==server[OPINION_KEY])this.dirty[OPINION_KEY]=merged;
+        if(merged!==server[OPINION_KEY])this.dirty[OPINION_KEY]=merged;else delete this.dirty[OPINION_KEY];
       }
       this.storage.setItem(pending(id),JSON.stringify(this.dirty));this.apply({...server,...this.dirty});this.baseline=this.read();this.ready=true;this.onChange();await this.flush();
     }catch{if(this.generation===generation)this.onStatus('failed');}

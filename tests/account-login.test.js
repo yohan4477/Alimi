@@ -36,3 +36,8 @@ test('late old-account failed request cannot change new-account status',async()=
  const sync=new AccountSync(auth,{storage,onStatus:s=>statuses.push(s),fetchImpl:async()=>auth.user.id==='A'?new Promise((r,j)=>{reject=j}):response([])});
  const first=sync.start();auth.user={id:'B'};await sync.start();reject(Error('old offline'));await first;assert.equal(statuses.at(-1),'ready');
 });
+test('newer server answer replaces stale guest import without uploading stale data',async()=>{
+ const storage=new Store();storage.setItem(OP,JSON.stringify({a:old}));const auth={user:{id:'A'},session:{access_token:'t'},async restore(){}};const posts=[];
+ const sync=new AccountSync(auth,{storage,fetchImpl:async(u,o)=>o.method==='POST'?(posts.push(JSON.parse(o.body)),response(null,204)):response([{key:OP,value:JSON.stringify({a:fresh})}])});
+ await sync.start();assert.deepEqual(JSON.parse(storage.getItem(OP)),{a:fresh});assert.equal(posts.flat().some(x=>x.key===OP),false);
+});
