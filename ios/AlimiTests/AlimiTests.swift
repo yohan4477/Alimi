@@ -105,8 +105,13 @@ final class AlimiTests: XCTestCase {
         let q = URLComponents(url: ProductFamily.pageURL(category: "전체", offset: 0, brand: "COSRX"), resolvingAgainstBaseURL: true)!.queryItems!
         XCTAssertEqual(q.first { $0.name == "brand" }?.value, "eq.COSRX")
     }
+    func testNativeContentRequiresNativePermission() {
+        XCTAssertFalse(ContentPermission.permits("Awin feed; app reuse terms not reviewed", retailer: "Stylevana US"))
+        let webOnly = #"{"status":"verified","retailer":"Stylevana US","market":"US","platforms":["web"],"uses":["product_description"],"evidenceUrl":"https://example.org/terms","checkedAt":"2026-10-21T00:00:00Z"}"#
+        XCTAssertFalse(ContentPermission.permits(webOnly, retailer: "Stylevana US"))
+    }
     func testCatalogCopyNeedsPermissionAndSafeSource() {
-        let row = CatalogCopyRow(url: "https://www.stylevana.com/a.html", description: "Snail mucin essence for hydration.", descriptionPermission: "Awin feed 111294")
+        let row = CatalogCopyRow(url: "https://www.stylevana.com/a.html", description: "Snail mucin essence for hydration.", descriptionPermission: #"{"status":"verified","retailer":"Stylevana US","market":"US","platforms":["native"],"uses":["product_description"],"evidenceUrl":"https://example.org/terms","checkedAt":"2026-10-21T00:00:00Z"}"#)
         XCTAssertEqual(row.copy(retailer: "Stylevana US", sku: "10759")?.description, "Snail mucin essence for hydration.")
         XCTAssertNil(CatalogCopyRow(url: row.url, description: row.description, descriptionPermission: " ").copy(retailer: "Stylevana US", sku: "10759"))
         XCTAssertNil(CatalogCopyRow(url: row.url, description: nil, descriptionPermission: "x").copy(retailer: "Stylevana US", sku: "10759"))

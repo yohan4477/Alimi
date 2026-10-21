@@ -190,7 +190,7 @@ function interestRow(){
 }
 function openActivityProfile(){
   let dlg=$('#activity-profile-dialog');if(!dlg){dlg=document.createElement('dialog');dlg.id='activity-profile-dialog';document.body.append(dlg)}
-  dlg.innerHTML=`<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('activity.profile'))}</h2><button class="interest-row" data-activity-skin><span><b>${esc(t('profile.title'))}</b><small>${esc(t('activity.skinHint'))}</small></span><span aria-hidden="true">›</span></button><button class="interest-row" data-activity-interests><span><b>${esc(t('activity.interests'))}</b><small>${esc(t('activity.interestsHint'))}</small></span><span aria-hidden="true">›</span></button>`;dlg.showModal();
+  dlg.innerHTML=`<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('activity.profile'))}</h2><button class="interest-row" data-activity-skin><span><b>${esc(t('profile.title'))}</b><small>${esc(t('activity.skinHint'))}</small></span><span aria-hidden="true">›</span></button><button class="interest-row" data-activity-interests><span><b>${esc(t('activity.interests'))}</b><small>${esc(t('activity.interestsHint'))}</small></span><span aria-hidden="true">›</span></button><button class="interest-row" data-activity-opinions><span><b>${esc(t('opinion.title'))}</b><small>${esc(t('opinion.entryHint'))}</small></span><span aria-hidden="true">›</span></button>`;dlg.showModal();
 }
 const activityEmpty=(message,kind)=>`<div class="activity-empty"><p>${esc(message)}</p><button class="text-link" data-activity-browse="${kind}">${esc(t(kind==='rooms'?'activity.browseRooms':'activity.browseProducts'))} ›</button></div>`;
 let activityTab='saved';
@@ -216,12 +216,13 @@ const accountSync=new AccountSync(auth,{storage,onChange:()=>{
   state=readState(storage);products=mergeCatalogSaves(products.filter(p=>!p.id.startsWith('catalog|')),readCatalogSaves(storage)).filter(p=>inMarket(p));
   updateCount();if(screen==='saved')renderSaved();
 },onStatus:value=>{syncStatus=value;if(screen==='settings')renderSettings()}});
-for(const event of ['profile-change','interests-change'])document.addEventListener(event,()=>accountSync.changed());
+for(const event of ['profile-change','interests-change','opinions-change'])document.addEventListener(event,()=>accountSync.changed());
 async function restoreAccount(){try{await auth.restore();if(auth.user)await accountSync.start();else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}if(screen==='settings')renderSettings();}
 setInterval(()=>{if(!document.hidden)restoreAccount()},60000);
 window.addEventListener('online',()=>restoreAccount().then(()=>accountSync.flush()));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreAccount()});
 window.addEventListener('storage',e=>{if(e.key==='alimi-auth-session-v1')location.reload()});
+document.addEventListener('seoulbeauty-google-signin-request',()=>{if(!auth.user)authAction('google');});
 async function authAction(a){
   if(authBusy)return;authBusy=true;renderSettings();
   try{
@@ -349,7 +350,7 @@ function showInviteDiscovery(){
 show('chat');
 showInviteDiscovery();
 if(arrival?.product)openFamily(arrival.product);
-const startGuide=(step,returnToChat=false,returnToActivity=false)=>openOnboarding({step,returnToChat:returnToChat||returnToActivity,load:onboardingData,onClose:target=>{if(returnToActivity){renderSaved();return;}if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
+const startGuide=(step,returnToChat=false,returnToActivity=false)=>openOnboarding({step,authenticated:Boolean(auth.user),returnToChat:returnToChat||returnToActivity,load:onboardingData,onClose:target=>{if(returnToActivity){renderSaved();return;}if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
 loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.demoProduct){openDemoProduct(b.dataset.demoProduct);return}
@@ -362,6 +363,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`).focus();return}
   if('activityProfile' in b.dataset){openActivityProfile();return}
   if('activitySkin' in b.dataset){$('#activity-profile-dialog').close();openProfile();return}
+  if('activityOpinions' in b.dataset){$('#activity-profile-dialog').close();startGuide('brands',false,true);return}
   if('activityInterests' in b.dataset){$('#activity-profile-dialog').close();startGuide('choose',false,true);return}
   if('activityBrowse' in b.dataset){if(b.dataset.activityBrowse==='rooms'){openRoomListNext();show('chat')}else show('home');return}
   if('onbManage' in b.dataset){startGuide('choose',b.dataset.onbContext==='chat');return}

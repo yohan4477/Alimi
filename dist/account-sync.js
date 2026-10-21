@@ -1,6 +1,7 @@
+import {OPINION_KEY,mergeOpinions} from './opinions.js';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './supabase.js';
 // Deliberately exclude auth tokens, anonymous chat secrets and demo conversations.
-export const SYNC_KEYS=['alimi-live-v1','seoulbeauty-catalog-saves-v1','seoulbeauty-interests-v1','seoulbeauty-profile-v1'];
+export const SYNC_KEYS=['alimi-live-v1','seoulbeauty-catalog-saves-v1','seoulbeauty-interests-v1','seoulbeauty-profile-v1','seoulbeauty-opinions-v1'];
 const OWNER='seoulbeauty-data-owner',cache=id=>'seoulbeauty-account-cache:'+id,pending=id=>'seoulbeauty-account-pending:'+id;
 export class AccountSync {
   constructor(auth,{storage=globalThis.localStorage,fetchImpl=(...a)=>fetch(...a),onChange=()=>{},onStatus=()=>{}}={}){Object.assign(this,{auth,storage,fetch:fetchImpl,onChange,onStatus,userId:null,baseline:{},dirty:{},ready:false,queue:Promise.resolve(),generation:0});}
@@ -22,15 +23,30 @@ export class AccountSync {
   }
   async start(){
     const id=this.auth.user?.id;if(!id)return;if(this.userId===id&&this.ready)return;
-    const generation=++this.generation;this.ready=false;this.userId=id;this.switchOwner(id);this.onChange();this.onStatus('loading');
+    const generation=++this.generation;this.ready=false;this.userId=id;
+    const guestBefore=(this.storage.getItem(OWNER)||'guest')==='guest';
+    const guestOpinions=guestBefore?this.storage.getItem('seoulbeauty-opinions-v1'):null;
+    this.switchOwner(id);this.onChange();this.onStatus('loading');
     this.baseline=this.read();this.dirty=this.parse(pending(id));
+    // Persist the guest import before the network request, so retry/reload cannot lose it.
+    if(guestOpinions){
+      this.dirty[OPINION_KEY]=mergeOpinions(this.baseline[OPINION_KEY],this.dirty[OPINION_KEY],guestOpinions);
+      this.storage.setItem(OPINION_KEY,this.dirty[OPINION_KEY]);
+      this.storage.setItem(pending(id),JSON.stringify(this.dirty));
+    }
     try{
       const rows=await this.request('?select=key,value&user_id=eq.'+encodeURIComponent(id));
       if(this.generation!==generation)return;
       const before=this.read(),server=Object.fromEntries(rows.map(r=>[r.key,r.value]));
       for(const key of SYNC_KEYS){if(before[key]!==this.baseline[key])this.dirty[key]=before[key];if(!(key in server)&&before[key]!==null)this.dirty[key]=before[key];}
+      // Merge all explicit opinion edits, including changes made while the read was in flight.
+      const opinionSources=[server[OPINION_KEY],this.dirty[OPINION_KEY],before[OPINION_KEY]];
+      if(opinionSources.some(Boolean)){
+        const merged=mergeOpinions(...opinionSources);
+        if(merged!==server[OPINION_KEY])this.dirty[OPINION_KEY]=merged;else delete this.dirty[OPINION_KEY];
+      }
       this.storage.setItem(pending(id),JSON.stringify(this.dirty));this.apply({...server,...this.dirty});this.baseline=this.read();this.ready=true;this.onChange();await this.flush();
-    }catch{this.onStatus('failed');}
+    }catch{if(this.generation===generation)this.onStatus('failed');}
   }
   changed(){
     if(!this.userId)return;const now=this.read();
@@ -49,7 +65,7 @@ export class AccountSync {
         if(this.generation!==generation)return;
         for(const [key,value]of Object.entries(changes))if(this.dirty[key]===value)delete this.dirty[key];
         this.storage.setItem(pending(id),JSON.stringify(this.dirty));this.onStatus('ready');
-      }catch{this.storage.setItem(pending(id),JSON.stringify(this.dirty));this.onStatus('failed');}
+      }catch{if(this.generation===generation){this.storage.setItem(pending(id),JSON.stringify(this.dirty));this.onStatus('failed');}}
     });return this.queue;
   }
   stop(){this.changed();this.generation++;this.ready=false;this.userId=null;this.switchOwner('guest');this.onChange();this.onStatus('local');}

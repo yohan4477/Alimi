@@ -2215,5 +2215,65 @@
   "account.syncRetry": {
     "ko": "지금 동기화",
     "en": "Sync now"
+  },
+  "opinion.title": {
+    "ko": "브랜드 경험",
+    "en": "Brand experiences"
+  },
+  "opinion.entryHint": {
+    "ko": "알고 있거나 사용해 본 브랜드 답변 보기·수정",
+    "en": "Review or edit brands you know or have tried"
+  },
+  "opinion.question": {
+    "ko": "{brand} 들어보셨나요?",
+    "en": "Have you heard of {brand}?"
+  },
+  "opinion.storage": {
+    "ko": "답변은 이 기기에 저장돼요. 로그인하면 내 계정에 동기화를 시도하며, 공개 후기나 전체 통계로 게시하지 않아요.",
+    "en": "Answers are saved on this device. When signed in, we try to sync them to your account. They are not published as reviews or community statistics."
+  },
+  "opinion.tried_liked": {
+    "ko": "써봤고 마음에 들어요",
+    "en": "I tried it and liked it"
+  },
+  "opinion.tried_disliked": {
+    "ko": "써봤지만 맞지 않았어요",
+    "en": "I tried it, not for me"
+  },
+  "opinion.want_to_try": {
+    "ko": "알고 있거나 궁금해요",
+    "en": "I know it / curious"
+  },
+  "opinion.not_familiar": {
+    "ko": "처음 들어봐요",
+    "en": "Never heard of it"
+  },
+  "opinion.noResults": {
+    "ko": "아직 공개된 커뮤니티 결과가 없어요",
+    "en": "No public community results yet"
+  },
+  "opinion.summary": {
+    "ko": "내가 남긴 브랜드 답변",
+    "en": "Your brand answers"
+  },
+  "opinion.summaryHint": {
+    "ko": "아래는 내 답변이에요. 뒤로 가서 수정하거나 가입 없이 계속 둘러볼 수 있어요.",
+    "en": "These are your own answers. Go back to edit or keep exploring without signing up."
+  },
+  "opinion.empty": {
+    "ko": "아직 저장된 답변이 없어요. 답변 없이 둘러봐도 괜찮아요.",
+    "en": "No answers saved yet. You can explore without answering."
+  },
+  "opinion.explore": {
+    "ko": "Seoul Beauty 둘러보기",
+    "en": "Explore Seoul Beauty"
+  },
+  "opinion.google": {
+    "ko": "Google로 로그인하고 기기 간 저장 시도",
+    "en": "Sign in with Google to sync your answers"
+  },
+  "opinion.saveFailed": {
+    "ko": "이 기기에 저장하지 못했어요. 저장 공간·브라우저 설정을 확인하고 다시 선택해 주세요.",
+    "en": "Could not save on this device. Check storage or browser settings, then select again."
   }
 }

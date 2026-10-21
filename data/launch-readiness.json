@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "launchEnabled": false,
+  "scope": "US web launch preparation; native app requires independent rights and device checks",
+  "products": [],
+  "checks": {
+    "googleOAuth": {"status": "pending", "evidence": null},
+    "guestAccountMerge": {"status": "pending", "evidence": null},
+    "secondDeviceRestore": {"status": "pending", "evidence": null},
+    "productionMigration": {"status": "pending", "evidence": null},
+    "mobileJourney": {"status": "pending", "evidence": null},
+    "privacyOwnerReview": {"status": "pending", "evidence": null},
+    "supportMailbox": {"status": "pending", "evidence": null},
+    "demoIsolation": {"status": "pending", "evidence": null},
+    "rollback": {"status": "pending", "evidence": null}
+  }
+}

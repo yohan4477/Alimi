@@ -1,3 +1,4 @@
+import {contentGrant} from './content-rights.js';
 import {t} from './i18n.js';
 import {SUPABASE_URL, restGet} from './supabase.js';
 import {esc} from './util.js';
@@ -6,7 +7,7 @@ export const safeSource = raw => { try {const u = new URL(raw); return u.protoco
 // Only explicitly licensed affiliate descriptions are published. Category guidance is our own text.
 export function approvedCopy(rows, item) {
   return rows.find(r => r.retailer === item.retailer && r.sku === item.sku && r.market === (item.market ?? 'US') &&
-    r.permissionReference?.trim() && r.description?.trim() && safeSource(r.sourceUrl));
+    contentGrant(r.permissionReference,{retailer:item.retailer,market:item.market??'US'}) && r.description?.trim() && safeSource(r.sourceUrl));
 }
 export function productInfoHTML(item, copy = null) {
   const category = item.category ?? '기타', known = t('about.type.' + category), source = safeSource(copy?.sourceUrl ?? item.url);
@@ -14,7 +15,7 @@ export function productInfoHTML(item, copy = null) {
 }
 // Retailer description stored with the catalog row; usable only when its permission basis is recorded.
 export function catalogCopy(row, item) {
-  return row?.description?.trim() && row.description_permission?.trim() && safeSource(row.url ?? item.url)
+  return row?.description?.trim() && contentGrant(row.description_permission,{retailer:item.retailer,market:item.market??'US'}) && safeSource(row.url ?? item.url)
     ? {retailer: item.retailer, market: item.market ?? 'US', sku: item.sku, description: row.description, sourceUrl: row.url ?? item.url, permissionReference: row.description_permission} : null;
 }
 export async function renderProductInfo(box, item, fetchImpl = fetch) {
