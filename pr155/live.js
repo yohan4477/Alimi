@@ -1,0 +1,240 @@
+// Catalog and product data from Supabase (public read-only API; see supabase.js).
+import {region, market, currency, inMarket, money, amount} from './region.js';
+import {t, lang} from './i18n.js';
+import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet} from './supabase.js';
+export {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY};
+export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,market,currency,url,affiliate_url,image_url,' +
+  'products(slug,brand,brand_ko,name,size,category,family_key,size_label),offer_current(amount_minor,delivery_minor,availability,changed_at,last_success_at),' +
+  'price_observations(observed_at,amount_minor,availability)&active=eq.true&order=external_id';
+
+const DAY = 86400000;
+const minor = n => n == null ? null : n / 100;
+// Same order as scripts/catalog-taxonomy.mjs. Category itself is computed by the collector and stored in the DB.
+export const CATEGORIES = ['선케어', '클렌징', '토너·패드', '에센스·세럼', '크림·로션', '마스크팩', '립', '베이스메이크업', '아이메이크업', '헤어·바디', '세트', '기타'];
+export const brandLabel = p => (lang === 'ko' && p.brandKo) || p.brand;
+
+// Converts API rows (or the bundled snapshot, which stores the same rows) into view models.
+export function toProducts(rows) {
+  return rows.filter(r => r.products && r.offer_current && inMarket(r)).map(r => ({
+    id: r.products.slug,
+    sku: r.external_id,
+    brand: r.products.brand,
+    brandKo: r.products.brand_ko ?? null,
+    name: r.products.name,
+    size: r.products.size ?? '',
+    category: r.products.category ?? '기타',
+    familyKey: r.products.family_key ?? null,
+    sizeLabel: r.products.size_label ?? r.products.size ?? null,
+    market: r.market ?? (r.currency === 'KRW' ? 'KR' : 'US'),
+    retailer: r.retailer,
+    currency: r.currency,
+    url: r.url,
+    affiliateUrl: r.affiliate_url,
+    imageUrl: r.image_url,
+    price: amount(r.offer_current.amount_minor,r.currency),
+    delivery: amount(r.offer_current.delivery_minor,r.currency),
+    availability: r.offer_current.availability,
+    changedAt: r.offer_current.changed_at,
+    checkedAt: r.offer_current.last_success_at,
+    history: [...(r.price_observations || [])]
+      .sort((a, b) => a.observed_at.localeCompare(b.observed_at))
+      .map(o => ({at: o.observed_at, price: amount(o.amount_minor,r.currency), availability: o.availability}))
+  })).sort((a, b) => a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name));
+}
+
+export async function loadProducts(fetchImpl = fetch, snapshotUrl = './live-snapshot.json') {
+  try {
+    const res = await fetchImpl(SUPABASE_URL + OFFERS_QUERY, {headers: {apikey: SUPABASE_PUBLISHABLE_KEY}, signal: AbortSignal.timeout(10000)});
+    if (!res.ok) throw Error('HTTP ' + res.status);
+    return {products: toProducts(await res.json()), source: 'live'};
+  } catch {
+    const res = await fetchImpl(snapshotUrl);
+    const snap = await res.json();
+    return {products: toProducts(snap.rows), source: 'snapshot', exportedAt: snap.exportedAt};
+  }
+}
+
+// Catalog layer search (whole official feed, current price only). Query is reduced to safe characters
+// before it is placed in the PostgREST filter.
+const CATALOG_FIELDS = 'retailer,market,sku,brand,brand_ko,name,category,price_minor,currency,availability,image_url,url,affiliate_url,family_key';
+const toCatalog = c => ({...c, brandKo: c.brand_ko ?? null, price: amount(c.price_minor,c.currency)});
+export const catalogQuery = q => q.replace(/[^\p{L}\p{N} &'-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+export function catalogSearchUrl(q, limit = 30) {
+  const term = catalogQuery(q);
+  if (term.length < 2) return null;
+  const like = `"*${term.replace(/"/g, '')}*"`;
+  const params = new URLSearchParams({
+    select: CATALOG_FIELDS,
+    market: 'eq.' + market, currency: 'eq.' + currency, active: 'eq.true', or: `(brand.ilike.${like},brand_ko.ilike.${like},name.ilike.${like})`, order: 'brand,name', limit: String(limit)
+  });
+  return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
+}
+export async function searchCatalog(q, fetchImpl = fetch) {
+  const url = catalogSearchUrl(q);
+  if (!url) return [];
+  const rows = await restGet(url, fetchImpl);
+  return rows.map(toCatalog);
+}
+// Product families (sizes / shades of one product grouped) for home browsing.
+const FAMILY_FIELDS = 'family_key,brand,brand_ko,base_name,category,image_url,min_price_minor,max_price_minor,variants,best_unit_price_minor';
+export function familiesPageUrl(category, offset, limit = 24, brand = null) {
+  const params = new URLSearchParams({select: FAMILY_FIELDS, order: 'sort_key.desc', offset: String(offset), limit: String(limit)});
+  if (category && category !== '전체') params.set('category', 'eq.' + category);
+  if (brand) params.set('brand', 'eq.' + brand);
+  params.set('market','eq.'+market); params.set('currency','eq.'+currency);
+  return SUPABASE_URL + '/rest/v1/catalog_region_families?' + params;
+}
+export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
+  let rows;
+  try { rows=await restGet(familiesPageUrl(category,offset,limit,brand),fetchImpl); }
+  catch(e) {
+    if(!/HTTP 404/.test(e.message)) throw e;
+    // Legacy view supplies identity/order only. Never reuse its cross-market prices.
+    const index=new URL(familiesPageUrl(category,offset,limit,brand));
+    index.pathname='/rest/v1/catalog_families';index.searchParams.delete('market');index.searchParams.delete('currency');
+    index.searchParams.set('select','family_key');
+    const keys=(await restGet(index.href,fetchImpl)).map(f=>f.family_key).filter(Boolean);
+    if(!keys.length)return [];
+    const p=new URLSearchParams({select:CATALOG_FIELDS+',base_name',active:'eq.true',market:'eq.'+market,currency:'eq.'+currency,family_key:'in.('+keys.map(k=>JSON.stringify(k)).join(',')+')',order:'sku.desc',limit:'1000'});
+    if(category && category!=='전체')p.set('category','eq.'+category); if(brand)p.set('brand','eq.'+brand);
+    const items=await restGet(SUPABASE_URL+'/rest/v1/catalog_items?'+p,fetchImpl);
+    const groups=new Map(); for(const i of items) { if(!i.family_key)continue; const f=groups.get(i.family_key); if(f){f.min_price_minor=Math.min(f.min_price_minor,i.price_minor);f.max_price_minor=Math.max(f.max_price_minor,i.price_minor);f.variants++;}else groups.set(i.family_key,{...i,base_name:i.base_name??i.name,min_price_minor:i.price_minor,max_price_minor:i.price_minor,variants:1}); } rows=[...groups.values()];
+  }
+  return rows.map(f => ({...f, brandKo: f.brand_ko ?? null, minPrice: amount(f.min_price_minor), maxPrice: amount(f.max_price_minor)}));
+}
+// All variants of one family. Duplicate listings of the same size/option (e.g. [Deal] relistings without EAN)
+// collapse to the cheapest; sorted by unit price so the best value comes first.
+export function collapseVariants(rows) {
+  const best = new Map();
+  for (const r of rows) {
+    const k = (r.size_label ?? '') + '|' + (r.option_label ?? '');
+    if (!best.has(k) || r.price_minor < best.get(k).price_minor) best.set(k, r);
+  }
+  const list = [...best.values()].sort((a, b) => (a.unit_price_minor ?? Infinity) - (b.unit_price_minor ?? Infinity) || a.price_minor - b.price_minor);
+  const units = list.filter(v => v.unit_price_minor != null);
+  const bestUnit = units.length > 1 ? Math.min(...units.map(v => v.unit_price_minor)) : null;
+  return list.map(v => ({...v, price: amount(v.price_minor,v.currency), unitPrice: amount(v.unit_price_minor,v.currency),
+    bestValue: bestUnit != null && v.unit_price_minor === bestUnit}));
+}
+export async function fetchFamily(familyKey, fetchImpl = fetch) {
+  const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor,url,affiliate_url', market: 'eq.'+market, currency: 'eq.'+currency, active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
+  const rows = await restGet(SUPABASE_URL + '/rest/v1/catalog_items?' + params, fetchImpl);
+  return collapseVariants(rows);
+}
+// Popular brands for the home strip, most product families first. logo_url is optional (filled by whoever
+// owns brand images); until then the client draws an initials badge in a stable per-brand color.
+export const brandsUrl = (limit = 15) => SUPABASE_URL + '/rest/v1/catalog_brands?' +
+  new URLSearchParams({select: 'brand,brand_ko,families,logo_url', order: 'families.desc', limit: String(limit)});
+export async function fetchBrands(fetchImpl = fetch) {
+  const rows = await restGet(brandsUrl(), fetchImpl);
+  return rows.map(b => ({...b, brandKo: b.brand_ko ?? null}));
+}
+// The strip shows two rows and scrolls sideways; the grid fills column by column, so interleave the list
+// to keep rank order reading left to right on each row (top: 1..8, bottom: 9..15).
+export function twoRowOrder(list) {
+  const top = list.slice(0, Math.ceil(list.length / 2)), bottom = list.slice(top.length);
+  return top.flatMap((x, i) => (i < bottom.length ? [x, bottom[i]] : [x]));
+}
+export const brandInitials = brand => {
+  const words = brand.replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).filter(Boolean);
+  return (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? '?').slice(0, 2)).toUpperCase();
+};
+const BRAND_COLORS = ['#f35e56', '#ff8a3d', '#f5b82e', '#3cba7a', '#1fa2a8', '#3d7bf5', '#7a5af5', '#d94f9b', '#5b6472', '#2f4858'];
+export const brandColor = brand => BRAND_COLORS[[...brand].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7) % BRAND_COLORS.length];
+// Affiliate link for a purchase click. `ref` (e.g. "post-12") is passed to Awin as clickref so confirmed
+// sales in the Awin report can be traced back to the post / chat that led to them.
+export function buyUrl(item, ref = null) {
+  if((item.market || item.currency) && !inMarket(item))return null;
+  const raw = item.affiliateUrl ?? item.affiliate_url ?? item.url;
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if(u.protocol!=='https:')return null;
+    if (ref && u.hostname === 'www.awin1.com') u.searchParams.set('clickref', String(ref).replace(/[^\w-]/g, '').slice(0, 50));
+    return u.href;
+  } catch { return null; }
+}
+// Coupang Partners link for viewers in Korea (Coupang ships domestically only). Device time zone is the
+// signal: no location lookup, nothing sent anywhere.
+export const inKorea = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Seoul'; } catch { return false; } };
+export function coupangUrl(item, ref = null) {
+  const q = [item.brandKo ?? item.brand_ko ?? item.brand, item.name].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (!q) return null;
+  const params = new URLSearchParams({q});
+  if (ref) params.set('ref', String(ref).replace(/[^\w-]/g, '').slice(0, 20));
+  return '/api/coupang?' + params;
+}
+// OLIVE YOUNG US (Rakuten Advertising) for the US market. The US site is in English, so the English brand.
+export function oliveYoungUrl(item, ref = null) {
+  const q = [item.brand, item.name].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (!q) return null;
+  const params = new URLSearchParams({q});
+  if (ref) params.set('ref', String(ref).replace(/[^\w-]/g, '').slice(0, 20));
+  return '/api/oliveyoung?' + params;
+}
+export const unitName = unit => (unit === 'ml' || unit === 'g' ? '10' + unit : unit === 'pcs' ? '1pc' : unit);
+
+// One page of the Korean-brand catalog for home browsing, optionally limited to a category.
+export function catalogPageUrl(category, offset, limit = 24) {
+  const params = new URLSearchParams({select: CATALOG_FIELDS, market:'eq.'+market, currency:'eq.'+currency, active: 'eq.true', order: 'sku.desc', offset: String(offset), limit: String(limit)});
+  if (category && category !== '전체') params.set('category', 'eq.' + category);
+  return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
+}
+export const search = (products, q, category = '전체') => {
+  const needle = q.trim().toLowerCase();
+  return products.filter(p => (category === '전체' || p.category === category) && `${p.brand} ${p.brandKo ?? ''} ${p.name}`.toLowerCase().includes(needle));
+};
+
+// Price in effect on each day = last observation at or before that day. History is change-only,
+// so days without a new row carry the previous price forward. Days before the first observation are empty.
+// Days are Korean calendar days (collection runs 07:30 KST).
+const KST = 9 * 3600000;
+export function dailySeries(p, days, now = new Date()) {
+  const k = new Date(now.getTime() + KST);
+  const start = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate());
+  const out = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const day = start - i * DAY, dayEnd = day + DAY - KST;
+    const last = p.history.filter(h => Date.parse(h.at) < dayEnd).at(-1);
+    out.push({day: new Date(day).toISOString().slice(0, 10), price: last ? last.price : null});
+  }
+  return out;
+}
+
+export function stats(series) {
+  const v = series.map(s => s.price).filter(x => x != null);
+  if (!v.length) return null;
+  return {min: Math.min(...v), max: Math.max(...v), avg: v.reduce((a, b) => a + b, 0) / v.length, days: v.length};
+}
+
+// One plain sentence about what we know so far, instead of an empty chart.
+export function watchSummary(p, now = new Date()) {
+  const days = trackedDays(p, now);
+  const prices = p.history.map(h => h.price);
+  if (prices.length < 2) return {days, changes: 0, lowest: false, text: t('watch.none', {days})};
+  const lowest = p.price <= Math.min(...prices);
+  return {days, changes: prices.length - 1, lowest,
+    text: lowest ? t('watch.lowest', {days}) : t('watch.changes', {days, n: prices.length - 1})};
+}
+export const trackedDays = (p, now = new Date()) => p.history.length ? Math.floor((now - Date.parse(p.history[0].at)) / DAY) + 1 : 0;
+export const usd = n => money(n);
+export const alertState = (target, current) => t(target == null ? 'alert.unset' : current <= target ? 'alert.reached' : 'alert.waiting');
+
+export function parseTarget(raw) {
+  if (!/^\d+(\.\d{1,2})?$/.test(String(raw))) return null;
+  const n = Number(raw);
+  return n >= 0.01 && n <= 10000 ? n : null;
+}
+
+const KEY = 'alimi-live-v1';
+export function readState(storage) {
+  try {
+    const v = JSON.parse(storage.getItem(KEY));
+    return {
+      favorites: Array.isArray(v?.favorites) ? v.favorites.filter(x => typeof x === 'string') : [],
+      targets: Object.fromEntries(Object.entries(v?.targets || {}).filter(([, n]) => parseTarget(n) !== null))
+    };
+  } catch { return {favorites: [], targets: {}}; }
+}
+export function writeState(storage, state) { storage.setItem(KEY, JSON.stringify(state)); }
+export function toggleFavorite(s, id) { s.favorites = s.favorites.includes(id) ? s.favorites.filter(x => x !== id) : [...s.favorites, id]; return s; }

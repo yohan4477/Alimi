@@ -1,0 +1,1 @@
+export const SUPABASE_URL='https://preview-disabled.invalid';export const SUPABASE_PUBLISHABLE_KEY='';export async function restGet(){return [];}export async function rpc(){throw Error('미리보기에서는 서버 저장을 하지 않습니다.');}

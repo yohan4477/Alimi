@@ -1,0 +1,2279 @@
+{
+  "activity.profile": {
+    "ko": "내 프로필·관심 고민",
+    "en": "My profile & interests"
+  },
+  "activity.profileHint": {
+    "ko": "피부 정보와 관심 고민 관리",
+    "en": "Manage skin details and interests"
+  },
+  "activity.skinHint": {
+    "ko": "비슷한 피부의 후기 확인·리뷰 작성에 사용해요",
+    "en": "For similar-skin reviews and review forms"
+  },
+  "activity.interests": {
+    "ko": "관심 분야·고민",
+    "en": "Interests & concerns"
+  },
+  "activity.interestsHint": {
+    "ko": "관심 있는 대화를 찾는 데 사용해요",
+    "en": "Find conversations that match your interests"
+  },
+  "activity.savedEmpty": {
+    "ko": "아직 저장한 상품이 없어요. 다시 보고 싶은 상품을 저장해 보세요.",
+    "en": "No saved products yet. Save products you want to revisit."
+  },
+  "activity.browseProducts": {
+    "ko": "상품 둘러보기",
+    "en": "Browse products"
+  },
+  "activity.browseRooms": {
+    "ko": "대화방 둘러보기",
+    "en": "Browse conversations"
+  },
+  "chat.rulesTitle": {
+    "ko": "대화 이용 안내",
+    "en": "Community guidelines"
+  },
+  "chat.quickRules": {
+    "ko": "서로 존중하며 이야기해요. 광고·욕설·개인정보 공유는 금지돼요.",
+    "en": "Be respectful. No ads, abuse or sharing personal information."
+  },
+  "onb.optional": {
+    "ko": "내 정보 (선택)",
+    "en": "About me (optional)"
+  },
+  "onb.private": {
+    "ko": "이 기기에만 저장돼요. 연령대는 추천에 사용하지 않아요.",
+    "en": "Saved on this device only. Age is not used for recommendations."
+  },
+  "onb.age": {
+    "ko": "연령대",
+    "en": "Age range"
+  },
+  "onb.skin": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "onb.unknown": {
+    "ko": "선택 안 함 / 잘 모르겠어요",
+    "en": "Skip / not sure"
+  },
+  "onb.skin.dry": {
+    "ko": "건성",
+    "en": "Dry"
+  },
+  "onb.skin.oily": {
+    "ko": "지성",
+    "en": "Oily"
+  },
+  "onb.skin.combination": {
+    "ko": "복합성",
+    "en": "Combination"
+  },
+  "onb.skin.normal": {
+    "ko": "중성",
+    "en": "Normal"
+  },
+  "onb.empty": {
+    "ko": "맞는 방이 없나요? 직접 만들어보세요.",
+    "en": "No room for you? Start one."
+  },
+  "share.openApp": {
+    "ko": "앱에서 열기",
+    "en": "Open in app"
+  },
+  "nav.explore": {
+    "ko": "탐색",
+    "en": "Explore"
+  },
+  "_note": "Single source of UI text for web (dist/) and iOS (copied to ios/Alimi/strings.json; tests keep them identical). Korean shows when the device language is Korean, English otherwise. {name} placeholders are filled at runtime.",
+  "all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "stock.in": {
+    "ko": "재고 있음",
+    "en": "In stock"
+  },
+  "stock.out": {
+    "ko": "품절",
+    "en": "Out of stock"
+  },
+  "stock.unknown": {
+    "ko": "재고 미확인",
+    "en": "Stock unknown"
+  },
+  "saveLocalOnly": {
+    "ko": "현재 화면에서만 저장됩니다.",
+    "en": "Saved on this screen only."
+  },
+  "favorites": {
+    "ko": "관심 상품",
+    "en": "Saved"
+  },
+  "noPhoto": {
+    "ko": "사진 없음",
+    "en": "No photo"
+  },
+  "photoFailed": {
+    "ko": "상품 사진을 불러오지 못했어요",
+    "en": "Couldn't load the photo"
+  },
+  "todayPrice": {
+    "ko": "오늘 가격",
+    "en": "Today's price"
+  },
+  "save.action": {
+    "ko": "관심에 담기",
+    "en": "Save"
+  },
+  "save.saving": {
+    "ko": "담는 중",
+    "en": "Saving"
+  },
+  "save.short": {
+    "ko": "관심",
+    "en": "Save"
+  },
+  "favorite.saved": {
+    "ko": "관심 등록됨",
+    "en": "Saved"
+  },
+  "favorite.add": {
+    "ko": "관심 등록",
+    "en": "Save"
+  },
+  "section.more": {
+    "ko": "더 많은 상품",
+    "en": "More products"
+  },
+  "section.moreHint": {
+    "ko": "하트를 누르면 관심에 담고 오늘부터 가격을 지켜봐요",
+    "en": "Tap the heart to save it. We'll start watching the price today."
+  },
+  "section.all": {
+    "ko": "전체 상품",
+    "en": "All products"
+  },
+  "count": {
+    "ko": "{n}개",
+    "en": "{n} items"
+  },
+  "empty.catalogSearch": {
+    "ko": "전체 카탈로그에서도 찾지 못했어요.",
+    "en": "No matches in the full catalog either."
+  },
+  "empty.products": {
+    "ko": "상품이 없어요.",
+    "en": "No products."
+  },
+  "catalogFailed": {
+    "ko": "카탈로그를 불러오지 못했어요.",
+    "en": "Couldn't load the catalog."
+  },
+  "loading": {
+    "ko": "불러오는 중…",
+    "en": "Loading…"
+  },
+  "loadingPrices": {
+    "ko": "가격을 불러오는 중…",
+    "en": "Loading prices…"
+  },
+  "loadFailed": {
+    "ko": "가격을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "en": "Couldn't load prices. Please try again shortly."
+  },
+  "dataFailed": {
+    "ko": "가격 데이터를 불러오지 못했어요",
+    "en": "Couldn't load price data"
+  },
+  "toast.saved": {
+    "ko": "관심에 담았어요 · 오늘부터 가격을 지켜볼게요",
+    "en": "Saved · We'll watch the price from today"
+  },
+  "toast.saveFailed": {
+    "ko": "관심에 담지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "en": "Couldn't save. Please try again shortly."
+  },
+  "notice.live": {
+    "ko": "Stylevana US 공식 가격 · 한국 브랜드 · {date} 확인",
+    "en": "Official Stylevana US prices · Korean brands · Checked {date}"
+  },
+  "notice.liveShort": {
+    "ko": "Stylevana US 공식 가격 · 한국 브랜드",
+    "en": "Official Stylevana US prices · Korean brands"
+  },
+  "notice.offline": {
+    "ko": "오프라인 데이터 · {date} 기준",
+    "en": "Offline data · as of {date}"
+  },
+  "notice.offlineShort": {
+    "ko": "오프라인 데이터",
+    "en": "Offline data"
+  },
+  "date": {
+    "ko": "날짜",
+    "en": "Date"
+  },
+  "back": {
+    "ko": "뒤로",
+    "en": "Back"
+  },
+  "close": {
+    "ko": "닫기",
+    "en": "Close"
+  },
+  "cancel": {
+    "ko": "취소",
+    "en": "Cancel"
+  },
+  "unknown": {
+    "ko": "미확인",
+    "en": "unknown"
+  },
+  "detail.title": {
+    "ko": "상품 상세",
+    "en": "Product"
+  },
+  "detail.usPrice": {
+    "ko": "{retailer} 판매 가격",
+    "en": "Price at {retailer}"
+  },
+  "detail.checked": {
+    "ko": "상품가 확인 {checked} · 최신 조건은 판매처에서 확인",
+    "en": "Price checked {checked} · confirm current terms at the retailer"
+  },
+  "detail.shippingChip": {
+    "ko": "배송비 {v}~",
+    "en": "Shipping from {v}"
+  },
+  "detail.retailer": {
+    "ko": "판매처",
+    "en": "Retailer"
+  },
+  "detail.officialFeed": {
+    "ko": "공식 제휴 피드",
+    "en": "Official affiliate feed"
+  },
+  "detail.feedShipping": {
+    "ko": "피드 배송비 {v} · 주소별 결제 총액은 판매처에서 확인",
+    "en": "Feed shipping {v} · Check the final total at checkout"
+  },
+  "detail.buy": {
+    "ko": "Stylevana에서 보기 ↗",
+    "en": "View on Stylevana ↗"
+  },
+  "detail.disclaimer": {
+    "ko": "표시 가격은 결제 가격과 다를 수 있어요. 제휴 링크로 구매하면 SeoulBeauty가 수수료를 받을 수 있어요.",
+    "en": "Prices may differ at checkout. SeoulBeauty may earn a commission when you buy through affiliate links."
+  },
+  "target.invalid": {
+    "ko": "USD 0.01~10,000, 소수 둘째 자리까지 입력하세요.",
+    "en": "Enter USD 0.01–10,000 with up to 2 decimals."
+  },
+  "now": {
+    "ko": "현재 {v}",
+    "en": "Now {v}"
+  },
+  "alert.unset": {
+    "ko": "미설정",
+    "en": "Not set"
+  },
+  "alert.reached": {
+    "ko": "목표가 도달",
+    "en": "Target reached"
+  },
+  "alert.waiting": {
+    "ko": "기다리는 중",
+    "en": "Waiting"
+  },
+  "watch.none": {
+    "ko": "지켜본 지 {days}일 · 아직 가격 변동 없음",
+    "en": "Watched {days}d · no price change yet"
+  },
+  "watch.lowest": {
+    "ko": "지켜본 {days}일 중 지금이 최저가",
+    "en": "Lowest price in {days}d of watching"
+  },
+  "watch.changes": {
+    "ko": "지켜본 {days}일 동안 가격 {n}번 변동",
+    "en": "{n} price changes in {days}d"
+  },
+  "reset.confirm": {
+    "ko": "관심 상품을 초기화할까요?",
+    "en": "Clear saved products?"
+  },
+  "reset": {
+    "ko": "저장 초기화",
+    "en": "Reset saved"
+  },
+  "tab.home": {
+    "ko": "홈",
+    "en": "Home"
+  },
+  "nav.discover": {
+    "ko": "발견",
+    "en": "Discover"
+  },
+  "nav.search": {
+    "ko": "검색",
+    "en": "Search"
+  },
+  "nav.saved": {
+    "ko": "관심",
+    "en": "Saved"
+  },
+  "html.title": {
+    "ko": "SeoulBeauty · 한국 뷰티 커뮤니티",
+    "en": "SeoulBeauty · K-beauty community"
+  },
+  "search.label": {
+    "ko": "상품 검색",
+    "en": "Search products"
+  },
+  "search.placeholder": {
+    "ko": "브랜드, 상품 검색",
+    "en": "Search brands or products"
+  },
+  "search.clear": {
+    "ko": "검색 지우기",
+    "en": "Clear search"
+  },
+  "explore.intro": {
+    "ko": "나에게 맞는 K-뷰티를 찾아보세요",
+    "en": "Find K-beauty that suits you"
+  },
+  "hero.kicker": {
+    "ko": "한국 뷰티 상품 찾기",
+    "en": "FIND K-BEAUTY"
+  },
+  "hero.line1": {
+    "ko": "함께 이야기하는",
+    "en": "Talk about"
+  },
+  "hero.line2": {
+    "ko": "한국 뷰티.",
+    "en": "K-beauty together."
+  },
+  "hero.sub": {
+    "ko": "피부와 취향이 비슷한 사람들의 경험을 나눠보세요",
+    "en": "Share experiences with people who understand your skin and style"
+  },
+  "hero.subApp": {
+    "ko": "피부와 취향이 비슷한 사람들의 경험을 나눠보세요",
+    "en": "Share experiences with people who understand your skin and style"
+  },
+  "hero.cta": {
+    "ko": "제품 둘러보기 ↗",
+    "en": "Browse products ↗"
+  },
+  "list.subtitle": {
+    "ko": "브랜드와 상품을 둘러보고 경험을 나눠보세요",
+    "en": "Explore brands and products, then share your experience"
+  },
+  "footer": {
+    "ko": "SeoulBeauty · Stylevana US 공식 제휴 피드 · 피드 갱신 시 1시간 안에 반영",
+    "en": "SeoulBeauty · Official Stylevana US affiliate feed · updated within an hour of each refresh"
+  },
+  "search.prompt": {
+    "ko": "브랜드 또는 상품명 검색",
+    "en": "Search brands or products"
+  },
+  "category.선케어": {
+    "ko": "선케어",
+    "en": "Sun care"
+  },
+  "category.클렌징": {
+    "ko": "클렌징",
+    "en": "Cleansers"
+  },
+  "category.토너·패드": {
+    "ko": "토너·패드",
+    "en": "Toners & pads"
+  },
+  "category.에센스·세럼": {
+    "ko": "에센스·세럼",
+    "en": "Essences & serums"
+  },
+  "category.크림·로션": {
+    "ko": "크림·로션",
+    "en": "Creams & lotions"
+  },
+  "category.마스크팩": {
+    "ko": "마스크팩",
+    "en": "Masks"
+  },
+  "category.립": {
+    "ko": "립",
+    "en": "Lips"
+  },
+  "category.베이스메이크업": {
+    "ko": "베이스메이크업",
+    "en": "Base makeup"
+  },
+  "category.아이메이크업": {
+    "ko": "아이메이크업",
+    "en": "Eye makeup"
+  },
+  "category.헤어·바디": {
+    "ko": "헤어·바디",
+    "en": "Hair & body"
+  },
+  "category.세트": {
+    "ko": "세트",
+    "en": "Sets"
+  },
+  "category.기타": {
+    "ko": "기타",
+    "en": "Other"
+  },
+  "category.전체": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "family.from": {
+    "ko": "{v}부터",
+    "en": "From {v}"
+  },
+  "family.options": {
+    "ko": "옵션 {n}개",
+    "en": "{n} options"
+  },
+  "family.pick": {
+    "ko": "용량·옵션을 골라 하트를 눌러 보세요",
+    "en": "Pick a size or option and tap the heart"
+  },
+  "family.otherSizes": {
+    "ko": "다른 용량·옵션",
+    "en": "Other sizes & options"
+  },
+  "family.default": {
+    "ko": "기본",
+    "en": "Standard"
+  },
+  "unit.price": {
+    "ko": "{u}당 {v}",
+    "en": "{v} per {u}"
+  },
+  "badge.bestValue": {
+    "ko": "단위 가격 최저",
+    "en": "Best value"
+  },
+  "nav.chat": {
+    "ko": "커뮤니티",
+    "en": "Community"
+  },
+  "chat.title": {
+    "ko": "채팅",
+    "en": "Community chat"
+  },
+  "chat.members": {
+    "ko": "{n}명",
+    "en": "{n} members"
+  },
+  "chat.active": {
+    "ko": "대화 중",
+    "en": "Active"
+  },
+  "chat.joinTitle": {
+    "ko": "{room}에 참여할까요?",
+    "en": "Join {room}?"
+  },
+  "chat.rules": {
+    "ko": "익명 닉네임으로 대화해요. 욕설·혐오·음란물·홍보·링크는 금지예요. 신고가 쌓인 메시지는 숨겨지고, 위반하면 이용이 제한돼요.",
+    "en": "You'll chat under an anonymous nickname. No harassment, hate, sexual content, spam or links. Reported messages are hidden and repeat offenders are blocked."
+  },
+  "chat.join": {
+    "ko": "참여",
+    "en": "Join"
+  },
+  "chat.placeholder": {
+    "ko": "{name}(으)로 대화",
+    "en": "Message as {name}"
+  },
+  "chat.send": {
+    "ko": "보내기",
+    "en": "Send"
+  },
+  "chat.attach": {
+    "ko": "상품 공유",
+    "en": "Share an item"
+  },
+  "chat.attachSearch": {
+    "ko": "브랜드나 제품명 검색",
+    "en": "Search brand or product"
+  },
+  "chat.attachHint": {
+    "ko": "검색한 상품을 메시지에 붙여 추천할 수 있어요",
+    "en": "Find a product and attach it to your message."
+  },
+  "chat.removeItem": {
+    "ko": "첨부 취소",
+    "en": "Remove item"
+  },
+  "chat.like": {
+    "ko": "공감",
+    "en": "Like"
+  },
+  "chat.reply": {
+    "ko": "답장",
+    "en": "Reply"
+  },
+  "chat.replyingTo": {
+    "ko": "{name}에게 답장",
+    "en": "Replying to {name}"
+  },
+  "chat.report": {
+    "ko": "신고",
+    "en": "Report"
+  },
+  "chat.block": {
+    "ko": "차단",
+    "en": "Block"
+  },
+  "chat.more": {
+    "ko": "메시지 메뉴",
+    "en": "Message options"
+  },
+  "chat.blocked": {
+    "ko": "이 사용자의 메시지를 숨겼어요",
+    "en": "You won't see this person's messages."
+  },
+  "chat.reported": {
+    "ko": "신고했어요. 확인할게요.",
+    "en": "Reported. Thanks for keeping it friendly."
+  },
+  "chat.reportTitle": {
+    "ko": "신고 사유",
+    "en": "Why are you reporting this?"
+  },
+  "chat.reason.spam": {
+    "ko": "스팸·홍보",
+    "en": "Spam or ads"
+  },
+  "chat.reason.abuse": {
+    "ko": "욕설·괴롭힘·혐오",
+    "en": "Harassment or hate"
+  },
+  "chat.reason.sexual": {
+    "ko": "음란물",
+    "en": "Sexual content"
+  },
+  "chat.reason.other": {
+    "ko": "기타",
+    "en": "Something else"
+  },
+  "chat.empty": {
+    "ko": "아직 메시지가 없어요. 첫 메시지를 남겨 보세요",
+    "en": "No messages yet. Say hi!"
+  },
+  "chat.sharedPrice": {
+    "ko": "현재 가격 {v}",
+    "en": "Current price {v}"
+  },
+  "chat.err.slow": {
+    "ko": "조금 천천히 보내 주세요",
+    "en": "Slow down a little."
+  },
+  "chat.err.link": {
+    "ko": "링크는 보낼 수 없어요. 상품은 '상품 공유'로 붙여 주세요",
+    "en": "Links aren't allowed. Use Share an item instead."
+  },
+  "chat.err.blocked": {
+    "ko": "보낼 수 없는 표현이 들어 있어요",
+    "en": "That message has words we don't allow."
+  },
+  "chat.err.banned": {
+    "ko": "지금은 메시지를 보낼 수 없어요",
+    "en": "You can't post right now."
+  },
+  "chat.err.long": {
+    "ko": "500자까지 보낼 수 있어요",
+    "en": "Up to 500 characters."
+  },
+  "chat.err.other": {
+    "ko": "보내지 못했어요. 다시 시도해 주세요",
+    "en": "Couldn't send. Try again."
+  },
+  "chat.loadFailed": {
+    "ko": "채팅을 불러오지 못했어요",
+    "en": "Couldn't load chat."
+  },
+  "brands.title": {
+    "ko": "브랜드 둘러보기",
+    "en": "Explore brands"
+  },
+  "saved.title": {
+    "ko": "관심상품",
+    "en": "Saved"
+  },
+  "saved.hint": {
+    "ko": "다시 보고 싶은 상품과 글을 저장해 보세요",
+    "en": "Save products and posts you’d like to revisit"
+  },
+  "saved.hintMore": {
+    "ko": "저장한 상품을 다시 찾아보세요.",
+    "en": "Revisit your saved products."
+  },
+  "saved.add": {
+    "ko": "추가",
+    "en": "Add"
+  },
+  "saved.count": {
+    "ko": "관심 상품 {n}개",
+    "en": "{n} saved products"
+  },
+  "search.title": {
+    "ko": "검색",
+    "en": "Search"
+  },
+  "search.recentEmpty": {
+    "ko": "브랜드나 제품명을 입력해 보세요",
+    "en": "Type a brand or product name"
+  },
+  "brand.empty": {
+    "ko": "이 브랜드에 등록된 상품이 없어요",
+    "en": "No products available for this brand"
+  },
+  "settings.title": {
+    "ko": "설정",
+    "en": "Settings"
+  },
+  "settings.service": {
+    "ko": "서비스 설정",
+    "en": "Preferences"
+  },
+  "settings.alerts": {
+    "ko": "알림 설정",
+    "en": "Notifications"
+  },
+  "settings.alertsHint": {
+    "ko": "목표가에 도달하면 알려드려요. 푸시 알림은 준비 중이에요.",
+    "en": "We'll let you know when a price hits your target. Push alerts are coming soon."
+  },
+  "settings.language": {
+    "ko": "언어",
+    "en": "Language"
+  },
+  "settings.languageHint": {
+    "ko": "앱 화면 언어를 바꿔요.",
+    "en": "Change the app language."
+  },
+  "settings.data": {
+    "ko": "내 데이터",
+    "en": "My data"
+  },
+  "settings.clearSaved": {
+    "ko": "관심상품 정리하기",
+    "en": "Clear saved products"
+  },
+  "settings.clearSavedConfirm": {
+    "ko": "관심 상품을 모두 지울까요?",
+    "en": "Clear all saved products?"
+  },
+  "settings.cleared": {
+    "ko": "정리했어요",
+    "en": "Cleared"
+  },
+  "settings.clearCache": {
+    "ko": "앱 캐시 삭제",
+    "en": "Clear app cache"
+  },
+  "settings.cacheCleared": {
+    "ko": "캐시를 지웠어요",
+    "en": "Cache cleared"
+  },
+  "settings.support": {
+    "ko": "고객센터",
+    "en": "Support"
+  },
+  "settings.feedback": {
+    "ko": "불편한 점을 알려주세요",
+    "en": "Tell us what's not working"
+  },
+  "settings.feedbackSub": {
+    "ko": "SeoulBeauty가 빠르게 개선해 볼게요!",
+    "en": "We'll fix it fast!"
+  },
+  "settings.terms": {
+    "ko": "이용약관",
+    "en": "Terms of use"
+  },
+  "settings.privacy": {
+    "ko": "개인정보 처리방침",
+    "en": "Privacy policy"
+  },
+  "settings.version": {
+    "ko": "현재 버전 {v}",
+    "en": "Version {v}"
+  },
+  "settings.soon": {
+    "ko": "준비 중이에요",
+    "en": "Coming soon"
+  },
+  "settings.open": {
+    "ko": "설정 열기",
+    "en": "Open settings"
+  },
+  "chat.tab.rooms": {
+    "ko": "채팅",
+    "en": "Rooms"
+  },
+  "chat.tab.topics": {
+    "ko": "토픽",
+    "en": "Topics"
+  },
+  "chat.tab.mine": {
+    "ko": "내 채팅",
+    "en": "My chats"
+  },
+  "chat.hot": {
+    "ko": "최근 대화가 활발한 채팅방",
+    "en": "Active right now"
+  },
+  "chat.brandRooms": {
+    "ko": "브랜드별 채팅방",
+    "en": "Brand rooms"
+  },
+  "chat.mineEmpty": {
+    "ko": "참여한 채팅방이 없어요",
+    "en": "You haven't joined any rooms yet"
+  },
+  "chat.tag.all": {
+    "ko": "최신",
+    "en": "Latest"
+  },
+  "chat.tag.talk": {
+    "ko": "대화",
+    "en": "General"
+  },
+  "chat.tag.skin": {
+    "ko": "피부 고민",
+    "en": "Skin concerns"
+  },
+  "chat.tag.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "chat.tag.deals": {
+    "ko": "세일·정보",
+    "en": "Deals"
+  },
+  "chat.count": {
+    "ko": "({n}명)",
+    "en": "({n})"
+  },
+  "chat.searchRooms": {
+    "ko": "채팅방 검색",
+    "en": "Search rooms"
+  },
+  "chat.noMessages": {
+    "ko": "아직 대화가 없어요",
+    "en": "No messages yet"
+  },
+  "coupang.name": {
+    "ko": "쿠팡",
+    "en": "Coupang"
+  },
+  "coupang.note": {
+    "ko": "한국 내 배송 · 쿠팡에서 같은 상품 검색",
+    "en": "Ships within Korea · searches Coupang for this product"
+  },
+  "coupang.disclosure": {
+    "ko": "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
+    "en": "As a Coupang Partners affiliate, SeoulBeauty earns a commission from qualifying purchases."
+  },
+  "oliveyoung.name": {
+    "ko": "올리브영 US",
+    "en": "OLIVE YOUNG US"
+  },
+  "oliveyoung.note": {
+    "ko": "미국 배송 · 올리브영 US에서 같은 상품 검색",
+    "en": "Ships in the US · searches OLIVE YOUNG US for this product"
+  },
+  "buy.at": {
+    "ko": "{retailer}에서 보기",
+    "en": "View at {retailer}"
+  },
+  "variant.buy": {
+    "ko": "보기",
+    "en": "View"
+  },
+  "family.buyHint": {
+    "ko": "옵션과 현재 판매 정보를 확인하세요",
+    "en": "Check options and current retailer offers"
+  },
+  "nav.community": {
+    "ko": "커뮤니티",
+    "en": "Community"
+  },
+  "community.title": {
+    "ko": "서울뷰티",
+    "en": "SeoulBeauty"
+  },
+  "community.sub": {
+    "ko": "나와 비슷한 경험, 함께 나누는 K뷰티",
+    "en": "K-beauty experiences, shared together"
+  },
+  "community.posts": {
+    "ko": "글",
+    "en": "Posts"
+  },
+  "community.live": {
+    "ko": "실시간 채팅",
+    "en": "Live chat"
+  },
+  "community.write": {
+    "ko": "글쓰기",
+    "en": "Write"
+  },
+  "community.kind.question": {
+    "ko": "질문",
+    "en": "Question"
+  },
+  "community.kind.recommend": {
+    "ko": "추천",
+    "en": "Recommendation"
+  },
+  "community.kind.review": {
+    "ko": "후기",
+    "en": "Review"
+  },
+  "community.titlePh": {
+    "ko": "궁금한 점을 한 줄로",
+    "en": "Your question in one line"
+  },
+  "community.bodyPh": {
+    "ko": "자세히 적어 주세요 (선택)",
+    "en": "Add details (optional)"
+  },
+  "community.reasons": {
+    "ko": "무엇이 중요해요? (선택)",
+    "en": "What matters to you? (optional)"
+  },
+  "reason.price": {
+    "ko": "가격",
+    "en": "Price"
+  },
+  "reason.texture": {
+    "ko": "사용감",
+    "en": "Texture"
+  },
+  "reason.color": {
+    "ko": "색상",
+    "en": "Color"
+  },
+  "reason.ingredients": {
+    "ko": "성분",
+    "en": "Ingredients"
+  },
+  "reason.shipping": {
+    "ko": "배송",
+    "en": "Shipping"
+  },
+  "reason.skin_type": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "reason.scent": {
+    "ko": "향",
+    "en": "Scent"
+  },
+  "community.post": {
+    "ko": "올리기",
+    "en": "Post"
+  },
+  "community.comments": {
+    "ko": "댓글 {n}",
+    "en": "{n} comments"
+  },
+  "community.commentPh": {
+    "ko": "댓글 달기",
+    "en": "Add a comment"
+  },
+  "community.empty": {
+    "ko": "아직 글이 없어요. 첫 질문을 남겨 보세요",
+    "en": "No posts yet. Ask the first question"
+  },
+  "community.saveAsPost": {
+    "ko": "글로 남기기",
+    "en": "Save as post"
+  },
+  "community.savedAsPost": {
+    "ko": "글로 남겼어요",
+    "en": "Saved as a post"
+  },
+  "community.topics": {
+    "ko": "주제",
+    "en": "Topics"
+  },
+  "community.recent": {
+    "ko": "최근 글",
+    "en": "Recent posts"
+  },
+  "community.brandTalk": {
+    "ko": "브랜드별 이야기",
+    "en": "Brand talk"
+  },
+  "community.noComments": {
+    "ko": "첫 댓글을 남겨 보세요",
+    "en": "Be the first to reply"
+  },
+  "product.talkEmpty": {
+    "ko": "아직 이 제품 이야기가 없어요",
+    "en": "No one has talked about this yet"
+  },
+  "product.inChat": {
+    "ko": "채팅에서 언급",
+    "en": "Mentioned in chat"
+  },
+  "chat.tag.travel": {
+    "ko": "한국 여행 쇼핑",
+    "en": "Korea shopping"
+  },
+  "community.save": {
+    "ko": "저장",
+    "en": "Save"
+  },
+  "community.saved": {
+    "ko": "저장됨",
+    "en": "Saved"
+  },
+  "saved.posts": {
+    "ko": "저장한 글",
+    "en": "Saved posts"
+  },
+  "review.usedFor": {
+    "ko": "사용 기간",
+    "en": "How long you used it"
+  },
+  "review.used.first": {
+    "ko": "첫인상",
+    "en": "First impression"
+  },
+  "review.used.weeks": {
+    "ko": "몇 주",
+    "en": "A few weeks"
+  },
+  "review.used.months": {
+    "ko": "몇 달",
+    "en": "A few months"
+  },
+  "review.used.long": {
+    "ko": "6개월 이상",
+    "en": "6+ months"
+  },
+  "review.skin": {
+    "ko": "피부 타입",
+    "en": "Skin type"
+  },
+  "skin.dry": {
+    "ko": "건성",
+    "en": "Dry"
+  },
+  "skin.oily": {
+    "ko": "지성",
+    "en": "Oily"
+  },
+  "skin.combination": {
+    "ko": "복합성",
+    "en": "Combination"
+  },
+  "skin.sensitive": {
+    "ko": "민감성",
+    "en": "Sensitive"
+  },
+  "skin.normal": {
+    "ko": "중성",
+    "en": "Normal"
+  },
+  "review.goal": {
+    "ko": "원하던 효과 (예: 보습, 진정)",
+    "en": "What you wanted (e.g. hydration, calming)"
+  },
+  "review.photos": {
+    "ko": "사진 (선택, 최대 4장)",
+    "en": "Photos (optional, up to 4)"
+  },
+  "review.photoNote": {
+    "ko": "직접 찍은 사진만 올려 주세요. 영수증·송장의 이름·주소·주문번호는 가려 주세요. 위치 정보는 자동으로 지워져요.",
+    "en": "Only photos you took. Cover names, addresses and order numbers on receipts or labels. Location data is removed automatically."
+  },
+  "review.addPhoto": {
+    "ko": "사진 추가",
+    "en": "Add photo"
+  },
+  "review.purchase": {
+    "ko": "구매 정보 (선택)",
+    "en": "Where you bought it (optional)"
+  },
+  "review.where": {
+    "ko": "구매처",
+    "en": "Store"
+  },
+  "review.price": {
+    "ko": "구매 가격 (USD)",
+    "en": "Price paid (USD)"
+  },
+  "review.shipCountry": {
+    "ko": "배송 국가 (예: US)",
+    "en": "Shipped to (e.g. US)"
+  },
+  "review.shipDays": {
+    "ko": "배송 기간 (일)",
+    "en": "Delivery days"
+  },
+  "review.sponsored": {
+    "ko": "협찬·무료로 받았어요",
+    "en": "I got this free or sponsored"
+  },
+  "review.sponsoredTag": {
+    "ko": "협찬",
+    "en": "Sponsored"
+  },
+  "review.buyerInfo": {
+    "ko": "작성자 구매 정보 (참고)",
+    "en": "Writer's purchase (for reference)"
+  },
+  "review.shipped": {
+    "ko": "{country} 배송 {days}일",
+    "en": "{days} days to {country}"
+  },
+  "review.needItem": {
+    "ko": "후기에는 사용한 상품을 붙여 주세요",
+    "en": "Attach the product you used"
+  },
+  "product.reviews": {
+    "ko": "사용 후기",
+    "en": "Reviews"
+  },
+  "product.reviewsEmpty": {
+    "ko": "아직 후기가 없어요",
+    "en": "No reviews yet"
+  },
+  "product.related": {
+    "ko": "관련 대화",
+    "en": "Related talk"
+  },
+  "chat.err.item": {
+    "ko": "후기에는 사용한 상품을 붙여 주세요",
+    "en": "Attach the product you used"
+  },
+  "chat.err.photo": {
+    "ko": "사진을 올리지 못했어요",
+    "en": "Couldn't upload the photo"
+  },
+  "review.tone": {
+    "ko": "피부 톤",
+    "en": "Skin tone"
+  },
+  "tone.fair": {
+    "ko": "아주 밝음",
+    "en": "Fair"
+  },
+  "tone.light": {
+    "ko": "밝음",
+    "en": "Light"
+  },
+  "tone.medium": {
+    "ko": "중간",
+    "en": "Medium"
+  },
+  "tone.tan": {
+    "ko": "어두운 편",
+    "en": "Tan"
+  },
+  "tone.deep": {
+    "ko": "어두움",
+    "en": "Deep"
+  },
+  "review.undertone": {
+    "ko": "언더톤",
+    "en": "Undertone"
+  },
+  "under.cool": {
+    "ko": "쿨",
+    "en": "Cool"
+  },
+  "under.warm": {
+    "ko": "웜",
+    "en": "Warm"
+  },
+  "under.neutral": {
+    "ko": "뉴트럴",
+    "en": "Neutral"
+  },
+  "review.climate": {
+    "ko": "사용 환경",
+    "en": "Climate"
+  },
+  "climate.humid": {
+    "ko": "덥고 습함",
+    "en": "Hot & humid"
+  },
+  "climate.dry": {
+    "ko": "건조함",
+    "en": "Dry"
+  },
+  "climate.mixed": {
+    "ko": "계절마다 다름",
+    "en": "Changes by season"
+  },
+  "review.showMine": {
+    "ko": "원하는 것만 고르세요. 이 글에만 표시돼요",
+    "en": "Pick only what you want shown on this post"
+  },
+  "product.similarNote": {
+    "ko": "비슷한 조건의 사람이 써본 경험이에요. 같은 결과를 보장하지는 않아요.",
+    "en": "Experiences from people with similar conditions. Your results may differ."
+  },
+  "about.title": {
+    "ko": "어떤 제품인가요?",
+    "en": "About this product"
+  },
+  "about.general": {
+    "ko": "제품 분류에 대한 안내예요. 정확한 성분·사용법은 판매처 정보를 확인하세요.",
+    "en": "This is a guide to the product category. Check the retailer for exact ingredients and directions."
+  },
+  "about.official": {
+    "ko": "제휴 제공 상품 설명",
+    "en": "Affiliate-provided product description"
+  },
+  "about.source": {
+    "ko": "상품 정보 출처에서 확인 ↗",
+    "en": "View product information at source ↗"
+  },
+  "about.unverified": {
+    "ko": "피부 적합성·발색은 제품과 사용 조건에 따라 달라요. 관련 후기에서 경험을 확인해 보세요.",
+    "en": "Suitability and appearance vary by product and use. Explore relevant reviews for personal experiences."
+  },
+  "community.loadError": {
+    "ko": "글을 불러오지 못했어요. 다시 시도해 주세요.",
+    "en": "Could not load posts. Please try again."
+  },
+  "community.retry": {
+    "ko": "다시 시도",
+    "en": "Try again"
+  },
+  "community.agree": {
+    "ko": "이용 규칙에 동의합니다",
+    "en": "I agree to the community rules"
+  },
+  "community.photosError": {
+    "ko": "사진을 준비하지 못했어요. 작은 사진으로 다시 시도해 주세요.",
+    "en": "Could not prepare the photo. Please try a smaller image."
+  },
+  "community.titleNeeded": {
+    "ko": "제목을 2~120자로 작성해 주세요.",
+    "en": "Enter a title between 2 and 120 characters."
+  },
+  "about.type.선케어": {
+    "ko": "선크림·선스틱 등 자외선 차단 제품을 모았어요. 제품별 SPF·PA, 제형과 사용법을 확인해 보세요.",
+    "en": "Explore sunscreens and sun sticks. Check each product’s SPF, UVA rating, texture and directions."
+  },
+  "about.type.클렌징": {
+    "ko": "클렌징 오일·밤·폼 등 세안 제품이에요. 제형과 사용 단계가 다를 수 있어요.",
+    "en": "Cleansing oils, balms and foams come in different textures and fit different steps in a routine."
+  },
+  "about.type.토너·패드": {
+    "ko": "토너와 스킨케어 패드 제품이에요. 패드 수량, 제형과 제품별 사용법을 확인해 보세요.",
+    "en": "Toners and skincare pads. Check the texture, pad count and product-specific directions."
+  },
+  "about.type.에센스·세럼": {
+    "ko": "에센스·세럼·앰플 등 스킨케어 제품이에요. 성분과 사용 순서는 제품별로 확인해 보세요.",
+    "en": "Essences, serums and ampoules. Ingredients and application steps vary by product."
+  },
+  "about.type.크림·로션": {
+    "ko": "크림·로션 등 보습 단계에 사용하는 제품이에요. 제형과 사용감에 대한 후기도 함께 살펴보세요.",
+    "en": "Creams and lotions for the moisturizing step. Explore texture information and personal experiences."
+  },
+  "about.type.마스크팩": {
+    "ko": "시트 마스크·워시오프 팩 등 마스크 제품이에요. 구성 수량과 권장 사용 시간을 확인해 보세요.",
+    "en": "Sheet masks and other mask formats. Check the pack count and recommended application time."
+  },
+  "about.type.립": {
+    "ko": "틴트·립스틱·립밤 등 입술에 사용하는 제품이에요. 정확한 색상·마무리와 발색 후기를 확인해 보세요.",
+    "en": "Lip tints, lipsticks and balms. Check the exact shade, finish and swatch experiences."
+  },
+  "about.type.베이스메이크업": {
+    "ko": "쿠션·파운데이션·컨실러 등 베이스 제품이에요. 호수·언더톤·리필 포함 여부를 확인해 보세요.",
+    "en": "Cushions, foundations and concealers. Check the shade, undertone and whether a refill is included."
+  },
+  "about.type.아이메이크업": {
+    "ko": "섀도·마스카라·아이라이너 등 눈가 메이크업 제품이에요. 색상과 제품별 사용법을 확인해 보세요.",
+    "en": "Eye shadows, mascaras and liners. Check the shade and product-specific application directions."
+  },
+  "about.type.헤어·바디": {
+    "ko": "헤어·바디용 제품이에요. 사용 부위·향·용량과 씻어내는 제품인지 확인해 보세요.",
+    "en": "Hair and body products. Check the intended area, scent, size and whether the product is rinse-off."
+  },
+  "about.type.세트": {
+    "ko": "여러 제품 또는 여러 개가 포함된 구성이에요. 본품·미니·증정품과 각 용량을 확인해 보세요.",
+    "en": "A multi-item or multi-unit set. Check full sizes, minis, gifts and the size of every included item."
+  },
+  "about.type.기타": {
+    "ko": "상품명과 옵션을 확인하고, 정확한 용도·구성·사용법은 판매처 설명을 참고해 주세요.",
+    "en": "Check the name and options, then consult the retailer for the exact purpose, contents and directions."
+  },
+  "retry": {
+    "ko": "다시 시도",
+    "en": "Retry"
+  },
+  "community.homeCTA": {
+    "ko": "커뮤니티에서 묻고 추천받기",
+    "en": "Ask and discover in the community"
+  },
+  "home.active": {
+    "ko": "지금 활발한 대화",
+    "en": "Conversations happening now"
+  },
+  "home.quiet": {
+    "ko": "아직 활발한 대화가 없어요. 주제를 골라 첫 이야기를 나눠보세요.",
+    "en": "It’s quiet here. Pick a topic and start a conversation."
+  },
+  "home.mentioned": {
+    "ko": "대화에 나온 제품",
+    "en": "Products in the conversation"
+  },
+  "home.scope": {
+    "ko": "최근 24시간 대화 일부 기준 · 언급은 추천이 아니에요.",
+    "en": "From a sample of conversations in the past 24 hours. Mentions aren’t endorsements."
+  },
+  "home.noProducts": {
+    "ko": "상품이 연결된 대화가 생기면 여기에 보여드려요.",
+    "en": "Products will appear here when people share them in conversations."
+  },
+  "home.mentionCount": {
+    "ko": "{people}명 · 대화방 {rooms}개",
+    "en": "{people} people · {rooms} rooms"
+  },
+  "home.viewConversation": {
+    "ko": "관련 대화 보기",
+    "en": "See the conversation"
+  },
+  "home.questions": {
+    "ko": "최근 질문과 경험",
+    "en": "Recent questions and experiences"
+  },
+  "home.topics": {
+    "ko": "주제별 대화 찾기",
+    "en": "Find a conversation"
+  },
+  "home.resume": {
+    "ko": "참여한 대화 이어보기",
+    "en": "Continue your conversations"
+  },
+  "home.messages": {
+    "ko": "최근 24시간 메시지 {n}개",
+    "en": "{n} messages in 24h"
+  },
+  "home.ask": {
+    "ko": "이야기 시작하기",
+    "en": "Start a conversation"
+  },
+  "home.askHint": {
+    "ko": "이야기를 나눌 주제를 선택해 주세요.",
+    "en": "Choose a topic for your conversation."
+  },
+  "home.retry": {
+    "ko": "대화를 불러오지 못했어요. 다시 시도해 주세요.",
+    "en": "Couldn’t load conversations. Please try again."
+  },
+  "home.productsFailed": {
+    "ko": "상품이 언급된 대화를 일부 불러오지 못했어요.",
+    "en": "Some conversations with products couldn’t be loaded."
+  },
+  "nav.activity": {
+    "ko": "내 활동",
+    "en": "My activity"
+  },
+  "activity.saved": {
+    "ko": "저장한 상품과 글",
+    "en": "Saved products and posts"
+  },
+  "activity.chats": {
+    "ko": "참여한 대화",
+    "en": "My conversations"
+  },
+  "section.products": {
+    "ko": "상품 둘러보기",
+    "en": "Explore products"
+  },
+  "empty.category": {
+    "ko": "이 카테고리에 표시할 상품이 없어요. 아래 카탈로그를 둘러보세요.",
+    "en": "No products here yet. Explore the catalog below."
+  },
+  "catalog.savedSnapshot": {
+    "ko": "저장 당시 상품 정보예요. 최신 가격·재고는 판매처에서 확인하세요.",
+    "en": "Saved product snapshot. Check the retailer for the latest price and stock."
+  },
+  "account.title": {
+    "ko": "계정",
+    "en": "Account"
+  },
+  "account.google": {
+    "ko": "Google로 계속하기",
+    "en": "Continue with Google"
+  },
+  "account.signedIn": {
+    "ko": "Google 계정으로 로그인됨",
+    "en": "Signed in with Google"
+  },
+  "account.signout": {
+    "ko": "로그아웃",
+    "en": "Sign out"
+  },
+  "account.signedOut": {
+    "ko": "로그아웃했어요",
+    "en": "Signed out"
+  },
+  "account.localDataHint": {
+    "ko": "로그인 없이 이용할 수 있어요. 로그인하면 관심 상품과 프로필·관심 설정을 계정에 저장할 수 있어요.",
+    "en": "Browse without signing in. Sign in to sync saved products, profile and interests."
+  },
+  "account.failed": {
+    "ko": "Google 로그인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "en": "Google sign-in could not be completed. Please try again."
+  },
+  "account.providerDisabled": {
+    "ko": "이 로그인 서비스의 연결 설정이 아직 완료되지 않았어요.",
+    "en": "This sign-in provider is not configured yet."
+  },
+  "profile.title": {
+    "ko": "내 피부 프로필",
+    "en": "My skin profile"
+  },
+  "profile.why": {
+    "ko": "피부 타입을 알려 주면 나와 비슷한 사람의 후기를 먼저 볼 수 있어요.",
+    "en": "Add your skin type to see reviews from people like you first."
+  },
+  "profile.lead": {
+    "ko": "모두 선택 사항이에요. 직접 입력한 내용만 저장하고, 대화 내용으로 추측하지 않아요.",
+    "en": "Everything is optional. We only keep what you enter here and never guess from what you write."
+  },
+  "profile.ageLabel": {
+    "ko": "나이대",
+    "en": "Age range"
+  },
+  "profile.age.under13": {
+    "ko": "13세 미만",
+    "en": "Under 13"
+  },
+  "profile.age.13-15": {
+    "ko": "13–15세",
+    "en": "13–15"
+  },
+  "profile.age.16-17": {
+    "ko": "16–17세",
+    "en": "16–17"
+  },
+  "profile.age.18-24": {
+    "ko": "18–24세",
+    "en": "18–24"
+  },
+  "profile.age.25-34": {
+    "ko": "25–34세",
+    "en": "25–34"
+  },
+  "profile.age.35-44": {
+    "ko": "35–44세",
+    "en": "35–44"
+  },
+  "profile.age.45-54": {
+    "ko": "45–54세",
+    "en": "45–54"
+  },
+  "profile.age.55+": {
+    "ko": "55세 이상",
+    "en": "55+"
+  },
+  "profile.under13": {
+    "ko": "SeoulBeauty 프로필은 13세 이상만 만들 수 있어요. 아무것도 저장하지 않았어요.",
+    "en": "Profiles are for ages 13 and up. Nothing has been saved."
+  },
+  "profile.interests": {
+    "ko": "관심사",
+    "en": "Interests"
+  },
+  "profile.interest.skincare": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "profile.interest.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "profile.interest.sunscreen": {
+    "ko": "선크림",
+    "en": "Sunscreen"
+  },
+  "profile.interest.acne": {
+    "ko": "트러블 관리",
+    "en": "Breakouts"
+  },
+  "profile.interest.korea-travel": {
+    "ko": "한국 여행 쇼핑",
+    "en": "Korea trip shopping"
+  },
+  "profile.interest.deals": {
+    "ko": "할인 정보",
+    "en": "Deals"
+  },
+  "profile.healthConsent": {
+    "ko": "피부 고민도 저장하기",
+    "en": "Also save my skin concerns"
+  },
+  "profile.healthHint": {
+    "ko": "여드름·붉은기 같은 고민은 건강 정보로 볼 수 있어요. 따로 동의할 때만 저장하고, 외부에 제공하지 않아요.",
+    "en": "Concerns like acne or redness can count as health data. Saved only with this consent and never shared outside SeoulBeauty."
+  },
+  "profile.concern.acne": {
+    "ko": "여드름",
+    "en": "Acne"
+  },
+  "profile.concern.redness": {
+    "ko": "붉은기",
+    "en": "Redness"
+  },
+  "profile.concern.dryness": {
+    "ko": "건조함",
+    "en": "Dryness"
+  },
+  "profile.concern.pores": {
+    "ko": "모공",
+    "en": "Pores"
+  },
+  "profile.concern.dark_spots": {
+    "ko": "잡티",
+    "en": "Dark spots"
+  },
+  "profile.concern.aging": {
+    "ko": "노화",
+    "en": "Aging"
+  },
+  "profile.concern.sensitivity": {
+    "ko": "민감함",
+    "en": "Sensitivity"
+  },
+  "profile.personalize": {
+    "ko": "맞춤 추천에 사용",
+    "en": "Use for my recommendations"
+  },
+  "profile.personalizeHint": {
+    "ko": "내 프로필로 주제와 후기 순서를 맞춰요.",
+    "en": "Order topics and reviews using my profile."
+  },
+  "profile.b2b": {
+    "ko": "익명 통계로 브랜드 리서치에 제공",
+    "en": "Share in anonymous stats for brand research"
+  },
+  "profile.b2bHint": {
+    "ko": "개인을 알아볼 수 없는 집계로만 제공하고, 작은 집단은 공개하지 않아요. 피부 고민은 빠져요. 언제든 끌 수 있어요.",
+    "en": "Only as aggregates that cannot identify you; small groups are never shown and concerns are never included. Turn off anytime."
+  },
+  "profile.b2bAge": {
+    "ko": "16세 이상이 나이대를 고르면 선택할 수 있어요.",
+    "en": "Available once you pick an age range of 16 or older."
+  },
+  "profile.gpc": {
+    "ko": "브라우저의 개인정보 보호 신호(GPC)에 따라 판매·공유를 거부한 상태예요.",
+    "en": "Your browser’s Global Privacy Control signal is on, so sale and sharing are off."
+  },
+  "profile.optedOut": {
+    "ko": "판매·공유 거부를 선택했어요.",
+    "en": "You have opted out of sale and sharing."
+  },
+  "profile.note": {
+    "ko": "언제든 고치거나 지울 수 있어요. 설정 → 개인정보처리방침에서 자세히 볼 수 있어요.",
+    "en": "Edit or delete anytime. See Settings → Privacy policy for details."
+  },
+  "profile.save": {
+    "ko": "저장",
+    "en": "Save"
+  },
+  "profile.delete": {
+    "ko": "내 프로필 지우기",
+    "en": "Delete my profile"
+  },
+  "profile.failed": {
+    "ko": "저장하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "en": "Could not save. Please try again in a moment."
+  },
+  "profile.saveFromReview": {
+    "ko": "이 피부 정보를 내 프로필에 저장",
+    "en": "Save these skin details to my profile"
+  },
+  "profile.similar": {
+    "ko": "나와 비슷한 피부",
+    "en": "People like me"
+  },
+  "profile.similarAdd": {
+    "ko": "내 피부 입력하고 비슷한 후기 보기",
+    "en": "Add your skin to see similar reviews"
+  },
+  "profile.doNotSell": {
+    "ko": "내 개인정보 판매·공유 거부",
+    "en": "Do Not Sell or Share My Personal Information"
+  },
+  "profile.doNotSellDone": {
+    "ko": "판매·공유 거부를 기록했어요.",
+    "en": "Your opt-out of sale and sharing is recorded."
+  },
+  "onb.step": {
+    "ko": "{n}/3단계",
+    "en": "Step {n} of 3"
+  },
+  "onb.q0": {
+    "ko": "어떤 뷰티에 관심이 있으신가요?",
+    "en": "What beauty topics are you into?"
+  },
+  "onb.s0": {
+    "ko": "관심사를 선택해 주세요\n(복수 선택 가능)",
+    "en": "Pick what interests you\n(choose as many as you like)"
+  },
+  "onb.q1": {
+    "ko": "내 고민에 맞는 대화방 추천",
+    "en": "Rooms that match your concerns"
+  },
+  "onb.s1": {
+    "ko": "지금, 비슷한 고민을 가진 사람들과\n실제 이야기를 나눠보세요!",
+    "en": "Talk with people who share\nthe same concerns right now!"
+  },
+  "onb.g.skincare": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "onb.g.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "onb.c.acne": {
+    "ko": "여드름",
+    "en": "Acne"
+  },
+  "onb.c.sensitive": {
+    "ko": "민감성",
+    "en": "Sensitive"
+  },
+  "onb.c.dry": {
+    "ko": "건조",
+    "en": "Dryness"
+  },
+  "onb.c.pores": {
+    "ko": "모공",
+    "en": "Pores"
+  },
+  "onb.c.cushion": {
+    "ko": "쿠션 호수",
+    "en": "Cushion shades"
+  },
+  "onb.c.lip": {
+    "ko": "립",
+    "en": "Lips"
+  },
+  "onb.c.longwear": {
+    "ko": "지속력",
+    "en": "Long-wear"
+  },
+  "onb.c.shade": {
+    "ko": "컬러 매칭",
+    "en": "Color matching"
+  },
+  "onb.next": {
+    "ko": "다음으로",
+    "en": "Next"
+  },
+  "onb.browse": {
+    "ko": "그냥 둘러볼게요",
+    "en": "Just browse"
+  },
+  "onb.browseAll": {
+    "ko": "전체 대화 둘러보기",
+    "en": "Browse all rooms"
+  },
+  "onb.skip": {
+    "ko": "건너뛰기",
+    "en": "Skip"
+  },
+  "onb.matched": {
+    "ko": "맞는 고민: {list}",
+    "en": "Matches: {list}"
+  },
+  "onb.popular": {
+    "ko": "지금 인기 있는 대화",
+    "en": "Popular right now"
+  },
+  "onb.forYou": {
+    "ko": "나에게 맞는 대화",
+    "en": "Rooms for you"
+  },
+  "onb.edit": {
+    "ko": "관심사 바꾸기",
+    "en": "Change interests"
+  },
+  "onb.manage": {
+    "ko": "본인 설정하기",
+    "en": "Personal settings"
+  },
+  "onb.save": {
+    "ko": "저장하고 대화 계속하기",
+    "en": "Save and continue chatting"
+  },
+  "onb.nudgeTitle": {
+    "ko": "본인 설정을 하면 도움이 돼요",
+    "en": "Personal settings can help"
+  },
+  "onb.nudgeHint": {
+    "ko": "관심 분야와 고민을 설정하면 관련 대화를 찾기 쉬워요. 지금 바로 대화해도 괜찮아요.",
+    "en": "Set your interests and concerns to find relevant conversations. You can keep chatting without setting them."
+  },
+  "onb.snooze": {
+    "ko": "하루 동안 보지 않기",
+    "en": "Hide for 24 hours"
+  },
+  "onb.none": {
+    "ko": "아직 고르지 않았어요",
+    "en": "Not chosen yet"
+  },
+  "room.new": {
+    "ko": "새 대화방 만들기",
+    "en": "Create a room"
+  },
+  "room.newHint": {
+    "ko": "어떤 주제든 괜찮아요. 분야와 고민 태그는 선택이고, 다른 사람이 방을 찾는 데만 쓰여요.",
+    "en": "Any topic is welcome. Field and concern tags are optional and only help others find your room."
+  },
+  "room.titlePh": {
+    "ko": "방 이름 (3~40자)",
+    "en": "Room name (3–40 characters)"
+  },
+  "room.introPh": {
+    "ko": "어떤 이야기를 나누고 싶나요? (선택)",
+    "en": "What would you like to talk about? (optional)"
+  },
+  "room.field": {
+    "ko": "분야",
+    "en": "Field"
+  },
+  "room.tag.talk": {
+    "ko": "자유 주제",
+    "en": "Anything"
+  },
+  "room.tag.skin": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "room.tag.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "room.concerns": {
+    "ko": "고민 태그 (선택)",
+    "en": "Concern tags (optional)"
+  },
+  "room.note": {
+    "ko": "공개 방이라 누구나 볼 수 있어요. 링크와 부적절한 표현은 쓸 수 없고, 하루에 3개까지 만들 수 있어요.",
+    "en": "Rooms are public. Links and abusive words aren't allowed, and you can create up to 3 rooms a day."
+  },
+  "room.create": {
+    "ko": "방 만들기",
+    "en": "Create room"
+  },
+  "room.created": {
+    "ko": "방을 만들었어요",
+    "en": "Room created"
+  },
+  "chat.err.short": {
+    "ko": "3자 이상 입력해 주세요.",
+    "en": "Please enter at least 3 characters."
+  },
+  "chat.err.duplicate": {
+    "ko": "같은 이름의 방이 이미 있어요. 그 방에서 이야기해 보세요.",
+    "en": "A room with this name already exists. Try talking there."
+  },
+  "onb.fields": {
+    "ko": "관심 분야",
+    "en": "Interests"
+  },
+  "onb.keywords": {
+    "ko": "고민 키워드",
+    "en": "Concerns"
+  },
+  "onb.pickField": {
+    "ko": "관심 분야를 고르면 고민 키워드가 나와요.",
+    "en": "Pick an interest to see related concerns."
+  },
+  "room.liveNow": {
+    "ko": "지금 활발한 대화 중",
+    "en": "Active now"
+  },
+  "home.tab.rec": {
+    "ko": "추천",
+    "en": "For you"
+  },
+  "home.tab.rooms": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "home.tab.discover": {
+    "ko": "발견",
+    "en": "Discover"
+  },
+  "home.tab.brands": {
+    "ko": "브랜드",
+    "en": "Brands"
+  },
+  "home.trending": {
+    "ko": "지금 뜨는 이야기",
+    "en": "Trending now"
+  },
+  "home.trendingSub": {
+    "ko": "요즘 가장 많이 이야기하는 주제예요!",
+    "en": "What people are talking about most right now!"
+  },
+  "home.recRooms": {
+    "ko": "추천 대화방",
+    "en": "Recommended rooms"
+  },
+  "home.recRoomsSub": {
+    "ko": "관심 있는 주제의 대화를 둘러보세요.",
+    "en": "Explore conversations about topics that interest you."
+  },
+  "home.seeAll": {
+    "ko": "전체보기",
+    "en": "See all"
+  },
+  "home.msgShort": {
+    "ko": "오늘 메시지 {n}개",
+    "en": "{n} messages today"
+  },
+  "home.brandsFailed": {
+    "ko": "브랜드 목록을 불러오지 못했어요.",
+    "en": "Couldn't load brands."
+  },
+  "home.noBrands": {
+    "ko": "아직 보여줄 브랜드가 없어요.",
+    "en": "No brands to show yet."
+  },
+  "home.popular": {
+    "ko": "많이 찾는 제품",
+    "en": "Popular products"
+  },
+  "home.popularSub": {
+    "ko": "카탈로그에서 지금 많이 찾는 제품이에요. 대화에서 추천받은 제품과는 달라요.",
+    "en": "Popular in the catalog right now — not the same as products recommended in conversations."
+  },
+  "family.attach": {
+    "ko": "대화에 첨부",
+    "en": "Attach to chat"
+  },
+  "family.attached": {
+    "ko": "대화에 상품을 첨부했어요",
+    "en": "Product attached to your message"
+  },
+  "room.join": {
+    "ko": "가입",
+    "en": "Join"
+  },
+  "share.room": {
+    "ko": "대화방 공유",
+    "en": "Share room"
+  },
+  "share.product": {
+    "ko": "상품 공유",
+    "en": "Share product"
+  },
+  "share.copied": {
+    "ko": "링크를 복사했어요",
+    "en": "Link copied"
+  },
+  "share.failed": {
+    "ko": "공유하지 못했어요",
+    "en": "Couldn't share"
+  },
+  "activity.tab.saved": {
+    "ko": "저장한 상품",
+    "en": "Saved"
+  },
+  "activity.tab.rooms": {
+    "ko": "참여한 대화방",
+    "en": "My rooms"
+  },
+  "home.welcome": {
+    "ko": "다시 오신 걸 환영해요!",
+    "en": "Welcome back!"
+  },
+  "home.welcomeSub": {
+    "ko": "참여한 대화방에서 이야기를 이어가 보세요.",
+    "en": "Pick up where you left off in your rooms."
+  },
+  "home.newMessages": {
+    "ko": "새 메시지",
+    "en": "New"
+  },
+  "splash.line1": {
+    "ko": "좋은 뷰티가",
+    "en": "Good beauty"
+  },
+  "splash.line2": {
+    "ko": "좋은 일상을 만든다",
+    "en": "makes good days"
+  },
+  "onb.filter.rec": {
+    "ko": "추천",
+    "en": "For you"
+  },
+  "onb.filter.skincare": {
+    "ko": "스킨케어",
+    "en": "Skincare"
+  },
+  "onb.filter.makeup": {
+    "ko": "메이크업",
+    "en": "Makeup"
+  },
+  "onb.filter.all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "onb.c.spots": {
+    "ko": "잡티",
+    "en": "Dark spots"
+  },
+  "onb.c.firmness": {
+    "ko": "탄력",
+    "en": "Firmness"
+  },
+  "onb.c.sebum": {
+    "ko": "피지",
+    "en": "Oiliness"
+  },
+  "onb.c.toneup": {
+    "ko": "톤업",
+    "en": "Tone-up"
+  },
+  "onb.c.trouble": {
+    "ko": "트러블",
+    "en": "Breakouts"
+  },
+  "onb.c.base": {
+    "ko": "베이스",
+    "en": "Base"
+  },
+  "room.newToday": {
+    "ko": "오늘 {n}개의 새 글",
+    "en": "{n} new today"
+  },
+  "room.memberCount": {
+    "ko": "{n}명 멤버",
+    "en": "{n} members"
+  },
+  "room.joinTalk": {
+    "ko": "가입하고 대화하기",
+    "en": "Join to chat"
+  },
+  "chat.typeHere": {
+    "ko": "메시지를 입력하세요...",
+    "en": "Type a message..."
+  },
+  "product.fact.options": {
+    "ko": "옵션",
+    "en": "Options"
+  },
+  "product.fact.sellers": {
+    "ko": "판매처",
+    "en": "Sellers"
+  },
+  "product.fact.unit": {
+    "ko": "최저 단가",
+    "en": "Best unit price"
+  },
+  "product.fact.category": {
+    "ko": "분류",
+    "en": "Category"
+  },
+  "product.fact.count": {
+    "ko": "{n}개",
+    "en": "{n}"
+  },
+  "product.fact.places": {
+    "ko": "{n}곳",
+    "en": "{n}"
+  },
+  "product.buy": {
+    "ko": "{seller}에서 보기",
+    "en": "View at {seller}"
+  },
+  "brand.follow": {
+    "ko": "팔로우",
+    "en": "Follow"
+  },
+  "brand.following": {
+    "ko": "팔로잉",
+    "en": "Following"
+  },
+  "brand.followNote": {
+    "ko": "팔로우는 이 기기에만 저장돼요.",
+    "en": "Follows are saved on this device only."
+  },
+  "brand.headline": {
+    "ko": "{brand}의 상품과 이야기",
+    "en": "Products and talk about {brand}"
+  },
+  "brand.tab.products": {
+    "ko": "대표 상품",
+    "en": "Top products"
+  },
+  "brand.tab.reviews": {
+    "ko": "리뷰",
+    "en": "Reviews"
+  },
+  "brand.allProducts": {
+    "ko": "전체 상품 보기",
+    "en": "See all products"
+  },
+  "brand.noReviews": {
+    "ko": "아직 이 브랜드 후기가 없어요.",
+    "en": "No reviews of this brand yet."
+  },
+  "tab2.home": {
+    "ko": "홈",
+    "en": "Home"
+  },
+  "tab2.rooms": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "tab2.discover": {
+    "ko": "발견",
+    "en": "Discover"
+  },
+  "tab2.alerts": {
+    "ko": "알림",
+    "en": "Alerts"
+  },
+  "tab2.my": {
+    "ko": "마이",
+    "en": "My"
+  },
+  "rooms.mine": {
+    "ko": "내가 참여한 대화방",
+    "en": "Rooms I joined"
+  },
+  "activity.tab.recent": {
+    "ko": "최근 본 상품",
+    "en": "Recently viewed"
+  },
+  "activity.recentEmpty": {
+    "ko": "아직 본 상품이 없어요.",
+    "en": "No products viewed yet."
+  },
+  "alerts.title": {
+    "ko": "알림",
+    "en": "Alerts"
+  },
+  "alerts.filter.all": {
+    "ko": "전체",
+    "en": "All"
+  },
+  "alerts.filter.room": {
+    "ko": "대화방",
+    "en": "Rooms"
+  },
+  "alerts.filter.product": {
+    "ko": "상품",
+    "en": "Products"
+  },
+  "alerts.filter.service": {
+    "ko": "서비스",
+    "en": "Service"
+  },
+  "alerts.empty": {
+    "ko": "새 알림이 없어요. 대화방에 참여하거나 상품을 저장하면 여기에 모여요.",
+    "en": "No new alerts. Join rooms or save products to see activity here."
+  },
+  "alerts.emptyService": {
+    "ko": "서비스 알림이 없어요.",
+    "en": "No service alerts."
+  },
+  "alert.newMessages": {
+    "ko": "‘{room}’에 새 메시지 {n}개",
+    "en": "{n} new messages in ‘{room}’"
+  },
+  "alert.newCount": {
+    "ko": "새로운 메시지 {n}개",
+    "en": "{n} new messages"
+  },
+  "alert.whoMany": {
+    "ko": "{name}님 외 {n}명",
+    "en": "{name} and {n} others"
+  },
+  "alert.replies": {
+    "ko": "{who}이 답글을 남겼어요!",
+    "en": "{who} replied to you!"
+  },
+  "alert.repliesBody": {
+    "ko": "‘{room}’ 대화방에서 내 메시지에 답글이 {n}개 달렸어요.",
+    "en": "{n} replies to your messages in ‘{room}’."
+  },
+  "alert.savedTalk": {
+    "ko": "저장한 상품 관련 대화가 새롭게 올라왔어요!",
+    "en": "New talk about a product you saved!"
+  },
+  "alert.savedTalkBody": {
+    "ko": "‘{name}’ 이야기가 이번 주 {n}개 올라왔어요.",
+    "en": "{n} posts about ‘{name}’ this week."
+  },
+  "share.hubNav": {
+    "ko": "공유",
+    "en": "Share"
+  },
+  "share.hubTitle": {
+    "ko": "친구와 함께 더 즐거운 뷰티 이야기",
+    "en": "Beauty talk is better with friends"
+  },
+  "share.hubSub": {
+    "ko": "좋은 정보는 함께할 때 더 특별해요!",
+    "en": "Good finds are better shared!"
+  },
+  "share.roomSub": {
+    "ko": "지금 이야기하는 대화방을 친구에게 공유해보세요",
+    "en": "Share a room you are talking in"
+  },
+  "share.productSub": {
+    "ko": "마음에 드는 상품을 친구에게 알려주세요",
+    "en": "Tell a friend about a product you like"
+  },
+  "share.invite": {
+    "ko": "친구 초대",
+    "en": "Invite friends"
+  },
+  "share.inviteSub": {
+    "ko": "함께할수록 더 예쁜 Seoul Beauty를 시작해보세요",
+    "en": "Start Seoul Beauty together"
+  },
+  "share.inviteMessage": {
+    "ko": "Seoul Beauty에서 K-뷰티 이야기 같이 해요!",
+    "en": "Talk K-beauty with me on Seoul Beauty!"
+  },
+  "chat.copy": {
+    "ko": "메시지 복사",
+    "en": "Copy message"
+  },
+  "chat.newMessages": {
+    "ko": "새 메시지 {n}개 ↓",
+    "en": "{n} new messages ↓"
+  },
+  "rooms.findBy": {
+    "ko": "대화 찾기",
+    "en": "Find conversations"
+  },
+  "rooms.byProduct": {
+    "ko": "제품으로 대화 찾기",
+    "en": "Find by product"
+  },
+  "rooms.productLabel": {
+    "ko": "어떤 제품이 궁금하세요?",
+    "en": "Which product are you curious about?"
+  },
+  "rooms.productPh": {
+    "ko": "상품명이나 브랜드 검색",
+    "en": "Search a product or brand"
+  },
+  "rooms.productHint": {
+    "ko": "방 제목에 제품명이 있는 대화를 찾아요.",
+    "en": "Find rooms with the product name in their title."
+  },
+  "rooms.productPrompt": {
+    "ko": "제품명을 입력해 대화를 찾아보세요.",
+    "en": "Enter a product name to find conversations."
+  },
+  "rooms.productEmpty": {
+    "ko": "아직 제목이 일치하는 대화방이 없어요.",
+    "en": "No rooms have a matching title yet."
+  },
+  "rooms.productCount": {
+    "ko": "대화방 {n}개",
+    "en": "{n} rooms"
+  },
+  "rooms.productCreate": {
+    "ko": "대화방을 만들어보세요!",
+    "en": "Start a conversation!"
+  },
+  "rooms.productTalk": {
+    "ko": "이 제품 대화 찾기",
+    "en": "Find conversations about this product"
+  },
+  "onb.products": {
+    "ko": "어떤 제품 이야기가 궁금하세요?",
+    "en": "Which product would you like to talk about?"
+  },
+  "onb.productsHint": {
+    "ko": "제품을 골라 진행 중인 대화를 둘러보세요. 대화방은 직접 선택해 들어갈 수 있어요.",
+    "en": "Pick a product to browse conversations. You choose which room to enter."
+  },
+  "onb.finishBrowse": {
+    "ko": "대화방 둘러보기",
+    "en": "Browse conversations"
+  },
+  "onb.age.under18": {
+    "ko": "18세 미만",
+    "en": "Under 18"
+  },
+  "rooms.productsActive": {
+    "ko": "지금 대화 중인 제품",
+    "en": "Products people are discussing"
+  },
+  "rooms.productAll": {
+    "ko": "제품 목록",
+    "en": "All products"
+  },
+  "rooms.noProductRooms": {
+    "ko": "아직 제품별 대화가 없어요. 제품명을 검색해 시작해보세요.",
+    "en": "No product rooms yet. Search a product to start one."
+  },
+  "rooms.demoProducts": {
+    "ko": "가상 제품별 대화 · 실제 이용 현황이 아니에요.",
+    "en": "Example conversations, not live activity."
+  },
+  "rooms.demoCreate": {
+    "ko": "데모 대화방을 만들어보세요. 이 화면에서만 확인할 수 있어요.",
+    "en": "Create a demo room for this session only."
+  },
+  "rooms.demoCreated": {
+    "ko": "데모 대화방을 만들었어요.",
+    "en": "Demo room created."
+  },
+  "onb.age.under15": {
+    "ko": "15세 미만",
+    "en": "Under 15"
+  },
+  "region.open": {
+    "ko": "서비스 지역 선택",
+    "en": "Choose service region"
+  },
+  "region.title": {
+    "ko": "서비스 지역",
+    "en": "Service region"
+  },
+  "region.kr": {
+    "ko": "한국",
+    "en": "South Korea"
+  },
+  "region.us": {
+    "ko": "미국",
+    "en": "United States"
+  },
+  "region.hint": {
+    "ko": "선택한 지역의 대화와 판매처를 보여드려요.",
+    "en": "Conversations and retailers follow your service region."
+  },
+  "region.languageHint": {
+    "ko": "화면 언어를 바꿔도 서비스 지역과 판매처는 유지돼요.",
+    "en": "Changing interface language keeps your service region and retailers."
+  },
+  "region.krPending": {
+    "ko": "한국 대화방을 준비 중이에요. 데모에서 이용 흐름을 먼저 살펴볼 수 있어요.",
+    "en": "Korean conversations are being prepared. Try demo mode to explore the experience."
+  },
+  "region.noOffers": {
+    "ko": "이 지역의 판매처 정보를 준비 중이에요.",
+    "en": "Retailer listings for this region are being prepared."
+  },
+  "account.kakao": {
+    "ko": "카카오로 로그인",
+    "en": "Continue with Kakao"
+  },
+  "account.naver": {
+    "ko": "네이버로 로그인",
+    "en": "Continue with Naver"
+  },
+  "account.cancelled": {
+    "ko": "로그인이 취소됐어요. 다시 시도해 주세요.",
+    "en": "Sign-in was cancelled. Please try again."
+  },
+  "account.invalidCallback": {
+    "ko": "로그인을 확인할 수 없어요. 시작한 브라우저에서 다시 시도해 주세요.",
+    "en": "Sign-in could not be verified. Try again in the same browser."
+  },
+  "account.sync.local": {
+    "ko": "이 기기에 저장됨",
+    "en": "Saved on this device"
+  },
+  "account.sync.loading": {
+    "ko": "계정 데이터 동기화 중",
+    "en": "Syncing account data"
+  },
+  "account.sync.ready": {
+    "ko": "계정에 동기화됨",
+    "en": "Synced to your account"
+  },
+  "account.sync.failed": {
+    "ko": "동기화하지 못했어요. 변경사항은 이 기기에 보관돼요.",
+    "en": "Sync failed. Changes remain on this device."
+  },
+  "account.syncRetry": {
+    "ko": "지금 동기화",
+    "en": "Sync now"
+  },
+  "opinion.title": {
+    "ko": "브랜드 경험",
+    "en": "Brand experiences"
+  },
+  "opinion.entryHint": {
+    "ko": "알고 있거나 사용해 본 브랜드 답변 보기·수정",
+    "en": "Review or edit brands you know or have tried"
+  },
+  "opinion.question": {
+    "ko": "{brand} 들어보셨나요?",
+    "en": "Have you heard of {brand}?"
+  },
+  "opinion.storage": {
+    "ko": "답변은 이 기기에 저장돼요. 로그인하면 내 계정에 동기화를 시도하며, 공개 후기나 전체 통계로 게시하지 않아요.",
+    "en": "Answers are saved on this device. When signed in, we try to sync them to your account. They are not published as reviews or community statistics."
+  },
+  "opinion.tried_liked": {
+    "ko": "써봤고 마음에 들어요",
+    "en": "I tried it and liked it"
+  },
+  "opinion.tried_disliked": {
+    "ko": "써봤지만 맞지 않았어요",
+    "en": "I tried it, not for me"
+  },
+  "opinion.want_to_try": {
+    "ko": "알고 있거나 궁금해요",
+    "en": "I know it / curious"
+  },
+  "opinion.not_familiar": {
+    "ko": "처음 들어봐요",
+    "en": "Never heard of it"
+  },
+  "opinion.noResults": {
+    "ko": "아직 공개된 커뮤니티 결과가 없어요",
+    "en": "No public community results yet"
+  },
+  "opinion.summary": {
+    "ko": "내가 남긴 브랜드 답변",
+    "en": "Your brand answers"
+  },
+  "opinion.summaryHint": {
+    "ko": "아래는 내 답변이에요. 뒤로 가서 수정하거나 가입 없이 계속 둘러볼 수 있어요.",
+    "en": "These are your own answers. Go back to edit or keep exploring without signing up."
+  },
+  "opinion.empty": {
+    "ko": "아직 저장된 답변이 없어요. 답변 없이 둘러봐도 괜찮아요.",
+    "en": "No answers saved yet. You can explore without answering."
+  },
+  "opinion.explore": {
+    "ko": "Seoul Beauty 둘러보기",
+    "en": "Explore Seoul Beauty"
+  },
+  "opinion.google": {
+    "ko": "Google로 로그인하고 기기 간 저장 시도",
+    "en": "Sign in with Google to sync your answers"
+  },
+  "opinion.saveFailed": {
+    "ko": "이 기기에 저장하지 못했어요. 저장 공간·브라우저 설정을 확인하고 다시 선택해 주세요.",
+    "en": "Could not save on this device. Check storage or browser settings, then select again."
+  }
+}

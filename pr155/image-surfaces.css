@@ -1,0 +1,40 @@
+/* Seoul Beauty image surface system.
+ * Apply data-cutout only to imagery with a verified transparent alpha channel.
+ * Opaque Stylevana/JPEG photos must keep their original pixels and background.
+ * Card and image are independent: never use mix-blend-mode:multiply for cutouts.
+ */
+.cutout-surface {
+  --cutout-bg: #f0f5ff;
+  background-color: var(--cutout-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.cutout-surface[data-tone="blue"] { --cutout-bg: #edf4ff; }
+.cutout-surface[data-tone="pink"] { --cutout-bg: #fff0f5; }
+.cutout-surface[data-tone="lavender"] { --cutout-bg: #f4efff; }
+.cutout-surface[data-tone="mint"] { --cutout-bg: #eaf8f3; }
+.cutout-surface[data-tone="cream"] { --cutout-bg: #fff5e8; }
+.cutout-surface[data-tone="white"] { --cutout-bg: #fff; }
+.cutout-surface > img { max-width:100%; max-height:100%; object-fit:contain; mix-blend-mode:normal; }
+
+/* SeoulBeauty: quiet white product surfaces, with keyboard focus preserved. */
+.popular-img, .family-hero, .detail-art, .card, .saved-card, #saved .saved-card, .visual, .chat-item,
+#chat-log .chat-item, .recent-row, .family-facts, .fh-thumbs button,
+.fh-thumbs button.on, #brand .brand-badge-lg {
+  border: 0;
+  box-shadow: none;
+  background: #fff;
+}
+.saved-card .visual, #saved .saved-card .visual, .visual, .family-hero, .fh-main, .detail-art, .chat-item img, #chat-log .chat-item img,
+.recent-row img, .cutout-surface, .cutout-surface[data-tone] {
+  background: #fff;
+  --cutout-bg: #fff;
+}
+.visual img { mix-blend-mode: normal; }
+.fh-thumbs button { opacity: .55; }
+.fh-thumbs button.on { opacity: 1; }
+/* Keep avatar assets available while user portraits are disabled. */
+.msg-avatar, .chat-avatar, .account-avatar, .profile-avatar, .user-avatar { display: none; }
+.chat-msg:not(.mine) { gap: 0; }
