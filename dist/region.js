@@ -26,6 +26,8 @@ export function regionURL(selected, href = globalThis.location?.href) {
   const u = new URL(href); u.pathname = '/' + selected; u.hash = '';
   // A manual market switch opens its home, rather than carrying a room from another market.
   for (const k of ['room', 'product', 'post', 'productRooms', 'region']) u.searchParams.delete(k);
+  // Picking a market resets the UI to its language (US → English, KR → Korean); the user can switch back.
+  u.searchParams.set('lang', selected === 'kr' ? 'ko' : 'en');
   return u;
 }
 export function languageURL(language, href = globalThis.location?.href) {
