@@ -96,9 +96,10 @@ function drawFlow() {
   }
   if (step === 'brands') {
     const brand = brandSeed[flow.brandIndex ?? 0];
+    const introLimit = Math.min(5,brandSeed.length);
     const choice = readOpinion('brand:'+brand)?.choice;
     const labels = {tried_liked:'I use it and like it',tried_disliked:'I tried it, not for me',want_to_try:'I know it / curious',not_familiar:'Never heard of it'};
-    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">Have you heard of ${esc(brand)}?</h1><p class="ob-sub">Tell us what you think. Your answer stays on this device for now.</p><div class="ob-keywords">${Object.entries(labels).map(([key,label])=>`<button type="button" data-onb-opinion="${key}" aria-pressed="${choice===key}" class="${choice===key?'on':''}">${esc(label)}</button>`).join('')}</div><p class="ob-hint">${(flow.brandIndex??0)+1} / ${brandSeed.length} · No community results yet</p></div><div class="ob-foot"><button type="button" class="ob-next" data-onb="brand-next">Next →</button><button type="button" class="text-btn" data-onb="brand-skip">Skip</button></div></div>`;
+    box.innerHTML = `<div class="ob-screen">${logoBar()}<div class="ob-scroll"><h1 id="onb-title" tabindex="-1">Have you heard of ${esc(brand)}?</h1><p class="ob-sub">Tell us what you think. Your answer stays on this device for now.</p><div class="ob-keywords">${Object.entries(labels).map(([key,label])=>`<button type="button" data-onb-opinion="${key}" aria-pressed="${choice===key}" class="${choice===key?'on':''}">${esc(label)}</button>`).join('')}</div><p class="ob-hint">${(flow.brandIndex??0)+1} / ${introLimit} · No community results yet</p></div><div class="ob-foot"><button type="button" class="ob-next" data-onb="brand-next">Next →</button><button type="button" class="text-btn" data-onb="brand-skip">Skip</button></div></div>`;
     return;
   }
   if (step === 'choose') {
@@ -123,7 +124,7 @@ globalThis.document?.addEventListener('click', e => {
   const a = b.dataset.onb, d = flow.draft;
   if (a === 'splash') flow.step = 'brands';
   else if (b.dataset.onbOpinion) {saveOpinion('brand:'+brandSeed[flow.brandIndex??0],b.dataset.onbOpinion);}
-  else if (a === 'brand-next') {flow.brandIndex=(flow.brandIndex??0)+1;if(flow.brandIndex>=brandSeed.length)flow.step='choose';}
+  else if (a === 'brand-next') {flow.brandIndex=(flow.brandIndex??0)+1;if(flow.brandIndex>=Math.min(5,brandSeed.length))flow.step='choose';}
   else if (a === 'brand-skip') flow.step='choose';
   else if (a === 'back') { if (flow.step === 'products') flow.step = 'profile'; else if (flow.step === 'profile') flow.step = 'choose'; else if (flow.step === 'brands') { closeFlow({cancelled:true}); return; } else { closeFlow({cancelled:true}); return; } }
   else if (a === 'next') { flow.step = !d.skincare && !d.makeup && !flow.returnToChat ? 'products' : 'profile'; }
