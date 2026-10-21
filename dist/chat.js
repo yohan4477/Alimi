@@ -177,7 +177,9 @@ async function renderHome() {
   loadRevisit().then(r => { if (version === homeVersion && home) { home.revisit = r; drawHome(); } }, () => {});
   loadCatalogPictures(chat.rooms).then(pics => {
     if (version !== homeVersion || !home) return;
-    home.images = topicPictures([...hot, ...topics], pics.byCategory, roomImages(entries)); home.popular = pics.popular;
+    // Never decorate a topic room with an unrelated catalog product photo.
+    // Only use images grounded in actual conversation entries; roomThumb() supplies a safe fallback.
+    home.images = roomImages(entries); home.popular = pics.popular;
     drawHome();
   }, () => {});
 }
