@@ -288,3 +288,10 @@ html[data-room="1"] #tabbar{display:none}
 .product-room-row .product-room-photo{width:88px;height:88px;flex:0 0 88px}
 @media(max-width:760px){.popular-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:360px){.hot-row .room-thumb:not(.room-thumb-art),.explore-row .room-thumb:not(.room-thumb-art){width:96px;height:96px}.explore-item .explore-row{padding-right:30px}#chat-log .chat-item img,#chat-log .chat-item .no-photo{width:88px;height:88px;flex-basis:88px}}
+
+/* Reactions beside the text keep each conversation row compact. */
+#chat-log .chat-msg.feed{padding-top:9px;padding-bottom:9px;gap:10px}
+#chat-log .chat-msg.feed.grouped{padding-top:4px;padding-bottom:6px}
+#chat-log .chat-msg.feed>.msg-main{flex:1;min-width:0}
+#chat-log .chat-msg.feed>.msg-actions{flex:none;align-self:center;gap:10px;margin:0;white-space:nowrap}
+#chat-log .chat-msg.feed>.msg-actions .chat-heart,#chat-log .chat-msg.feed>.msg-actions .msg-reply{min-height:32px}
