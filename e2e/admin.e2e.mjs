@@ -54,7 +54,7 @@ try {
   await library.locator('[data-act="share"]').click();
   await library.locator('[data-act="friend"]').click();
   await library.locator('[data-guess="1"]').click();
-  assert.match(await library.locator('h2').innerText(),/맞혔어/);
+  assert.match(await library.getByRole('heading',{name:/맞혔어/}).innerText(),/맞혔어/);
 
   // Developer board: priority × platform filtering, links and tab jumps are presentational.
   await page.getByRole('tab',{name:'개발',exact:true}).click();
