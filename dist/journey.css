@@ -270,3 +270,7 @@ html[data-room="1"] #tabbar{display:none}
 .home-hero p{font-size:11px}
 .hero-cta{white-space:nowrap}
 .share-card div{align-items:flex-start;text-align:left}
+
+/* Original category artwork from the supplied journey deck. */
+.explore-cat-ico{overflow:hidden}
+.explore-cat-ico img{width:100%;height:100%;object-fit:contain;border-radius:inherit}
