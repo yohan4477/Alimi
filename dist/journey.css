@@ -442,3 +442,22 @@ body{color:var(--jr-ink)}
   .home-hero p{width:64vw;font-size:13px}
   .home-hero .hero-cta{font-size:12px}
 }
+
+/* Phone typography matches the larger banner copy shown in the review. */
+@media(max-width:480px){
+ .home-hero{height:300px}
+ .home-hero-text{width:80%;padding-top:24px}
+ .home-hero h1{font-size:28px;line-height:1.2}
+ .home-hero p{width:64vw;max-width:260px;font-size:15px;line-height:1.45}
+ .home-hero .hero-cta{font-size:14px}
+}
+@media(max-width:360px){.home-hero h1{font-size:26px}.home-hero p{font-size:14px}.home-hero .hero-cta{font-size:13px}}
+/* Consecutive messages by one author share a single reaction/reply strip. */
+#chat-log .chat-msg.feed{padding-top:7px;padding-bottom:7px}
+#chat-log .chat-msg.feed:has(+ .chat-msg.feed.grouped){padding-bottom:0}
+#chat-log .chat-msg.feed:has(+ .chat-msg.feed.grouped)>.msg-actions{visibility:hidden;height:0;overflow:hidden}
+#chat-log .chat-msg.feed.grouped{padding-top:1px;padding-bottom:7px;margin-top:0}
+#chat-log .chat-msg.feed.grouped:has(+ .chat-msg.feed.grouped){padding-bottom:0}
+#chat-log .chat-msg.feed .msg-body{margin-top:2px;line-height:1.4}
+#chat-log .chat-msg.feed.grouped .msg-body{margin-top:0}
+#chat-log .chat-msg.feed>.msg-actions .chat-heart,#chat-log .chat-msg.feed>.msg-actions .msg-reply{min-height:28px;padding-top:2px;padding-bottom:2px}
