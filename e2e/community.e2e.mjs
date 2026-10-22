@@ -85,7 +85,7 @@ try {
   await page.locator('.room-back').click();
   await page.locator('#tabbar [data-screen="saved"]').click();
   await page.locator('[data-activity-tab="rooms"]').click();
-  await page.locator('#activity-conversations h2').waitFor({state:'attached'}); // tab label already names the list; heading kept for screen readers
+  await page.locator('#activity-conversations .activity-empty [data-activity-browse="rooms"]').waitFor(); // fixture has no joined or bookmarked rooms
   assert.match(await page.locator('#saved .activity-tabs').getAttribute('aria-label'),lang==='en'?/My activity/:/내 활동/);
   assert.deepEqual(errors,[]);
   console.log('ok - '+lang+' community home, product mentions, original conversation, product sheet return, activity and mobile width');
