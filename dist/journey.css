@@ -394,3 +394,8 @@ body{color:var(--jr-ink)}
 #family-dialog #family-hero>img{width:100%}
 #family-dialog .fh-thumbs button{width:64px;height:64px}
 #activity-conversations>h2{position:static;width:auto;height:auto;overflow:visible;clip:auto;font-size:var(--ui-heading);font-weight:700;margin:20px 0 8px}
+
+/* Room content already receives its outer gutter from topic-body. */
+#chat-log{padding-left:0;padding-right:0}
+#chat-log .chat-item{min-width:0;max-width:100%;width:100%}
+#chat-log .chat-item>span{min-width:0;flex:1}
