@@ -461,3 +461,8 @@ body{color:var(--jr-ink)}
 #chat-log .chat-msg.feed .msg-body{margin-top:2px;line-height:1.4}
 #chat-log .chat-msg.feed.grouped .msg-body{margin-top:0}
 #chat-log .chat-msg.feed>.msg-actions .chat-heart,#chat-log .chat-msg.feed>.msg-actions .msg-reply{min-height:28px;padding-top:2px;padding-bottom:2px}
+
+/* Anchor the banner action below the portrait's face. */
+.home-hero-text{height:100%}
+.home-hero .hero-cta{position:absolute;left:18px;bottom:20px;margin-top:0}
+@media(max-width:360px){.home-hero .hero-cta{left:16px}}
