@@ -9,7 +9,7 @@ import {roomTitle} from './chat-api.js';
 
 export function roomThumb(room, image) {
   const src = image || (room.kind === 'brand' && room.logo_url) || roomArt(room);
-  return `<span class="room-thumb${image ? '' : ' room-thumb-art'}"><img src="${esc(src)}" alt="" loading="lazy"></span>`;
+  return `<span class="room-thumb${image && !String(image).startsWith('assets/category-hd/') ? '' : ' room-thumb-art'}"><img src="${esc(src)}" alt="" loading="lazy"></span>`;
 }
 // Seed rooms carry no concerns column before the user_rooms migration; this mapping stands in.
 export const ROOM_CONCERNS = {
@@ -47,11 +47,12 @@ const CONCERN_CATEGORY = {acne: '에센스·세럼', dry: '크림·로션', sens
   sebum: '토너·패드', toneup: '에센스·세럼', trouble: '에센스·세럼', lip: '립', base: '베이스메이크업', cushion: '베이스메이크업', longwear: '베이스메이크업', shade: '베이스메이크업'};
 export const roomCategory = room => ROOM_CATEGORY[room.id] ?? CONCERN_CATEGORY[(room.concerns ?? [])[0]]
   ?? (room.tag === 'skin' ? '에센스·세럼' : room.tag === 'makeup' ? '베이스메이크업' : null);
-// Distinct catalog pictures per category, handed out in room order; mentioned products keep priority.
+// Mentioned products keep priority. Topic rooms use decorative artwork; product rooms can use catalog photos.
 export function topicPictures(rooms, byCategory, mentioned = new Map()) {
   const out = new Map(mentioned), taken = new Set(out.values());
   for (const room of rooms) {
     if (out.has(room.id)) continue;
+    if (room.kind !== 'product') { out.set(room.id, roomArt(room)); continue; }
     const pic = [...(byCategory.get(roomCategory(room) ?? '전체') ?? []), ...(byCategory.get('전체') ?? [])].find(u => !taken.has(u));
     if (pic) { out.set(room.id, pic); taken.add(pic); }
   }

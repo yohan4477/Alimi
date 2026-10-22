@@ -11,10 +11,12 @@ test('rooms map to a catalog category by id, then concern, then field', () => {
   assert.equal(roomCategory(room('everyone')), null);
 });
 
-test('a product really mentioned in the room wins; catalog pictures are never reused', () => {
+test('mentioned products win and generic topics never borrow unrelated catalog photos', () => {
   const byCategory = new Map([['립', ['lip1', 'lip2']], ['전체', ['top1', 'lip1', 'top2']]]);
   const pics = topicPictures([room('makeup'), room('u-1', {concerns: ['lip']}), room('everyone'), room('deals')], byCategory, new Map([['makeup', 'mentioned']]));
-  assert.deepEqual([...pics], [['makeup', 'mentioned'], ['u-1', 'lip1'], ['everyone', 'top1'], ['deals', 'top2']]);
+  assert.equal(pics.get('makeup'), 'mentioned');
+  for (const id of ['u-1','everyone','deals']) assert.match(pics.get(id), /^assets\/category-hd\/extra\/.+\.webp$/);
+  assert.equal([...pics.values()].some(v => ['lip1','lip2','top1','top2'].includes(v)), false);
 });
 
 test('mentioned pictures come from the newest entry per room', () => {
