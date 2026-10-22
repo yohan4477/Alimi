@@ -65,7 +65,7 @@ test('registerOffer upserts product then offer on their natural keys', async () 
   assert.deepEqual(await registerOffer(catalog, item, {}, {url: '', key: ''}), {skipped: true});
 });
 
-test('catalog layer keeps valid rows, cleans names, drops [Deal] relistings of the same EAN', () => {
+test('catalog layer keeps distinct deal SKUs sharing an EAN and rejects invalid rows', () => {
   const items = buildCatalogItems([
     row(),
     row({merchant_product_id: '77777', product_name: '[DEAL]Romand - The Juicy Lasting Tint - 3.5g - 07 Cherry Bomb'}),
@@ -75,13 +75,28 @@ test('catalog layer keeps valid rows, cleans names, drops [Deal] relistings of t
     row({merchant_product_id: '77781', merchant_deep_link: 'https://evil.example/x'}),
     row({merchant_product_id: '77782', ean: '', merchant_image_url: 'http://insecure.example/x.png'})
   ], catalog, at);
-  assert.deepEqual(items.map(i => i.sku), ['66606', '77778', '77782']);
+  assert.deepEqual(items.map(i => i.sku), ['66606', '77777', '77778', '77782']);
   assert.equal(items[0].name, 'The Juicy Lasting Tint - 3.5g - 07 Cherry Bomb');
-  assert.equal(items[1].name, 'Only Deal Item');
+  assert.equal(items[1].name, '[Deal] The Juicy Lasting Tint - 3.5g - 07 Cherry Bomb');
+  assert.equal(items[2].name, '[Deal] Only Deal Item');
   assert.deepEqual({p: items[0].price_minor, d: items[0].delivery_minor, s: items[0].availability, u: items[0].url, seen: items[0].seen_at},
     {p: 1350, d: 399, s: 'in_stock', u: 'https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html', seen: at});
-  assert.equal(items[2].ean, null);
-  assert.equal(items[2].image_url, null);
+  assert.equal(items[3].ean, null);
+  assert.equal(items[3].image_url, null);
+});
+
+test('catalog includes foreign brands and retailer bundles while retaining one row per SKU', () => {
+  const rows = [row(), row({merchant_product_id: '2', brand_name: 'Shiseido'}),
+    row({merchant_product_id: '3', brand_name: 'Stylevana', product_name: 'Stylevana - Skincare Set'}), row()];
+  const info = name => ({origin: name === 'Romand' ? 'KR' : name === 'Stylevana' ? null : 'other', brandKo: null});
+  assert.deepEqual(buildCatalogItems(rows, catalog, at, info).map(i => i.sku), ['66606', '2', '3']);
+});
+
+test('missing brand metadata preserves the SKU and full product name', () => {
+  const [item] = buildCatalogItems([row({brand_name: ''})], catalog, at);
+  assert.equal(item.sku, '66606');
+  assert.equal(item.brand, '');
+  assert.equal(item.name, row().product_name);
 });
 
 test('upsertCatalog batches rows then deactivates items missing from this feed', async () => {
