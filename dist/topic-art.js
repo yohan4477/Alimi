@@ -6,8 +6,11 @@ const extraArt = name => `assets/category-hd/extra/${defaults[categoryArt[name] 
 // Stable demo assignments spread the 16 available artworks across neighboring rooms.
 const demoArt = [
   extraArt('ampoule'), extraArt('cream-jar'), artPath('skincare'), extraArt('toner-pad-jar'), artPath('sun'), artPath('toner'),
-  extraArt('cleanser'), extraArt('white-sunscreen'), artPath('cushion'), extraArt('ivory-cushion'), extraArt('peach-lip-balm'), artPath('lip'),
-  extraArt('mauve-tint'), artPath('makeup'), extraArt('warm-palette'), extraArt('blush-compact')
+  extraArt('cleanser'), extraArt('white-sunscreen'), extraArt('ampoule'), artPath('skincare'), extraArt('cream-jar'), extraArt('toner-pad-jar'),
+  extraArt('mauve-tint'), artPath('makeup'), extraArt('warm-palette'), artPath('cushion'), extraArt('ivory-cushion'), artPath('lip'),
+  extraArt('blush-compact'), extraArt('peach-lip-balm'), extraArt('ivory-cushion'), artPath('makeup'), extraArt('blush-compact'), extraArt('warm-palette'),
+  artPath('skincare'), extraArt('mauve-tint'), artPath('cushion'), extraArt('cleanser'), extraArt('cream-jar'), artPath('toner'),
+  extraArt('white-sunscreen'), extraArt('cleanser'), extraArt('blush-compact'), extraArt('ampoule'), extraArt('cleanser'), artPath('lip')
 ];
 const variants = ['cream-jar','cleanser','ampoule','warm-palette','blush-compact','white-sunscreen','ivory-cushion','mauve-tint','peach-lip-balm','toner-pad-jar'];
 export function roomArt(room) {
