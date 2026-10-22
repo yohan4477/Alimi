@@ -1,5 +1,6 @@
 // Journey 3 (재방문 → 저장 → 공유): welcome back with joined rooms, 알림 from real events, share hub, recently viewed.
 // Same rules as ios/Alimi/Revisit.swift: counts come from fetched messages / posts; "new" only after this device looked.
+import {nick} from './nickname.js';
 import {inMarket} from './region.js';
 import {t, locale} from './i18n.js';
 import {esc} from './util.js';
@@ -45,8 +46,8 @@ export async function loadRevisit({savedFamilies = []} = {}) {
     const mineIds = new Set(msgs.filter(m => m.author_tag === tag).map(m => m.id));
     const replies = others.filter(m => m.reply_to && mineIds.has(m.reply_to));
     if (replies.length) {
-      const names = [...new Set(replies.map(m => m.nickname))], first = replies.at(-1);
-      const who = names.length > 1 ? t('alert.whoMany', {name: first.nickname, n: names.length - 1}) : first.nickname;
+      const names = [...new Set(replies.map(m => nick(m.nickname)))], first = replies.at(-1);
+      const who = names.length > 1 ? t('alert.whoMany', {name: nick(first.nickname), n: names.length - 1}) : nick(first.nickname);
       alerts.push({id: 'reply-' + room.id, kind: 'room', icon: 'reply', title: t('alert.replies', {who}), body: t('alert.repliesBody', {room: roomTitle(room), n: replies.length}), at: first.created_at, room});
     }
   }

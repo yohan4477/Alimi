@@ -477,7 +477,7 @@ struct ChatRoomView: View {
             if let replyTo {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(L("chat.replyingTo", ["name": replyTo.nickname])).font(.caption.bold())
+                        Text(L("chat.replyingTo", ["name": Nickname.display(replyTo.nickname)])).font(.caption.bold())
                         Text(replyTo.body.isEmpty ? replyTo.item?.name ?? "" : replyTo.body).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer()
@@ -578,7 +578,7 @@ struct MessageRow: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
             VStack(alignment: mine ? .trailing : .leading, spacing: 4) {
-                if !mine && !grouped { Text(message.nickname).font(.system(size: 13, weight: .semibold)).foregroundStyle(nicknameColor) }
+                if !mine && !grouped { Text(Nickname.display(message.nickname)).font(.system(size: 13, weight: .semibold)).foregroundStyle(nicknameColor) }
                 HStack(alignment: .bottom, spacing: 6) {
                     if mine { clock }
                     VStack(alignment: .leading, spacing: 4) {
@@ -615,7 +615,7 @@ struct MessageRow: View {
                 if let parent {
                     Button(action: jump) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(parent.nickname).font(.caption.bold()).foregroundStyle(Color.sbBlue)
+                            Text(Nickname.display(parent.nickname)).font(.caption.bold()).foregroundStyle(Color.sbBlue)
                             Text(parent.body.isEmpty ? parent.item?.name ?? "" : parent.body)
                                 .font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.leading)
                         }.frame(maxWidth: .infinity, alignment: .leading)

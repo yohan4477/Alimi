@@ -133,7 +133,7 @@ struct CommunityPostRow: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(L("community.kind." + post.kind)).font(.caption).foregroundStyle(Color.alimi)
             Text(post.title).font(.headline)
-            Text(post.nickname + " · " + L("community.comments", ["n": post.comments])).font(.caption).foregroundStyle(.secondary)
+            Text(Nickname.display(post.nickname) + " · " + L("community.comments", ["n": post.comments])).font(.caption).foregroundStyle(.secondary)
         }.padding(.vertical, 4)
     }
 }
@@ -230,7 +230,7 @@ struct CommunityPostView: View {
             VStack(alignment: .leading, spacing: 16) {
                 if !postBlocked {
                     Text(L("community.kind." + post.kind)).font(.caption).foregroundStyle(Color.alimi)
-                    Text(post.title).font(.title2.bold()); Text(post.nickname).font(.caption).foregroundStyle(.secondary)
+                    Text(post.title).font(.title2.bold()); Text(Nickname.display(post.nickname)).font(.caption).foregroundStyle(.secondary)
                     Text(post.body)
                     if post.kind == "review" { reviewFacts }
                     ForEach(Array(post.photos.enumerated()), id: \.offset) { _, path in
@@ -253,7 +253,7 @@ struct CommunityPostView: View {
                 Text(L("community.comments", ["n": comments.count])).font(.headline)
                 ForEach(comments) { c in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(c.nickname).font(.caption).foregroundStyle(.secondary); Text(c.body)
+                        Text(Nickname.display(c.nickname)).font(.caption).foregroundStyle(.secondary); Text(c.body)
                         if let item = c.item { ItemCard(item: item) { f in purchaseRef = "comment-\(c.id)"; family = f; EventLogger.shared.log(.productCardClick, props: ["from": purchaseRef ?? ""]) } }
                         if c.author_tag != ChatAPI.myTag {
                             HStack {

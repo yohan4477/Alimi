@@ -54,8 +54,8 @@ final class RevisitModel: ObservableObject {
             let mineIds = Set(msgs.filter { $0.authorTag == me }.map(\.id))
             let replies = others.filter { $0.replyTo.map(mineIds.contains) ?? false }
             if let first = replies.last {
-                let names = Array(Set(replies.map(\.nickname)))
-                let who = names.count > 1 ? L("alert.whoMany", ["name": first.nickname, "n": names.count - 1]) : first.nickname
+                let names = Array(Set(replies.map { Nickname.display($0.nickname) }))
+                let who = names.count > 1 ? L("alert.whoMany", ["name": Nickname.display(first.nickname), "n": names.count - 1]) : Nickname.display(first.nickname)
                 items.append(AlertItem(id: "reply-\(room.id)", kind: .room, icon: "arrowshape.turn.up.left", tint: 0x2F6BEA, bg: 0xE8F0FE,
                                        title: L("alert.replies", ["who": who]), body: L("alert.repliesBody", ["room": room.title, "n": replies.count]),
                                        at: ISODate.parse(first.createdAt) ?? Date(), room: room, family: nil))
