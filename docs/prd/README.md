@@ -8,6 +8,10 @@
 - [05 운영·신뢰·모더레이션](PRD_05_MODERATION.md)
 - [06 퍼널·KPI](PRD_06_KPI.md)
 - [07 초기 커뮤니티 대화 활성화 (검토 초안)](PRD_07_COMMUNITY_SEEDING.md)
+- [08 초기 답변자 모집 (검토 초안)](PRD_08_INITIAL_RESPONDERS.md)
+- [09 Beauty Pick 단일 투표·선호/맥락형 v0.4](PRD_09_BEAUTY_PICK.md)
+- [10 일반 채팅·긴 대화·답장](PRD_10_CHAT_BEHAVIOR.md)
+- [일반 채팅 CX 시나리오](../cx/CX_CHAT_SCENARIOS_V1.md)
 
 **상태 기준:** 사용자가 결정한 정책은 확정. 기존 코드에 적용됐다는 뜻이 아니며 실제 DB·CI·실기기·배포·사용자 성과는 별도 근거가 필요하다.
 
