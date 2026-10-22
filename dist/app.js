@@ -1,3 +1,4 @@
+import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {region, inMarket, languageURL, amount} from './region.js';
 import {regionButton,installRegionPicker} from './region-picker.js';
 import {rankProducts,productSortControls,setProductSort,loadProductStats} from './product-sort.js';
@@ -18,7 +19,6 @@ import {buyUrl,coupangUrl,inKorea,oliveYoungUrl,loadProducts,searchCatalog,fetch
 import {$,esc} from './util.js';
 import {renderExplore,refreshExplore,searchRooms,exploreRow} from './explore.js';
 import {exploreData, isDemo} from './chat.js';
-import {readSavedRooms} from './saved-rooms.js';
 let storage;try{storage=localStorage}catch{}
 let state=readState(storage),products=[],selected=null,category='전체',timer,detailOpen=false;
 const product=id=>products.find(p=>p.id===id);
@@ -219,7 +219,7 @@ function openActivityProfile(){
   dlg.innerHTML=`<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('activity.profile'))}</h2><button class="interest-row" data-activity-skin><span><b>${esc(t('profile.title'))}</b><small>${esc(t('activity.skinHint'))}</small></span><span aria-hidden="true">›</span></button><button class="interest-row" data-activity-interests><span><b>${esc(t('activity.interests'))}</b><small>${esc(t('activity.interestsHint'))}</small></span><span aria-hidden="true">›</span></button>`;dlg.showModal();
 }
 const activityEmpty=(message,kind)=>`<div class="activity-empty"><p>${esc(message)}</p><button class="text-link" data-activity-browse="${kind}">${esc(t(kind==='rooms'?'activity.browseRooms':'activity.browseProducts'))} ›</button></div>`;
-let activityTab='talk';
+let activityTab='rooms';
 // Recently viewed products on this device (revisit.js).
 // Demo mode only: synthetic 내 활동 contents (demo-fixtures.js), opened as demo products.
 const demoPicks=ids=>ids.map(id=>demoProducts.find(p=>p.id===id)).filter(Boolean);
@@ -230,14 +230,16 @@ const recentList=()=>{const list=readRecent();if(!list.length&&isDemo())return `
 const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
 const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
 // 내 활동 (journey 6): 참여한 대화방 / 저장한 글 / 최근 본 상품 tabs, then 저장한 제품 and the latest 알림.
-const ACTIVITY_TABS=['talk','rooms','recent'];
+const ACTIVITY_TABS=['rooms','talk','recent'];
 const activityTabLabel=k=>t('activity.tab.'+k);
-// 6-2 저장한 대화: bookmarked rooms (전체/주제/제품/브랜드) and saved posts.
-const TALK_FILTERS=['all','topic','product','brand'];let talkFilter='all';
-const roomKind=r=>r.kind==='brand'?'brand':r.topic_product?'product':'topic';
-async function drawSavedTalk(){const box=$('#activity-talk');if(!box)return;let data;try{data=await exploreData()}catch{box.innerHTML=`<p class="home-note">${esc(t('home.retry'))}</p>`;return}if(!box.isConnected)return;
-  const saved=readSavedRooms(),rooms=(saved.length||!isDemo()?saved:demoActivity.savedRooms).map(id=>data.rooms.find(r=>r.id===id)).filter(Boolean).filter(r=>talkFilter==='all'||roomKind(r)===talkFilter);
-  box.innerHTML=`<div class="search-filters" role="group">${TALK_FILTERS.map(k=>`<button data-talk-filter="${k}" aria-pressed="${talkFilter===k}" class="${talkFilter===k?'on':''}">${esc(t('activity.filter.'+k))}</button>`).join('')}</div>${rooms.length?rooms.map(r=>exploreRow(r,data.images.get(r.id))).join(''):activityEmpty(t('activity.talkEmpty'),'rooms')}${readSavedPosts().length?`<h3 class="explore-head-title">${esc(t('saved.posts'))}</h3>${savedPostRows()}`:''}`}
+// Saved messages and posts are individual content; room bookmarks live in My rooms.
+function drawSavedTalk(){
+  const box=$('#activity-talk');if(!box)return;
+  const messages=readSavedMessages(),posts=readSavedPosts();
+  box.innerHTML=messages.length||posts.length
+    ? messages.map(m=>`<article class="post-row"><button class="post-main" data-open-room="${esc(m.room_id)}"><small>${esc(m.room_title||m.room_id)} · ${esc(m.nickname||'')}</small><b>${esc(m.body||m.item?.name||'')}</b></button><button class="text-link" data-unsave-message="${m.id}" data-message-room="${esc(m.room_id)}" aria-label="${esc(t('activity.unsaveMessage'))}">×</button></article>`).join('')+(posts.length?savedPostRows():'')
+    :activityEmpty(t('activity.messagesEmpty'),'rooms');
+}
 const savedPostRows=()=>readSavedPosts().length?readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join(''):activityEmpty(t('activity.postsEmpty'),'rooms');
 let activityAlerts=null;
 const bellIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>';
@@ -414,7 +416,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if('productRooms' in b.dataset){const name=b.dataset.productRooms;$('#family-dialog').open&&$('#family-dialog').close();openProductRoomsNext(name);brandChat=false;detailChat=false;show('chat');return}
   if(b.dataset.openRoom){$('#family-dialog').open&&$('#family-dialog').close();openRoomNext(b.dataset.openRoom);brandChat=false;detailChat=false;show('chat');return}
   if(b.dataset.familyShare){openShareSheet({title:$('#family-name').textContent,sub:familyHead?brandLabel(familyHead):'',image:familyCurrent()?.image_url,url:shareUrl({product:b.dataset.familyShare})});return}
-  if(b.dataset.talkFilter){talkFilter=b.dataset.talkFilter;drawSavedTalk();return}
+  if(b.dataset.unsaveMessage){toggleSavedMessage({id:Number(b.dataset.unsaveMessage),room_id:b.dataset.messageRoom});drawSavedTalk();return}
   if(b.dataset.shareCopy!==undefined){const url=$('#share-sheet').dataset.url;navigator.clipboard.writeText(url).then(()=>toast(t('share.copied')),()=>toast(`${t('share.failed')} ${url}`));return}
   if(b.dataset.shareMore!==undefined){const d=$('#share-sheet');share({title:d.dataset.title,url:d.dataset.url},toast);return}
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
@@ -485,5 +487,6 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-product-so
 document.addEventListener('product-sort-change',redrawProductLists);
 document.addEventListener('product-stats-ready',redrawProductLists);
 loadProductStats();
+
 
 

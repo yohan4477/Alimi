@@ -1805,7 +1805,7 @@
     "en": "Saved"
   },
   "activity.tab.rooms": {
-    "ko": "참여한 대화방",
+    "ko": "내 대화방",
     "en": "My rooms"
   },
   "home.welcome": {
@@ -2633,8 +2633,8 @@
     "en": "Save room"
   },
   "activity.tab.talk": {
-    "ko": "저장한 대화",
-    "en": "Saved talk"
+    "ko": "저장한 메시지",
+    "en": "Saved messages"
   },
   "activity.talkEmpty": {
     "ko": "저장한 대화방이 없어요. 탐색에서 북마크를 눌러 저장해 보세요.",
@@ -2679,5 +2679,33 @@
   "chat.modeLive": {
     "ko": "실시간",
     "en": "Live"
+  },
+  "activity.bookmarkedRooms": {
+    "ko": "북마크한 대화방",
+    "en": "Bookmarked rooms"
+  },
+  "activity.roomsEmpty": {
+    "ko": "참여하거나 북마크한 대화방이 없어요.",
+    "en": "No joined or bookmarked rooms yet."
+  },
+  "activity.messagesEmpty": {
+    "ko": "저장한 글이나 메시지가 없어요. 메시지를 길게 눌러 저장해 보세요.",
+    "en": "No saved posts or messages yet. Hold a message to save it."
+  },
+  "activity.saveMessage": {
+    "ko": "메시지 저장",
+    "en": "Save message"
+  },
+  "activity.unsaveMessage": {
+    "ko": "저장 해제",
+    "en": "Remove saved message"
+  },
+  "activity.messageSaved": {
+    "ko": "메시지를 저장했어요.",
+    "en": "Message saved."
+  },
+  "activity.messageRemoved": {
+    "ko": "메시지 저장을 해제했어요.",
+    "en": "Message removed from saved."
   }
 }

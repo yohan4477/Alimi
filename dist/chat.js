@@ -1,3 +1,4 @@
+import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {roomArt} from './topic-art.js';
 import {shouldSuggestSetup,snoozeSetup} from './onboarding-nudge.js';
 import {region, inRegion} from './region.js';
@@ -18,7 +19,7 @@ import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
 import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine, concernsOf, roomTags} from './room-card.js';
 import {exploreRow} from './explore.js';
-import {readRecentRooms, addRecentRoom} from './saved-rooms.js';
+import {readSavedRooms, readRecentRooms, addRecentRoom} from './saved-rooms.js';
 import {loadRevisit, joinedCard, unreadCount, ago as timeAgo} from './revisit.js';
 import {readInterests, recommendRooms, CONCERNS, canCreateRooms} from './onboarding.js';
 import {track} from './events.js';
@@ -275,12 +276,16 @@ function renderJoined() {
 }
 
 export async function renderMyConversations(box) {
-  box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2><p class="home-note">${esc(t('loading'))}</p>`;
+  box.innerHTML = `<p class="home-note">${esc(t('loading'))}</p>`;
   try {
-    const [rooms, joined] = demoActive ? [chat.rooms.length ? chat.rooms : demoRooms, demoActivity.joined]
-      : await Promise.all([chat.rooms.length ? chat.rooms : fetchRooms(), fetchMyRooms(chat.myTag || await tagOf(secret))]);
+    const tag = chat.myTag || await tagOf(secret);
+    const [data, joined] = await Promise.all([exploreData(), demoActive ? [] : fetchMyRooms(tag)]);
     if (!box.isConnected) return;
-    box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2>${joined.length ? joined.map(j => { const r=rooms.find(r=>r.id===j.room_id);return r ? roomListCard(r, {image: home?.images.get(r.id), note: j.last?.body || roomIntro(r), fresh: hasNewSince(j.last, readSeen()[r.id]), attrs: `data-open-room="${esc(r.id)}"`}) : ''; }).join('') : `<div class="activity-empty"><p>${esc(t('chat.mineEmpty'))}</p><button class="text-link" data-activity-browse="rooms">${esc(t('activity.browseRooms'))} ›</button></div>`}`;
+    const joinedIds=new Set(joined.map(j=>j.room_id));
+    const bookmarks=readSavedRooms().map(id=>data.rooms.find(r=>r.id===id)).filter(r=>r&&!joinedIds.has(r.id));
+    const joinedRows=joined.map(j=>{const r=data.rooms.find(r=>r.id===j.room_id);return r?roomListCard(r,{image:data.images.get(r.id),note:j.last?.body||roomIntro(r),fresh:hasNewSince(j.last,readSeen()[r.id]),attrs:`data-open-room="${esc(r.id)}"`}):''}).join('');
+    const savedRows=bookmarks.map(r=>roomListCard(r,{image:data.images.get(r.id),attrs:`data-open-room="${esc(r.id)}"`})).join('');
+    box.innerHTML = `${joinedRows?`<h2>${esc(t('activity.chats'))}</h2>${joinedRows}`:''}${savedRows?`<h2>${esc(t('activity.bookmarkedRooms'))}</h2>${savedRows}`:''}${!joinedRows&&!savedRows?`<div class="activity-empty"><p>${esc(t('activity.roomsEmpty'))}</p><button class="text-link" data-activity-browse="rooms">${esc(t('activity.browseRooms'))} ›</button></div>`:''}`;
   } catch { if(box.isConnected)box.innerHTML = `<p class="home-note">${esc(t('home.retry'))}</p>`; }
 }
 
@@ -641,7 +646,7 @@ let menuTarget = null;
 function openMenu(id) {
   chat.menuFor = chat.messages.find(m => m.id === id); if (!chat.menuFor) return;
   const mine = chat.menuFor.author_tag === chat.myTag; menuTarget = {type: 'chat', id};
-  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button>${chat.room?.demo ? '' : mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
+  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button><button data-chat-action="save-message">${esc(t(readSavedMessages().some(m=>m.room_id===chat.room?.id&&m.id===id)?'activity.unsaveMessage':'activity.saveMessage'))}</button>${chat.room?.demo ? '' : mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
   $('#chat-menu').showModal();
 }
 function openCommunityMenu(spec) {
@@ -743,6 +748,7 @@ document.addEventListener('click', async e => {
   }
   else if (a === 'room-more') { const m = $('#room-menu'); if (m) { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); } }
   else if (b.dataset.chatJump) { $('#chat-log [data-id="' + b.dataset.chatJump + '"]')?.scrollIntoView({block:'center', behavior:'smooth'}); }
+  else if (a === 'save-message') { try { const on=toggleSavedMessage({...chat.menuFor,room_id:chat.room.id,room_title:roomTitle(chat.room)}); $('#chat-menu').close(); toast(t(on?'activity.messageSaved':'activity.messageRemoved')); } catch { toast(t('saveLocalOnly')); } }
   else if (a === 'copy') { try { await navigator.clipboard.writeText(chat.menuFor.body || chat.menuFor.item?.name || ''); $('#chat-menu').close(); } catch { toast(t('chat.err.other')); } }
   else if (b.dataset.chatReply) { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
   else if (a === 'share-room' && chat.room && !chat.room.demo) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
@@ -852,4 +858,5 @@ document.addEventListener('product-sort-change',()=>{if(home&&homeTab==='discove
 document.addEventListener('product-stats-ready',()=>{if(home&&homeTab==='discover'&&$('#community-home'))drawHome()});
 
 document.addEventListener('click',e=>{if(e.target.closest('[data-setup-snooze]')){snoozeSetup(storage);document.getElementById('setup-nudge')?.remove();}});
+
 
