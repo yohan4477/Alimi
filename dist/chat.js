@@ -7,7 +7,7 @@ import {productSortControls,rankProducts,aggregateProductStats} from './product-
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
 import {createDemoChatStore} from './demo-chat-store.js';
-import {demoRooms, demoMessages, demoEntries, createDemoProductRoom} from './demo-fixtures.js';
+import {demoRooms, demoMessages, demoEntries, createDemoProductRoom, demoActivity} from './demo-fixtures.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
@@ -76,6 +76,7 @@ function saveCommunityMode() {
   } catch {}
 }
 if (modeQuery.has('demo')) saveCommunityMode();
+export const isDemo = () => demoActive;
 let firstCommunityLoad = true, communityOpenVersion = 0;
 let finishStartup = () => {};
 export async function openChat(opts = {}) {
@@ -276,8 +277,8 @@ function renderJoined() {
 export async function renderMyConversations(box) {
   box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2><p class="home-note">${esc(t('loading'))}</p>`;
   try {
-    const tag = chat.myTag || await tagOf(secret);
-    const [rooms, joined] = await Promise.all([chat.rooms.length ? chat.rooms : fetchRooms(), fetchMyRooms(tag)]);
+    const [rooms, joined] = demoActive ? [chat.rooms.length ? chat.rooms : demoRooms, demoActivity.joined]
+      : await Promise.all([chat.rooms.length ? chat.rooms : fetchRooms(), fetchMyRooms(chat.myTag || await tagOf(secret))]);
     if (!box.isConnected) return;
     box.innerHTML = `<h2>${esc(t('activity.chats'))}</h2>${joined.length ? joined.map(j => { const r=rooms.find(r=>r.id===j.room_id);return r ? roomListCard(r, {image: home?.images.get(r.id), note: j.last?.body || roomIntro(r), fresh: hasNewSince(j.last, readSeen()[r.id]), attrs: `data-open-room="${esc(r.id)}"`}) : ''; }).join('') : `<div class="activity-empty"><p>${esc(t('chat.mineEmpty'))}</p><button class="text-link" data-activity-browse="rooms">${esc(t('activity.browseRooms'))} ›</button></div>`}`;
   } catch { if(box.isConnected)box.innerHTML = `<p class="home-note">${esc(t('home.retry'))}</p>`; }

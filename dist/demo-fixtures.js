@@ -32,6 +32,30 @@ for (const [i, product] of demoProducts.entries()) {
     demoMessages[id]=Array.from({length:24},(_,k)=>({id:950000+i*100+j*30+k,room_id:id,nickname:names[(i+j+k)%names.length],author_tag:`demo-author-${(i+j+k)%12}`,body:[product.question,product.answer,`${product.name} 써본 분들의 다른 경험도 듣고 싶어요.`,'저도 비슷한 고민이에요. 피부 타입이나 쓰는 양에 따라 다를 것 같아요.','구매 전에 여기서 경험을 더 들어보려고요.','사용 순서도 함께 알려주셔서 도움됐어요.'][k%6],likes:(i+j+k)%7,item:k%4===0?{demo:true,family_key:product.id,image_url:product.image_url,brand:product.brand,name:product.name,label:product.label}:null,reply_to:null,created_at:new Date(demoNow-(23-k)*3600000-i*60000).toISOString(),demo:true}));
   }
 }
+// Same person writing two lines in a row (a minute apart), so the chat shows grouped follow-ups.
+const followUps=['아 그리고 저는 아침저녁 둘 다 써요.','혹시 같은 고민이면 패치 테스트 먼저 해보세요!','사진은 나중에 더 올려볼게요.','참고로 저는 지성이에요.','양 조절이 제일 중요했어요.','이건 제 기준이에요 ㅎㅎ'];
+let followId=980000;
+for (const list of Object.values(demoMessages)) {
+  for (let j=list.length-1;j>=0;j--) if (j%4===1) {
+    const m=list[j];
+    list.splice(j+1,0,{...m,id:followId++,body:followUps[(m.id+j)%followUps.length],likes:m.likes%3,item:null,created_at:new Date(Date.parse(m.created_at)+70000).toISOString()});
+  }
+}
+// 내 활동 in demo mode: saved rooms, joined rooms, recent products and alerts — all synthetic.
+const lastOf=id=>demoMessages[id]?.at(-1);
+const hoursAgo=h=>new Date(demoNow-h*3600000).toISOString();
+export const demoActivity={
+  savedRooms:['demo-product-0-0','demo-1','demo-13','demo-product-5-1','demo-15'],
+  joined:['demo-0','demo-product-6-0','demo-4'].map(room_id=>({room_id,last:lastOf(room_id)})),
+  recent:['torriden-serum','romand-tint','clio-cushion','roundlab-sun'],
+  saved:['aestura-cream','anua-toner','laneige-lip'],
+  alerts:[
+    {title:'여드름 진정 대화방에 새 답글이 3개 달렸어요.',room:{id:'demo-0'},at:hoursAgo(0.3)},
+    {title:'저장한 롬앤 쥬시 래스팅 틴트 대화에 새 글이 있어요.',room:{id:'demo-product-5-0'},at:hoursAgo(2)},
+    {title:'선크림 추천 방에서 내 글에 좋아요 5개',room:{id:'demo-4'},at:hoursAgo(26)}
+  ]
+};
+
 export function createDemoProductRoom({title,intro='',tag='talk',concerns=[],productName}) {
   const product=demoProducts.find(p=>p.label===productName)??{id:`custom-${demoRooms.length}`,brand:'',name:productName,label:productName};
   const room={id:`demo-created-${demoRooms.length}`,title_ko:title,title_en:title,intro_ko:intro,intro_en:intro,kind:'topic',tag,concerns:[...concerns],members:0,messages_24h:0,sort:demoRooms.length,demo:true,topic_product:product};

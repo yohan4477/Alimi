@@ -86,7 +86,7 @@ try {
   await page.locator('#tabbar [data-screen="saved"]').click();
   await page.locator('[data-activity-tab="rooms"]').click();
   await page.locator('#activity-conversations h2').waitFor({state:'attached'}); // tab label already names the list; heading kept for screen readers
-  assert.match(await page.locator('#saved h1').innerText(),lang==='en'?/My activity/:/내 활동/);
+  assert.match(await page.locator('#saved .activity-tabs').getAttribute('aria-label'),lang==='en'?/My activity/:/내 활동/);
   assert.deepEqual(errors,[]);
   console.log('ok - '+lang+' community home, product mentions, original conversation, product sheet return, activity and mobile width');
   await page.close();

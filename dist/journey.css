@@ -70,6 +70,8 @@ html[data-room="1"] #tabbar{display:none}
 #chat-log{background:#fff}
 #chat-log .chat-msg.feed{display:flex;gap:12px;align-items:flex-start;margin:0;padding:14px 0 10px;border-bottom:1px solid var(--jr-line)}
 #chat-log .chat-msg.feed.grouped{padding-top:4px;border-top:0;margin-top:-1px}
+/* One person's consecutive lines read as one block: no rule between them. */
+#chat-log .chat-msg.feed:has(+ .chat-msg.feed.grouped){border-bottom:0;padding-bottom:2px}
 #chat-log .chat-msg.feed.mine{justify-content:flex-start;background:var(--jr-soft);margin:0 -16px;padding-left:16px;padding-right:16px}
 .msg-avatar,.msg-avatar-gap{width:40px;height:40px;flex:none}
 .msg-avatar{border-radius:50%;color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center}
@@ -170,6 +172,12 @@ html[data-room="1"] #tabbar{display:none}
 .saved-mini-grid .saved-card .product-name{font-size:11.5px;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .saved-mini-grid .saved-card strong{font-size:12px}
 .saved-mini-grid .saved-card .heart{top:4px;right:4px;width:28px;height:28px;font-size:16px;background:#ffffffd9;border-radius:50%}
+/* #saved .saved-card is the full-width row layout; the 3-column preview stacks image over text. */
+#saved .saved-mini-grid .saved-card{display:block;padding:0;border:0;border-radius:0}
+#saved .saved-mini-grid .saved-card .product-open{display:block;width:100%;padding:0;border:0;background:none}
+#saved .saved-mini-grid .saved-card .visual{width:100%;height:auto}
+#saved .saved-mini-grid .saved-card .product-name{font-size:11.5px;font-weight:inherit;color:inherit}
+#saved .saved-mini-grid .saved-card strong{font-size:12px}
 
 /* Journey 2 detail (2-1…2-5) */
 .explore-meta span{display:inline-flex;align-items:center;gap:4px}
@@ -280,14 +288,14 @@ html[data-room="1"] #tabbar{display:none}
 .room-thumb-art img{object-fit:contain}
 .room-ico img{object-fit:contain}
 
-/* Enlarge actual product photos; keep decorative icon artwork at its original size. */
+/* Actual product photos keep their enlarged look but are cropped to the same box as the artwork thumbnails. */
 .hot-row,.explore-row{align-items:center;gap:12px}
-.hot-row .room-thumb:not(.room-thumb-art),.explore-row .room-thumb:not(.room-thumb-art){width:112px;height:112px;border-radius:14px}
+.hot-row .room-thumb:not(.room-thumb-art) img,.explore-row .room-thumb:not(.room-thumb-art) img{object-fit:cover;transform:scale(1.5)}
 .explore-text small,.hot-text small{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 #chat-log .chat-item img,#chat-log .chat-item .no-photo{width:104px;height:104px;flex:0 0 104px;object-fit:contain}
 .product-room-row .product-room-photo{width:88px;height:88px;flex:0 0 88px}
 @media(max-width:760px){.popular-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:360px){.hot-row .room-thumb:not(.room-thumb-art),.explore-row .room-thumb:not(.room-thumb-art){width:96px;height:96px}.explore-item .explore-row{padding-right:30px}#chat-log .chat-item img,#chat-log .chat-item .no-photo{width:88px;height:88px;flex-basis:88px}}
+@media(max-width:360px){.explore-item .explore-row{padding-right:30px}#chat-log .chat-item img,#chat-log .chat-item .no-photo{width:88px;height:88px;flex-basis:88px}}
 
 /* Reactions beside the text keep each conversation row compact. */
 #chat-log .chat-msg.feed{padding-top:9px;padding-bottom:9px;gap:10px}

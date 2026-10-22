@@ -44,7 +44,7 @@ test('demo conversations expose all twelve attached products within the recent s
  const {demoRooms,demoMessages,demoEntries}=await import('../dist/demo-fixtures.js');
  const {mentionedProducts}=await import('../dist/community-home.js');
  assert.equal(demoRooms.length,60);
- assert.equal(Object.values(demoMessages).flat().length,1440);
+ assert.equal(Object.values(demoMessages).flat().length,1800); // 60 rooms × (24 lines + 6 same-person follow-ups)
  const products=mentionedProducts(demoEntries());
  assert.equal(products.length,12);
  assert.ok(products.every(g=>g.rooms.size===2 && g.entries.length>0 && g.item.demo && /^https:\/\//.test(g.item.image_url)));

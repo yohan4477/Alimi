@@ -2,7 +2,7 @@ import {region, inMarket, languageURL, amount} from './region.js';
 import {regionButton,installRegionPicker} from './region-picker.js';
 import {rankProducts,productSortControls,setProductSort,loadProductStats} from './product-sort.js';
 import {loadingMarkup} from './loading-companion.js';
-import {demoProducts, demoRooms} from './demo-fixtures.js';
+import {demoProducts, demoRooms, demoActivity} from './demo-fixtures.js';
 import {productInfoHTML, renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
@@ -17,7 +17,7 @@ import {share,shareUrl,sharedTarget} from './share.js';
 import {buyUrl,coupangUrl,inKorea,oliveYoungUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
 import {$,esc} from './util.js';
 import {renderExplore,refreshExplore,searchRooms,exploreRow} from './explore.js';
-import {exploreData} from './chat.js';
+import {exploreData, isDemo} from './chat.js';
 import {readSavedRooms} from './saved-rooms.js';
 let storage;try{storage=localStorage}catch{}
 let state=readState(storage),products=[],selected=null,category='전체',timer,detailOpen=false;
@@ -221,7 +221,11 @@ function openActivityProfile(){
 const activityEmpty=(message,kind)=>`<div class="activity-empty"><p>${esc(message)}</p><button class="text-link" data-activity-browse="${kind}">${esc(t(kind==='rooms'?'activity.browseRooms':'activity.browseProducts'))} ›</button></div>`;
 let activityTab='talk';
 // Recently viewed products on this device (revisit.js).
-const recentList=()=>{const list=readRecent();return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:activityEmpty(t('activity.recentEmpty'),'products')};
+// Demo mode only: synthetic 내 활동 contents (demo-fixtures.js), opened as demo products.
+const demoPicks=ids=>ids.map(id=>demoProducts.find(p=>p.id===id)).filter(Boolean);
+const demoRecentRow=p=>`<button class="recent-row" data-demo-product="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="" loading="lazy"><span><b>${esc(p.brand)} ${esc(p.name)}</b><small>${esc(t('rooms.demoProducts'))}</small></span></button>`;
+const demoSavedCard=p=>`<article class="saved-card"><button class="product-open" data-demo-product="${esc(p.id)}"><div class="visual"><img src="${esc(p.image_url)}" alt="" loading="lazy"></div><div class="brand">${esc(p.brand)}</div><div class="product-name">${esc(p.name)}</div></button></article>`;
+const recentList=()=>{const list=readRecent();if(!list.length&&isDemo())return `<div class="recent-list">${demoPicks(demoActivity.recent).map(demoRecentRow).join('')}</div>`;return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:activityEmpty(t('activity.recentEmpty'),'products')};
 // Products saved on this device that have a family key (for 알림 and 상품 공유).
 const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
 const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
@@ -232,7 +236,7 @@ const activityTabLabel=k=>t('activity.tab.'+k);
 const TALK_FILTERS=['all','topic','product','brand'];let talkFilter='all';
 const roomKind=r=>r.kind==='brand'?'brand':r.topic_product?'product':'topic';
 async function drawSavedTalk(){const box=$('#activity-talk');if(!box)return;let data;try{data=await exploreData()}catch{box.innerHTML=`<p class="home-note">${esc(t('home.retry'))}</p>`;return}if(!box.isConnected)return;
-  const rooms=readSavedRooms().map(id=>data.rooms.find(r=>r.id===id)).filter(Boolean).filter(r=>talkFilter==='all'||roomKind(r)===talkFilter);
+  const saved=readSavedRooms(),rooms=(saved.length||!isDemo()?saved:demoActivity.savedRooms).map(id=>data.rooms.find(r=>r.id===id)).filter(Boolean).filter(r=>talkFilter==='all'||roomKind(r)===talkFilter);
   box.innerHTML=`<div class="search-filters" role="group">${TALK_FILTERS.map(k=>`<button data-talk-filter="${k}" aria-pressed="${talkFilter===k}" class="${talkFilter===k?'on':''}">${esc(t('activity.filter.'+k))}</button>`).join('')}</div>${rooms.length?rooms.map(r=>exploreRow(r,data.images.get(r.id))).join(''):activityEmpty(t('activity.talkEmpty'),'rooms')}${readSavedPosts().length?`<h3 class="explore-head-title">${esc(t('saved.posts'))}</h3>${savedPostRows()}`:''}`}
 const savedPostRows=()=>readSavedPosts().length?readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join(''):activityEmpty(t('activity.postsEmpty'),'rooms');
 let activityAlerts=null;
@@ -245,12 +249,12 @@ function renderSaved(){
   }
   const more=attrs=>`<button class="text-link" ${attrs}>${esc(t('home.seeAll'))} ›</button>`;
   $('#saved').innerHTML=`<div class="logo-head activity-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="230" height="69"><span class="sb-head-actions"><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="service-context">${regionButton()}</div><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<section id="activity-talk">${loadingMarkup(t('loading'))}</section>`}</div>
-<section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('activity.savedProducts'))}</h2>${n?more('data-activity-tab="saved"'):''}</div>${n?`<div class="saved-mini-grid">${list.slice(0,3).map(savedCard).join('')}</div>`:activityEmpty(t('activity.savedEmpty'),'products')}</section>
+<section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('activity.savedProducts'))}</h2>${n?more('data-activity-tab="saved"'):''}</div>${n?`<div class="saved-mini-grid">${list.slice(0,3).map(savedCard).join('')}</div>`:isDemo()?`<div class="saved-mini-grid">${demoPicks(demoActivity.saved).map(demoSavedCard).join('')}</div>`:activityEmpty(t('activity.savedEmpty'),'products')}</section>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('alerts.title'))}</h2>${more('data-screen="alerts"')}</div><div id="activity-alerts">${loadingMarkup(t('loading'))}</div></section>${interestRow()}`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
   if(activityTab==='talk')drawSavedTalk();
   if(!activityAlerts||Date.now()-activityAlerts.at>60000)activityAlerts={at:Date.now(),load:loadRevisit({savedFamilies:savedFamilies()})};
-  activityAlerts.load.then(d=>{const box=$('#activity-alerts');if(!box)return;const top=d.alerts.slice(0,2);
+  activityAlerts.load.then(d=>{const box=$('#activity-alerts');if(!box)return;const top=isDemo()?demoActivity.alerts.slice(0,2):d.alerts.slice(0,2);
     box.innerHTML=top.length?top.map(a=>`<button class="alert-mini" ${a.room?`data-open-room="${esc(a.room.id)}"`:a.family?`data-family="${esc(a.family)}"`:'data-screen="alerts"'}><span class="alert-mini-ico">${bellIcon}</span><span><b>${esc(a.title)}</b><small>${esc(relTime(a.at))}</small></span><i aria-hidden="true">›</i></button>`).join(''):`<p class="home-note">${esc(t('alerts.empty'))}</p>`},()=>{const box=$('#activity-alerts');if(box)box.innerHTML=`<p class="home-note">${esc(t('home.retry'))}</p>`});
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
