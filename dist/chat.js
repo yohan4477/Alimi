@@ -1,3 +1,4 @@
+import {roomArt} from './topic-art.js';
 import {shouldSuggestSetup,snoozeSetup} from './onboarding-nudge.js';
 import {region, inRegion} from './region.js';
 import {regionButton} from './region-picker.js';
@@ -120,11 +121,9 @@ const icon = {
   send: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-4 16-4-6.5z"/><path d="m12 13.5 8-9.5"/></svg>',
   spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5-8 9.5z"/></svg>'
 };
-const roomIcon = r => r.kind === 'brand'
-  ? `<i class="room-ico brand">${`<span>${esc(brandInitials(r.brand ?? r.title_en))}</span>` + (r.logo_url ? `<img src="${esc(r.logo_url)}" alt="" loading="lazy">` : '')}</i>`
-  : `<i class="room-ico">${icon.people}</i>`;
+const roomIcon = r => `<i class="room-ico${r.kind === 'brand' ? ' brand' : ''}"><img src="${esc(r.logo_url || roomArt(r))}" alt="" loading="lazy"></i>`;
 const roomRow = r => `<button class="room-row" data-chat-room="${esc(r.id)}">${roomIcon(r)}<span class="room-text"><b>${esc(roomTitle(r))} <em>${esc(t('chat.count', {n: r.members}))}</em></b><small>${esc(roomIntro(r))}</small></span></button>`;
-const roomCard = r => `<button class="room-card" data-chat-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b><small>${esc(t('chat.members', {n: r.members}))}</small>${r.messages_24h > 0 ? `<i class="chat-dot" aria-label="${esc(t('chat.active'))}"></i>` : ''}<span class="room-card-ico">${icon.people}</span></button>`;
+const roomCard = r => `<button class="room-card" data-chat-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b><small>${esc(t('chat.members', {n: r.members}))}</small>${r.messages_24h > 0 ? `<i class="chat-dot" aria-label="${esc(t('chat.active'))}"></i>` : ''}<span class="room-card-ico">${roomIcon(r)}</span></button>`;
 // Saved posts are per device (like saved products) and shown in the Saved tab.
 const SAVED_POSTS = 'alimi-saved-posts';
 export const readSavedPosts = () => { try { const v = JSON.parse(storage.getItem(SAVED_POSTS)); return Array.isArray(v) ? v.filter(x => x && Number.isInteger(x.id)) : []; } catch { return []; } };

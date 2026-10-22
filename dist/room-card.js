@@ -1,32 +1,15 @@
+import {roomArt} from './topic-art.js';
 // Room list card from the journey reference: thumbnail, name, real member / activity numbers, concern tags.
-// Use actual product imagery where supplied; otherwise a topic-specific SVG icon.
+// Use supplied product imagery first; otherwise the journey deck photo artwork.
 // No profile photos or inferred personal attributes are used for room thumbnails.
 // Numbers come straight from chat_room_list — never rounded up or invented.
 import {t, lang} from './i18n.js';
 import {esc} from './util.js';
 import {roomTitle} from './chat-api.js';
 
-const FIELD = {skin: 'skin', makeup: 'makeup', deals: 'deals', travel: 'travel'};
-const glyph = {
-  skin: '<path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/>',
-  makeup: '<path d="M9 21V11l3-8 3 8v10z"/><path d="M9 14h6"/>',
-  deals: '<path d="M4 12V4h8l8 8-8 8z"/><circle cx="8" cy="8" r="1.5"/>',
-  travel: '<path d="M3 12h18M12 3l3 9-3 9-3-9z"/>',
-  talk: '<path d="M5 5h14v11H11l-4 3v-3H5z"/>',
-  sensitive: '<path d="M12 3C8 7 6 10 6 14a6 6 0 0 0 12 0c0-4-2-7-6-11z"/><path d="M9 15c1 2 3 3 5 2"/>',
-  acne: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="13" r="1.2"/><path d="M8 16c3-1 5-1 8 0"/>',
-  pores: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="16" cy="16" r="1"/>',
-  lips: '<path d="M3 12c2-1 4-5 7-4l2 2 2-2c3-1 5 3 7 4-3 5-7 7-9 7s-6-2-9-7z"/><path d="M3 12c5 1 13 1 18 0"/>',
-};
 export function roomThumb(room, image) {
-  const field = (room.concerns ?? []).includes('sensitive') ? 'sensitive'
-    : (room.concerns ?? []).includes('acne') ? 'acne'
-    : (room.concerns ?? []).includes('pores') ? 'pores'
-    : (room.concerns ?? []).some(c => ['lip', 'longwear', 'shade'].includes(c)) ? 'lips'
-    : FIELD[room.tag] ?? 'talk';
-  return image
-    ? `<span class="room-thumb"><img src="${esc(image)}" alt="" loading="lazy"></span>`
-    : `<span class="room-thumb room-thumb-${field}"><svg viewBox="0 0 24 24" aria-hidden="true">${glyph[field]}</svg></span>`;
+  const src = image || (room.kind === 'brand' && room.logo_url) || roomArt(room);
+  return `<span class="room-thumb${image ? '' : ' room-thumb-art'}"><img src="${esc(src)}" alt="" loading="lazy"></span>`;
 }
 // Seed rooms carry no concerns column before the user_rooms migration; this mapping stands in.
 export const ROOM_CONCERNS = {

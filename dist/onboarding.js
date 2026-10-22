@@ -1,3 +1,4 @@
+import {artPath} from './topic-art.js';
 // First-visit guide on the community home: pick Skincare and/or Makeup, then concerns in each, then
 // existing public rooms that talk about them. Inline and skippable — it never blocks browsing or joining.
 // Choices stay on this device; they are not sent anywhere and never infer skin or demographic facts.
@@ -58,8 +59,8 @@ let flow = null;
 const icon = {
   check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>',
   back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
-  skincare: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/></svg>',
-  makeup: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V11l3-8 3 8v10z"/><path d="M9 14h6"/></svg>',
+  skincare: `<img class="ob-field-art" src="${artPath('skincare')}" alt="" width="48" height="48">`,
+  makeup: `<img class="ob-field-art" src="${artPath('makeup')}" alt="" width="48" height="48">`,
   leaf: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19 14 10"/></svg>',
   grid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
 };

@@ -274,3 +274,8 @@ html[data-room="1"] #tabbar{display:none}
 /* Original category artwork from the supplied journey deck. */
 .explore-cat-ico{overflow:hidden}
 .explore-cat-ico img{width:100%;height:100%;object-fit:contain;border-radius:inherit}
+
+/* Photo artwork also covers onboarding and empty room thumbnails. */
+.ob-field-art{width:48px;height:48px;object-fit:contain;border-radius:12px;flex:none}
+.room-thumb-art img{object-fit:contain}
+.room-ico img{object-fit:contain}

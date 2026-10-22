@@ -1,3 +1,4 @@
+import {artPath} from './topic-art.js';
 // 탐색 tab (journey 2 · 대화 탐색): 주제별 / 제품별 / 브랜드별 / 전체 above the search box.
 // Rooms, member counts and today's message counts are the fetched ones; nothing is invented or rounded up.
 import {t} from './i18n.js';
@@ -14,12 +15,6 @@ const CATS = ['skin', 'makeup', 'sun', 'etc'];
 let tab = 'topic', cat = null, psort = 'pop', last = null, seq = 0;
 const clock = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg>';
 
-const catIcon = {
-  skin: '<path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/>',
-  makeup: '<path d="M9 21V11l3-8 3 8v10z"/><path d="M9 14h6"/>',
-  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',
-  etc: '<rect x="4" y="4" width="7" height="7" rx="3.5"/><rect x="13" y="4" width="7" height="7" rx="3.5"/><rect x="4" y="13" width="7" height="7" rx="3.5"/><rect x="13" y="13" width="7" height="7" rx="3.5"/>'
-};
 const people = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M18 14.2a5 5 0 0 1 2.5 4.8"/></svg>';
 
 const isSun = r => roomCategory(r) === '선케어' || /선크림|선케어|자외선|sunscreen|\bsun\b|spf/i.test(`${r.title_ko ?? ''} ${r.title_en ?? ''}`);
@@ -42,7 +37,7 @@ function panel({rooms, images, popular}, brands) {
   const talk = rooms.filter(r => r.kind !== 'brand');
   if (tab === 'topic') {
     const list = busiest(cat ? talk.filter(r => roomField(r) === cat) : talk);
-    return `<div class="explore-cats">${CATS.map(c => `<button data-explore-cat="${c}" aria-pressed="${cat === c}" class="${cat === c ? 'on' : ''}"><span class="explore-cat-ico ec-${c}">${['skin','makeup'].includes(c) ? `<img src="assets/category/${c === 'skin' ? 'skincare' : 'makeup'}.png" alt="" width="58" height="58">` : `<svg viewBox="0 0 24 24" aria-hidden="true">${catIcon[c]}</svg>`}</span>${esc(t('explore.cat.' + c))}</button>`).join('')}</div>${head('explore.popular')}${rows(list, images)}`;
+    return `<div class="explore-cats">${CATS.map(c => `<button data-explore-cat="${c}" aria-pressed="${cat === c}" class="${cat === c ? 'on' : ''}"><span class="explore-cat-ico ec-${c}"><img src="${artPath(c)}" alt="" width="58" height="58"></span>${esc(t('explore.cat.' + c))}</button>`).join('')}</div>${head('explore.popular')}${rows(list, images)}`;
   }
   if (tab === 'product') {
     // 2-2: 인기순 = members, 최신순 = latest message, 댓글순 = messages today; all summed over the product's rooms.
