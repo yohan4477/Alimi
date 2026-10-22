@@ -51,18 +51,18 @@ const describe = (permission, raw) => {
   return text.length >= 20 ? {description: text, description_permission: permission} : {description: null, description_permission: null};
 };
 
-// Catalog layer rows: every valid feed row of a Korean brand, current price only. Non-Korean brands and
-// retailer bundles are skipped entirely. [Deal] relistings are dropped when a regular listing with the same
-// EAN exists, so search shows one entry per product option.
+// Catalog layer: every valid merchant SKU, including all brand origins, bundles and deal listings.
+// EAN identifies a product, not a retailer offer: keep distinct SKUs even when they share an EAN.
 export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({origin: 'KR', brandKo: null})) {
   // Descriptions are published only when catalog.json records the permission basis for them.
   const permission = catalog.descriptionPermission?.trim() || null;
   const valid = [];
   for (const r of rows) {
     if (r.data_feed_id !== catalog.feedId || r.merchant_id !== catalog.merchantId || r.currency !== catalog.currency) continue;
-    if (!/^[A-Za-z0-9-]{1,40}$/.test(r.merchant_product_id) || !r.brand_name || !r.product_name) continue;
-    const brand = brandInfo(r.brand_name);
-    if (brand.origin !== 'KR') continue;
+    if (!/^[A-Za-z0-9-]{1,40}$/.test(r.merchant_product_id) || !r.product_name) continue;
+    // Missing brand metadata must not hide an otherwise valid merchant SKU.
+    const brandName = String(r.brand_name ?? '').trim();
+    const brand = brandInfo(brandName);
     if (!money.test(r.search_price) || Number(r.search_price) <= 0 || Number(r.search_price) > 10000) continue;
     let page, tracking, image = null;
     try { page = new URL(r.merchant_deep_link); tracking = new URL(r.aw_deep_link); if (r.merchant_image_url) image = new URL(r.merchant_image_url); } catch { continue; }
@@ -70,13 +70,13 @@ export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({ori
     if (image && (image.protocol !== 'https:' || !image.hostname.endsWith('.stylevana.com'))) image = null;
     const deal = /^\s*\[deal\]/i.test(r.product_name);
     let name = r.product_name.replace(/^\s*\[deal\]\s*/i, '').trim();
-    const prefix = r.brand_name.trim().toLowerCase();
-    if (name.toLowerCase().startsWith(prefix)) name = name.slice(prefix.length).replace(/^\s*-\s*/, '').trim() || name;
+    const prefix = brandName.toLowerCase();
+    if (prefix && name.toLowerCase().startsWith(prefix)) name = name.slice(prefix.length).replace(/^\s*-\s*/, '').trim() || name;
     const variant = parseVariant(name), priceMinor = Math.round(Number(r.search_price) * 100);
     valid.push({deal, item: {
       retailer: catalog.retailer, market: catalog.market, sku: r.merchant_product_id, currency: r.currency, ean: r.ean || null,
-      brand: r.brand_name.trim(), brand_ko: brand.brandKo, name, category: categoryOf(name), price_minor: priceMinor,
-      family_key: familyKey(r.brand_name, name), base_name: variant.base, size_label: variant.sizeLabel, option_label: variant.option,
+      brand: brandName, brand_ko: brand.brandKo, name: deal ? '[Deal] ' + name : name, category: categoryOf(name), price_minor: priceMinor,
+      family_key: familyKey(brandName, name), base_name: variant.base, size_label: variant.sizeLabel, option_label: variant.option,
       unit: variant.unit, quantity: variant.quantity, unit_price_minor: unitPriceMinor(priceMinor, variant),
       delivery_minor: money.test(r.delivery_cost) ? Math.round(Number(r.delivery_cost) * 100) : null,
       availability: r.in_stock === '1' ? 'in_stock' : r.in_stock === '0' ? 'out_of_stock' : 'unknown',
@@ -84,10 +84,8 @@ export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({ori
       ...describe(permission, r.description)
     }});
   }
-  const regularEans = new Set(valid.filter(v => !v.deal && v.item.ean).map(v => v.item.ean));
   const seen = new Set();
-  return valid.filter(v => !(v.deal && v.item.ean && regularEans.has(v.item.ean)))
-    .map(v => v.item).filter(i => !seen.has(i.sku) && seen.add(i.sku));
+  return valid.map(v => v.item).filter(i => !seen.has(i.sku) && seen.add(i.sku));
 }
 
 export async function runCatalog(inputPath, root, options = {}) {
