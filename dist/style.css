@@ -583,3 +583,19 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .auth-button.auth-kakao{background:#fee500;color:#000000d9;border-color:#fee500;border-radius:12px}.auth-button .brand-mark{width:18px;height:18px;flex:none;fill:none;stroke:none}.auth-button.auth-naver{background:#03c75a;color:#fff;border-color:#03c75a;border-radius:12px}.auth-button:disabled{opacity:.55;cursor:wait}
 
 .product-room-row .product-room-photo{width:52px;height:52px;flex:0 0 52px;object-fit:contain;background:#fff;border:0;border-radius:0}.product-room-row .product-room-label{flex:1}
+
+
+/* Product experience discovery: compact, non-blocking and white-surface compatible. */
+.experience-discovery{margin:12px 0 18px;padding:14px;border:1px solid #e8eaee;border-radius:14px;background:#fff}
+.experience-head{display:flex;flex-direction:column;gap:4px}
+.experience-head strong{font-size:15px;letter-spacing:-.3px}
+.experience-head small,.experience-description,.experience-note{color:#737982;font-size:12px;line-height:1.55}
+.experience-description{margin:10px 0 12px}
+.experience-prompt{font-size:13px;font-weight:650;margin:12px 0 8px}
+.experience-options{display:flex;flex-wrap:wrap;gap:7px}
+.experience-choice{background:#f6f7f8;border:1px solid #edf0f2;border-radius:10px;padding:10px 12px;font-size:12px;min-height:42px;text-align:left}
+.experience-choice.selected{border-color:#0786ff;background:#eef6ff;color:#075dae;font-weight:700}
+.experience-choice:focus-visible{outline:2px solid #0786ff;outline-offset:2px}
+.experience-followup{margin-top:12px;padding-top:2px;border-top:1px solid #f0f1f3}
+.experience-result{font-size:12px;line-height:1.55;margin:12px 0 0;color:#344f71}
+.experience-note{margin:12px 0 0;font-size:11px}
