@@ -295,3 +295,11 @@ html[data-room="1"] #tabbar{display:none}
 #chat-log .chat-msg.feed>.msg-main{flex:1;min-width:0}
 #chat-log .chat-msg.feed>.msg-actions{flex:none;align-self:center;gap:10px;margin:0;white-space:nowrap}
 #chat-log .chat-msg.feed>.msg-actions .chat-heart,#chat-log .chat-msg.feed>.msg-actions .msg-reply{min-height:32px}
+
+/* Larger, consistent wordmark across community, explore and activity. */
+.logo-head.sb-head{min-height:80px;gap:12px}
+.sb-head .sb-logo{width:230px;height:auto;max-height:none;max-width:calc(100% - 100px);aspect-ratio:auto;object-fit:contain;object-position:left center}
+.sb-head .sb-head-actions{flex:0 0 auto}
+.service-context{align-items:center;gap:8px}
+.service-context .demo-toggle{font:inherit;font-size:11px;color:var(--jr-gray);padding:4px 8px;min-height:32px;border:0;background:none}
+#saved .activity-head{gap:12px}
