@@ -422,3 +422,23 @@ body{color:var(--jr-ink)}
   .home-hero .hero-cta{margin-top:16px;font-size:12px;padding:10px 12px}
 }
 @media(max-width:360px){.home-hero p{width:51vw;font-size:11px}.home-hero .hero-cta{font-size:11px}}
+
+/* Larger hero copy extends toward the portrait while keeping the face clear. */
+.home-hero-text{width:76%;max-width:420px}
+.home-hero h1{font-size:28px;line-height:1.2;letter-spacing:-.6px}
+.home-hero p{width:auto;max-width:300px;font-size:15px;line-height:1.45;white-space:normal}
+.home-hero .hero-cta{font-size:14px;margin-top:18px}
+@media(max-width:480px){
+  .home-hero{height:clamp(260px,70vw,300px)}
+  .home-hero-text{width:76%;padding-top:24px}
+  .home-hero h1{font-size:24px;line-height:1.2}
+  .home-hero p{width:64vw;max-width:260px;font-size:14px;line-height:1.45;margin-top:14px}
+  .home-hero img{width:61%}
+  .home-hero .hero-cta{font-size:13px;padding:10px 14px;margin-top:18px}
+}
+@media(max-width:360px){
+  .home-hero-text{width:80%;padding-top:22px}
+  .home-hero h1{font-size:22px}
+  .home-hero p{width:64vw;font-size:13px}
+  .home-hero .hero-cta{font-size:12px}
+}
