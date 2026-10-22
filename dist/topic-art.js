@@ -1,6 +1,6 @@
-// Decorative artwork reused from the supplied journey deck, not a claim about products mentioned.
+// High-resolution decorative category artwork; not a claim about products mentioned.
 export const categoryArt = {skin:'skincare', skincare:'skincare', makeup:'makeup', sun:'sun', etc:'cushion'};
-export const artPath = name => `assets/category/${categoryArt[name] ?? name}.png`;
+export const artPath = name => `assets/category-hd/${categoryArt[name] ?? name}.webp`;
 export function roomArt(room) {
   const words = [room.id, room.tag, room.title_ko, room.title_en, ...(room.concerns ?? [])].join(' ');
   if (/sunscreen|선크림|선케어|spf/i.test(words)) return artPath('sun');
