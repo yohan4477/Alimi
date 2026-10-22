@@ -410,3 +410,15 @@ body{color:var(--jr-ink)}
 .home-hero .hero-cta{max-width:100%;min-height:44px;margin-top:20px;padding:10px 14px;font-size:13px;line-height:1.35;white-space:nowrap;text-align:left;box-shadow:none}
 .home-hero .hero-cta svg{flex:none}
 @media(max-width:360px){.home-hero-text{width:74%;padding-left:16px}.home-hero h1{font-size:18px}.home-hero p{font-size:11px;max-width:210px}.home-hero .hero-cta{font-size:12px;padding:10px 12px}}
+
+/* Keep the PPT portrait composition readable on phone screens. */
+.home-hero p{max-width:clamp(168px,50vw,240px)}
+#community-home>.section-head .chat-section{margin:0}
+#community-home>.section-head{margin-top:24px;margin-bottom:12px}
+@media(max-width:480px){
+  .home-hero-text{width:72%;padding-top:24px}
+  .home-hero p{width:52vw;max-width:196px;font-size:12px;line-height:1.5;white-space:normal}
+  .home-hero img{width:61%;max-width:none}
+  .home-hero .hero-cta{margin-top:16px;font-size:12px;padding:10px 12px}
+}
+@media(max-width:360px){.home-hero p{width:51vw;font-size:11px}.home-hero .hero-cta{font-size:11px}}
