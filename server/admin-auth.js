@@ -16,6 +16,13 @@ export function adminOrigin(env = process.env) {
 export function sameOrigin(req, origin) {
   return req.headers.origin === origin && req.headers['sec-fetch-site'] !== 'cross-site';
 }
+// Explicit production aliases only; never trust arbitrary Host/forwarded headers.
+export function sameAdminOrigin(req, env = process.env) {
+  if (sameOrigin(req, adminOrigin(env))) return true;
+  const aliases = ['https://seoulbeauty.me', 'https://www.seoulbeauty.me', 'https://alimi-omega.vercel.app'];
+  const origin = req.headers.origin;
+  return aliases.includes(origin) && req.headers.host === new URL(origin).host && sameOrigin(req, origin);
+}
 export function readToken(req) {
   const raw = req.headers.cookie || '';
   if (raw.length > 8192) return null;

@@ -37,10 +37,24 @@ try {
   await login('admin@example.test');await page.getByRole('tab',{name:'전략',exact:true}).waitFor();
   const cookies=await page.context().cookies();const session=cookies.find(c=>c.name==='__Host-sb-admin');assert.ok(session?.httpOnly&&session.secure&&session.sameSite==='Strict');
   assert.equal(await page.evaluate(()=>document.cookie.includes('__Host-sb-admin')),false);
-  for(const name of ['전략','서비스 기획','디자인 리뷰','개발','실행 로드맵','관리 대시보드']) {
+  for(const name of ['전략','서비스 기획','디자인 리뷰','UI Library','개발','실행 로드맵','관리 대시보드']) {
     await page.getByRole('tab',{name,exact:true}).click();assert.equal(await page.locator('[role="tabpanel"]:visible').count(),1);
     assert.equal(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
   }
+
+  await page.getByRole('tab',{name:'UI Library',exact:true}).click();
+  const library=page.frameLocator('#sb-library-frame');
+  await library.locator('.phone').first().waitFor();
+  assert.equal(await library.locator('.phone').count(),9);
+  await library.getByRole('button',{name:'순서대로 체험',exact:true}).click();
+  await library.locator('[data-act="select"]').click();
+  await library.locator('[data-act="setup"]').click();
+  await library.locator('[data-fav="1"]').click();
+  await library.locator('[data-act="card"]').click();
+  await library.locator('[data-act="share"]').click();
+  await library.locator('[data-act="friend"]').click();
+  await library.locator('[data-guess="1"]').click();
+  assert.match(await library.locator('h2').innerText(),/맞혔어/);
 
   // Developer board: priority × platform filtering, links and tab jumps are presentational.
   await page.getByRole('tab',{name:'개발',exact:true}).click();
