@@ -26,8 +26,9 @@ export function block(storage, tag) {
 export const hasAgreed = storage => { try { return storage.getItem(AGREED_KEY) === '1'; } catch { return false; } };
 export const agree = storage => { try { storage.setItem(AGREED_KEY, '1'); } catch {} };
 
-export const roomTitle = r => ((r.service_region ?? 'us') === 'kr' ? r.title_ko : r.title_en);
-export const roomIntro = r => ((r.service_region ?? 'us') === 'kr' ? r.intro_ko : r.intro_en);
+// Titles and intros follow the UI language (falling back to the other one); the region only decides which rooms exist.
+export const roomTitle = r => (lang === 'ko' ? r.title_ko || r.title_en : r.title_en || r.title_ko);
+export const roomIntro = r => (lang === 'ko' ? r.intro_ko || r.intro_en : r.intro_en || r.intro_ko);
 export const visible = (messages, blocked) => messages.filter(m => !blocked.includes(m.author_tag));
 // Server errors are "chat:<code>"; anything else is a network / unknown failure.
 export const errorKey = message => {

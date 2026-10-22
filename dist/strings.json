@@ -2225,7 +2225,7 @@
     "en": "Sync now"
   },
   "home.hero.title": {
-    "ko": "Real beauty talk,\nfrom real people.",
+    "ko": "진짜 사람들의\n진짜 뷰티 이야기",
     "en": "Real beauty talk,\nfrom real people."
   },
   "home.hero.sub": {
@@ -2671,5 +2671,13 @@
   "share.more": {
     "ko": "더보기",
     "en": "More"
+  },
+  "chat.modeDemo": {
+    "ko": "데모",
+    "en": "Demo"
+  },
+  "chat.modeLive": {
+    "ko": "실시간",
+    "en": "Live"
   }
 }

@@ -1,4 +1,5 @@
 // Local-only demo messages. This module never calls the production API.
+import {lang} from './i18n.js';
 export const DEMO_CHAT_KEY = 'seoulbeauty-demo-chat-v1';
 export function createDemoChatStore(storage) {
   let rooms = {};
@@ -11,7 +12,7 @@ export function createDemoChatStore(storage) {
       if (!body && !item) throw Error('Empty message');
       const previous = this.messages(roomId);
       const id = Math.max(Date.now(), ...Object.values(rooms).flat().map(m => Number(m.id) + 1 || 0));
-      const message = {id, room_id: roomId, body, item, reply_to: replyTo, author_tag: authorTag, nickname: '나 · Demo', likes: 0, created_at: new Date().toISOString(), demo: true};
+      const message = {id, room_id: roomId, body, item, reply_to: replyTo, author_tag: authorTag, nickname: lang === 'ko' ? '나 · 데모' : 'Me · Demo', likes: 0, created_at: new Date().toISOString(), demo: true};
       rooms[roomId] = [...previous, message].slice(-200);
       let persisted = false;
       try { storage?.setItem(DEMO_CHAT_KEY, JSON.stringify(rooms)); persisted = Boolean(storage); } catch {}

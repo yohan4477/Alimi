@@ -16,7 +16,8 @@ await page.locator('[data-service-region]:visible').first().click();
 await page.locator('[data-select-language="en"]').click();
 await page.waitForURL(u=>u.pathname==='/kr'&&u.searchParams.get('lang')==='en');
 await page.waitForSelector('#community-home .edit-interests');
-assert.match(await page.locator('#community-home').innerText(),/한국 쿠션 질문/);
+// Same Korean rooms, titles in the interface language.
+assert.match(await page.locator('#community-home').innerText(),/KR cushion/);
 await page.locator('[data-service-region]:visible').first().click();
 await page.locator('[data-select-region="us"]').click();
 await page.waitForSelector('#community-home .edit-interests');

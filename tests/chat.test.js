@@ -30,11 +30,12 @@ test('server error codes map to friendly text keys', () => {
   assert.equal(errorKey('HTTP 500'), 'chat.err.other');
 });
 
-test('room original language follows community region, independently of interface', () => {
+test('room titles follow the interface language, falling back to the other language', () => {
   const r = {title_en: 'Sunscreen talk', title_ko: '선크림 이야기'};
-  setLang('ko'); assert.equal(roomTitle(r), 'Sunscreen talk');
-  assert.equal(roomTitle({...r,service_region:'kr'}), '선크림 이야기');
-  setLang('en'); assert.equal(roomTitle(r), 'Sunscreen talk');
+  setLang('ko'); assert.equal(roomTitle(r), '선크림 이야기');
+  assert.equal(roomTitle({title_en: 'Sunscreen talk'}), 'Sunscreen talk');
+  setLang('en'); assert.equal(roomTitle({...r,service_region:'kr'}), 'Sunscreen talk');
+  assert.equal(roomTitle({title_ko: '선크림 이야기'}), '선크림 이야기');
 });
 
 test('message urls: latest page first, then only newer ids', () => {
