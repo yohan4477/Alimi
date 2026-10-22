@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {sameAdminOrigin, readToken, sessionCookie, clearCookie, authRequest, verifiedAdmin} from '../server/admin-auth.js';
 
 const pageFile = new URL('../server/admin-page.html', import.meta.url);
+const beautyPickFile = new URL('../server/admin-beauty-pick.html', import.meta.url);
 const libraryFile = new URL('../server/admin-ui-library.html', import.meta.url);
 const reviewFile = new URL('../server/admin-planning-review.html', import.meta.url);
 const headers = {
@@ -42,7 +43,7 @@ async function credentials(req, passwordOnly = false) {
   const email = body.email.trim(), password = body.password;
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length > 0 && password.length <= 1024 ? {email, password} : null;
 }
-export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), readLibrary = () => readFile(libraryFile, 'utf8'), env = process.env} = {}) {
+export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), readLibrary = () => readFile(libraryFile, 'utf8'), readBeautyPick = () => readFile(beautyPickFile, 'utf8'), env = process.env} = {}) {
   const passwordOnly = Boolean(env.ADMIN_SHARED_PASSWORD);
   const loginPage = message => renderLoginPage(message, passwordOnly);
   return async function admin(req, res) {
@@ -97,14 +98,15 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         return send(200, JSON.stringify(await readMetrics({env, fetchImpl, serviceRegion:url.searchParams.get('region') ?? 'all'})));
       }
-      if (['planning-review', 'ui-library'].includes(url.searchParams.get('view'))) {
-        const review = url.searchParams.get('view') === 'ui-library' ? await readLibrary() : await readReview();
+      if (['planning-review', 'ui-library', 'beauty-pick'].includes(url.searchParams.get('view'))) {
+        const view = url.searchParams.get('view');
+        const review = view === 'beauty-pick' ? await readBeautyPick() : view === 'ui-library' ? await readLibrary() : await readReview();
         const scriptHashes = [...review.matchAll(/<script>([\s\S]*?)<\/script>/g)]
           // Browsers hash script text after normalizing CRLF/CR to LF (e.g. Windows checkouts).
           .map(([, script]) => "'sha256-" + createHash('sha256').update(script.replace(/\r\n?/g, '\n')).digest('base64') + "'").join(' ');
         // The unchanged review uses dynamic style attributes for screenshot crops.
         // Permit these only in the authenticated, isolated review document.
-        res.setHeader('Content-Security-Policy', `default-src 'none'; script-src ${scriptHashes}; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
+        res.setHeader('Content-Security-Policy', `default-src 'none'; script-src ${scriptHashes}; style-src 'unsafe-inline'; img-src data:; frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
         return send(200, review);
       }
       return send(200, await readPage());
