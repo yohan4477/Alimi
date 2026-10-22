@@ -3,11 +3,11 @@
 :root{--jr-blue:#1463e8;--jr-ink:#17233d;--jr-sub:#4a5672;--jr-gray:#7a8499;--jr-line:#eef1f6;--jr-chip:#f3f5f9;--jr-soft:#f1f6ff}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-/* Header: wordmark left, icon actions right (community, 탐색). */
-.logo-head.sb-head{justify-content:space-between;min-height:56px;padding:4px 0}
-#chat>.logo-head.sb-head{padding:4px 12px 4px 18px}
-.sb-head .sb-logo{height:40px;width:auto;object-fit:cover;object-position:top;aspect-ratio:200/48}
-.sb-head .sb-head-actions{display:flex;align-items:center;gap:2px}
+/* Header: centered wordmark with balanced space for navigation actions. */
+.logo-head.sb-head{display:grid;grid-template-columns:88px minmax(0,1fr) 88px;align-items:center;min-height:72px;padding:10px 0;gap:0}
+#chat>.logo-head.sb-head{padding:10px 16px}
+.sb-head .sb-logo{grid-column:2;grid-row:1;justify-self:center;width:168px;height:auto;max-width:100%;max-height:52px;object-fit:contain;object-position:center;aspect-ratio:auto}
+.sb-head .sb-head-actions{grid-column:3;grid-row:1;justify-self:end;display:flex;align-items:center;gap:0}
 .sb-head .icon-btn{width:44px;height:44px}
 .sb-head .icon-btn svg{width:23px;height:23px;fill:none;stroke:var(--jr-ink);stroke-width:2;stroke-linecap:round}
 .sb-head .demo-toggle{font-size:11px;color:var(--jr-gray);padding:4px 8px;min-height:32px}
@@ -161,7 +161,7 @@ html[data-room="1"] #tabbar{display:none}
 .home-hero img{width:48%}
 .family-bar .close-dialog{outline-offset:-6px}
 #family-hero .fh-main,#family-hero>img{background:#fff}
-.sb-head .sb-logo{flex:0 1 auto;min-width:0;max-width:calc(100% - 150px);height:auto;max-height:40px;object-fit:contain;object-position:left top}
+.sb-head .sb-logo{min-width:0}
 .home-hero img{right:0}
 @media(max-width:360px){.sb-head .demo-toggle{padding:4px 6px}.sb-head .icon-btn{width:40px}}
 #chat-log .msg-actions .chat-heart.selected{color:#ed2850}
@@ -304,10 +304,8 @@ html[data-room="1"] #tabbar{display:none}
 #chat-log .chat-msg.feed>.msg-actions{flex:none;align-self:center;gap:10px;margin:0;white-space:nowrap}
 #chat-log .chat-msg.feed>.msg-actions .chat-heart,#chat-log .chat-msg.feed>.msg-actions .msg-reply{min-height:32px}
 
-/* Larger, consistent wordmark across community, explore and activity. */
-.logo-head.sb-head{min-height:80px;gap:12px}
-.sb-head .sb-logo{width:230px;height:auto;max-height:none;max-width:calc(100% - 100px);aspect-ratio:auto;object-fit:contain;object-position:left center}
-.sb-head .sb-head-actions{flex:0 0 auto}
+/* Shared header proportions across community and activity. */
 .service-context{align-items:center;gap:8px}
 .service-context .demo-toggle{font:inherit;font-size:11px;color:var(--jr-gray);padding:4px 8px;min-height:32px;border:0;background:none}
-#saved .activity-head{gap:12px}
+#saved .activity-head{gap:0;min-height:72px}
+@media(max-width:360px){.logo-head.sb-head{grid-template-columns:80px minmax(0,1fr) 80px}.sb-head .icon-btn{width:40px}}
