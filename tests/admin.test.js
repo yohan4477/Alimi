@@ -90,7 +90,7 @@ test('no dashboard content resides in public assets; routing includes server-onl
   const conf=JSON.parse(await readFile(new URL('../vercel.json',import.meta.url),'utf8'));
   assert.equal(conf.outputDirectory,'dist');assert.ok(conf.rewrites.some(x=>x.source==='/admin'&&x.destination==='/api/admin'));assert.equal(conf.functions['api/admin.js'].includeFiles,'server/admin-*.html');
   const css=await readFile(new URL('../dist/admin.css',import.meta.url),'utf8'),js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');assert.doesNotMatch(css+js,/한국 뷰티에 대해 이야기하고|초기 고객|미국의 K뷰티/);
-  const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');assert.equal((html.match(/role="tabpanel"/g)||[]).length,6);assert.match(html,/미측정/);
+  const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');assert.equal((html.match(/role="tabpanel"/g)||[]).length,7);assert.match(html,/미측정/);
   assert.match(html,/K-뷰티에 관심 있고/);assert.match(html,/미국 18~24세/);
   assert.match(html,/승인된 제휴 수수료 매출/);assert.match(html,/방문자 1,000명당 제휴 수익/);
 });
@@ -180,7 +180,7 @@ test('password sessions expire, rotate and fail closed without signing secret', 
 
 test('developer dashboard is protected and differentiates specs, implementation and release',async()=>{
   const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
-  assert.equal((html.match(/role="tab"/g)||[]).length,6);
+  assert.equal((html.match(/role="tab"/g)||[]).length,7);
   assert.match(html,/id="sb-dev-tab"/);assert.match(html,/id="sb-dev" role="tabpanel"/);
   const cards=[...html.matchAll(/data-dev-item="(D\d+)"/g)];
   assert.equal(cards.length,10);assert.equal(new Set(cards.map(item=>item[1])).size,10);
@@ -194,4 +194,22 @@ test('developer dashboard is protected and differentiates specs, implementation 
   assert.equal(noAuth.statusCode,401);
   const readAllowed=await request({headers:cookie,readPage:()=>html});
   assert.equal(readAllowed.statusCode,200);assert.match(readAllowed.body,/id="sb-dev"/);
+});
+
+
+test('production alias login accepts matching host, rejects cross-site and arbitrary hosts', async () => {
+  const envOverrides={ADMIN_ORIGIN:'https://alimi-omega.vercel.app',ADMIN_SHARED_PASSWORD:'test-password',ADMIN_SHARED_SESSION_SECRET:'test-signing-secret-with-at-least-32-characters'};
+  const run=(origin,host,site='same-origin')=>request({envOverrides,method:'POST',url:'/api/admin?action=login',body:'password=test-password',headers:{origin,host,'sec-fetch-site':site,'content-type':'application/x-www-form-urlencoded'}});
+  assert.equal((await run('https://seoulbeauty.me','seoulbeauty.me')).statusCode,303);
+  assert.equal((await run('https://www.seoulbeauty.me','www.seoulbeauty.me')).statusCode,303);
+  for(const [origin,host,site] of [['https://evil.example','evil.example'],['https://seoulbeauty.me','evil.example'],['https://seoulbeauty.me','seoulbeauty.me','cross-site'],['http://seoulbeauty.me','seoulbeauty.me']]) assert.equal((await run(origin,host,site)).statusCode,403);
+});
+test('UI library is authenticated and keeps executable preview confined to hashed scripts', async () => {
+  assert.equal((await request({url:'/api/admin?view=ui-library'})).statusCode,401);
+  const r=await request({url:'/api/admin?view=ui-library',headers:cookie});
+  assert.equal(r.statusCode,200);assert.match(r.body,/UI Library/);
+  assert.match(r.headers['content-security-policy'],/script-src 'sha256-/);
+  assert.match(r.headers['content-security-policy'],/frame-ancestors 'self'/);
+  assert.match(r.headers['cache-control'],/no-store/);
+  for(const [,script] of r.body.matchAll(/<script>([\s\S]*?)<\/script>/g))assert.doesNotThrow(()=>new Function(script));
 });

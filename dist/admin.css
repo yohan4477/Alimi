@@ -257,3 +257,5 @@
 
 /* Long release-status badges must wrap on narrow dashboards. */
 .viz-badge{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+
+.sb-library-frame{display:block;width:100%;min-height:780px;border:0;background:#f0eeee;border-radius:14px}

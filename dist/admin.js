@@ -30,6 +30,7 @@ if (root) {
       document.getElementById(t.getAttribute('aria-controls')).hidden = !active;
     }
     if (tab.id === 'sb-plan-tab') loadReview();
+    if (tab.id === 'sb-ui-library-tab') loadLibrary();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
     if (focus) tab.focus();
     try { sessionStorage.setItem('sb-admin-tab', tab.id); } catch {}
@@ -40,6 +41,26 @@ if (root) {
       const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : event.key === 'ArrowRight' ? (i + 1) % tabs.length : event.key === 'ArrowLeft' ? (i + tabs.length - 1) % tabs.length : null;
       if (next !== null) { event.preventDefault(); select(tabs[next], true); }
     });
+  }
+  let libraryObserver;
+  function loadLibrary() {
+    const frame = document.getElementById('sb-library-frame');
+    if (!frame || frame.hasAttribute('src')) return;
+    const status = document.getElementById('sb-library-status');
+    status.textContent = 'UI Library를 불러오는 중…';
+    frame.onload = () => {
+      const body = frame.contentDocument?.body;
+      if (!body?.querySelector('.screen-nav')) {
+        status.textContent = '로그인이 만료되었거나 화면을 불러오지 못했어요. 새로고침 후 다시 로그인해 주세요.';
+        frame.removeAttribute('src'); return;
+      }
+      status.textContent = '';
+      libraryObserver?.disconnect();
+      const fit = () => { const height = Math.ceil(body.getBoundingClientRect().height + 24); if (height > 24) frame.style.height = height + 'px'; };
+      libraryObserver = new ResizeObserver(fit); libraryObserver.observe(body); fit();
+    };
+    frame.onerror = () => { status.textContent = 'UI Library를 불러오지 못했어요. 탭을 다시 눌러 주세요.'; frame.removeAttribute('src'); };
+    frame.src = frame.dataset.src;
   }
   let reviewObserver, reviewTimer, reviewPending = false;
   let reviewStatus;
@@ -221,8 +242,9 @@ if (root) {
     refresh();
   }
 
+  document.querySelector('#sb-ui-library [data-dev-jump]')?.addEventListener('click', event => { event.preventDefault(); select(document.getElementById('sb-plan-tab')); });
   let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
-  const deepLink = {'#sb-plan':'sb-plan-tab','#sb-dev':'sb-dev-tab'}[location.hash];
+  const deepLink = {'#sb-plan':'sb-plan-tab','#sb-dev':'sb-dev-tab','#sb-ui-library':'sb-ui-library-tab'}[location.hash];
   select(tabs.find(t => t.id === (deepLink || saved)) || tabs[0]);
   document.getElementById('admin-logout').addEventListener('submit', () => { root.hidden = true; try { sessionStorage.removeItem('sb-admin-tab'); } catch {} });
   // Do not show a protected snapshot from the browser back/forward cache after logout.

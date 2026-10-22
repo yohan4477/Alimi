@@ -2,9 +2,10 @@ import {passwordMatches, passwordSession, validPasswordSession} from '../server/
 import {readMetrics} from '../server/admin-metrics.js';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
-import {adminOrigin, sameOrigin, readToken, sessionCookie, clearCookie, authRequest, verifiedAdmin} from '../server/admin-auth.js';
+import {sameAdminOrigin, readToken, sessionCookie, clearCookie, authRequest, verifiedAdmin} from '../server/admin-auth.js';
 
 const pageFile = new URL('../server/admin-page.html', import.meta.url);
+const libraryFile = new URL('../server/admin-ui-library.html', import.meta.url);
 const reviewFile = new URL('../server/admin-planning-review.html', import.meta.url);
 const headers = {
   'Content-Type': 'text/html; charset=utf-8',
@@ -41,7 +42,7 @@ async function credentials(req, passwordOnly = false) {
   const email = body.email.trim(), password = body.password;
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length > 0 && password.length <= 1024 ? {email, password} : null;
 }
-export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), env = process.env} = {}) {
+export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), readLibrary = () => readFile(libraryFile, 'utf8'), env = process.env} = {}) {
   const passwordOnly = Boolean(env.ADMIN_SHARED_PASSWORD);
   const loginPage = message => renderLoginPage(message, passwordOnly);
   return async function admin(req, res) {
@@ -55,7 +56,7 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
       if (!['GET', 'POST'].includes(req.method) || (action && req.method !== 'POST') || (!action && req.method !== 'GET')) {
         res.setHeader('Allow', action ? 'POST' : 'GET'); return send(405, loginPage('지원하지 않는 요청입니다.'));
       }
-      if (req.method === 'POST' && !sameOrigin(req, adminOrigin(env))) return send(403, loginPage('요청 출처를 확인할 수 없습니다. 관리자 페이지에서 다시 시도하세요.'));
+      if (req.method === 'POST' && !sameAdminOrigin(req, env)) return send(403, loginPage('요청 출처를 확인할 수 없습니다. 관리자 페이지에서 다시 시도하세요.'));
       if (action === 'logout') {
         res.setHeader('Set-Cookie', clearCookie());
         const token = readToken(req);
@@ -96,8 +97,8 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         return send(200, JSON.stringify(await readMetrics({env, fetchImpl, serviceRegion:url.searchParams.get('region') ?? 'all'})));
       }
-      if (url.searchParams.get('view') === 'planning-review') {
-        const review = await readReview();
+      if (['planning-review', 'ui-library'].includes(url.searchParams.get('view'))) {
+        const review = url.searchParams.get('view') === 'ui-library' ? await readLibrary() : await readReview();
         const scriptHashes = [...review.matchAll(/<script>([\s\S]*?)<\/script>/g)]
           // Browsers hash script text after normalizing CRLF/CR to LF (e.g. Windows checkouts).
           .map(([, script]) => "'sha256-" + createHash('sha256').update(script.replace(/\r\n?/g, '\n')).digest('base64') + "'").join(' ');
