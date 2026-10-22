@@ -279,3 +279,14 @@ html[data-room="1"] #tabbar{display:none}
 .ob-field-art{width:48px;height:48px;object-fit:contain;border-radius:12px;flex:none}
 .room-thumb-art img{object-fit:contain}
 .room-ico img{object-fit:contain}
+
+/* Larger photo surfaces for quick recognition on mobile. */
+.explore-cat-ico{width:min(78px,100%);height:auto;aspect-ratio:1;border-radius:18px}
+.explore-cats button{font-size:13px;gap:9px}
+.hot-row .room-thumb,.explore-row .room-thumb{width:88px;height:88px;border-radius:16px}
+.hot-row,.explore-row{align-items:center;gap:12px}
+.explore-text small,.hot-text small{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ob-field-art{width:64px;height:64px}
+.ob-fields button{min-height:88px}
+.room-intro-head .room-thumb{width:72px;height:72px}
+@media(max-width:360px){.hot-row .room-thumb,.explore-row .room-thumb{width:78px;height:78px}.explore-item .explore-row{padding-right:30px}.explore-cats{gap:6px}}
