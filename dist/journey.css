@@ -400,13 +400,13 @@ body{color:var(--jr-ink)}
 #chat-log .chat-item{min-width:0;max-width:100%;width:100%}
 #chat-log .chat-item>span{min-width:0;flex:1}
 
-/* One continuous photograph, with the copy layered over the image. */
-.home-hero{height:320px;isolation:isolate;background:#dce8f4;display:flex;align-items:flex-end}
-.home-hero img{inset:0;width:100%;max-width:none;height:100%;object-fit:cover;object-position:center 28%;z-index:-2}
-.home-hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(12,24,45,0) 12%,rgba(12,24,45,.16) 42%,rgba(12,24,45,.78) 100%)}
-.home-hero-text{width:100%;max-width:440px;padding:24px 20px}
-.home-hero h1{font-size:26px;line-height:1.2;color:#fff;text-shadow:0 1px 6px #10203933}
-.home-hero p{font-size:13px;line-height:1.5;color:#fff;margin-top:10px}
-.home-hero .hero-cta{max-width:100%;min-height:44px;margin-top:16px;padding:10px 16px;font-size:14px;line-height:1.35;white-space:normal;text-align:left;box-shadow:none}
+/* Home banner follows the supplied PPT: bright canvas, original portrait at right. */
+.home-hero{height:clamp(236px,66vw,300px);display:block;isolation:isolate;background:linear-gradient(115deg,#f4f7ff 0%,#edf3ff 55%,#e5edfc 100%)}
+.home-hero::after{content:none}
+.home-hero img{inset:auto 0 0 auto;width:64%;max-width:360px;height:100%;object-fit:contain;object-position:right bottom;z-index:0}
+.home-hero-text{position:relative;z-index:1;width:70%;max-width:380px;padding:26px 0 20px 18px}
+.home-hero h1{font-size:clamp(19px,5.1vw,24px);line-height:1.25;color:var(--jr-ink);text-shadow:none;letter-spacing:-.5px}
+.home-hero p{max-width:240px;font-size:12px;line-height:1.5;color:var(--jr-sub);margin-top:12px}
+.home-hero .hero-cta{max-width:100%;min-height:44px;margin-top:20px;padding:10px 14px;font-size:13px;line-height:1.35;white-space:nowrap;text-align:left;box-shadow:none}
 .home-hero .hero-cta svg{flex:none}
-@media(max-width:360px){.home-hero{height:320px}.home-hero-text{padding:20px 16px}.home-hero h1{font-size:24px}.home-hero p{font-size:12px}.home-hero .hero-cta{font-size:13px}}
+@media(max-width:360px){.home-hero-text{width:74%;padding-left:16px}.home-hero h1{font-size:18px}.home-hero p{font-size:11px;max-width:210px}.home-hero .hero-cta{font-size:12px;padding:10px 12px}}
