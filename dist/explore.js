@@ -42,7 +42,7 @@ function panel({rooms, images, popular}, brands) {
   const talk = rooms.filter(r => r.kind !== 'brand');
   if (tab === 'topic') {
     const list = busiest(cat ? talk.filter(r => roomField(r) === cat) : talk);
-    return `<div class="explore-cats">${CATS.map(c => `<button data-explore-cat="${c}" aria-pressed="${cat === c}" class="${cat === c ? 'on' : ''}"><span class="explore-cat-ico ec-${c}"><svg viewBox="0 0 24 24" aria-hidden="true">${catIcon[c]}</svg></span>${esc(t('explore.cat.' + c))}</button>`).join('')}</div>${head('explore.popular')}${rows(list, images)}`;
+    return `<div class="explore-cats">${CATS.map(c => `<button data-explore-cat="${c}" aria-pressed="${cat === c}" class="${cat === c ? 'on' : ''}"><span class="explore-cat-ico ec-${c}">${['skin','makeup'].includes(c) ? `<img src="assets/category/${c === 'skin' ? 'skincare' : 'makeup'}.png" alt="" width="58" height="58">` : `<svg viewBox="0 0 24 24" aria-hidden="true">${catIcon[c]}</svg>`}</span>${esc(t('explore.cat.' + c))}</button>`).join('')}</div>${head('explore.popular')}${rows(list, images)}`;
   }
   if (tab === 'product') {
     // 2-2: 인기순 = members, 최신순 = latest message, 댓글순 = messages today; all summed over the product's rooms.
