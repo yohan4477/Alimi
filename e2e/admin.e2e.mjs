@@ -68,29 +68,22 @@ try {
   await library.locator('[data-guess="1"]').click();
   assert.match(await library.getByRole('heading',{name:/맞혔어/}).innerText(),/맞혔어/);
 
-  // Developer board: priority × platform filtering, links and tab jumps are presentational.
+  // Current status and change history are separate, protected views.
   await page.getByRole('tab',{name:'현황',exact:true}).click();
   const development=page.locator('#sb-dev');
-  await openAncestorDetails(development.locator('[data-dev-item="D01"]'));
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
-  await development.locator('[data-dev-filter="priority"][data-dev-value="P0"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),6);
-  await development.locator('[data-dev-filter="platform"][data-dev-value="ios"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),3);
-  await development.locator('[data-dev-filter="priority"][data-dev-value="P1"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),4);
-  await development.locator('[data-dev-filter="platform"][data-dev-value="backend"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),0);
-  assert.equal(await development.locator('#sb-dev-empty').isVisible(),true);
-  await development.locator('[data-dev-filter="priority"][data-dev-value="all"]').click();
-  await development.locator('[data-dev-filter="platform"][data-dev-value="all"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
+  assert.equal(await development.locator('[data-state-panel="current"]').isVisible(),true);
+  assert.equal(await development.locator('[data-state-panel="history"]').isVisible(),false);
+  await development.locator('[data-state-view="history"]').click();
+  assert.equal(await development.locator('[data-state-panel="history"]').isVisible(),true);
+  assert.equal(await development.locator('[data-state-panel="current"]').isVisible(),false);
+  await development.locator('[data-state-view="current"]').click();
+  assert.equal(await development.locator('[data-state-panel="current"]').isVisible(),true);
   for (const width of [320,390,1024]) {
     await page.setViewportSize({width,height:900});
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'developer board overflows at '+width);
   }
   await page.setViewportSize({width:390,height:844});
-  await development.locator('[data-dev-jump="sb-plan-tab"]').click();
+  await page.getByRole('tab',{name:'서비스 기획',exact:true}).click();
   assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   await page.getByRole('tab',{name:'현황',exact:true}).click();
     await page.getByRole('tab',{name:'전략 자료',exact:true}).click();await page.getByRole('tab',{name:'전략 자료',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
