@@ -1,3 +1,4 @@
+import languageHandler from '../api/language.js';
 import {createBeautyPlayHandler} from '../api/beauty-play.js';
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -12,6 +13,7 @@ const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset
 export function createLocalServer({adminHandler = createAdminHandler({env: {...process.env, ADMIN_ORIGIN: process.env.ADMIN_ORIGIN || 'http://localhost:3000'}}), coupangHandler = createCoupangHandler(), oliveYoungHandler = createOliveYoungHandler()} = {}) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
+    if(url.pathname==='/api/language')return languageHandler(req,res);
     if(url.pathname.startsWith('/beauty-play/api/')){req.url='/api/beauty-play?'+new URLSearchParams({...Object.fromEntries(url.searchParams),route:url.pathname.slice('/beauty-play/api/'.length)});return beautyPlayHandler(req,res);}
     if (['/admin','/admin/','/api/admin'].includes(url.pathname)) return adminHandler(req, res);
     if (url.pathname === '/api/coupang') return coupangHandler(req, res);

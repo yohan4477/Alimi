@@ -14,7 +14,7 @@ try {
   const request=async(route,{cookie,body,query='',auth}={})=>{const res={statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},end(v){this.body=JSON.parse(v);}};await h({url:'/api/beauty-play?route='+route+query,method:body?'POST':'GET',headers:{cookie,origin:'https://seoulbeauty.me','content-type':'application/json',...(auth?{authorization:'Bearer a.b.c'}:{})},body},res);return res;};
   const s1=await request('session'),s2=await request('session');assert.equal(s1.statusCode,200);const a=s1.headers['Set-Cookie'].split(';')[0],b=s2.headers['Set-Cookie'].split(';')[0];assert.notEqual(a,b);
   const play='11111111-1111-4111-8111-111111111111',play2='22222222-2222-4222-8222-222222222222';
-  const snapshot=shareSnapshot('mona'),advice=snapshot.advice[0],product=snapshot.products.find(p=>advice.productIds.includes(p.id));
+  const snapshot=shareSnapshot('mona'),advice=snapshot.advice[0],product=snapshot.products.find(p=>p.id==='69092');
   const answer={kind:'answer',play,character:'mona',test:false,product:product.id,shade:product.options[0].id,advice:advice.id,reasons:[advice.reasonOptions[0]],note:'PRIVATE-NOTE'};
   assert.equal((await request('record',{cookie:a,body:answer})).statusCode,200);
   assert.equal((await request('record',{cookie:a,body:answer})).statusCode,200);
@@ -24,7 +24,7 @@ try {
   const share=await request('record',{cookie:a,body:shareBody}),retry=await request('record',{cookie:a,body:shareBody});assert.equal(share.statusCode,200);assert.equal(share.body.id,retry.body.id);
   const invite=`&id=${share.body.id}&play=${play2}`;
   assert.equal((await request('invite',{cookie:b,query:invite+'&reveal=1'})).statusCode,403);
-  const blind=await request('invite',{cookie:b,query:invite});assert.equal(blind.statusCode,200);assert(!Object.hasOwn(blind.body,'product'));assert(!JSON.stringify(blind.body).includes('PRIVATE-NOTE'));
+  const blind=await request('invite',{cookie:b,query:invite});assert.equal(blind.statusCode,200);assert(blind.body.snapshot.products.some(p=>p.id==='69092'));assert.equal(blind.body.snapshot.products.length,snapshot.products.length);assert(!Object.hasOwn(blind.body,'product'));assert(!JSON.stringify(blind.body).includes('PRIVATE-NOTE'));
   assert.equal((await request('record',{cookie:b,body:{...answer,play:play2,invite:share.body.id,note:'OTHER-PRIVATE'}})).statusCode,200);
   const reveal=await request('invite',{cookie:b,query:invite+'&reveal=1'});assert.equal(reveal.statusCode,200);assert.equal(reveal.body.product,product.id);assert(!JSON.stringify(reveal.body).includes('PRIVATE'));
   assert.equal((await request('reflection',{cookie:a,body:{character:'mona',play,test:false,mode:'used',text:'PRIVATE-REFLECTION',criteria:['사용감'],language:'ko'}})).statusCode,200);

@@ -49,12 +49,12 @@ try {
   await page.reload(); // Exercise initial deep-link selection, not a same-document hash change.
   assert.equal(await page.locator('#sb-dev-tab').getAttribute('aria-selected'),'true');
   assert.ok(await page.locator('#sb-dev').isVisible());
-  for(const name of ['운영 홈','회원','커뮤니티','제품','게임·투표','수익','시스템','UI Library','현황','실행 계획','전략 자료','서비스 기획','디자인 리뷰']) {
+  for(const name of ['운영 홈','회원','커뮤니티','제품','게임·투표','수익','시스템','UI 라이브러리','현황','실행 계획','전략 자료','서비스 기획','디자인 리뷰']) {
     await page.getByRole('tab',{name,exact:true}).click();assert.equal(await page.locator('[role="tabpanel"]:visible').count(),1);
     assert.equal(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
   }
 
-  await page.getByRole('tab',{name:'UI Library',exact:true}).click();
+  await page.getByRole('tab',{name:'UI 라이브러리',exact:true}).click();
   const library=page.frameLocator('#sb-library-frame');
   await library.locator('.phone').first().waitFor();
   assert.equal(await library.locator('.phone').count(),9);
@@ -113,7 +113,7 @@ try {
   assert.equal(await current.locator('tbody tr').count(),expectedStates.length,'view switches never append duplicate status rows');
   await page.setViewportSize({width:390,height:844});
   // The remaining planning jump lives in UI Library, not the removed developer cards.
-  await page.getByRole('tab',{name:'UI Library',exact:true}).click();
+  await page.getByRole('tab',{name:'UI 라이브러리',exact:true}).click();
   await page.locator('#sb-ui-library [data-dev-jump="sb-plan-tab"]').click();
   assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   await page.getByRole('tab',{name:'전략 자료',exact:true}).click();await page.getByRole('tab',{name:'전략 자료',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');

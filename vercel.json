@@ -24,6 +24,28 @@
     },
     {
       "source": "/beauty-play",
+      "has": [
+        {
+          "type": "query",
+          "key": "lang",
+          "value": "en"
+        }
+      ],
+      "destination": "/beauty-play/index.en.html"
+    },
+    {
+      "source": "/beauty-play/",
+      "has": [
+        {
+          "type": "query",
+          "key": "lang",
+          "value": "en"
+        }
+      ],
+      "destination": "/beauty-play/index.en.html"
+    },
+    {
+      "source": "/beauty-play",
       "destination": "/beauty-play/index.html"
     },
     {

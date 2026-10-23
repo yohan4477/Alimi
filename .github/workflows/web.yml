@@ -20,6 +20,19 @@ on:
 permissions:
   contents: read
 jobs:
+  beauty_catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: npm run build:beauty-play
+      - run: node --test tests/beauty-catalog-browse.test.js tests/beauty-game-domain.test.js tests/beauty-play.test.js
+      - run: npm install --no-save playwright-core@1.49.1
+      - run: CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-catalog.e2e.mjs
   beauty_game_database:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -49,6 +62,10 @@ jobs:
           npm install --no-save playwright-core@1.49.1
           CHROME_PATH="$(command -v google-chrome)" node e2e/admin.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-first-choice.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-legacy-start.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-locale.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/visitor-language.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-catalog.e2e.mjs
       - name: Browser smoke test against the live public API
         run: |
           set -euo pipefail

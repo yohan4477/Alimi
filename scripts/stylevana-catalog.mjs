@@ -118,7 +118,7 @@ export async function runCatalog(inputPath, root, options = {}) {
   const items = buildCatalogItems(rows, catalog, observedAt, brandInfo);
   let catalogLayer;
   try { const c = await upsertCatalog(items, observedAt, options); catalogLayer = {items: items.length, db: c.skipped ? 'skipped' : 'upserted'}; }
-  catch (e) { catalogLayer = {items: items.length, db: 'db_error', error: e.message}; }
+  catch (e) { catalogLayer = {items: items.length, db: 'db_error', error: e.message, ...(e.diagnostics ? {diagnostics: e.diagnostics} : {})}; }
   return {sourceRows: rows.length, matched: results.filter(r => r.status === 'ok').length, total: results.length, items: summary, catalogLayer};
 }
 
