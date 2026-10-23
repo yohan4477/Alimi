@@ -1,3 +1,4 @@
+import {createBeautyPlayHandler} from '../api/beauty-play.js';
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -6,17 +7,19 @@ import {createAdminHandler} from '../api/admin.js';
 import {createCoupangHandler} from '../api/coupang.js';
 import {createOliveYoungHandler} from '../api/oliveyoung.js';
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
-const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'};
+const beautyPlayHandler=createBeautyPlayHandler({cookieSecure:false,allowedOrigins:new Set(['https://seoulbeauty.me','http://localhost:3000','http://terminal.local:4173'])});
+const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webp':'image/webp'};
 export function createLocalServer({adminHandler = createAdminHandler({env: {...process.env, ADMIN_ORIGIN: process.env.ADMIN_ORIGIN || 'http://localhost:3000'}}), coupangHandler = createCoupangHandler(), oliveYoungHandler = createOliveYoungHandler()} = {}) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
+    if(url.pathname.startsWith('/beauty-play/api/')){req.url='/api/beauty-play?'+new URLSearchParams({...Object.fromEntries(url.searchParams),route:url.pathname.slice('/beauty-play/api/'.length)});return beautyPlayHandler(req,res);}
     if (['/admin','/admin/','/api/admin'].includes(url.pathname)) return adminHandler(req, res);
     if (url.pathname === '/api/coupang') return coupangHandler(req, res);
     if (url.pathname === '/api/oliveyoung') return oliveYoungHandler(req, res);
     if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405); return res.end(); }
     let name;
     try { name = decodeURIComponent(url.pathname); } catch { res.writeHead(400); return res.end(); }
-    const file = path.resolve(root, '.' + (['/','/kr','/kr/','/us','/us/'].includes(name) ? '/index.html' : name));
+    const file = path.resolve(root, '.' + (['/','/kr','/kr/','/us','/us/'].includes(name) ? '/index.html' : ['/beauty-play','/beauty-play/'].includes(name)?'/beauty-play/index.html':name));
     if (!file.startsWith(root) || name.split('/').some(p => p.startsWith('.'))) { res.writeHead(404); return res.end(); }
     try {
       const bytes = await readFile(file); res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','X-Content-Type-Options':'nosniff'});
@@ -25,5 +28,6 @@ export function createLocalServer({adminHandler = createAdminHandler({env: {...p
   });
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  createLocalServer().listen(3000, '127.0.0.1', () => console.log('SeoulBeauty: http://localhost:3000/ · admin: http://localhost:3000/admin'));
+  const port=Number(process.env.PORT||process.argv[process.argv.indexOf('--port')+1])||3000;const hostIndex=process.argv.indexOf('--host');const host=hostIndex>=0?process.argv[hostIndex+1]:'127.0.0.1';
+  createLocalServer().listen(port,host,()=>console.log('SeoulBeauty: http://localhost:'+port+'/'));
 }
