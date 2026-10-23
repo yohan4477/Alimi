@@ -23,6 +23,7 @@ export function writeHandoff(storage, {body, language, region, now = Date.now(),
   if (!validId(id) || !['kr','us'].includes(region) || !['ko','en'].includes(language) || typeof body !== 'string' || !body.trim() || body.length > 2000) throw Error('Invalid draft');
   const draft = {id, body:body.trim(), language, region, createdAt:now};
   storage.setItem(HANDOFF_KEY, JSON.stringify(draft));
+  storage.removeItem('seoulbeauty-cloud-draft-owner');
   if (!readHandoff(storage, {id, region, now})) throw Error('Draft unavailable');
   return `/${region}?lang=${language}&beautyDraft=${id}&demo=0`;
 }
@@ -33,5 +34,5 @@ export function updateHandoff(storage, id, body, title = '') {
   try { storage.setItem(HANDOFF_KEY, JSON.stringify({...d,body,title})); return true; } catch { return false; }
 }
 export function clearHandoff(storage, id) {
-  try { if (!id || readHandoff(storage, {id})) storage.removeItem(HANDOFF_KEY); } catch {}
+  try { if (!id || readHandoff(storage, {id})) {storage.removeItem(HANDOFF_KEY);storage.removeItem('seoulbeauty-cloud-draft-owner');} } catch {}
 }

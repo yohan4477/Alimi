@@ -1,4 +1,6 @@
-import {readHandoff,updateHandoff,clearHandoff,handoffStorage} from './beauty-handoff.js';
+import {BeautyAccountDrafts} from './beauty-account-drafts.js';
+import {readHandoff,writeHandoff,updateHandoff,clearHandoff,handoffStorage} from './beauty-handoff.js';
+import {suggestDraftRooms} from './beauty-room-suggest.js';
 import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {roomArt} from './topic-art.js';
 import {nick} from './nickname.js';
@@ -90,6 +92,7 @@ export async function openChat(opts = {}) {
   chat.myTag ||= await tagOf(secret);
   if (version !== communityOpenVersion) return;
   track('community_open', null, beautyDraft && !demoActive ? {source:'beauty_play',handoff_id:beautyDraft.id}:{});
+  if (beautyDraft && !demoActive && initial) track('beauty_draft_open',null,{source:'beauty_play',handoff_id:beautyDraft.id});
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
   if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   const showLaunch = initial && readInterests()?.done;
@@ -154,9 +157,44 @@ export const postRow = p => `<button class="post-row" data-post="${p.id}"><span 
 const HOME_TABS = ['rec', 'rooms', 'discover'];
 let topicRoomLimit = 3, productGroupLimit = 3;
 let homeVersion = 0, homeTab = 'rec', home = null, catalogPics = null;
-const incomingBeautyId = new URLSearchParams(globalThis.location?.search ?? '').get('beautyDraft');
+let incomingBeautyId = new URLSearchParams(globalThis.location?.search ?? '').get('beautyDraft');
 let beautyDraft = incomingBeautyId ? readHandoff(handoffStorage(),{id:incomingBeautyId,region}) : null;
 let beautyDraftDismissed = false;
+let accountDrafts;
+const CLOUD_DRAFT_OWNER='seoulbeauty-cloud-draft-owner';
+export function configureBeautyDraftAccount(auth){accountDrafts=new BeautyAccountDrafts(auth);}
+export function refreshBeautyDraftAccount(){
+  const owner=handoffStorage()?.getItem(CLOUD_DRAFT_OWNER);
+  if(owner&&owner!==accountDrafts?.auth.user?.id){clearHandoff(handoffStorage());handoffStorage()?.removeItem(CLOUD_DRAFT_OWNER);beautyDraft=null;}
+  const dlg=$('#beauty-account-drafts');if(dlg){dlg.close();dlg.drafts=[];dlg.innerHTML='';}
+  renderBeautyDraft();
+}
+const draftText=(ko,en)=>locale().startsWith('ko')?ko:en;
+async function accountDraftAction(action,id){
+  try{
+    if(!accountDrafts)throw Error('login_required');
+    if(action==='save'){
+      const d=readHandoff(handoffStorage(),{id:incomingBeautyId,region});
+      if(!d)return;
+      await accountDrafts.save(d);
+      handoffStorage()?.setItem(CLOUD_DRAFT_OWNER,accountDrafts.owner);
+      toast(draftText('계정에 비공개로 저장했어. 30일 동안 다른 기기에서 복구할 수 있어.','Saved privately for 30 days. Recover on another device after signing in.'));
+    }else if(action==='list'){
+      const rows=await accountDrafts.list(region);
+      let dlg=$('#beauty-account-drafts');if(!dlg){dlg=document.createElement('dialog');dlg.id='beauty-account-drafts';dlg.className='chat-dialog';dlg.addEventListener('close',()=>{if(!dlg.open){dlg.drafts=[];dlg.innerHTML='';}});document.body.append(dlg);}
+      dlg.innerHTML=`<form method="dialog"><button class="close-dialog">×</button></form><h2>${esc(draftText('내 비공개 초안','My private drafts'))}</h2><p>${esc(draftText('복구하면 현재 탭의 초안을 대체해. 공개 게시되지는 않아.','Recovering replaces this tab’s draft. It does not publish.'))}</p>${rows.length?rows.map(d=>`<div><button data-account-draft-restore="${esc(d.id)}">${esc(d.title||d.body.slice(0,80))}</button><button data-account-draft-delete="${esc(d.id)}">${esc(draftText('계정에서 삭제','Delete from account'))}</button></div>`).join(''):`<p>${esc(draftText('저장된 초안이 없어.','No saved drafts.'))}</p>`}`;
+      // Keep private text in this dialog's memory only, never analytics or localStorage.
+      dlg.drafts=rows;dlg.showModal();
+    }else if(action==='restore'){
+      const dlg=$('#beauty-account-drafts'),d=dlg?.drafts?.find(x=>x.id===id);if(!d)return;
+      await accountDrafts.auth.restore();if(accountDrafts.owner!==accountDrafts.auth.user?.id)throw Error('account_changed');
+      writeHandoff(handoffStorage(),d);handoffStorage()?.setItem(CLOUD_DRAFT_OWNER,accountDrafts.owner);updateHandoff(handoffStorage(),d.id,d.body,d.title);incomingBeautyId=d.id;beautyDraftDismissed=false;
+      const url=new URL(location.href);url.searchParams.set('beautyDraft',d.id);history.replaceState({},'',url);
+      dlg.close();dlg.drafts=[];renderBeautyDraft();
+    }else if(action==='delete'){await accountDrafts.remove(id);$('#beauty-account-drafts')?.close();await accountDraftAction('list');}
+  }catch(e){toast(e.message==='login_required'?draftText('설정에서 로그인한 뒤 다시 시도해 줘.','Sign in in Settings, then try again.'):e.message==='draft_conflict'?draftText('다른 기기에서 변경됐어. 계정 초안을 복구한 뒤 다시 저장해 줘.','Changed on another device. Recover the account draft before saving again.'):draftText('계정 초안을 처리하지 못했어. 이 탭의 초안은 유지돼.','Account draft unavailable. This tab’s draft is kept.'));}
+}
+
 let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
 let keepHomeTab = false;
 export function openProductRoomsNext(query = '') {
@@ -166,11 +204,12 @@ export function openRoomListNext() {
   pendingRoom = null; pendingPost = null; homeTab = 'rooms'; keepHomeTab = true; roomFindMode = 'topics'; productRoomQuery = ''; selectedProductGroup = null;
 }
 function renderBeautyDraft() {
-  const box = $('#beauty-draft-arrival'); if (!box || !incomingBeautyId || beautyDraftDismissed) return;
+  const box = $('#beauty-draft-arrival'); if (!box) return;
+  if(!incomingBeautyId||beautyDraftDismissed){box.hidden=false;box.innerHTML=`<button data-chat-action="beauty-account-list">${esc(draftText('계정의 비공개 초안 복구','Recover private account drafts'))}</button>`;return;}
   beautyDraft = readHandoff(handoffStorage(),{id:incomingBeautyId,region});
   box.hidden = false;
   const ko = locale().startsWith('ko'), tr = (k,e) => ko?k:e;
-  box.innerHTML = beautyDraft ? `<h2>${esc(tr('네 이야기를 이어왔어','Your story, continued'))}</h2><p class="beauty-draft-text">${esc(beautyDraft.body)}</p><small>${esc(tr('아직 공개되지 않았어. 대화방을 고른 뒤 수정하고 게시해. 24시간 안에 이 탭에서 이어서 작성할 수 있어.','Not public yet. Choose a conversation, edit, then post. Continue in this tab within 24 hours.'))}</small><div class="beauty-draft-actions"><button class="primary" data-chat-action="beauty-draft-choose">${esc(tr('대화방 골라 이야기하기','Choose a conversation'))}</button><button data-chat-action="beauty-draft-copy">${esc(tr('글 복사','Copy text'))}</button><button data-chat-action="beauty-draft-dismiss">${esc(tr('초안 삭제하고 둘러보기','Delete draft and browse'))}</button></div>` : `<p>${esc(tr('다른 탭·기기에서 열었거나 초안이 만료됐어. 게임에서 다시 이어오거나 서울뷰티를 둘러봐.','This draft is unavailable in this tab or has expired. Continue again from the game, or browse Seoul Beauty.'))}</p><button data-chat-action="beauty-draft-dismiss">${esc(tr('둘러보기','Browse'))}</button>`;
+  box.innerHTML = beautyDraft ? `<h2>${esc(tr('네 이야기를 이어왔어','Your story, continued'))}</h2><p class="beauty-draft-text">${esc(beautyDraft.body)}</p><small>${esc(tr('아직 공개되지 않았어. 대화방을 고른 뒤 수정하고 게시해. 이 탭에서 24시간 동안 이어 쓸 수 있어. 계정 사본은 저장 버튼을 누를 때만 갱신돼. 게시 후 계정 사본은 별도로 삭제해 줘.','Not public yet. Choose a conversation, edit, then post. Continue in this tab within 24 hours. Account copies are saved only when you tap Save; delete them separately after publishing.'))}</small><div class="beauty-draft-actions"><button class="primary" data-chat-action="beauty-draft-choose">${esc(tr('대화방 골라 이야기하기','Choose a conversation'))}</button><button data-chat-action="beauty-account-save">${esc(tr('계정에 비공개 사본 저장 (30일)','Save private account copy (30 days)'))}</button><button data-chat-action="beauty-account-list">${esc(tr('계정 초안 복구','Recover account drafts'))}</button><button data-chat-action="beauty-draft-copy">${esc(tr('글 복사','Copy text'))}</button><button data-chat-action="beauty-draft-dismiss">${esc(tr('초안 삭제하고 둘러보기','Delete draft and browse'))}</button></div>` : `<p>${esc(tr('다른 탭·기기에서 열었거나 초안이 만료됐어. 게임에서 다시 이어오거나 서울뷰티를 둘러봐.','This draft is unavailable in this tab or has expired. Continue again from the game, or browse Seoul Beauty.'))}</p><button data-chat-action="beauty-account-list">${esc(tr('계정 초안 복구','Recover account drafts'))}</button><button data-chat-action="beauty-draft-dismiss">${esc(tr('둘러보기','Browse'))}</button>`;
 }
 async function chooseBeautyRoom() {
   beautyDraft = readHandoff(handoffStorage(),{id:incomingBeautyId,region});
@@ -184,12 +223,16 @@ async function chooseBeautyRoom() {
   if(!dlg.open)return;
   chat.rooms=rooms;
   const list=$('#beauty-draft-room-list');
-  list.innerHTML=rooms.length?rooms.filter(r=>inRegion(r)&&!r.demo).map(r=>`<button class="beauty-draft-room" data-beauty-draft-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b><small>${esc(roomIntro(r))}</small></button>`).join(''):`<p>${esc(tr('아직 이 지역에 대화방이 없어. 초안을 보관한 채 새 대화방을 만들 수 있어.','No conversations in this region yet. Keep your draft and create a conversation.'))}</p><button data-chat-action="beauty-draft-create">${esc(t('room.new'))}</button>`;
+  const regional=rooms.filter(r=>inRegion(r)&&!r.demo);
+  const suggested=suggestDraftRooms(beautyDraft.body,regional);
+  const ranked=[...suggested.map(x=>x.room),...regional.filter(r=>!suggested.some(x=>x.room.id===r.id))];
+  list.innerHTML=ranked.length?ranked.map((r,i)=>`<button class="beauty-draft-room" data-beauty-draft-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b>${i<suggested.length?`<small>${esc(tr('관련 대화','Related conversation'))}</small>`:''}<small>${esc(roomIntro(r))}</small></button>`).join(''):`<p>${esc(tr('아직 이 지역에 대화방이 없어. 초안을 보관한 채 새 대화방을 만들 수 있어.','No conversations in this region yet. Keep your draft and create a conversation.'))}</p><button data-chat-action="beauty-draft-create">${esc(t('room.new'))}</button>`;
 }
 function openBeautyDraftInRoom(room) {
   beautyDraft=readHandoff(handoffStorage(),{id:incomingBeautyId,region});
   if(!beautyDraft||!room||!inRegion(room)||room.demo)return;
   $('#beauty-draft-rooms')?.close();
+  track('beauty_room_selected',null,{source:'beauty_play',handoff_id:beautyDraft.id});
   askRules(room,()=>{openTopic(room,'posts');openWrite({title:beautyDraft.title||'',body:beautyDraft.body,beautyHandoffId:beautyDraft.id});});
 }
 
@@ -424,7 +467,7 @@ async function submitPost() {
     const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
     track('post_create', null, {room: chat.room.id, kind: d.kind, item: d.item ? 1 : 0, from_chat: d.fromMessage ? 1 : 0, photos: d.photos.length, reasons: d.reasons.join(',')});
     if (d.kind === 'review' && d.saveProfile) saveFromReview(d).catch(() => {});
-    if(d.beautyHandoffId){clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
+    if(d.beautyHandoffId){track('beauty_post_published',null,{source:'beauty_play',handoff_id:d.beautyHandoffId});clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
     $('#post-write').close();
     if (d.fromMessage) toast(t('community.savedAsPost'));
     openTopic(chat.room, 'posts'); openPost(p.id);
@@ -778,7 +821,9 @@ document.addEventListener('click', async e => {
   else if (a === 'beauty-draft-retry') { $('#beauty-draft-rooms')?.close();await chooseBeautyRoom(); }
   else if (b.dataset.beautyDraftRoom) { openBeautyDraftInRoom(chat.rooms.find(r=>r.id===b.dataset.beautyDraftRoom)); }
   else if (a === 'beauty-draft-create') { $('#beauty-draft-rooms')?.close();openCreateRoom(); }
-  else if (a === 'beauty-draft-dismiss') { clearHandoff(handoffStorage(),incomingBeautyId);beautyDraft=null;beautyDraftDismissed=true;$('#beauty-draft-arrival')?.remove(); }
+  else if (a === 'beauty-account-save') { await accountDraftAction('save'); }
+  else if (a === 'beauty-account-list') { await accountDraftAction('list'); }
+  else if (a === 'beauty-draft-dismiss') { clearHandoff(handoffStorage(),incomingBeautyId);beautyDraft=null;beautyDraftDismissed=true;renderBeautyDraft(); }
   else if (a === 'beauty-draft-copy') { try{await navigator.clipboard.writeText(beautyDraft.body);toast(locale().startsWith('ko')?'복사했어':'Copied');}catch{toast(locale().startsWith('ko')?'위 글을 직접 선택해서 복사해 줘.':'Select and copy the text above.');} }
   else if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rec'; renderHome(); }
   else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
@@ -907,3 +952,5 @@ document.addEventListener('product-stats-ready',()=>{if(home&&homeTab==='discove
 document.addEventListener('click',e=>{if(e.target.closest('[data-setup-snooze]')){snoozeSetup(storage);document.getElementById('setup-nudge')?.remove();}});
 
 
+
+document.addEventListener('click',e=>{const b=e.target.closest?.('[data-account-draft-restore],[data-account-draft-delete]');if(b){e.preventDefault();accountDraftAction(b.dataset.accountDraftRestore?'restore':'delete',b.dataset.accountDraftRestore||b.dataset.accountDraftDelete);}});
