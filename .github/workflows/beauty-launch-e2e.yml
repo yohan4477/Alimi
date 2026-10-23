@@ -30,10 +30,10 @@ jobs:
       - name: Install pinned browser test runner
         run: |
           npm install --no-save playwright-core@1.49.1
-          npx playwright-core install --with-deps chromium
       - name: Verify private drafts and explicit publication against fixtures only
         run: |
           set -euo pipefail
+          export CHROME_PATH="$(command -v google-chrome)"
           node scripts/dev-server.mjs > /tmp/beauty-test-server.log 2>&1 &
           for attempt in $(seq 1 30); do
             if curl --fail --silent http://localhost:3000/ > /dev/null; then break; fi
