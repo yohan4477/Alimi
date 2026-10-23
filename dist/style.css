@@ -583,3 +583,6 @@ body:has(#chat:not([hidden]) .room-top){--tabbar:env(safe-area-inset-bottom)}
 .auth-button.auth-kakao{background:#fee500;color:#000000d9;border-color:#fee500;border-radius:12px}.auth-button .brand-mark{width:18px;height:18px;flex:none;fill:none;stroke:none}.auth-button.auth-naver{background:#03c75a;color:#fff;border-color:#03c75a;border-radius:12px}.auth-button:disabled{opacity:.55;cursor:wait}
 
 .product-room-row .product-room-photo{width:52px;height:52px;flex:0 0 52px;object-fit:contain;background:#fff;border:0;border-radius:0}.product-room-row .product-room-label{flex:1}
+
+/* Game draft continuation: white surface, existing Seoul Beauty blue. */
+.beauty-draft-arrival{margin:16px 0;padding:18px;background:#fff;border:1px solid #e4e7ee;border-radius:16px}.beauty-draft-arrival[hidden]{display:none}.beauty-draft-arrival h2{font-size:20px;margin:0 0 12px}.beauty-draft-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;max-height:220px;overflow:auto}.beauty-draft-arrival small{display:block;color:#666;line-height:1.5}.beauty-draft-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.beauty-draft-actions button{padding:10px 12px}.beauty-draft-room{display:block;text-align:left;background:#fff;width:100%;padding:14px 0;border:0;border-bottom:1px solid #eee}.beauty-draft-room small{display:block;color:#777;margin-top:5px}
