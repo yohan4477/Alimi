@@ -17,7 +17,7 @@ test('trusted country chooses only Korean first-visit market; language never imp
 });
 test('explicit paths/query and marked manual selections win; old automatic-looking storage is never silently overwritten',()=>{
  const old={'seoulbeauty-region':'us'};const oldStore=storage(old);
- assert.deepEqual(marketDecision({storage:oldStore,suggestedRegion:'kr'}),{region:null,needsChoice:true,recommended:'kr'});
+ assert.deepEqual(marketDecision({storage:oldStore,suggestedRegion:'kr'}),{region:'kr',needsChoice:false,recommended:null});
  assert.deepEqual(old,{'seoulbeauty-region':'us'});
  assert.equal(marketDecision({pathname:'/us',suggestedRegion:'kr',storage:oldStore}).region,'us');
  assert.equal(marketDecision({search:'?region=kr&lang=en',storage:oldStore}).region,'kr');
@@ -38,8 +38,8 @@ test('KR fresh entry loads community only after resolving Korean market/language
  await startVisitorEntry({document,location:{pathname:'/',search:'',href:'https://seoulbeauty.me/'},storage:storage(values),fetchImpl:server('KR'),loadApp:async()=>{loaded++;assert.equal(document.documentElement.lang,'ko');}});
  assert.equal(loaded,1);assert.equal(document.body.children.length,0);assert.deepEqual(values,{});
 });
-test('non-KR and ambiguous legacy entry cannot load shopping before a real choice; shared query survives',async()=>{
- for(const [country,values] of [['JP',{}],['KR',{'seoulbeauty-region':'us'}]]){
+test('non-KR and unknown legacy entry require market choice; shared query survives',async()=>{
+ for(const [country,values] of [['JP',{}],['XX',{'seoulbeauty-region':'us'}]]){
   const document=documentFixture();let target;
   await startVisitorEntry({document,location:{pathname:'/',search:'?room=synthetic&code=oauth-fixture&lang=en',href:'https://seoulbeauty.me/?room=synthetic&code=oauth-fixture&lang=en',assign:value=>{target=value;}},storage:storage(values),fetchImpl:server(country),loadApp:()=>assert.fail('unresolved market loaded application')});
   assert.equal(document.documentElement.lang,'en');const buttons=document.body.children[0].children.filter(child=>child.dataset.marketChoice);
@@ -82,4 +82,10 @@ test('app import rejection clears pending visibility and offers localized reload
   assert.equal(result.loadFailed,true);assert.equal(document.documentElement.attributes['data-visitor-gate'],'');
   const button=document.body.children[0].children[1];assert.equal(button.textContent,text);button.listeners.click();assert.equal(reloaded,true);
  }
+});
+
+test('trusted KR bypasses legacy-US chooser without manufacturing a manual preference',async()=>{
+ const document=documentFixture(),values={'seoulbeauty-region':'us'};let loaded=0;
+ await startVisitorEntry({document,location:{pathname:'/',search:'',href:'https://seoulbeauty.me/'},storage:storage(values),fetchImpl:server('KR'),loadApp:async()=>{loaded++;}});
+ assert.equal(loaded,1);assert.equal(document.documentElement.lang,'ko');assert.equal(document.body.children.length,0);assert.deepEqual(values,{'seoulbeauty-region':'us'});
 });
