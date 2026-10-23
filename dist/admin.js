@@ -36,6 +36,11 @@ if (root) {
     nav.append(list);
     panel.prepend(nav);
   }
+  root.querySelectorAll('[data-state-view]').forEach(button=>button.addEventListener('click',()=>{
+    const selected=button.dataset.stateView;
+    root.querySelectorAll('[data-state-view]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button));});
+    root.querySelectorAll('[data-state-panel]').forEach(section=>section.hidden=section.dataset.statePanel!==selected);
+  }));
   let metricsBusy=false,lastMetricsFetch=0;
   async function refreshMetrics(force=false){
     const status=document.getElementById('metrics-status');if(!status||metricsBusy||(!force&&Date.now()-lastMetricsFetch<60000))return;

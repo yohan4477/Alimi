@@ -416,3 +416,16 @@
 #sb-management .admin-section-toc a:hover{color:var(--foreground)}
 #sb-management .sb-panel h2,#sb-management .sb-panel h3{scroll-margin-top:24px}
 @media(max-width:600px){#sb-management .admin-section-toc ol{display:block}#sb-management .admin-section-toc li{padding:5px 0;border-bottom:1px solid var(--border)}#sb-management .admin-section-toc li:last-child{border-bottom:0}}
+
+/* Latest status and history, no card UI */
+.admin-state-heading{padding-bottom:16px;border-bottom:1px solid var(--border)}
+.admin-state-heading h2{font-size:1.55rem;font-weight:700;margin:0 0 8px}
+.admin-state-heading p:last-child{color:var(--muted-foreground);margin:0}
+.admin-state-switch{display:flex;gap:24px;border-bottom:1px solid var(--border);margin:22px 0 18px}
+.admin-state-view{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted-foreground);min-height:43px;font-weight:600;padding:6px 1px}
+.admin-state-view.active{border-bottom-color:var(--primary);color:var(--foreground)}
+[data-state-panel][hidden]{display:none!important}
+#sb-dev .admin-status-table{min-width:570px}
+#sb-dev .admin-status-table th:nth-child(1){width:24%}
+#sb-dev .admin-status-table th:nth-child(2){width:25%}
+#sb-dev .admin-status-table th:nth-child(3){width:51%}
