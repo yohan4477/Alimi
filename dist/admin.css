@@ -320,3 +320,6 @@
  #sb-product-chat-entry-plan h4+div>table tr:has(td:nth-child(3):last-child) td:nth-child(3):before {content:"저장 · 활용 규칙"}
  .sb-panel,.card,.admin-shell {min-width:0}
 }
+
+/* Readable improvement status table inside the admin operations page. */
+.admin-change-log{margin:0 0 28px}.admin-table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;border:1px solid var(--border);border-radius:12px}.admin-table-scroll:focus-visible{outline:3px solid var(--primary);outline-offset:3px}.admin-status-table{width:100%;min-width:690px;border-collapse:collapse;table-layout:fixed;font-size:.88rem;line-height:1.5}.admin-status-table th,.admin-status-table td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--border);word-break:keep-all;overflow-wrap:break-word}.admin-status-table thead th{background:var(--accent);font-weight:700}.admin-status-table tbody tr:last-child>*{border-bottom:0}.admin-status-table th:nth-child(1){width:19%}.admin-status-table th:nth-child(2){width:28%}.admin-status-table th:nth-child(3){width:35%}.admin-status-table th:nth-child(4){width:18%}@media(max-width:700px){.admin-status-table{min-width:690px}.admin-change-log{margin-top:16px}}
