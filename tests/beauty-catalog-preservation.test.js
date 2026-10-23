@@ -70,3 +70,9 @@ test('new unspecified option labels have English coverage without changing the l
  for(const label of ['Previous products','Next products','Product pages',' products','Product/option match unverified'])assert.ok(page.includes(label),label);
  assert.match(page,/snapshot\.catalogPolicy!=='all-products-v1'&&advice\?pool\.filter/);
 });
+
+test('mobile catalog keeps a non-collapsing product strip when pagination is present',()=>{
+ const css=readFileSync('web/beauty-play/game.css','utf8');
+ assert.match(css,/\[data-stage="product"\] \.staged-products\{flex:0 0 180px;min-height:180px\}/);
+ assert.match(css,/\[data-stage="product"\] \.staged-products \.product-image\{flex:0 0 90px;min-height:90px;height:90px!important\}/);
+});

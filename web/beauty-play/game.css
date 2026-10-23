@@ -111,3 +111,9 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 
 /* Bounded full-catalog paging; recommendations change order, not eligibility. */
 .catalog-pages{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0;font-size:12px;flex-shrink:0}.catalog-pages button{padding:8px;border:1px solid #ccc;border-radius:8px;background:transparent}.catalog-pages button:disabled{opacity:.4}
+
+/* Paging controls must not flex-shrink the mobile product strip to zero. */
+@media(max-width:650px){
+ .selection-main .staged-atelier[data-stage="product"] .staged-products{flex:0 0 180px;min-height:180px}
+ .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:0 0 90px;min-height:90px;height:90px!important}
+}
