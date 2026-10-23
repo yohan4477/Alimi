@@ -72,7 +72,8 @@ try {
   await page.waitForFunction(() => !document.querySelector('#post-write').open);
   assert.equal(events.filter(e => e.name === 'beauty_post_published').length,1);
   // Fetch the stored fixture again after a fresh document load, through the real public reader.
-  await page.goto(origin + '/' + region + '?lang=' + language + '&demo=0');
+  await page.goto(origin + '/' + region + '?lang=' + language + '&demo=0&room=tint');
+  await page.locator('[data-topic-mode="posts"]').click();
   await page.locator('[data-post="9001"]').first().click();
   await page.locator('#post-view .post-body').waitFor();
   assert.equal(await page.locator('#post-view .post-body').innerText(),'Edited public text');
