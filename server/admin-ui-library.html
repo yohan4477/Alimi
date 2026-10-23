@@ -24,4 +24,51 @@ function go(n){current=n;mode='flow';draw();}function toast(t){document.getEleme
 document.addEventListener('input',e=>{if(e.target.matches('[data-reason]'))reason=e.target.value;if(e.target.matches('[data-search]')){query=e.target.value;e.target.closest('.phone').querySelector('[data-results]').innerHTML=rows(true,catalog.map((_,i)=>i).filter(i=>(catalog[i].brand+catalog[i].name).toLowerCase().includes(query.toLowerCase())));}});
 document.addEventListener('change',e=>{if(e.target.matches('[data-photo]')){const file=e.target.files[0];if(!file)return;if(!file.type.startsWith('image/')||file.size>10*1024*1024){toast('10MB 이하의 이미지 파일을 선택해 주세요.');return;}const reader=new FileReader();reader.onload=()=>{photo=reader.result;photoMode=true;go(2);};reader.readAsDataURL(file);}});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;if(b.dataset.mode){mode=b.dataset.mode;draw();return;}if(b.dataset.screen!==undefined){go(Number(b.dataset.screen));return;}if(b.dataset.toggle!==undefined){const id=Number(b.dataset.toggle);if(selected.includes(id))selected=selected.filter(i=>i!==id);else if(selected.length<5)selected.push(id);else{toast('최대 5개까지 고를 수 있어요.');return;}favorite=0;photoMode=false;go(1);return;}if(b.dataset.fav!==undefined){favorite=Number(b.dataset.fav);go(3);return;}if(b.dataset.guess!==undefined){guess=Number(b.dataset.guess);go(7);return;}switch(b.dataset.act){case'select':photoMode=false;go(1);break;case'upload':go(2);break;case'photo-setup':photoMode=true;favorite=0;go(3);break;case'setup':go(3);break;case'card':go(4);break;case'share':go(5);break;case'friend':guess=null;go(6);break;case'collection':go(8);break;case'new':guess=null;photoMode=false;selected=[];favorite=0;reason='';go(0);break;case'same':b.textContent='✓ 나도 쓴다고 공감했어요';toast('체험용 반응이에요. 실제로 전달되지는 않아요.');break;case'add':{const input=b.closest('.phone').querySelector('[data-custom]'),value=input.value.trim();if(!value){toast('브랜드와 제품명을 입력해 주세요.');return;}if(selected.length>=5){toast('제품 하나를 빼면 추가할 수 있어요.');return;}catalog.push({brand:'직접 입력',name:value.slice(0,100)});selected.push(catalog.length-1);photoMode=false;query='';go(1);break;}}});draw();})();
-</script></body></html>
+</script>
+<section id="makeup-advice-library" style="margin:48px 0 30px;padding-top:26px;border-top:1px solid #ddd">
+  <h2 style="font-size:23px;margin:0 0 6px">내 화장 훈수해줘 · Makeup Advice</h2>
+  <p style="color:#777;font-size:13px;margin:0 0 20px">UI Library 시안 02 · 사진 피드백 → 투표 → 조언 → 사용 제품 발견. 검토용 데모이며 서버 저장·공개 게시 없음.</p>
+  <div class="grid" id="advice-gallery">
+    <article><h3 class="screen-title">01 · 사진 올리고 훈수 요청</h3><div class="phone"><div class="phone-screen">
+      <header><div><div class="logo">Seoul Beauty</div><small>Beauty is personal. Let’s talk.</small></div><span class="tag">시안 02</span></header>
+      <small>내 화장 좀 봐줘 👀</small><h2>오늘 메이크업,<br>솔직하게 골라줘!</h2>
+      <label for="advice-photo">메이크업 사진</label>
+      <div class="drop" id="advice-preview">📸<p style="font-size:13px">여기를 눌러 사진 선택</p><small>사진은 이 브라우저에서만 미리보기</small></div>
+      <input id="advice-photo" type="file" accept="image/*" style="width:100%;font-size:12px">
+      <label for="advice-question">어떤 부분을 봐줬으면 해?</label>
+      <input id="advice-question" type="text" value="핑크 립은 처음인데 어울려?">
+      <label for="advice-topic">훈수받을 부분</label>
+      <select id="advice-topic" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:9px;background:#fff"><option>립 컬러</option><option>아이 메이크업</option><option>블러셔</option><option>전체 스타일</option></select>
+      <button class="primary" data-advice="preview">내 글 미리보기 →</button>
+    </div></div><p class="screen-note">사진 업로드는 선택 사항 · 요청한 부분만 피드백</p></article>
+    <article><h3 class="screen-title">02 · 다른 사람의 훈수 투표</h3><div class="phone"><div class="phone-screen">
+      <header><div><div class="logo">Seoul Beauty</div><small>Beauty is personal. Let’s talk.</small></div><span class="tag">훈수 투표</span></header>
+      <small>뷰티 고민 · 립 컬러</small><h2 id="advice-headline">핑크 립은 처음인데<br>솔직하게 골라줘!</h2>
+      <div class="drop" id="advice-post-image" style="min-height:190px;display:flex;align-items:center;justify-content:center">사진을 올리면 여기에 표시돼요</div>
+      <p style="font-size:13px">이 색 나한테 어울려?</p>
+      <button data-advice-vote="yes">💗 찰떡이야</button><button data-advice-vote="other">💬 다른 색 추천!</button>
+      <p id="advice-vote-result" style="font-size:12px;color:#777">하나를 누르면 투표 결과 예시가 나와요.</p>
+      <button data-advice="comments">다른 사람 조언 보기 →</button>
+    </div></div><p class="screen-note">가입 없는 반응 투표 UI · 숫자는 데모</p></article>
+    <article><h3 class="screen-title">03 · 조언과 사용 제품</h3><div class="phone"><div class="phone-screen">
+      <header><div><div class="logo">Seoul Beauty</div><small>Beauty is personal. Let’s talk.</small></div><span class="tag">대화</span></header>
+      <h2>다른 사람들은<br>뭐라고 했을까?</h2>
+      <div class="box"><small>예시 댓글 · 사용자 게시물 아님</small><p>“립은 예뻐! 블러셔를 살짝 연하게 하면 더 잘 어울릴 듯.”</p></div>
+      <div class="box"><small>예시 댓글 · 사용자 게시물 아님</small><p>“피치 계열도 한번 시도해 봐!”</p></div>
+      <label for="advice-comment">나도 훈수 한마디</label>
+      <textarea id="advice-comment" placeholder="요청한 부분에 대해 친절하게 이야기해줘"></textarea>
+      <button data-advice="comment">댓글 미리보기</button><small id="advice-comment-status" aria-live="polite"></small>
+      <h3>이 룩에 사용한 제품</h3><div class="product"><div class="placeholder">립</div><div><small>제품 등록 전</small><strong>사용 제품을 연결해 보세요</strong></div></div>
+      <button data-advice="product">나도 이 제품 갖고 있어?</button>
+      <small id="advice-product-status" aria-live="polite"></small>
+    </div></div><p class="screen-note">제품 소장 여부와 자연스럽게 연결 · 게시/구매 기능 미연결</p></article>
+  </div>
+</section>
+<script>
+(()=>{let photoUrl=null;const upload=document.getElementById('advice-photo'),preview=document.getElementById('advice-preview'),post=document.getElementById('advice-post-image');
+upload.addEventListener('change',()=>{const f=upload.files?.[0];if(!f)return;if(!f.type.startsWith('image/')||f.size>10*1024*1024){alert('10MB 이하의 이미지 파일만 선택할 수 있어요.');upload.value='';return;}if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(f);const markup='<img src="'+photoUrl+'" alt="선택한 메이크업 사진" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px">';preview.innerHTML=markup;post.innerHTML=markup;});
+document.querySelectorAll('[data-advice]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.advice;if(a==='preview'){document.getElementById('advice-headline').textContent=document.getElementById('advice-question').value||'오늘 메이크업 어때?';document.getElementById('advice-vote-result').textContent='글 미리보기에 반영됐어요. 아직 공개되지 않았어요.';}if(a==='comments')document.getElementById('advice-comment').focus();if(a==='comment')document.getElementById('advice-comment-status').textContent=document.getElementById('advice-comment').value.trim()?'데모 미리보기만 지원해요. 댓글은 게시되지 않았어요.':'댓글을 먼저 입력해 주세요.';if(a==='product')document.getElementById('advice-product-status').textContent='제품 연결 및 소장 데이터는 아직 연동되지 않았어요.';}));
+document.querySelectorAll('[data-advice-vote]').forEach(btn=>btn.addEventListener('click',()=>{document.getElementById('advice-vote-result').textContent=btn.dataset.adviceVote==='yes'?'💗 찰떡이야 선택 · 결과 예시: 63% / 37%':'💬 다른 색 추천 선택 · 결과 예시: 63% / 37%';}));
+})();
+</script>
+</body></html>
