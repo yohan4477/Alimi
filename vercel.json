@@ -23,16 +23,12 @@
       "destination": "/api/beauty-play?route=:route"
     },
     {
-      "source": "/",
-      "destination": "/sample.html"
-    },
-    {
       "source": "/live",
-      "destination": "/index.html"
+      "destination": "/live.html"
     },
     {
       "source": "/live/",
-      "destination": "/index.html"
+      "destination": "/live.html"
     },
     {
       "source": "/beauty-play",

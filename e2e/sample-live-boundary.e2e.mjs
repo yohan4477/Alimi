@@ -87,7 +87,8 @@ async function fixture({language = 'en', country = 'US', width = 390, live = fal
     if (url.pathname === '/api/language') return route.fulfill({json: {language, suggestedRegion: country === 'KR' ? 'kr' : null}});
     if (/^\/(?:api|rest|auth)(?:\/|$)/.test(url.pathname)) return deny();
     if (appStub && url.pathname === '/app.js') return route.fulfill({contentType: 'text/javascript', body: "import {region} from './region.js'; window.fixtureActualMarket=region; document.body.dataset.actualFixture='loaded';"});
-    const name = staticEntryPath(decodeURIComponent(url.pathname));
+    // Root is served from the physical index, independently of dev rewrite helpers.
+    const name = url.pathname === '/' ? '/index.html' : staticEntryPath(decodeURIComponent(url.pathname));
     const file = path.resolve(dist, '.' + name);
     if (!file.startsWith(dist + path.sep) || name.split('/').some(part => part.startsWith('.'))) return deny();
     try { return await route.fulfill({contentType: mime[path.extname(file)] || 'application/octet-stream', body: await readFile(file)}); }
@@ -153,6 +154,11 @@ try {
         const expected = source.messages[room.id];
         await f.page.locator(`[data-sample-room="${room.id}"]:visible`).click();
         await f.page.locator('[data-sample-message]').first().waitFor();
+        if(room.id===source.rooms[0].id){
+          // Reload the history-pushed root deep link through the physical index.
+          await f.page.reload();await readySample(f);
+          await f.page.locator('[data-sample-message]').first().waitFor();
+        }
         assert.equal(new URL(f.page.url()).pathname, '/');
         assert.equal(new URL(f.page.url()).searchParams.get('room'), room.id);
         assert.equal(await f.page.locator('#chat h1').innerText(), language === 'en' ? english.rooms[room.id].title : room.title_ko);

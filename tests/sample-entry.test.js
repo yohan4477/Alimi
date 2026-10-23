@@ -36,7 +36,7 @@ test('presentation escapes message text and preserves only existing quote relati
  const html=messageMarkup(child,[parent,child],'en');assert.ok(html.includes('&lt;script&gt;bad&lt;/script&gt;'));assert.ok(html.includes('data-sample-jump="1"'));assert.doesNotMatch(html,/<script>/);
 });
 test('sample first paint is withheld until locale resolution and no actual bootstrap is included',()=>{
- const html=fs.readFileSync('dist/sample.html','utf8'),source=fs.readFileSync('dist/sample-app.js','utf8');
+ const html=fs.readFileSync('dist/index.html','utf8'),source=fs.readFileSync('dist/sample-app.js','utf8');
  assert.match(html,/data-locale-pending/);assert.match(html,/html\[data-locale-pending\] body\{visibility:hidden\}/);
  assert.match(html,/src="public-entry.js"/);assert.doesNotMatch(html,/visitor-entry\.js|src="app\.js"/);
  assert.ok(source.indexOf('await resolveVisitorContext()')<source.indexOf("removeAttribute('data-locale-pending')"));
