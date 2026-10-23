@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'dist/**'
+      - 'web/beauty-play/**'
       - 'api/**'
       - 'server/**'
       - 'vercel.json'
@@ -41,6 +42,7 @@ jobs:
         run: |
           npm install --no-save playwright-core@1.49.1
           CHROME_PATH="$(command -v google-chrome)" node e2e/admin.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-first-choice.e2e.mjs
       - name: Browser smoke test against the live public API
         run: |
           set -euo pipefail
