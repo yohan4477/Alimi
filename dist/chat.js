@@ -264,12 +264,15 @@ async function renderHome() {
   try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
   if (version !== homeVersion || !$('#community-home')) return;
+  // Include synthetic rooms in the normal community without writing to the production database.
+  const syntheticRooms = demoRooms.filter(r => r.id.startsWith('demo-cx-'));
+  chat.rooms = [...syntheticRooms, ...chat.rooms.filter(r => !syntheticRooms.some(d => d.id === r.id))];
   const scopedPosts = posts.filter(p=>chat.rooms.some(r=>r.id===p.room_id));
-  const recent = visiblePosts(scopedPosts), hot = activeRooms(chat.rooms), topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => a.sort-b.sort);
-  const entries = recent.map(p => ({...p,source:'post'}));
+  const recent = visiblePosts(scopedPosts), hot = [...syntheticRooms.slice(0,6), ...activeRooms(chat.rooms.filter(r=>!r.demo))], topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => (a.sort??999)-(b.sort??999));
+  const entries = [...recent.map(p => ({...p,source:'post'})), ...syntheticRooms.flatMap(r => (demoMessages[r.id]||[]).map(m => ({...m,source:'chat'})))];
   let partial = postsFailed;
   const previews = new Map();
-  await Promise.all(hot.map(async r => { try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, list.at(-1)?.body ?? ''); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
+  await Promise.all(hot.map(async r => { if(r.demo){ previews.set(r.id, demoMessages[r.id]?.at(-1)?.body ?? ''); return; } try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, list.at(-1)?.body ?? ''); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
   if (version !== homeVersion || !$('#community-home')) return;
   home = {hot, topics, recent, previews, partial, joined, images: roomImages(entries), products: mentionedProducts(entries, readBlocked(storage))};
   homeJoined = joined;
@@ -934,7 +937,7 @@ export async function onboardingData() {
 export const openRoomById = id => { pendingRoom = id; };
 // Rooms and their pictures for the 탐색 tab (explore.js); same sources as the community home.
 export async function exploreData() {
-  if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms();
+  if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : [...demoRooms.filter(r=>r.id.startsWith('demo-cx-')), ...(await fetchRooms())];
   if (demoActive) return {rooms: chat.rooms, images: home?.images ?? roomImages(demoEntries()), popular: []};
   const pics = await loadCatalogPictures(chat.rooms).catch(() => null);
   const images = home?.images ?? (pics ? topicPictures(chat.rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map());
