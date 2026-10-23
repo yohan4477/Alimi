@@ -1,6 +1,6 @@
 import {chromium} from 'playwright-core';
 import assert from 'node:assert/strict';
-const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--no-sandbox']});
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH});
 const context=await browser.newContext({viewport:{width:390,height:844}});
 const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await context.route('**/*.supabase.co/**',async route=>{
@@ -14,14 +14,16 @@ assert.match(await page.locator('#community-home').innerText(),/한국 쿠션 �
 assert.doesNotMatch(await page.locator('#community-home').innerText(),/US sunscreen questions/);
 await page.locator('[data-service-region]:visible').first().click();
 await page.locator('[data-select-language="en"]').click();
-await page.waitForURL(u=>u.pathname==='/kr'&&u.searchParams.get('lang')==='en');
+await page.waitForURL(u=>u.pathname==='/live'&&u.searchParams.get('region')==='kr'&&u.searchParams.get('lang')==='en');
 await page.waitForSelector('#community-home .edit-interests');
 // Same Korean rooms, titles in the interface language.
 assert.match(await page.locator('#community-home').innerText(),/KR cushion/);
 await page.locator('[data-service-region]:visible').first().click();
 await page.locator('[data-select-region="us"]').click();
+await page.waitForURL(u=>u.pathname==='/live'&&u.searchParams.get('region')==='us');
 await page.waitForSelector('#community-home .edit-interests');
-assert.equal(new URL(page.url()).pathname,'/us');
+assert.equal(new URL(page.url()).pathname,'/live');
+assert.equal(new URL(page.url()).searchParams.get('region'),'us');
 assert.match(await page.locator('#community-home').innerText(),/US sunscreen questions/);
 assert.doesNotMatch(await page.locator('#community-home').innerText(),/한국 쿠션 질문/);
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);

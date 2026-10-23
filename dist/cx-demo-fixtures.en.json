@@ -1,0 +1,378 @@
+{
+  "rooms": {
+    "demo-cx-t01": {
+      "title": "Two hours before a blind date, my lip color looks out of place",
+      "intro": "My natural lip color is quite dark, and my lips are flaky. I have a blind date today, but once I finish my base and put on lip color, my lips look oddly disconnected from the rest of my face. Deep rose makes me look tired, and pale nude barely shows up. Would a moisturizing tint or a matte lip color work better?"
+    },
+    "demo-cx-t03": {
+      "title": "Does using three skincare products make anyone else break out?",
+      "intro": "When I use toner, serum, and cream after cleansing, my cheeks turn red the next day. But using only cream leaves my skin feeling tight underneath. How many steps do you use? The serum is the only thing I've changed recently."
+    },
+    "demo-cx-t04": {
+      "title": "How do you keep mascara from smudging at a summer concert?",
+      "intro": "It's an indoor concert, but I sweat a lot when I jump around. My lower-lash mascara always smudges. Should I use a mascara fixer first?"
+    },
+    "demo-cx-t05": {
+      "title": "Choosing a shade from swatch photos is so hard",
+      "intro": "It's the same product, but the official photos look like muted rose and the review photos look like neon pink. I don't have time to visit a store. What do you go by in this situation?"
+    },
+    "demo-cx-t06": {
+      "title": "Travel sunscreen: I'm more worried about stinging eyes than a white cast",
+      "intro": "I'm looking for something easy to reapply on a trip where I'll be walking all day. My eyes sting easily, so that matters more to me than a white cast. Should I bring a stick or a lotion?"
+    },
+    "demo-cx-t07": {
+      "title": "My blush is too intense for the school festival",
+      "intro": "It looked natural this morning, but under the school lighting both cheeks look much too red. I've already applied powder. How can I tone it down?"
+    },
+    "demo-cx-t09": {
+      "title": "Covering acne marks: concealer, cushion, or color corrector?",
+      "intro": "When I layer base makeup over acne marks, it makes the texture stand out more. Which should I start with for a natural look: concealer, a coverage cushion, or a green corrector? The marks are red, and some areas haven't fully settled down yet."
+    },
+    "demo-cx-t10": {
+      "title": "Lip oil, gloss, or tint: which one would you take to school?",
+      "intro": "I put it on at 8 a.m. and eat lunch later. Lip oil looks pretty but disappears quickly, gloss catches my hair, and tint gets dry in the afternoon. If I put just one in my pouch, what should it be?"
+    },
+    "demo-cx-t11": {
+      "title": "Mineral sunscreen, chemical sunscreen, and sticks: comparing reapplication",
+      "intro": "I need to reapply sunscreen at an outdoor festival. Mineral sunscreen leaves a white cast on me, I've had discomfort around my eyes with chemical sunscreen, and sticks feel like I haven't applied enough. What combinations do you use?"
+    },
+    "demo-cx-t12": {
+      "title": "Do cream, liquid, and powder blush look different on the skin?",
+      "intro": "They're all peach shades, but cream looks natural and disappears quickly, liquid gets too intense if I dab on too much, and powder makes my cheeks look dry. What's good for someone with a dewy base?"
+    },
+    "demo-cx-t13": {
+      "title": "Body mist instead of perfume? Worrying about strong scents in a small lecture room",
+      "intro": "The lecture room is small, so I'm worried perfume would be too strong for people around me. Would body mist or scented hand cream be okay? I like sweet scents, but scents that linger feel a bit much."
+    },
+    "demo-cx-t15": {
+      "title": "Brow pencil, powder, or mascara: only my sparse brow looks too dark",
+      "intro": "My left eyebrow has almost no hair, while my right is thick. Filling both with pencil makes only the left look obviously drawn on, and brow mascara makes the right look overdone. Any tips for balancing them?"
+    },
+    "demo-cx-t16": {
+      "title": "Budget versus expensive lip pencils: does staying power differ?",
+      "intro": "I'm seeing lip pencils ranging from around KRW 6,000 to around KRW 30,000. I just want to lightly define my lip line in nude rose. Do expensive ones definitely last longer? Dryness matters too."
+    }
+  },
+  "messages": {
+    "980000": {
+      "body": "My natural lip color is quite dark, and my lips are flaky. I have a blind date today, but once I finish my base and put on lip color, my lips look oddly disconnected from the rest of my face. Deep rose makes me look tired, and pale nude barely shows up. Would a moisturizing tint or a matte lip color work better?",
+      "nickname": "Minji"
+    },
+    "980001": {
+      "body": "My lips are dark too, and very pale colors actually look gray on me. Lightly toning down the base and adding a sheer rose shade worked for me.",
+      "nickname": "Harin"
+    },
+    "980002": {
+      "body": "Do you mean covering my lips with concealer first? I tried that once and ended up with a visible outline.",
+      "nickname": "Minji"
+    },
+    "980003": {
+      "body": "Not covering them completely, just lightly tapping the cushion foundation left on the puff around the outer lip line. I tend to leave my natural lip color showing in the middle.",
+      "nickname": "Harin"
+    },
+    "980004": {
+      "body": "It's the opposite for me. Even a little concealer makes my flakes more visible, so wiping off my lip balm and applying two thin layers of tint works better.",
+      "nickname": "Chaewon"
+    },
+    "980007": {
+      "body": "Then staying power matters too. What do you do with moisturizing lip colors that disappear when you eat?",
+      "nickname": "Sua"
+    },
+    "980008": {
+      "body": "For plans like that, I always apply a thin layer of staining tint and just bring clear gloss. Even when it wears off, some color stays in the center.",
+      "nickname": "Nayeon"
+    },
+    "980009": {
+      "body": "But lots of tints stain unevenly, so if you haven't tested it, sticking with a familiar lip product today seems safer.",
+      "nickname": "Chaewon"
+    },
+    "980010": {
+      "body": "After hearing everyone's thoughts, I've decided not to try anything new. I'll apply a thin layer of the rose tint I have at home and just bring gloss. I'll let you know afterward.",
+      "nickname": "Minji"
+    },
+    "980012": {
+      "body": "Update! After eating, only a little color was left on the inside of my lips, but it wasn't embarrassing, and the gloss made the flakes less noticeable. Thanks for the advice.",
+      "nickname": "Minji"
+    },
+    "980026": {
+      "body": "When I use toner, serum, and cream after cleansing, my cheeks turn red the next day. But using only cream leaves my skin feeling tight underneath. How many steps do you use? The serum is the only thing I've changed recently.",
+      "nickname": "Daeun"
+    },
+    "980027": {
+      "body": "I've had something similar. Wouldn't leaving out the new serum for a while and comparing with your previous routine make it easier to figure out the cause?",
+      "nickname": "Chaewon"
+    },
+    "980028": {
+      "body": "Two steps felt comfortable for me. I skipped toner and applied my cream in smaller layers. But everyone's skin is different.",
+      "nickname": "Sea"
+    },
+    "980029": {
+      "body": "I'll stop using the serum for now and see how things go. If the irritation continues, I'll consult a dermatologist.",
+      "nickname": "Daeun"
+    },
+    "980033": {
+      "body": "Update three days later: the redness has gone down a lot. I still don't know the exact cause, so I'm not going to change several products at once.",
+      "nickname": "Daeun"
+    },
+    "980034": {
+      "body": "It's an indoor concert, but I sweat a lot when I jump around. My lower-lash mascara always smudges. Should I use a mascara fixer first?",
+      "nickname": "Sua"
+    },
+    "980035": {
+      "body": "I gave up on mascara on my lower lashes altogether, haha. I just curled my lashes instead.",
+      "nickname": "Sohee"
+    },
+    "980036": {
+      "body": "That's an option too. Were your upper lashes okay?",
+      "nickname": "Sua"
+    },
+    "980037": {
+      "body": "The upper lashes didn't smudge much, but it probably varies from person to person.",
+      "nickname": "Sohee"
+    },
+    "980038": {
+      "body": "I sweat a lot, so I usually just skip mascara.",
+      "nickname": "Seoyeon"
+    },
+    "980039": {
+      "body": "It's the same product, but the official photos look like muted rose and the review photos look like neon pink. I don't have time to visit a store. What do you go by in this situation?",
+      "nickname": "Yerin"
+    },
+    "980040": {
+      "body": "I'm looking for something easy to reapply on a trip where I'll be walking all day. My eyes sting easily, so that matters more to me than a white cast. Should I bring a stick or a lotion?",
+      "nickname": "Yujin"
+    },
+    "980041": {
+      "body": "A stick was convenient, but I found it hard to tell whether I'd applied enough. I use lotion as my base and choose a convenient way to reapply.",
+      "nickname": "Jiwoo"
+    },
+    "980042": {
+      "body": "Then I'll think about using lotion as my base and carrying a small product with me.",
+      "nickname": "Yujin"
+    },
+    "980043": {
+      "body": "It looked natural this morning, but under the school lighting both cheeks look much too red. I've already applied powder. How can I tone it down?",
+      "nickname": "Seoyeon"
+    },
+    "980044": {
+      "body": "Without adding anything else, tapping just the edges with a clean puff softened it a little for me.",
+      "nickname": "Harin"
+    },
+    "980048": {
+      "body": "When I layer base makeup over acne marks, it makes the texture stand out more. Which should I start with for a natural look: concealer, a coverage cushion, or a green corrector? The marks are red, and some areas haven't fully settled down yet.",
+      "nickname": "Sua"
+    },
+    "980049": {
+      "body": "For red marks, I use a really thin layer of corrector and dot on concealer. Layering cushion alone made my whole cheek look heavy.",
+      "nickname": "Jiwoo"
+    },
+    "980050": {
+      "body": "Corrector looked gray on me. I just moisturize and use spot concealer.",
+      "nickname": "Sea"
+    },
+    "980051": {
+      "body": "Does concealer go on less heavily with a brush or a finger?",
+      "nickname": "Sua"
+    },
+    "980052": {
+      "body": "I placed it with a small brush and tapped just the edges with my finger. Rubbing it right away wipes it off.",
+      "nickname": "Jiwoo"
+    },
+    "980055": {
+      "body": "I'm careful with sensitive, painful spots because repeatedly covering them with makeup can irritate them. On days like that, I don't push myself to cover everything.",
+      "nickname": "Chaewon"
+    },
+    "980056": {
+      "body": "My vote is one thin layer of cushion, then concealer only on older marks.",
+      "nickname": "Sea"
+    },
+    "980057": {
+      "body": "I tried it today, and controlling the amount of corrector is tricky. Tomorrow I'll try just spot concealer.",
+      "nickname": "Sua"
+    },
+    "980058": {
+      "body": "Let us know how it wears later! On me, that area tends to wear off in the afternoon.",
+      "nickname": "Jiwoo"
+    },
+    "980059": {
+      "body": "Next-day update: leaving out the corrector reduced the gray cast. I did give up a little coverage, though.",
+      "nickname": "Sua"
+    },
+    "980060": {
+      "body": "I put it on at 8 a.m. and eat lunch later. Lip oil looks pretty but disappears quickly, gloss catches my hair, and tint gets dry in the afternoon. If I put just one in my pouch, what should it be?",
+      "nickname": "Seoyeon"
+    },
+    "980061": {
+      "body": "Tint for me. I can reapply before lunch, and it doesn't tend to leak in my bag.",
+      "nickname": "Yerin"
+    },
+    "980062": {
+      "body": "Gloss for me! It's better than you'd think with my hair tied back, and it feels comfortable on my lips.",
+      "nickname": "Harin"
+    },
+    "980063": {
+      "body": "What's actually different about lip oil and gloss? The shine looks similar.",
+      "nickname": "Seoyeon"
+    },
+    "980064": {
+      "body": "It depends on the product, but lip oil felt runnier to me, while gloss felt thicker and tackier.",
+      "nickname": "Harin"
+    },
+    "980067": {
+      "body": "A clear lip oil is handy to have for layering over tint. But if you're bringing only one, a colored tint seems like a straightforward choice.",
+      "nickname": "Minji"
+    },
+    "980068": {
+      "body": "Right. After lunch, if you don't check a mirror, the shiny products might be almost completely gone.",
+      "nickname": "Yerin"
+    },
+    "980069": {
+      "body": "So if I bring just one, it'll be a familiar tint! But I'll try gloss this evening too.",
+      "nickname": "Seoyeon"
+    },
+    "980070": {
+      "body": "I need to reapply sunscreen at an outdoor festival. Mineral sunscreen leaves a white cast on me, I've had discomfort around my eyes with chemical sunscreen, and sticks feel like I haven't applied enough. What combinations do you use?",
+      "nickname": "Yujin"
+    },
+    "980071": {
+      "body": "I apply plenty of my usual lotion-type sunscreen in the morning and use lotion to reapply too.",
+      "nickname": "Sohee"
+    },
+    "980072": {
+      "body": "Isn't lotion hard to reapply over makeup? I carried a stick, but I'm not sure I was really applying enough.",
+      "nickname": "Jiwoo"
+    },
+    "980073": {
+      "body": "I barely wear makeup on those days. We should probably distinguish between days with and without makeup.",
+      "nickname": "Sohee"
+    },
+    "980074": {
+      "body": "Eye stinging varies by product, so I've found it hard to divide them up simply as mineral versus chemical.",
+      "nickname": "Chaewon"
+    },
+    "980077": {
+      "body": "In my case, I sweat a lot outdoors, so I wiped it off with a towel and reapplied lotion-type sunscreen.",
+      "nickname": "Nayeon"
+    },
+    "980078": {
+      "body": "Wiping off sweat removes makeup too, so convenience ends up being the issue.",
+      "nickname": "Jiwoo"
+    },
+    "980079": {
+      "body": "This time I'll bring a hat and carry lotion-type sunscreen. For now, I won't make big changes to my current routine!",
+      "nickname": "Yujin"
+    },
+    "980080": {
+      "body": "They're all peach shades, but cream looks natural and disappears quickly, liquid gets too intense if I dab on too much, and powder makes my cheeks look dry. What's good for someone with a dewy base?",
+      "nickname": "Nayeon"
+    },
+    "980081": {
+      "body": "I found liquid easier to control when I put some on the back of my hand first and picked up a little with a puff.",
+      "nickname": "Minji"
+    },
+    "980082": {
+      "body": "I tend to recommend cream for dry skin, but staying power varies a lot by product.",
+      "nickname": "Sea"
+    },
+    "980083": {
+      "body": "Doesn't using a puff lift off the cushion foundation?",
+      "nickname": "Nayeon"
+    },
+    "980084": {
+      "body": "Rubbing lifted it off, so I pressed it on with a small puff instead.",
+      "nickname": "Minji"
+    },
+    "980087": {
+      "body": "Powder lasted longer for me. Our skin is different, so I can't say one of us is right.",
+      "nickname": "Harin"
+    },
+    "980088": {
+      "body": "Then I'll try cream on my left cheek and powder on my right and compare them for half a day.",
+      "nickname": "Nayeon"
+    },
+    "980089": {
+      "body": "Result: on my skin, the cream side looked less dry but was almost gone by the afternoon. The powder kept its color, but my skin texture showed a little.",
+      "nickname": "Nayeon"
+    },
+    "980091": {
+      "body": "The lecture room is small, so I'm worried perfume would be too strong for people around me. Would body mist or scented hand cream be okay? I like sweet scents, but scents that linger feel a bit much.",
+      "nickname": "Harin"
+    },
+    "980092": {
+      "body": "Scented products can still seem strong to someone nearby. In small spaces, I only use unscented hand cream.",
+      "nickname": "Daeun"
+    },
+    "980093": {
+      "body": "Body mist isn't necessarily mild. It depends on how much you spray.",
+      "nickname": "Jiwoo"
+    },
+    "980094": {
+      "body": "I guess even the sweet scents I like could be quite divisive?",
+      "nickname": "Harin"
+    },
+    "980095": {
+      "body": "They could be. If you want to be considerate of others, choosing less fragrance is a straightforward option.",
+      "nickname": "Daeun"
+    },
+    "980109": {
+      "body": "My left eyebrow has almost no hair, while my right is thick. Filling both with pencil makes only the left look obviously drawn on, and brow mascara makes the right look overdone. Any tips for balancing them?",
+      "nickname": "Sohee"
+    },
+    "980110": {
+      "body": "I shaped the fuller brow first, then filled the sparse side with small pencil dots.",
+      "nickname": "Minji"
+    },
+    "980111": {
+      "body": "Powder softened the edges, but I felt it didn't last as well.",
+      "nickname": "Sua"
+    },
+    "980112": {
+      "body": "Would powder come off easily on a rainy day?",
+      "nickname": "Sohee"
+    },
+    "980113": {
+      "body": "In my case, a little came off on a very sweaty day. It probably depends on the product too.",
+      "nickname": "Sua"
+    },
+    "980115": {
+      "body": "I'm curious too. Mine are also slightly different heights.",
+      "nickname": "Sohee"
+    },
+    "980116": {
+      "body": "Matching their overall appearance rather than making them identical looked less awkward to me.",
+      "nickname": "Minji"
+    },
+    "980117": {
+      "body": "Tomorrow I'll use powder to balance the larger areas first, then fill only the gaps with pencil.",
+      "nickname": "Sohee"
+    },
+    "980118": {
+      "body": "I'm seeing lip pencils ranging from around KRW 6,000 to around KRW 30,000. I just want to lightly define my lip line in nude rose. Do expensive ones definitely last longer? Dryness matters too.",
+      "nickname": "Yerin"
+    },
+    "980119": {
+      "body": "Some expensive ones were still drying. For me, whether the color suited my lips mattered more than the brand.",
+      "nickname": "Nayeon"
+    },
+    "980120": {
+      "body": "Some inexpensive ones suited me, but they kept breaking when I sharpened them, which was a hassle.",
+      "nickname": "Harin"
+    },
+    "980121": {
+      "body": "Which is more convenient: a pencil that needs sharpening or a twist-up one?",
+      "nickname": "Yerin"
+    },
+    "980122": {
+      "body": "Twist-up was more convenient, but I liked a sharpenable pencil for drawing very fine lines.",
+      "nickname": "Harin"
+    },
+    "980125": {
+      "body": "If it's for outlining, matching your usual lip color seems like the priority. When the colors differed, the outline really stood out.",
+      "nickname": "Nayeon"
+    },
+    "980126": {
+      "body": "If I can test them in a store, I'll compare the colors in person first. For now, expensive clearly isn't always the answer.",
+      "nickname": "Yerin"
+    }
+  }
+}

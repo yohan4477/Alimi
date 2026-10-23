@@ -23,11 +23,13 @@ test('language changes preserve deep-link target; region changes open the chosen
  const href='https://seoulbeauty.me/kr?room=u-a&lang=ko';
  assert.equal(languageURL('en',href).pathname,'/kr');
  assert.equal(languageURL('en',href).searchParams.get('room'),'u-a');
+ assert.equal(regionURL('us',href).pathname,'/live');
+ assert.equal(regionURL('us',href).searchParams.get('region'),'us');
  assert.equal(regionURL('us',href).searchParams.has('room'),false);
  assert.equal(regionURL('us',href).searchParams.get('lang'),'ko');
  assert.equal(regionURL('kr','https://seoulbeauty.me/us?lang=en').searchParams.get('lang'),'en');
- assert.equal(shareUrl({room:'u-a'},href),'https://seoulbeauty.me/kr?room=u-a');
- assert.equal(shareUrl({product:'a'},'https://seoulbeauty.me/us?lang=ko#x'),'https://seoulbeauty.me/us?product=a');
+ assert.equal(shareUrl({room:'u-a'},href),'https://seoulbeauty.me/live?room=u-a&region=kr&lang=ko');
+ assert.equal(shareUrl({product:'a'},'https://seoulbeauty.me/us?lang=ko#x'),'https://seoulbeauty.me/live?product=a&region=us&lang=ko');
 });
 
 test('pre-migration catalog fallback uses family identities but only regional offer prices',async()=>{

@@ -19,9 +19,10 @@ export function inMarket(row, selected = region) {
 }
 export function regionURL(selected, href = globalThis.location?.href) {
   if (!normalizeRegion(selected)) throw Error('Invalid service region');
-  const u = new URL(href); u.pathname = '/' + selected; u.hash = '';
+  const u = new URL(href); u.pathname = '/live'; u.hash = '';
   // A manual market switch opens its home, rather than carrying a room from another market.
   for (const k of ['room', 'product', 'post', 'productRooms', 'region']) u.searchParams.delete(k);
+  u.searchParams.set('region', normalizeRegion(selected));
   // Keep language independent from the service market.
   return u;
 }

@@ -25,7 +25,7 @@ export function writeHandoff(storage, {body, language, region, now = Date.now(),
   storage.setItem(HANDOFF_KEY, JSON.stringify(draft));
   storage.removeItem('seoulbeauty-cloud-draft-owner');
   if (!readHandoff(storage, {id, region, now})) throw Error('Draft unavailable');
-  return `/${region}?lang=${language}&beautyDraft=${id}&demo=0`;
+  return `/live?region=${region}&lang=${language}&beautyDraft=${id}`;
 }
 export function updateHandoff(storage, id, body, title = '') {
   const d = readHandoff(storage, {id});

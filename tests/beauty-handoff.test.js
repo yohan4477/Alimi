@@ -6,7 +6,7 @@ const memory=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k
 test('same-tab transfer puts only an opaque id in the regional URL and allowlists private draft fields',()=>{
  const s=memory(),now=Date.now();
  const href=writeHandoff(s,{id,now,body:'  My own experience <script>  ',language:'en',region:'kr',note:'private game note',account_id:'forbidden'});
- assert.equal(href,`/kr?lang=en&beautyDraft=${id}&demo=0`);
+ assert.equal(href,`/live?region=kr&lang=en&beautyDraft=${id}`);
  assert.ok(!href.includes('experience'));
  assert.deepEqual(readHandoff(s,{id,region:'kr',now}),{id,region:'kr',language:'en',body:'My own experience <script>',createdAt:now});
  assert.ok(!s.getItem(HANDOFF_KEY).includes('private game note'));

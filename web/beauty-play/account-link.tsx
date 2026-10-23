@@ -46,7 +46,7 @@ export default function AccountLink({accountLinkEnabled=false}:{accountLinkEnabl
       <p>{ko?'연결할 계정: ':'Account to link: '}{account.email||account.id}</p>
       <label><input type="checkbox" checked={consent} disabled={busy} onChange={e=>setConsent(e.target.checked)}/>{ko?'현재 익명 게임 세션의 기록을 위 계정에 연결하는 데 동의해요.':'I consent to linking the current anonymous game session’s history to the account above.'}</label>
       <button type="button" className="outline" disabled={!consent||busy} onClick={link}>{busy?(ko?'연결 중…':'Linking…'):(ko?'계정에 연결하고 새 게임 시작':'Link account and start a new game')}</button>
-    </>:<a href={ko?'/kr':'/us'}>{ko?'커뮤니티에서 로그인하기':'Sign in through the community'}</a>}
+    </>:<a href={`/live?lang=${ko?'ko':'en'}`}>{ko?'커뮤니티에서 로그인하기':'Sign in through the community'}</a>}
     {message&&<p role="status">{message}</p>}
     {restart&&<a href="/beauty-play/">{ko?'새 게임으로 이동':'Start a new game'}</a>}
   </section>;

@@ -1,3 +1,4 @@
+import {staticEntryPath} from '../dist/public-routes.js';
 import languageHandler from '../api/language.js';
 import {createBeautyPlayHandler} from '../api/beauty-play.js';
 import http from 'node:http';
@@ -21,7 +22,7 @@ export function createLocalServer({adminHandler = createAdminHandler({env: {...p
     if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405); return res.end(); }
     let name;
     try { name = decodeURIComponent(url.pathname); } catch { res.writeHead(400); return res.end(); }
-    const file = path.resolve(root, '.' + (['/','/kr','/kr/','/us','/us/'].includes(name) ? '/index.html' : ['/beauty-play','/beauty-play/'].includes(name)?'/beauty-play/index.html':name));
+    const file = path.resolve(root, '.' + (['/beauty-play','/beauty-play/'].includes(name)?'/beauty-play/index.html':staticEntryPath(name)));
     if (!file.startsWith(root) || name.split('/').some(p => p.startsWith('.'))) { res.writeHead(404); return res.end(); }
     try {
       const bytes = await readFile(file); res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','X-Content-Type-Options':'nosniff'});

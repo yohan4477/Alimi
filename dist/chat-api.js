@@ -1,8 +1,14 @@
+import {isSyntheticTarget,isSyntheticProductTarget} from './public-routes.js';
 // Topic chat (#68) data layer. Anonymous: a random per-device secret proves authorship to the RPCs;
 // the server only keeps its hash ("author_tag"), which is also what Block hides locally.
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet, rpc} from './supabase.js';
 import {region, inRegion} from './region.js';
 import {lang} from './i18n.js';
+
+const assertActualTarget = value => { if (isSyntheticTarget(value)) throw Error('Synthetic content is unavailable in the actual service'); };
+const actualItem = item => !item?.demo && ![item?.id,item?.family_key,item?.familyKey,item?.sku].some(isSyntheticProductTarget);
+const assertActualItem = item => { if (!actualItem(item)) throw Error('Synthetic content is unavailable in the actual service'); };
+const actualMessage = row => row && !row.demo && actualItem(row.item) && !isSyntheticTarget(row.id) && !isSyntheticTarget(row.room_id);
 
 const SECRET_KEY = 'alimi-chat-secret', BLOCK_KEY = 'alimi-chat-blocked', AGREED_KEY = 'alimi-chat-agreed';
 export const MESSAGE_FIELDS = 'id,room_id,author_tag,nickname,body,item,reply_to,likes,created_at';
@@ -39,6 +45,8 @@ export const errorKey = message => {
 export const roomsUrl = () => SUPABASE_URL + '/rest/v1/chat_room_list?' + new URLSearchParams({select: '*', order: 'sort'});
 // Latest page when afterId is 0, otherwise only messages newer than afterId (polling).
 export function messagesUrl(room, afterId = 0, limit = 60) {
+  assertActualTarget(room);
+  assertActualTarget(afterId);
   const params = new URLSearchParams({select: MESSAGE_FIELDS, room_id: 'eq.' + room, limit: String(limit)});
   if (afterId) { params.set('id', 'gt.' + afterId); params.set('order', 'id.asc'); } else params.set('order', 'id.desc');
   return SUPABASE_URL + '/rest/v1/chat_messages?' + params;
@@ -46,27 +54,31 @@ export function messagesUrl(room, afterId = 0, limit = 60) {
 
 const get = restGet;
 
-export const fetchRooms = async (fetchImpl = fetch) => (await get(roomsUrl(), fetchImpl)).filter(r=>inRegion(r));
+export const fetchRooms = async (fetchImpl = fetch) => (await get(roomsUrl(), fetchImpl)).filter(r=>r && r.id != null && !r.demo && !isSyntheticTarget(r.id) && inRegion(r));
 // Rooms this device joined ("My chats"), each with its latest message for the preview line.
 export const myRoomsUrl = tag => SUPABASE_URL + '/rest/v1/chat_members?' + new URLSearchParams({select: 'room_id,joined_at', author_tag: 'eq.' + tag, order: 'joined_at.desc'});
 export async function fetchMyRooms(tag, fetchImpl = fetch) {
   const joined = await get(myRoomsUrl(tag), fetchImpl);
-  return Promise.all(joined.map(async j => {
+  return Promise.all(joined.filter(j=>j && j.room_id != null && !j.demo && !isSyntheticTarget(j.room_id)).map(async j => {
     const params = new URLSearchParams({select: 'body,item,created_at', room_id: 'eq.' + j.room_id, order: 'id.desc', limit: '1'});
     const [last] = await get(SUPABASE_URL + '/rest/v1/chat_messages?' + params, fetchImpl).catch(() => []);
-    return {room_id: j.room_id, last: last ?? null};
+    return {room_id: j.room_id, last: actualMessage(last) ? last : null};
   }));
 }
 // Rooms tab: busiest topic rooms first (messages in 24h, then members); Topics tab: latest activity first.
 export async function fetchMessages(room, afterId = 0, fetchImpl = fetch) {
-  const rows = await get(messagesUrl(room, afterId), fetchImpl);
+  if (isSyntheticTarget(room) || isSyntheticTarget(afterId)) return [];
+  const rows = (await get(messagesUrl(room, afterId), fetchImpl)).filter(actualMessage);
   return afterId ? rows : rows.reverse();
 }
-export const joinRoom = (secret, room, fetchImpl = fetch) => rpc('join_chat', {p_secret: secret, p_room: room}, fetchImpl);
-export const postMessage = (secret, room, body, item = null, replyTo = null, fetchImpl = fetch) => rpc('post_chat', {
+export const joinRoom = async (secret, room, fetchImpl = fetch) => { assertActualTarget(room); return rpc('join_chat', {p_secret: secret, p_room: room}, fetchImpl); };
+export const postMessage = async (secret, room, body, item = null, replyTo = null, fetchImpl = fetch) => {
+  assertActualTarget(room); assertActualTarget(replyTo); assertActualItem(item);
+  return rpc('post_chat', {
   p_secret: secret, p_room: room, p_body: body,
   p_retailer: item?.retailer ?? null, p_market: item?.market ?? null, p_sku: item?.sku ?? null, p_reply_to: replyTo
 }, fetchImpl);
+};
 // Anyone can open a public topic room; the server checks length, links, words, duplicates and rate.
 export async function createRoom(secret, {title, intro = '', tag = 'talk', concerns = []}, fetchImpl = fetch) {
   const args={p_secret:secret,p_title:String(title??'').trim(),p_intro:String(intro??'').trim(),p_tag:tag,p_concerns:concerns};
@@ -77,5 +89,5 @@ export async function createRoom(secret, {title, intro = '', tag = 'talk', conce
     throw e;
   }
 }
-export const likeMessage = (secret, id, fetchImpl = fetch) => rpc('like_chat', {p_secret: secret, p_message: id}, fetchImpl);
-export const reportMessage = (secret, id, reason, fetchImpl = fetch) => rpc('report_chat', {p_secret: secret, p_message: id, p_reason: reason}, fetchImpl);
+export const likeMessage = async (secret, id, fetchImpl = fetch) => { assertActualTarget(id); return rpc('like_chat', {p_secret: secret, p_message: id}, fetchImpl); };
+export const reportMessage = async (secret, id, reason, fetchImpl = fetch) => { assertActualTarget(id); return rpc('report_chat', {p_secret: secret, p_message: id, p_reason: reason}, fetchImpl); };

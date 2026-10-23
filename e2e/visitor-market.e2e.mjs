@@ -1,4 +1,4 @@
-// Local mocked-country headers only. This does not prove a real visitor's geography.
+// CI browser test: authored without local browser execution. Local mocked-country headers only. This does not prove a real visitor's geography.
 // No production writes or external network; community module is a bounded fixture.
 import {chromium} from 'playwright-core';
 import assert from 'node:assert/strict';
@@ -20,11 +20,13 @@ async function fixture({country='KR',locale='en-US',saved={},width=390,failApp=f
 try {
  browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{channel:'chrome'});
  for(const scenario of [
-  {country:'KR',path:'/',lang:'ko',market:'kr'},
-  {country:'JP',path:'/',lang:'en',market:null},
-  {country:'XX',locale:'ko-KR',path:'/',lang:'ko',market:null},
-  {country:'KR',path:'/',saved:{'seoulbeauty-region':'us'},lang:'ko',market:'kr'},
-  {country:'KR',path:'/',saved:{'seoulbeauty-region-manual':'us','seoulbeauty-language':'en'},lang:'en',market:'us'},
+  {country:'KR',path:'/live',lang:'ko',market:'kr'},
+  {country:'JP',path:'/live',lang:'en',market:null},
+  {country:'XX',locale:'ko-KR',path:'/live',lang:'ko',market:null},
+  {country:'KR',path:'/live',saved:{'seoulbeauty-region':'us'},lang:'ko',market:'kr'},
+  {country:'KR',path:'/live',saved:{'seoulbeauty-region-manual':'us','seoulbeauty-language':'en'},lang:'en',market:'us'},
+  {country:'KR',path:'/live?region=us&lang=ko',saved:{'seoulbeauty-region-manual':'kr'},lang:'ko',market:'us'},
+  {country:'US',path:'/live?region=kr&lang=en',saved:{'seoulbeauty-region-manual':'us'},lang:'en',market:'kr'},
   {country:'KR',path:'/us?lang=ko&room=fixture',lang:'ko',market:'us'},
   {country:'US',path:'/kr?lang=en',lang:'en',market:'kr'},
  ]) {
@@ -36,28 +38,28 @@ try {
   await f.context.close();
  }
  for(const width of [320,390]){
-  const automatic=await fixture({country:'KR',width,saved:{'seoulbeauty-region':'us'}});await automatic.page.goto(base+'/');await automatic.page.waitForFunction(()=>window.fixtureRegion==='kr');
+  const automatic=await fixture({country:'KR',width,saved:{'seoulbeauty-region':'us'}});await automatic.page.goto(base+'/live');await automatic.page.waitForFunction(()=>window.fixtureRegion==='kr');
   assert.equal(await automatic.page.locator('html').getAttribute('lang'),'ko');assert.equal(await automatic.page.locator('[data-market-choice]').count(),0);await automatic.page.reload();await automatic.page.waitForFunction(()=>window.fixtureRegion==='kr');assert.equal(await automatic.page.locator('[data-market-choice]').count(),0);await automatic.context.close();
-  const gated=await fixture({country:'JP',width});await gated.page.goto(base+'/');await gated.page.locator('[data-market-choice="kr"]').waitFor();
+  const gated=await fixture({country:'JP',width});await gated.page.goto(base+'/live');await gated.page.locator('[data-market-choice="kr"]').waitFor();
   assert.equal(await gated.page.locator('#tabbar').isVisible(),false);
   assert.equal(await gated.page.locator('.screen:visible').count(),0);
   assert.equal(await gated.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await gated.context.close();
-  const failed=await fixture({country:'KR',width,failApp:true});await failed.page.goto(base+'/');
+  const failed=await fixture({country:'KR',width,failApp:true});await failed.page.goto(base+'/live');
   await failed.page.getByRole('button',{name:'다시 시도',exact:true}).waitFor();
   assert.equal(await failed.page.locator('html').getAttribute('data-locale-pending'),null);
   assert.equal(await failed.page.locator('#tabbar').isVisible(),false);
   assert.equal(await failed.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await failed.context.close();
  }
  const choose=await fixture({country:'JP',saved:{'seoulbeauty-region':'us'}});
- await choose.page.goto(base+'/?lang=en&room=synthetic&code=oauth-fixture');await choose.page.locator('[data-market-choice="kr"]').click();
- await choose.page.waitForURL(url=>url.pathname==='/kr');await choose.page.waitForFunction(()=>window.fixtureRegion==='kr');
- const chosen=new URL(choose.page.url());assert.equal(chosen.searchParams.get('room'),'synthetic');assert.equal(chosen.searchParams.get('code'),'oauth-fixture');assert.equal(chosen.searchParams.get('lang'),'en');
+ await choose.page.goto(base+'/live?lang=en&room=real-room&code=oauth-fixture&sb_login_state=fixture_nonce_123456');await choose.page.locator('[data-market-choice="kr"]').click();
+ await choose.page.waitForURL(url=>url.pathname==='/live'&&url.searchParams.get('region')==='kr');await choose.page.waitForFunction(()=>window.fixtureRegion==='kr');
+ const chosen=new URL(choose.page.url());assert.equal(chosen.searchParams.get('room'),'real-room');assert.equal(chosen.searchParams.get('code'),'oauth-fixture');assert.equal(chosen.searchParams.get('lang'),'en');assert.equal(chosen.searchParams.get('sb_login_state'),'fixture_nonce_123456');
  assert.equal(await choose.page.evaluate(()=>localStorage.getItem('seoulbeauty-region-manual')),'kr');await choose.context.close();
  for(const [country,language] of [['KR','ko'],['JP','en']]){
   const game=await fixture({country});await game.page.goto(base+'/beauty-play/');await game.page.locator('.language-switch').waitFor();assert.equal(await game.page.locator('html').getAttribute('lang'),language);
   await game.page.locator('.language-switch').click();const opposite=language==='ko'?'en':'ko';await game.page.waitForFunction(value=>document.documentElement.lang===value,opposite);
   await game.page.reload();await game.page.locator('.language-switch').waitFor();assert.equal(await game.page.locator('html').getAttribute('lang'),opposite);await game.context.close();
  }
- console.log('ok - actual local locale handler, KR/non-KR/unknown, ambiguous legacy, explicit/manual/share, chooser preservation and game provider fixtures');
+ console.log('ok - /live locale handler, KR/non-KR/unknown, trusted KR overrides unmarked legacy US, explicit/manual/share, chooser preservation and game provider fixtures');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}

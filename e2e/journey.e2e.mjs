@@ -2,7 +2,7 @@
 import {chromium} from 'playwright-core';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
-const browser=await chromium.launch(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH,args:['--no-sandbox']} : {channel:'chrome'});
+const browser=await chromium.launch(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH} : {channel:'chrome'});
 const base=process.argv[2]??'http://localhost:3000/';
 const item={family_key:'tint03',retailer:'Shop',market:'US',sku:'03',brand:'TEST',brand_ko:'테스트',name:'Soft tint 03',price_minor:1200,image_url:null,currency:'USD',size_label:'4g',option_label:'03',url:'https://example.com/tint',affiliate_url:null,category:'립'};
 const room={id:'tint',title_en:'Tint talk',title_ko:'Tint talk',intro_en:'Shades',intro_ko:'발색',kind:'topic',tag:'makeup',sort:1,members:5,messages_24h:1,last_message_at:new Date().toISOString(),concerns:['lip']};
@@ -74,7 +74,7 @@ try {
   await page.locator('[data-chat-action="room-more"]').click();
   await page.locator('#room-menu [data-chat-action="share-room"]').click();
   await page.waitForFunction(()=>document.querySelector('#toast')?.classList.contains('show'));
-  assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),new URL('/us?room=tint',base).href);
+  assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),new URL('/live?room=tint&region=us&lang=ko',base).href);
   await page.locator('#chat-log .chat-msg').first().waitFor();
 
   await page.locator('#chat-text').waitFor();

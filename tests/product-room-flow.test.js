@@ -14,7 +14,7 @@ test('product search matches room subjects across languages but ignores message 
 });
 test('a UUID room invitation can reopen the same room',()=>{
  const room='01234567-89ab-4cde-8fab-0123456789ab';
- const url=shareUrl({room},'https://example.com/?lang=ko#old');
+ const url=shareUrl({room},'https://example.com/live?region=kr&lang=ko#old');
  assert.deepEqual(sharedTarget(new URL(url).search),{room});
  assert.equal(sharedTarget('?room='+ 'a'.repeat(65)),null);
  assert.equal(sharedTarget('?room=%3Cscript%3E'),null);

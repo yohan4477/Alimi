@@ -33,7 +33,7 @@ export async function startVisitorEntry({document=globalThis.document,location=g
  }
  const chooser=marketChoiceElement(document,{language:context.language,recommended:decision.recommended},region=>{
   rememberMarket(region,storage);
-  const target=new URL(location.href);target.pathname='/'+region;
+  const target=new URL(location.href);target.pathname='/live';target.searchParams.set('region',region);
   // Preserve explicit language and shared target query parameters. Market choice
   // is not a request to replace the visitor's independent language preference.
   if(!target.searchParams.has('lang'))target.searchParams.set('lang',context.language);

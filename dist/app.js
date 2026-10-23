@@ -1,11 +1,11 @@
+import {isSyntheticTarget,isSyntheticProductTarget} from './public-routes.js';
 import {rememberLanguage} from './language-preference.js';
 import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {region, inMarket, languageURL, amount} from './region.js';
 import {regionButton,installRegionPicker} from './region-picker.js';
 import {rankProducts,productSortControls,setProductSort,loadProductStats} from './product-sort.js';
 import {loadingMarkup} from './loading-companion.js';
-import {demoProducts, demoRooms, demoActivity} from './demo-fixtures.js';
-import {productInfoHTML, renderProductInfo} from './product-info.js';
+import {renderProductInfo} from './product-info.js';
 import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-catalog.js';
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
@@ -19,8 +19,10 @@ import {share,shareUrl,sharedTarget} from './share.js';
 import {buyUrl,coupangUrl,inKorea,oliveYoungUrl,loadProducts,searchCatalog,fetchFamiliesPage,fetchBrands,brandInitials,brandColor,twoRowOrder,fetchFamily,unitName,CATEGORIES,brandLabel,search,usd,readState,writeState,toggleFavorite} from './live.js';
 import {$,esc} from './util.js';
 import {renderExplore,refreshExplore,searchRooms,exploreRow} from './explore.js';
-import {exploreData, isDemo} from './chat.js';
+import {exploreData} from './chat.js';
 let storage;try{storage=localStorage}catch{}
+// Old local sample snapshots are neither real activity nor valid lookup targets.
+const isActualContent = row => Boolean(row && !row.demo && !row.item?.demo && !row.room?.demo && ![row.room_id,row.room?.id].some(isSyntheticTarget) && ![row.id,row.family_key,row.familyKey,row.sku,row.item?.id,row.item?.family_key].some(isSyntheticProductTarget));
 let state=readState(storage),products=[],selected=null,category='전체',timer,detailOpen=false;
 const product=id=>products.find(p=>p.id===id);
 const kstDate=iso=>new Intl.DateTimeFormat(locale(),{timeZone:'Asia/Seoul',month:lang==='ko'?'long':'short',day:'numeric'}).format(new Date(iso));
@@ -75,21 +77,8 @@ function drawFamilySelection(){
   addRecent({family_key:cur.family_key,sku:cur.sku,retailer:cur.retailer,market:cur.market,ref:familyRef,brand:cur.brand,brand_ko:cur.brand_ko,name:cur.name,category:cur.category,image_url:cur.image_url,min_price_minor:cur.price_minor});
 }
 
-function openDemoProduct(label){
-  const item=demoProducts.find(p=>p.label===label||p.id===label);
-  if(!item){toast(t('empty.products'));return;}
-  ++familyVersion;familyList=[];familyHead=null;$('#family-talk').talkRequest=null;$('#family-similar').innerHTML='';
-  const dlg=$('#family-dialog');
-  $('#family-title').textContent=item.brand;
-  $('#family-name').textContent=item.name;
-  $('#family-hero').innerHTML=item.image_url?`<img src="${esc(item.image_url)}" alt="${esc(item.name)}">`:'';
-  $('#family-body').innerHTML=`<p class="home-note">${esc(t('rooms.demoProducts'))}</p>${productInfoHTML({...item,category:({ 'torriden-serum':'에센스·세럼','aestura-cream':'크림·로션','roundlab-sun':'선케어','anua-toner':'토너·패드','cosrx-essence':'에센스·세럼','romand-tint':'립','clio-cushion':'베이스메이크업','laneige-lip':'립','medicube-pad':'토너·패드','drg-cream':'크림·로션','goodal-serum':'에센스·세럼','peripera-tint':'립' })[item.id]})}`;
-  const rooms=demoRooms.filter(r=>r.topic_product?.id===item.id);
-  $('#family-talk').innerHTML=`<h2>${esc(t('rooms.productTalk'))}</h2>${rooms.map(r=>`<button class="post-row" data-open-room="${esc(r.id)}"><span class="post-main"><b>${esc(r.title_ko)}</b><small>${esc(r.intro_ko)}</small></span></button>`).join('')}`;
-  if(!dlg.open)dlg.showModal();
-}
 function openCatalogItem(item,ref=''){
-  if(!item){toast(t('empty.products'));return;}
+  if(!isActualContent(item)){toast(t('empty.products'));return;}
   if(item.family_key){openFamily(item.family_key,ref,item);return;}
   const p={...item,id:['catalog',item.retailer,item.market,item.sku].join('|'),imageUrl:item.image_url,brandKo:item.brand_ko,
     price:item.price??amount(item.price_minor,item.currency),familyKey:null,sourceRef:ref,history:[],delivery:null};
@@ -97,6 +86,7 @@ function openCatalogItem(item,ref=''){
 }
 
 async function openFamily(key,ref=null,option={}){
+  if(!isActualContent({...option,family_key:key}))return;
   const version=++familyVersion,dlg=$('#family-dialog');$('#family-similar').innerHTML='';familyList=[];familyHead=null;familyRef=ref;familySelection=0;$('#family-talk').talkRequest=null;
   $('#family-hero').innerHTML='';$('#family-title').textContent='';$('#family-name').textContent='';$('#family-body').innerHTML=loadingMarkup(t('loading'));$('#family-talk').innerHTML='';if(!dlg.open)dlg.showModal();
   try{const list=await fetchFamily(key);if(version!==familyVersion||!dlg.open)return;
@@ -222,13 +212,9 @@ function openActivityProfile(){
 const activityEmpty=(message,kind)=>`<div class="activity-empty"><p>${esc(message)}</p><button class="text-link" data-activity-browse="${kind}">${esc(t(kind==='rooms'?'activity.browseRooms':'activity.browseProducts'))} ›</button></div>`;
 let activityTab='rooms';
 // Recently viewed products on this device (revisit.js).
-// Demo mode only: synthetic 내 활동 contents (demo-fixtures.js), opened as demo products.
-const demoPicks=ids=>ids.map(id=>demoProducts.find(p=>p.id===id)).filter(Boolean);
-const demoRecentRow=p=>`<button class="recent-row" data-demo-product="${esc(p.id)}"><img src="${esc(p.image_url)}" alt="" loading="lazy"><span><b>${esc(p.brand)} ${esc(p.name)}</b><small>${esc(t('rooms.demoProducts'))}</small></span></button>`;
-const demoSavedCard=p=>`<article class="saved-card"><button class="product-open" data-demo-product="${esc(p.id)}"><div class="visual"><img src="${esc(p.image_url)}" alt="" loading="lazy"></div><div class="brand">${esc(p.brand)}</div><div class="product-name">${esc(p.name)}</div></button></article>`;
-const recentList=()=>{const list=readRecent();if(!list.length&&isDemo())return `<div class="recent-list">${demoPicks(demoActivity.recent).map(demoRecentRow).join('')}</div>`;return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:activityEmpty(t('activity.recentEmpty'),'products')};
+const recentList=()=>{const list=readRecent().filter(isActualContent);return list.length?`${productSortControls()}<div class="recent-list">${rankProducts(list).map(f=>`<button class="recent-row" data-family="${esc(f.family_key)}" data-sku="${esc(f.sku??'')}" data-retailer="${esc(f.retailer??'')}" data-market="${esc(f.market??'')}" data-ref="${esc(f.ref??'recent')}">${f.image_url?`<img src="${esc(f.image_url)}" alt="" loading="lazy">`:'<span class="no-photo"></span>'}<span><b>${esc(brandLabel({brand:f.brand,brandKo:f.brand_ko}))} ${esc(f.base_name)}</b>${f.category?`<small>${esc(categoryLabel(f.category))}</small>`:''}${f.min_price_minor?`<strong>${usd(f.min_price_minor/100)}</strong>`:''}</span></button>`).join('')}</div>`:activityEmpty(t('activity.recentEmpty'),'products')};
 // Products saved on this device that have a family key (for 알림 and 상품 공유).
-const savedFamilies=()=>products.filter(p=>state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
+const savedFamilies=()=>products.filter(p=>isActualContent(p)&&state.favorites.includes(p.id)&&p.familyKey).map(p=>({familyKey:p.familyKey,name:p.name}));
 const setAlertBadge=n=>{document.documentElement.dataset.unreadAlerts=String(n>0)};
 // 내 활동 (journey 6): 참여한 대화방 / 저장한 글 / 최근 본 상품 tabs, then 저장한 제품 and the latest 알림.
 const ACTIVITY_TABS=['rooms','talk','recent'];
@@ -236,28 +222,28 @@ const activityTabLabel=k=>t('activity.tab.'+k);
 // Saved messages and posts are individual content; room bookmarks live in My rooms.
 function drawSavedTalk(){
   const box=$('#activity-talk');if(!box)return;
-  const messages=readSavedMessages(),posts=readSavedPosts();
+  const messages=readSavedMessages().filter(isActualContent),posts=readSavedPosts().filter(isActualContent);
   box.innerHTML=messages.length||posts.length
     ? messages.map(m=>`<article class="post-row"><button class="post-main" data-open-room="${esc(m.room_id)}"><small>${esc(m.room_title||m.room_id)} · ${esc(m.nickname||'')}</small><b>${esc(m.body||m.item?.name||'')}</b></button><button class="text-link" data-unsave-message="${m.id}" data-message-room="${esc(m.room_id)}" aria-label="${esc(t('activity.unsaveMessage'))}">×</button></article>`).join('')+(posts.length?savedPostRows():'')
     :activityEmpty(t('activity.messagesEmpty'),'rooms');
 }
-const savedPostRows=()=>readSavedPosts().length?readSavedPosts().map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join(''):activityEmpty(t('activity.postsEmpty'),'rooms');
+const savedPostRows=()=>readSavedPosts().filter(isActualContent).length?readSavedPosts().filter(isActualContent).map(p=>`<button class="post-row" data-post="${p.id}"><span class="post-main"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.'+p.kind))}</span><b>${esc(p.title)}</b></span></button>`).join(''):activityEmpty(t('activity.postsEmpty'),'rooms');
 let activityAlerts=null;
 const bellIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>';
 function renderSaved(){
-  const list=rankProducts(products.filter(p=>state.favorites.includes(p.id))),n=list.length;
+  const list=rankProducts(products.filter(p=>isActualContent(p)&&state.favorites.includes(p.id))),n=list.length;
   if(activityTab==='saved'){
     $('#saved').innerHTML=`<div class="page-bar"><button class="icon-btn" data-activity-tab="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('activity.savedProducts'))}</h1></div>${n===0?activityEmpty(t('activity.savedEmpty'),'products'):productSortControls()+`<div class="saved-grid">${list.map(savedCard).join('')}</div>`}`;
     return;
   }
   const more=attrs=>`<button class="text-link" ${attrs}>${esc(t('home.seeAll'))} ›</button>`;
   $('#saved').innerHTML=`<div class="logo-head activity-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="230" height="69"><span class="sb-head-actions"><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="service-context">${regionButton()}</div><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<section id="activity-talk">${loadingMarkup(t('loading'))}</section>`}</div>
-<section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('activity.savedProducts'))}</h2>${n?more('data-activity-tab="saved"'):''}</div>${n?`<div class="saved-mini-grid">${list.slice(0,4).map(savedCard).join('')}</div>`:isDemo()?`<div class="saved-mini-grid">${demoPicks(demoActivity.saved).map(demoSavedCard).join('')}</div>`:activityEmpty(t('activity.savedEmpty'),'products')}</section>
+<section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('activity.savedProducts'))}</h2>${n?more('data-activity-tab="saved"'):''}</div>${n?`<div class="saved-mini-grid">${list.slice(0,4).map(savedCard).join('')}</div>`:activityEmpty(t('activity.savedEmpty'),'products')}</section>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('alerts.title'))}</h2>${more('data-screen="alerts"')}</div><div id="activity-alerts">${loadingMarkup(t('loading'))}</div></section>${interestRow()}`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
   if(activityTab==='talk')drawSavedTalk();
   if(!activityAlerts||Date.now()-activityAlerts.at>60000)activityAlerts={at:Date.now(),load:loadRevisit({savedFamilies:savedFamilies()})};
-  activityAlerts.load.then(d=>{const box=$('#activity-alerts');if(!box)return;const top=isDemo()?demoActivity.alerts.slice(0,2):d.alerts.slice(0,2);
+  activityAlerts.load.then(d=>{const box=$('#activity-alerts');if(!box)return;const top=d.alerts.filter(isActualContent).slice(0,2);
     box.innerHTML=top.length?top.map(a=>`<button class="alert-mini" ${a.room?`data-open-room="${esc(a.room.id)}"`:a.family?`data-family="${esc(a.family)}"`:'data-screen="alerts"'}><span class="alert-mini-ico">${bellIcon}</span><span><b>${esc(a.title)}</b><small>${esc(relTime(a.at))}</small></span><i aria-hidden="true">›</i></button>`).join(''):`<p class="home-note">${esc(t('alerts.empty'))}</p>`},()=>{const box=$('#activity-alerts');if(box)box.innerHTML=`<p class="home-note">${esc(t('home.retry'))}</p>`});
 }
 // Settings, laid out like the competitor's: grouped rows with line icons and gray hint boxes.
@@ -268,7 +254,7 @@ const auth=new GoogleAuth();
 configureBeautyDraftAccount(auth);
 let syncStatus='local',authBusy=false;
 const accountSync=new AccountSync(auth,{storage,onChange:()=>{
-  state=readState(storage);products=mergeCatalogSaves(products.filter(p=>!p.id.startsWith('catalog|')),readCatalogSaves(storage)).filter(p=>inMarket(p));
+  state=readState(storage);products=mergeCatalogSaves(products.filter(p=>!p.id.startsWith('catalog|')),readCatalogSaves(storage).filter(isActualContent)).filter(p=>inMarket(p));
   updateCount();if(screen==='saved')renderSaved();
 },onStatus:value=>{syncStatus=value;if(screen==='settings')renderSettings()}});
 for(const event of ['profile-change','interests-change'])document.addEventListener(event,()=>accountSync.changed());
@@ -358,7 +344,7 @@ async function loadMoreCatalog(){
 }
 function saveCatalogSelection(b){
   try{const item=catalogItems.get(b.dataset.catalogSave);if(!item)throw Error('missing item');
-    const p=saveCatalogSnapshot(item,storage);products=mergeCatalogSaves(products,readCatalogSaves(storage));
+    const p=saveCatalogSnapshot(item,storage);products=mergeCatalogSaves(products,readCatalogSaves(storage).filter(isActualContent));
     if(!state.favorites.includes(p.id))toggleFavorite(state,p.id);save();track('wishlist_add',p.id,{from:'catalog'});
     b.outerHTML=`<button class="variant-heart" data-favorite="${esc(p.id)}" aria-label="${esc(t('favorites'))}" aria-pressed="true">♥</button>`;
     renderList();if(screen==='search')renderSearch();toast(t('toast.saved'));
@@ -378,7 +364,7 @@ function openDetail(id){if(!product(id)){toast(t('empty.products'));return;}deta
 
 localizePage();
 // A shared link opens its room or product on arrival.
-const arrival=sharedTarget();if(arrival){const appLink=document.createElement('a');appLink.className='text-link';appLink.textContent=t('share.openApp');appLink.href='seoulbeauty://open?'+new URLSearchParams({...arrival,region});document.body.prepend(appLink);}if(arrival?.room)openRoomNext(arrival.room);
+const requestedArrival=sharedTarget();const arrival=isActualContent({room_id:requestedArrival?.room,family_key:requestedArrival?.product})?requestedArrival:null;if(arrival){const appLink=document.createElement('a');appLink.className='text-link';appLink.textContent=t('share.openApp');appLink.href='seoulbeauty://open?'+new URLSearchParams({...arrival,region});document.body.prepend(appLink);}if(arrival?.room)openRoomNext(arrival.room);
 
 // Invite handoff: offer optional skin-based discovery only after the user enters SeoulBeauty.
 // The invite answers are session-only and are never posted as public reviews.
@@ -413,7 +399,7 @@ if(arrival?.product)openFamily(arrival.product);
 const startGuide=(step,returnToChat=false,returnToActivity=false)=>openOnboarding({step,returnToChat:returnToChat||returnToActivity,load:onboardingData,onClose:target=>{if(returnToActivity){renderSaved();return;}if(returnToChat){document.getElementById('setup-nudge')?.remove();return;}if(target && 'productQuery' in target)openProductRoomsNext(target.productQuery);else openRoomListNext();show('chat')}});
 loadRevisit({savedFamilies:savedFamilies()}).then(d=>setAlertBadge(unreadCount(d.alerts)),()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.demoProduct){openDemoProduct(b.dataset.demoProduct);return}
+  if(!isActualContent({room_id:b.dataset.openRoom,family_key:b.dataset.family,id:b.dataset.post}))return;
   if(b.dataset.chatProduct){try{openCatalogItem(JSON.parse(b.dataset.chatProduct),b.dataset.ref||'chat')}catch{toast(t('loadFailed'))}return}
   if(b.dataset.catalogOpen){openCatalogItem(catalogItems.get(b.dataset.catalogOpen));return}
   if('productRooms' in b.dataset){const name=b.dataset.productRooms;$('#family-dialog').open&&$('#family-dialog').close();openProductRoomsNext(name);brandChat=false;detailChat=false;show('chat');return}
@@ -431,7 +417,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if('onbManage' in b.dataset){startGuide('choose',b.dataset.onbContext==='chat');return}
   if('familyPhoto' in b.dataset){const url=familyPhotos()[+b.dataset.familyPhoto];familySelection=Math.max(0,familyList.findIndex(v=>v.image_url===url));drawFamilySelection();return}
   if('familyOption' in b.dataset){familySelection=+b.dataset.familyOption;drawFamilySelection();return}
-  if('familySave' in b.dataset){const cur=familyCurrent();if(!cur)return;let id=savedOption(cur)?.id;if(!id){try{id=saveCatalogSnapshot({...cur,sourceRef:familyRef},storage).id;products=mergeCatalogSaves(products,readCatalogSaves(storage))}catch{toast(t('loadFailed'));return}}toggleFavorite(state,id);save();const on=state.favorites.includes(id);b.innerHTML=bookmark(on);b.setAttribute('aria-pressed',on);track(on?'wishlist_add':'wishlist_remove',id,{sku:cur.sku,from:familyRef??'catalog'});updateCount();return}
+  if('familySave' in b.dataset){const cur=familyCurrent();if(!cur)return;let id=savedOption(cur)?.id;if(!id){try{id=saveCatalogSnapshot({...cur,sourceRef:familyRef},storage).id;products=mergeCatalogSaves(products,readCatalogSaves(storage).filter(isActualContent))}catch{toast(t('loadFailed'));return}}toggleFavorite(state,id);save();const on=state.favorites.includes(id);b.innerHTML=bookmark(on);b.setAttribute('aria-pressed',on);track(on?'wishlist_add':'wishlist_remove',id,{sku:cur.sku,from:familyRef??'catalog'});updateCount();return}
   if(b.dataset.followBrand){toggleFollow(b.dataset.followBrand);return}
   if('brandShare' in b.dataset){share({title:$('#brand h1')?.textContent??'',url:shareUrl({})},toast);return}
   if(b.dataset.catalogSave){saveCatalogSelection(b);return}
@@ -467,7 +453,7 @@ async function loadBrandStrip(){
 loadBrandStrip();
 $('#products').innerHTML=`${loadingMarkup(t('loadingPrices'))}`;
 loadProducts().then(({products:list,source,exportedAt})=>{
-  products=mergeCatalogSaves(list,readCatalogSaves(storage)).filter(p=>inMarket(p));
+  products=mergeCatalogSaves(list,readCatalogSaves(storage).filter(isActualContent)).filter(p=>inMarket(p));
   $('#categories').innerHTML=['전체',...CATEGORIES].map(c=>`<button class="chip ${c==='전체'?'active':''}" data-category="${c}">${esc(categoryLabel(c))}</button>`).join('');
   if(products[0])$('#hero-art').innerHTML=art(products.find(p=>p.sku==='10759')??products[0]);
   const latest=products.map(p=>p.checkedAt).filter(Boolean).sort().at(-1);
