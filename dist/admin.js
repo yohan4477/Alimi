@@ -244,8 +244,9 @@ if (root) {
 
   document.querySelector('#sb-ui-library [data-dev-jump]')?.addEventListener('click', event => { event.preventDefault(); select(document.getElementById('sb-plan-tab')); });
   let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
-  const deepLink = {'#sb-plan':'sb-plan-tab','#sb-dev':'sb-dev-tab','#sb-ui-library':'sb-ui-library-tab'}[location.hash];
-  select(tabs.find(t => t.id === (deepLink || saved)) || tabs[0]);
+  const deepLink = {'#sb-dashboard':'sb-dashboard-tab','#sb-plan':'sb-plan-tab','#sb-dev':'sb-dev-tab','#sb-ui-library':'sb-ui-library-tab'}[location.hash];
+  select(tabs.find(t => t.id === (deepLink || saved)) || document.getElementById('sb-dashboard-tab'));
+  if (!deepLink && !saved) history.replaceState(null, '', '#sb-dashboard');
   document.getElementById('admin-logout').addEventListener('submit', () => { root.hidden = true; try { sessionStorage.removeItem('sb-admin-tab'); } catch {} });
   // Do not show a protected snapshot from the browser back/forward cache after logout.
   addEventListener('pagehide', () => { root.hidden = true; });
