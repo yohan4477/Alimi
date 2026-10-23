@@ -37,8 +37,9 @@ export function compatibilityTarget(href){
  return u.pathname==='/'&&hasActualCompatibilityTarget(href)?liveURL({href}):null;
 }
 export function staticEntryPath(pathname){
- if(pathname==='/'||/^\/(?:kr|us)\/?$/.test(pathname))return '/sample.html';
- if(/^\/live\/?$/.test(pathname))return '/index.html';
+ if(pathname==='/')return '/index.html';
+ if(/^\/(?:kr|us)\/?$/.test(pathname))return '/sample.html';
+ if(/^\/live\/?$/.test(pathname))return '/live.html';
  return pathname;
 }
 export function sampleURL({href,market,language,room,tab}={}){

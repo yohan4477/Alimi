@@ -7,8 +7,9 @@ const draft = '24bd66b5-6365-48f7-a14f-98609579bea1';
 const nonce = 'fixture_nonce_123456';
 
 test('public root is sample and /live is actual; legacy markets dispatch through compatibility', () => {
-  for (const path of ['/', '/kr', '/kr/', '/us', '/us/']) assert.equal(staticEntryPath(path), '/sample.html');
-  for (const path of ['/live', '/live/']) assert.equal(staticEntryPath(path), '/index.html');
+  assert.equal(staticEntryPath('/'), '/index.html');
+  for (const path of ['/kr', '/kr/', '/us', '/us/']) assert.equal(staticEntryPath(path), '/sample.html');
+  for (const path of ['/live', '/live/']) assert.equal(staticEntryPath(path), '/live.html');
   for (const path of ['/sample-app.js', '/assets/logo.svg', '/beauty-play/']) assert.equal(staticEntryPath(path), path);
   for (const suffix of ['', '?lang=en', '?region=kr', '?demo=1', '?sampleTab=saved']) {
     assert.equal(compatibilityTarget(origin + '/' + suffix), null);
