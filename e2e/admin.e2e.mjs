@@ -68,32 +68,55 @@ try {
   await library.locator('[data-guess="1"]').click();
   assert.match(await library.getByRole('heading',{name:/맞혔어/}).innerText(),/맞혔어/);
 
-  // Developer board: priority × platform filtering, links and tab jumps are presentational.
+  // Latest status is a manual capability snapshot, not live data; history is separate.
   await page.getByRole('tab',{name:'현황',exact:true}).click();
   const development=page.locator('#sb-dev');
-  await openAncestorDetails(development.locator('[data-dev-item="D01"]'));
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
-  await development.locator('[data-dev-filter="priority"][data-dev-value="P0"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),6);
-  await development.locator('[data-dev-filter="platform"][data-dev-value="ios"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),3);
-  await development.locator('[data-dev-filter="priority"][data-dev-value="P1"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),4);
-  await development.locator('[data-dev-filter="platform"][data-dev-value="backend"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),0);
-  assert.equal(await development.locator('#sb-dev-empty').isVisible(),true);
-  await development.locator('[data-dev-filter="priority"][data-dev-value="all"]').click();
-  await development.locator('[data-dev-filter="platform"][data-dev-value="all"]').click();
-  assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
-  for (const width of [320,390,1024]) {
-    await page.setViewportSize({width,height:900});
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'developer board overflows at '+width);
+  const current=development.locator('[data-state-panel="current"]');
+  const history=development.locator('[data-state-panel="history"]');
+  const currentButton=development.getByRole('button',{name:'최신 현황',exact:true});
+  const historyButton=development.getByRole('button',{name:'변경 이력',exact:true});
+  assert.ok(await current.isVisible());assert.ok(await history.isHidden());
+  assert.equal(await currentButton.getAttribute('aria-pressed'),'true');
+  assert.equal(await historyButton.getAttribute('aria-pressed'),'false');
+  const expectedStates=[
+    ['관리자 보드 UI','구현'],['회원 관리','UI만 완료'],['커뮤니티 관리','UI만 완료'],
+    ['제품 관리','UI만 완료'],['게임·투표 분석','데이터 연결 필요'],['제휴 수익','미연결'],
+    ['운영 DB 통합','검증 필요'],['모바일 QA','미검증'],
+  ];
+  assert.equal(await current.locator('tbody tr').count(),expectedStates.length);
+  for(const [name,status] of expectedStates){
+    const row=current.getByRole('row').filter({has:page.getByRole('rowheader',{name,exact:true})});
+    assert.equal(await row.count(),1,'one current row for '+name);
+    assert.equal(await row.getByRole('cell').first().innerText(),status);
   }
+  assert.match(await current.innerText(),/수동 스냅샷 · 운영 기능·실측 수치와 구분/);
+  assert.equal(await current.locator('a[href*="/pull/"]').count(),0);
+  for(const [button,shown,hidden] of [[historyButton,history,current],[currentButton,current,history]]){
+    await button.click();
+    assert.ok(await shown.isVisible());assert.ok(await hidden.isHidden());
+    assert.equal(await button.getAttribute('aria-pressed'),'true');
+    assert.equal(await development.locator('[data-state-view][aria-pressed="true"]').count(),1);
+    for(const width of [320,390,1024]){
+      await page.setViewportSize({width,height:900});
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'status/history overflows at '+width);
+    }
+  }
+  await historyButton.click();
+  assert.match(await history.innerText(),/변경 이력은 최신 현황에 중복 추가하지 않습니다/);
+  const historyLinks=history.locator('a[href*="/pull/"]');
+  assert.deepEqual(await historyLinks.evaluateAll(links=>links.map(link=>new URL(link.href).pathname.split('/').pop())),['191','190','186','185','184','183','182','181']);
+  for(const link of await historyLinks.all()){
+    assert.equal(await link.getAttribute('target'),'_blank');
+    assert.match(await link.getAttribute('rel'),/noopener/);assert.match(await link.getAttribute('rel'),/noreferrer/);
+  }
+  await currentButton.click();
+  assert.equal(await current.locator('tbody tr').count(),expectedStates.length,'view switches never append duplicate status rows');
   await page.setViewportSize({width:390,height:844});
-  await development.locator('[data-dev-jump="sb-plan-tab"]').click();
+  // The remaining planning jump lives in UI Library, not the removed developer cards.
+  await page.getByRole('tab',{name:'UI Library',exact:true}).click();
+  await page.locator('#sb-ui-library [data-dev-jump="sb-plan-tab"]').click();
   assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
-  await page.getByRole('tab',{name:'현황',exact:true}).click();
-    await page.getByRole('tab',{name:'전략 자료',exact:true}).click();await page.getByRole('tab',{name:'전략 자료',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
+  await page.getByRole('tab',{name:'전략 자료',exact:true}).click();await page.getByRole('tab',{name:'전략 자료',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   // New pixel-character onboarding is a local admin-only simulation, not a customer signup.
   assert.equal(await page.locator('#sb-planning-review').getAttribute('src'),null,'collapsed historical preview does not start a request');
   await openAncestorDetails(page.locator('#sb-pixel-guide-demo'));
@@ -198,6 +221,15 @@ try {
   assert.ok(await page.getByRole('button',{name:'다시 불러오기',exact:true}).isVisible());
   revoked=true;r=await page.reload();assert.equal(r.status(),403);assert.equal(await page.locator('[role="tab"]').count(),0);
   revoked=false;await login('admin@example.test');
+  // The status UI must not abort initialization before logout concealment is installed.
+  const logoutPresentation=await page.evaluate(()=>{
+    const form=document.getElementById('admin-logout');
+    form.addEventListener('submit',event=>event.preventDefault(),{once:true});
+    form.requestSubmit();
+    return {hidden:document.getElementById('sb-management').hidden,savedTab:sessionStorage.getItem('sb-admin-tab')};
+  });
+  assert.deepEqual(logoutPresentation,{hidden:true,savedTab:null});
+  await page.reload(); // The cancelled presentation check leaves the authenticated session intact.
   await Promise.all([page.waitForNavigation(),page.getByRole('button',{name:'로그아웃',exact:true}).click()]);assert.equal(await page.locator('[role="tab"]').count(),0);
   r=await page.goto(base+'/api/admin');assert.equal(r.status(),401);
   assert.ok(authCalls.filter(x=>x.endsWith('/user')).length>=4);assert.deepEqual(errors,[]);
