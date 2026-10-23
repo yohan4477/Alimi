@@ -277,3 +277,25 @@
 #metrics-region{display:block;max-width:320px;width:100%;min-height:42px;border:1px solid var(--border);border-radius:10px;background:var(--background);color:var(--foreground);padding:8px 12px;margin:8px 0}
 @media(max-width:760px){#sb-dashboard .sb-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-overview{padding:20px}}
 @media(max-width:440px){#sb-dashboard .sb-metrics{grid-template-columns:1fr}.admin-navigation .nav-link{flex:1 1 auto}.admin-overview h2{font-size:1.5rem}}
+
+/* Operations console: Shopify-inspired left navigation, accessible tab panels. */
+#sb-management{display:grid;grid-template-columns:218px minmax(0,1fr);column-gap:30px;align-items:start}
+#sb-management>.sb-header{grid-column:1/-1;padding-bottom:12px;border-bottom:1px solid var(--border)}
+#sb-management>.admin-navigation{grid-column:1;grid-row:2;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;border:0;padding:12px 8px 16px 0}
+#sb-management>.sb-panel{grid-column:2;grid-row:2;min-width:0}
+.admin-brand{display:flex;flex-direction:column;gap:0;margin:0 0 18px 12px}
+.admin-brand strong{font-size:1rem}
+.admin-brand span{font-size:.66rem;letter-spacing:.13em;color:var(--muted-foreground)}
+.admin-navigation .nav{display:flex;flex-direction:column;align-items:stretch;gap:3px}
+.admin-navigation .nav-link{width:100%;text-align:left;border:0;border-radius:9px;min-height:41px;padding:9px 13px;background:transparent}
+.admin-navigation .nav-link[aria-selected="true"]{background:var(--accent);color:var(--foreground);font-weight:700}
+.admin-nav-label{margin:12px 0 6px 13px}
+.admin-nav-separator{width:100%;padding-top:18px;margin-top:14px;border-top:1px solid var(--border)}
+.admin-kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.admin-kpi{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);border-radius:14px;background:var(--card);padding:18px}
+.admin-kpi span{font-size:.83rem;color:var(--muted-foreground)}
+.admin-kpi strong{font-size:1.18rem}
+.admin-empty-state{padding:24px;border:1px dashed var(--border);border-radius:14px;margin-top:22px}
+.admin-empty-state p{max-width:690px}
+@media(max-width:850px){#sb-management{display:block}#sb-management>.admin-navigation{position:static;max-height:none;overflow:visible} .admin-navigation .nav{flex-direction:row;flex-wrap:wrap} .admin-navigation .nav-link{width:auto;border:1px solid var(--border)} .admin-nav-separator{flex-basis:100%} .admin-brand{display:none}}
+@media(max-width:480px){.admin-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-kpi{padding:13px}.admin-navigation .nav-link{width:auto;flex:0 1 auto}}
