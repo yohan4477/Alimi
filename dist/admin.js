@@ -36,6 +36,11 @@ if (root) {
     nav.append(list);
     panel.prepend(nav);
   }
+  root.querySelectorAll('[data-state-view]').forEach(button=>button.addEventListener('click',()=>{
+    const selected=button.dataset.stateView;
+    root.querySelectorAll('[data-state-view]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button));});
+    root.querySelectorAll('[data-state-panel]').forEach(section=>section.hidden=section.dataset.statePanel!==selected);
+  }));
   let metricsBusy=false,lastMetricsFetch=0;
   async function refreshMetrics(force=false){
     const status=document.getElementById('metrics-status');if(!status||metricsBusy||(!force&&Date.now()-lastMetricsFetch<60000))return;
@@ -244,41 +249,6 @@ if (root) {
       renderGuide();
     });
     renderGuide();
-  }
-
-  // Development tab reads a manual snapshot: filters never mutate GitHub/issues or telemetry.
-  const devPanel = document.getElementById('sb-dev');
-  if (devPanel) {
-    const cards = [...devPanel.querySelectorAll('[data-dev-item]')];
-    const buttons = [...devPanel.querySelectorAll('[data-dev-filter]')];
-    const state = {priority:'all',platform:'all'};
-    const count = document.getElementById('sb-dev-result-count');
-    const empty = document.getElementById('sb-dev-empty');
-    const refresh = () => {
-      let shown = 0;
-      for (const card of cards) {
-        const matchPriority = state.priority === 'all' || card.dataset.devPriority === state.priority;
-        const matchPlatform = state.platform === 'all' || (card.dataset.devPlatform || '').split(' ').includes(state.platform);
-        card.hidden = !(matchPriority && matchPlatform);
-        if (!card.hidden) shown++;
-      }
-      count.textContent = '표시 ' + shown + '개 / 전체 ' + cards.length + '개 · 수동 리뷰';
-      empty.hidden = shown !== 0;
-    };
-    for (const button of buttons) button.addEventListener('click', () => {
-      const type = button.dataset.devFilter;
-      state[type] = button.dataset.devValue;
-      for (const choice of buttons.filter(item => item.dataset.devFilter === type))
-        choice.setAttribute('aria-pressed', String(choice === button));
-      refresh();
-    });
-    devPanel.addEventListener('click', event => {
-      const jump = event.target.closest('[data-dev-jump]');
-      if (!jump || !devPanel.contains(jump)) return;
-      const tab = document.getElementById(jump.dataset.devJump);
-      if (tab) select(tab, true);
-    });
-    refresh();
   }
 
   document.querySelector('#sb-ui-library [data-dev-jump]')?.addEventListener('click', event => { event.preventDefault(); select(document.getElementById('sb-plan-tab')); });
