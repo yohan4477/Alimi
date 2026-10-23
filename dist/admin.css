@@ -406,3 +406,13 @@
 #sb-management .admin-logo-symbol{border-radius:0!important}
 #sb-management .admin-table-scroll{border-radius:0!important}
 @media(max-width:700px){#sb-management #sb-product-chat-entry-plan h4+div>table tr{border-radius:0!important;background:transparent!important;border:0!important;border-bottom:1px solid var(--border)!important}}
+
+/* Always-visible, flat section table of contents */
+#sb-management .admin-section-toc{padding:10px 0 16px;margin:0 0 22px;border-bottom:1px solid var(--border);background:transparent}
+#sb-management .admin-section-toc>strong{font-size:.85rem;font-weight:750;display:block;margin-bottom:8px}
+#sb-management .admin-section-toc ol{display:flex;gap:8px 22px;flex-wrap:wrap;padding:0!important;margin:0!important;list-style:none!important}
+#sb-management .admin-section-toc li{margin:0!important;font-size:.84rem}
+#sb-management .admin-section-toc a{color:var(--muted-foreground);text-decoration:underline;text-underline-offset:4px}
+#sb-management .admin-section-toc a:hover{color:var(--foreground)}
+#sb-management .sb-panel h2,#sb-management .sb-panel h3{scroll-margin-top:24px}
+@media(max-width:600px){#sb-management .admin-section-toc ol{display:block}#sb-management .admin-section-toc li{padding:5px 0;border-bottom:1px solid var(--border)}#sb-management .admin-section-toc li:last-child{border-bottom:0}}
