@@ -37,7 +37,7 @@ await page.locator('.hot-row').first().waitFor();
   assert.equal(await page.locator('#saved .add-slot').count(),0);
   assert.equal(await page.locator('.activity-tabs .on').evaluate(el=>getComputedStyle(el).borderBottomWidth),'2px');
  }
- await page.click('#tabbar [data-screen="chat"]');await page.locator('.hot-row').first().click();await page.locator('#chat-log .chat-item').waitFor();
+ await page.click('#tabbar [data-screen="chat"]');await page.locator('.hot-row[data-chat-room="tint"]').click();await page.locator('#chat-log .chat-item').waitFor();
  await page.locator('#chat-text').waitFor();await page.fill('#chat-text','이 색상 질문을 작성 중이에요');
  await page.locator('#chat-log .chat-item').click();await page.locator('#family-dialog[open] #family-price').waitFor();
  await page.screenshot({path:`artifacts/handoff/${label}-product.png`});
@@ -56,7 +56,7 @@ await page.locator('.hot-row').first().waitFor();
   assert.equal(sends,1);assert.equal(events.filter(e=>e.name==='chat_send').length,0);
   assert.equal(await page.locator('#chat-text').inputValue(),'이 색상 질문을 작성 중이에요');
   assert.match(await page.locator('#chat-context').innerText(),/02/);
-  await page.click('.room-back');await page.locator('.hot-row').first().click();await page.locator('#chat-text').waitFor();
+  await page.click('.room-back');await page.locator('.hot-row[data-chat-room="tint"]').click();await page.locator('#chat-text').waitFor();
   assert.equal(await page.locator('#chat-text').inputValue(),'이 색상 질문을 작성 중이에요');
   assert.match(await page.locator('#chat-context').innerText(),/02/);
   failSend=false;await page.click('#chat-form .chat-send');await page.waitForFunction(()=>document.querySelector('#chat-text').value==='');
