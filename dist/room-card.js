@@ -24,22 +24,27 @@ export function compactCount(n, code = lang) {
   return n >= 1000 ? one(n / 1000) + 'K' : String(n);
 }
 // "지금 활발한 대화 중" only when the last message is under an hour old; otherwise today's count; else nothing.
+export const participationLabel = room => room.demo
+  ? (lang === 'ko' ? `가상 대화 · 가상 인물 ${room.members ?? 0}명` : `Sample conversation · ${room.members ?? 0} fictional people`)
+  : t('room.joined', {n: room.members ?? 0});
+
 export function roomActivity(room, now = Date.now()) {
+  if (room.demo) return lang === 'ko' ? '가상 활동 · 실제 이용 현황이 아니에요' : 'Sample activity · not actual usage';
   const last = Date.parse(room.last_message_at ?? '');
   if (Number.isFinite(last) && now - last < 3600000) return t('room.liveNow');
   return room.messages_24h > 0 ? t('room.newToday', {n: room.messages_24h}) : '';
 }
-export const memberLine = (room, now) => [t('room.memberCount', {n: compactCount(room.members ?? 0)}), roomActivity(room, now)].filter(Boolean).join(' · ');
+export const memberLine = (room, now) => [room.demo ? participationLabel(room) : t('room.memberCount', {n: compactCount(room.members ?? 0)}), roomActivity(room, now)].filter(Boolean).join(' · ');
 export const roomTags = (room, highlight = []) => concernsOf(room).slice(0, 3)
   .map(id => `<span class="${highlight.includes(id) ? 'on' : ''}">#${esc(t('onb.c.' + id).replace(/\s+/g, ''))}</span>`).join('');
-export const roomStats = (room, now) => [t('chat.members', {n: compactCount(room.members ?? 0)}), roomActivity(room, now)].filter(Boolean).join(' · ');
+export const roomStats = (room, now) => [room.demo ? participationLabel(room) : t('chat.members', {n: compactCount(room.members ?? 0)}), roomActivity(room, now)].filter(Boolean).join(' · ');
 // Large room card of the journey screens: photo, name, members and activity, optional intro, tag pills.
 export const pickCard = (room, {image = null, intro = true, highlight = [], attrs = `data-chat-room="${esc(room.id)}"`} = {}) =>
   `<button class="pick-card" ${attrs}>${roomThumb(room, image)}<span class="pick-text"><b>${esc(roomTitle(room))}</b><small>${esc(roomStats(room))}</small>${intro ? `<em>${esc(lang === 'ko' ? room.intro_ko ?? '' : room.intro_en ?? '')}</em>` : ''}${concernsOf(room).length ? `<span class="pick-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
 
 // note: an extra line (why it was recommended, latest message); attrs: data-* to open the room.
 export const roomListCard = (room, {image = null, note = '', highlight = [], fresh = false, attrs = `data-chat-room="${esc(room.id)}"`} = {}) =>
-  `<button class="room-list-card" ${attrs}><span class="room-list-text"><span class="room-title-line"><b>${esc(roomTitle(room))}</b><span class="room-count" aria-label="${esc(t('chat.members', {n: room.members ?? 0}))}">${room.members ?? 0}</span>${fresh ? ` <span class="new-badge">${esc(t('home.newMessages'))}</span>` : ''}</span>${note ? `<em>${esc(note)}</em>` : roomActivity(room) ? `<small>${esc(roomActivity(room))}</small>` : ''}${concernsOf(room).length ? `<span class="room-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
+  `<button class="room-list-card" ${attrs}><span class="room-list-text"><span class="room-title-line"><b>${esc(roomTitle(room))}</b><span class="room-count" aria-label="${esc(participationLabel(room))}">${room.demo ? (lang === 'ko' ? '가상' : 'Sample') : room.members ?? 0}</span>${fresh ? ` <span class="new-badge">${esc(t('home.newMessages'))}</span>` : ''}</span>${note ? `<em>${esc(note)}</em>` : roomActivity(room) ? `<small>${esc(roomActivity(room))}</small>` : ''}${concernsOf(room).length ? `<span class="room-tags">${roomTags(room, highlight)}</span>` : ''}</span><i aria-hidden="true">›</i></button>`;
 
 // Catalog category that illustrates a room when nobody has mentioned a product there yet.
 const ROOM_CATEGORY = {acne: '에센스·세럼', 'dry-sensitive': '크림·로션', routine: '토너·패드', sunscreen: '선케어', makeup: '립', 'korea-shopping': '마스크팩'};

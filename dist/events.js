@@ -19,6 +19,8 @@ export function buildEvent(name, productId, props, id) {
 }
 export function track(name, productId, props, {storage = globalThis.localStorage, fetchImpl = globalThis.fetch} = {}) {
   try {
+    // Synthetic activity never enters production event/KPI storage.
+    if (props?.demo || String(props?.room ?? '').startsWith('demo-') || storage?.getItem('seoulbeauty-community-mode') === 'offline') return;
     const body = JSON.stringify(buildEvent(name, productId, props, deviceId(storage)));
     fetchImpl(SUPABASE_URL + '/rest/v1/app_events', {method: 'POST', keepalive: true, body,
       headers: {apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal'}}).catch(() => {});
