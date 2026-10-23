@@ -419,16 +419,42 @@ async function submitPost() {
   if (chat.room?.demo) return;
   keepDraftText(); const d = view.draft;
   if(d.submitting)return;
+  // A lost RPC response may mean the server created the post already.
+  // Until the server supports an idempotency key, never blindly resend an
+  // uncertain handoff post, including after refreshing this same tab.
+  const handoffStore = handoffStorage();
+  const pendingKey = d.beautyHandoffId ? 'seoulbeauty-post-pending:' + d.beautyHandoffId : null;
+  if (pendingKey) {
+    try {
+      if (handoffStore?.getItem(pendingKey)) {
+        toast(locale().startsWith('ko') ? '게시 결과를 확인할 수 없어. 내 글 목록에서 게시 여부를 확인해 줘. 초안은 보관되어 있어.' : 'Posting status is uncertain. Check your posts before trying again. Your draft is saved.');
+        return;
+      }
+      handoffStore?.setItem(pendingKey, 'pending');
+    } catch {
+      toast(locale().startsWith('ko') ? '안전하게 저장 상태를 확인할 수 없어. 초안을 복사하고 다시 시도해 줘.' : 'Cannot safely track this submission. Copy your draft and retry.');
+      return;
+    }
+  }
   d.submitting=true;const submit=$('[data-chat-action="write-submit"]');if(submit)submit.disabled=true;
   try {
     const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
+    if (pendingKey) { try { handoffStore.removeItem(pendingKey); } catch {} }
     track('post_create', null, {room: chat.room.id, kind: d.kind, item: d.item ? 1 : 0, from_chat: d.fromMessage ? 1 : 0, photos: d.photos.length, reasons: d.reasons.join(',')});
     if (d.kind === 'review' && d.saveProfile) saveFromReview(d).catch(() => {});
     if(d.beautyHandoffId){clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
     $('#post-write').close();
     if (d.fromMessage) toast(t('community.savedAsPost'));
     openTopic(chat.room, 'posts'); openPost(p.id);
-  } catch (e) { toast(t(errorKey(e.message))); }
+  } catch (e) {
+    // Known server rejections (no write committed) may be retried after correction.
+    // Timeouts, connection failures and 5xx can represent a committed write.
+    const knownRejection = /^(HTTP 400|HTTP 401|HTTP 403|HTTP 404|HTTP 409|HTTP 422|HTTP 429)\b/.test(String(e.message));
+    if (pendingKey && knownRejection) { try { handoffStore.removeItem(pendingKey); } catch {} }
+    if (pendingKey && !knownRejection) {
+      toast(locale().startsWith('ko') ? '게시 결과가 불확실해. 중복 게시를 막기 위해 다시 보내지 않았어. 내 글에서 확인해 줘. 초안은 유지돼.' : 'Posting status is uncertain. Check your posts before resubmitting; your draft is kept.');
+    } else toast(t(errorKey(e.message)));
+  }
   finally {d.submitting=false;if(submit)submit.disabled=false;}
 }
 
