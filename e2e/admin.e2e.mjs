@@ -84,7 +84,8 @@ try {
   await page.getByRole('tab',{name:'UI Library',exact:true}).click();
   const library=page.frameLocator('#sb-library-frame');
   await library.locator('.phone').first().waitFor();
-  assert.equal(await library.locator('.phone').count(),9);
+  assert.equal(await library.locator('.phone').count(),10);
+  assert.equal(await library.locator('#sb-six-step-cx .phone').count(),1); // Existing main's six-step review mock.
   await library.getByRole('button',{name:'순서대로 체험',exact:true}).click();
   await library.locator('[data-act="select"]').click();
   await library.locator('[data-act="setup"]').click();

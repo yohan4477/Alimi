@@ -2,8 +2,6 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createBeautyGameHandler,GAME_COOKIE} from '../server/beauty-game-api.mjs';
-import {legacyInvitationRedirect} from '../server/beauty-game-legacy.mjs';
-import {legacyInviteUrl,verifiedLegacyInviteUrl} from '../web/beauty-play/legacy-destination.js';
 import {resolveGameStart} from '../web/beauty-play/game-start.js';
 
 // Synthetic UUIDs only. No production invitations or private source data.
@@ -22,29 +20,15 @@ const run=async(handler,{id=oldId,reveal=false,body,headers={}}={})=>{
 };
 const redirecting=(options={})=>createBeautyGameHandler({env,rpc:async()=>{throw failure(404);},fetchImpl:async()=>{throw Error('No legacy fetch is allowed');},...options});
 
-test('historical bridge is disabled by default and requires explicit complete server configuration',()=>{
-  assert.equal(legacyInvitationRedirect({},oldId),null);
-  assert.equal(legacyInvitationRedirect({...env,BEAUTY_GAME_LEGACY_REDIRECT_ENABLED:'false'},oldId),null);
-  assert.equal(legacyInvitationRedirect({...env,BEAUTY_GAME_LEGACY_REDIRECT_ENABLED:'1'},oldId),null);
-  for(const value of [undefined,'','*',oldId+',',oldId+','+oldId,oldId+',not-a-uuid']) {
-    assert.throws(()=>legacyInvitationRedirect({...env,BEAUTY_GAME_LEGACY_INVITE_IDS:value},oldId),e=>e.status===503);
-  }
-  assert.throws(()=>legacyInvitationRedirect({...env,BEAUTY_GAME_LEGACY_INVITE_PATH:undefined},oldId),e=>e.status===503);
-  assert.equal(legacyInvitationRedirect(env,newId),null);
-});
-
-test('only exact Supabase 404 plus allowlisted non-reveal invitation gives fixed-origin navigation',async()=>{
-  let fetches=0;const calls=[];
-  const handler=redirecting({fetchImpl:async()=>{fetches++;throw Error();},rpc:async(...args)=>{calls.push(args);throw failure(404);}});
-  const response=await run(handler,{headers:{authorization:'Bearer private',cookie:`${GAME_COOKIE}=${'a'.repeat(64)}; muse_device=${play}`}});
-  assert.equal(response.statusCode,409);
-  assert.deepEqual(response.body,{error:'legacy_invite',legacyInviteUrl:`${origin}/?invite=${oldId}`});
-  assert.equal(fetches,0);assert.equal(calls.length,1);assert.equal(calls[0][0],'invite');
-  assert.equal(response.headers['cache-control'],'private, no-store');
-  assert.equal(response.headers['set-cookie'],undefined);assert.equal(response.headers.location,undefined);
-  assert(!JSON.stringify(response.body).includes('private'));
-  assert.equal((await run(handler,{id:newId})).statusCode,404);
-  assert.equal((await run(handler,{reveal:true})).statusCode,404);
+test('old invitations stay missing even with stale legacy configuration, with no fetch or navigation',async()=>{
+ let fetches=0;const calls=[];
+ const handler=redirecting({fetchImpl:async()=>{fetches++;throw Error();},rpc:async(...args)=>{calls.push(args);throw failure(404);}});
+ for(const options of [{},{id:newId},{reveal:true},{id:oldId.toUpperCase()}]){
+  const response=await run(handler,options);
+  assert.equal(response.statusCode,404);assert(!response.body.legacyInviteUrl);
+  assert.equal(response.headers.location,undefined);assert.equal(response.headers['cache-control'],'private, no-store');
+ }
+ assert.equal(fetches,0);assert.equal(calls.length,4);assert(calls.every(call=>call[0]==='invite'));
 });
 
 test('existing Supabase share always wins, even if a UUID also appears in legacy configuration',async()=>{
@@ -61,7 +45,7 @@ test('auth failures, invalid input, unavailable backend, rate limits, and disabl
   assert.equal((await run(redirecting({env:{}}))).statusCode,404);
   assert.equal((await run(redirecting(),{headers:{cookie:''}})).statusCode,401);
   assert.equal((await run(redirecting(),{id:'invalid'})).statusCode,400);
-  assert.equal((await run(redirecting({env:{...env,BEAUTY_GAME_LEGACY_INVITE_PATH:undefined}}))).statusCode,503);
+  assert.equal((await run(redirecting({env:{...env,BEAUTY_GAME_LEGACY_INVITE_PATH:undefined}}))).statusCode,404);
 });
 
 test('a legacy-linked write never redirects or writes to another database',async()=>{
@@ -69,30 +53,6 @@ test('a legacy-linked write never redirects or writes to another database',async
   const response=await run(handler,{body:{kind:'share',invite:oldId,play,character:'mona',test:false,channel:'copy'}});
   assert.equal(response.statusCode,404);assert(!response.body.legacyInviteUrl);
   assert.deepEqual(calls.map(call=>call[0]),['invite']);
-});
-
-test('destination permits only an explicitly supplied safe route under the fixed original origin',()=>{
-  assert.equal(legacyInviteUrl(oldId,'/play/'),`${origin}/play/?invite=${oldId}`);
-  for(const path of [undefined,'','//evil.invalid/','https://evil.invalid/','/../','/a/../','/%2f/','/a\\b','/?other=1','/#x']) {
-    assert.throws(()=>legacyInviteUrl(oldId,path));
-  }
-  const valid=legacyInviteUrl(oldId,'/');
-  assert.equal(verifiedLegacyInviteUrl(valid,oldId),valid);
-  for(const value of [valid+'&reveal=1',valid+'#x',valid.replace(origin,'https://evil.invalid'),valid.replace('https://','http://'),
-      valid.replace(origin,origin+':443'),valid.replace('https://','https://user@'),valid.replace(oldId,newId),valid.replace('/?','/../?')]) {
-    assert.throws(()=>verifiedLegacyInviteUrl(value,oldId));
-  }
-});
-
-test('frontend startup resolves legacy navigation using only session and invitation GETs',async()=>{
-  const calls=[];const signal=new AbortController().signal;
-  const result=await resolveGameStart({invite:oldId,play,signal,fetchImpl:async(url,init)=>{
-    calls.push({url,init});
-    return url==='/api/session'?Response.json({ok:true,accountLinkEnabled:false}):Response.json({error:'legacy_invite',legacyInviteUrl:legacyInviteUrl(oldId,'/')},{status:409});
-  }});
-  assert.deepEqual(calls.map(call=>call.url),['/api/session',`/api/invite?id=${oldId}&play=${play}`]);
-  assert(calls.every(call=>call.init.signal===signal&&!call.init.method&&!call.init.body&&!call.init.headers));
-  assert.equal(result.legacyInviteUrl,legacyInviteUrl(oldId,'/'));assert.equal(result.invitation,null);
 });
 
 test('frontend direct and new-invitation startup preserve session and snapshot contracts',async()=>{
@@ -104,8 +64,8 @@ test('frontend direct and new-invitation startup preserve session and snapshot c
 });
 
 test('frontend never treats failed lookups or untrusted redirect destinations as ready gameplay',async()=>{
-  for(const status of [401,403,404,429,503]) {
-    await assert.rejects(()=>resolveGameStart({invite:oldId,play,fetchImpl:async url=>url==='/api/session'?Response.json({ok:true}):Response.json({error:'legacy_invite',legacyInviteUrl:legacyInviteUrl(oldId,'/')},{status})}));
+  for(const status of [401,403,404,409,429,503]) {
+    await assert.rejects(()=>resolveGameStart({invite:oldId,play,fetchImpl:async url=>url==='/api/session'?Response.json({ok:true}):Response.json({error:'legacy_invite',legacyInviteUrl:`${origin}/?invite=${oldId}`},{status})}));
   }
   await assert.rejects(()=>resolveGameStart({invite:oldId,play,fetchImpl:async url=>url==='/api/session'?Response.json({ok:true}):Response.json({error:'legacy_invite',legacyInviteUrl:'https://evil.invalid/'},{status:409})}));
   let calls=0;
@@ -122,14 +82,10 @@ test('page gates all game records and early interactions until invitation resolu
   assert.match(page,/<button className=\{'product '\+\(pick===p.id\?'selected':''\)\}[^>]* disabled=\{!ready\}/);
   assert.doesNotMatch(page,/<select className="story-switch"/);
   const startup=page.slice(page.indexOf('const start=await resolveGameStart'),page.indexOf("useEffect(()=>{if(!ready"));
-  assert(startup.indexOf('if(!alive)return')<startup.indexOf('window.location.replace'));
-  assert(startup.indexOf('window.location.replace')<startup.indexOf('canWrite.current=true'));
+  assert(startup.indexOf('if(!alive)return')<startup.indexOf('canWrite.current=true'));
+  assert.doesNotMatch(page,/legacyInviteUrl|location.replace/);
+  assert.match(page,/이 초대 링크는 더 이상 사용할 수 없어요/);
+  assert.match(page,/This invite link is unavailable/);
   assert(startup.indexOf('canWrite.current=true')<startup.indexOf("event('pilot_view'"));
   assert.match(startup,/return\(\)=>\{alive=false;canWrite\.current=false;controller\.abort\(\);\}/);
-});
-
-test('uppercase legacy UUIDs normalize through both the helper and HTTP route',async()=>{
- assert.equal(legacyInvitationRedirect(env,oldId.toUpperCase()),`${origin}/?invite=${oldId}`);
- const result=await run(redirecting(),{id:oldId.toUpperCase()});
- assert.equal(result.statusCode,409);assert.equal(result.body.legacyInviteUrl,`${origin}/?invite=${oldId}`);
 });
