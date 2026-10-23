@@ -178,7 +178,7 @@ test('password-only login, protected review, invalid credentials and logout', as
   const page=await run({});assert.equal(page.statusCode,401);assert.doesNotMatch(page.body,/name="email"/);
   assert.equal((await run({method:'POST',url:'/api/admin?action=login',headers:form,body:'password=incorrect'})).statusCode,401);
   const login=await run({method:'POST',url:'/api/admin?action=login',headers:form,body:'password=test-password'});
-  assert.equal(login.statusCode,303);assert.equal(login.headers.location,'/admin#sb-plan');
+  assert.equal(login.statusCode,303);assert.equal(login.headers.location,'/admin');
   const cookie=login.headers['set-cookie'].split(';')[0];
   assert.match(login.headers['set-cookie'],/HttpOnly; Secure; SameSite=Strict/);
   const review=await run({url:'/api/admin?view=planning-review',headers:{cookie}});
@@ -229,4 +229,12 @@ test('UI library is authenticated and keeps executable preview confined to hashe
   assert.match(r.headers['content-security-policy'],/frame-ancestors 'self'/);
   assert.match(r.headers['cache-control'],/no-store/);
   for(const [,script] of r.body.matchAll(/<script>([\s\S]*?)<\/script>/g))assert.doesNotThrow(()=>new Function(script));
+});
+
+test('login return accepts only known admin tab IDs and never external URLs', async()=>{
+ const envOverrides={ADMIN_SHARED_PASSWORD:'test-password',ADMIN_SHARED_SESSION_SECRET:'test-signing-secret-with-at-least-32-characters'};
+ for(const [tab,target] of [['sb-dev','/admin#sb-dev'],['sb-dashboard','/admin#sb-dashboard'],['sb-plan','/admin#sb-plan'],['https://evil.example','/admin'],['//evil.example','/admin'],['sb-removed','/admin'],['','/admin']]){
+  const r=await request({envOverrides,method:'POST',url:'/api/admin?action=login&tab='+encodeURIComponent(tab),headers:form,body:'password=test-password',fetchImpl:()=>assert.fail('external authentication')});
+  assert.equal(r.statusCode,303);assert.equal(r.headers.location,target);assert.match(r.headers['set-cookie'],/HttpOnly; Secure; SameSite=Strict/);
+ }
 });
