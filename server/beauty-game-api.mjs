@@ -1,6 +1,7 @@
 import {createHash,randomBytes} from 'node:crypto';
 import {authRequest} from './admin-auth.js';
 import {validateCommand,aggregateAnswers,shareSnapshot,supportedCharacterIds} from './beauty-game-domain.mjs';
+import {legacyInvitationRedirect} from './beauty-game-legacy.mjs';
 
 const BASE='https://mqsnshnlfwsgabrsmqsz.supabase.co';
 const ORIGINS=new Set(['https://seoulbeauty.me','https://www.seoulbeauty.me','https://alimi-omega.vercel.app']);
@@ -111,7 +112,18 @@ export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=cre
         return send(200,aggregateAnswers(result.answers,normalized));
       }
       if(route==='invite') {
-        const result=await rpc('invite',sessionHash,normalized);
+        let result;
+        try {result=await rpc('invite',sessionHash,normalized);}
+        catch(e) {
+          // Only an exact missing share may navigate an explicitly known historical
+          // invite to its original application. Never redirect reveal, writes,
+          // unknown IDs, authentication failures, outages, or rate limits.
+          if(e?.status===404&&!normalized.reveal) {
+            const target=legacyInvitationRedirect(env,normalized.id);
+            if(target)return send(409,{error:'legacy_invite',legacyInviteUrl:target});
+          }
+          throw e;
+        }
         if(!UUID.test(result.id||'')||typeof result.character!=='string')throw error(503);
         // Explicit response projection prevents leaking private DB fields if RPC evolves.
         const output={id:result.id,character:result.character,test:Number(Boolean(result.test)),snapshot:result.snapshot};

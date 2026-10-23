@@ -4,7 +4,7 @@ import { SCENARIO_TAXONOMY_VERSION, scenarioFor, scenarioMembers } from '../web/
 const json = name => JSON.parse(readFileSync(new URL(`../web/beauty-play/${name}.json`, import.meta.url), 'utf8'));
 const scenarios = json('scenarios');
 const adviceData = json('advice-data');
-const products = [...json('product-data').products.map(p => ({...p, category:'lip', optionKind:p.id === '14621' ? 'scent' : 'shade', rankStatus:'verified'})), ...json('scenario-products')];
+const products = [...json('product-data').products.map(p => ({...p, category:p.category || 'lip', optionKind:p.optionKind || (p.id === '14621' ? 'scent' : 'shade'), rankStatus:p.rankStatus || 'family-only'})), ...json('scenario-products')];
 // Only the fields not overridden by scenarios.json are mirrored from game.ts.
 const portraits = {
   school_photo_friend:['푸른 소년','#ded8c5'],school_last_minute_friend:['피리 부는 소년','#e8dfd3'],
@@ -27,17 +27,13 @@ function text(value, max, field, optional=false) { if (optional && value === und
 function allow(input, fields) { for (const key of Object.keys(input)) if (!fields.includes(key)) invalid('field'); }
 function list(value, choices, field) { if (!Array.isArray(value) || value.length > choices.length || value.some(v => !choices.includes(v))) invalid(field); return [...new Set(value)]; }
 function characterId(id) { return one(id, characters.map(c => c.id), 'character'); }
-function eligibleFor(character) {
-  if (character.category === 'mixed') return products.filter(p => ['64960','69092','67330','39547','43287'].includes(p.id));
-  if (character.category === 'lip') return products.filter(p => ['64960','66606','106475','100982','109909'].includes(p.id));
-  return products.filter(p => p.category === character.category);
-}
+function eligibleFor(_character) { return products; }
 export const supportedCharacterIds=characters.map(c=>c.id);
 export function shareSnapshot(id) {
   characterId(id);
   const character = characters.find(c => c.id === id), advice = adviceData[id] || [];
   const ids = new Set([...eligibleFor(character).map(p => p.id), ...advice.flatMap(a => a.productIds)]);
-  return structuredClone({character,products:products.filter(p => ids.has(p.id)),advice});
+  return structuredClone({catalogPolicy:'all-products-v1',character,products:products.filter(p => ids.has(p.id)).map(p => ({id:p.id,brand:p.brand,name:p.name,image:p.image,url:p.url,category:p.category,optionKind:p.optionKind,position:p.position,...(p.matchStatus==='unconfirmed'?{matchStatus:'unconfirmed'}:{}),options:p.options.map(o => ({id:o.id,label:o.label,image:o.image}))})),advice});
 }
 /** context.snapshot is trusted server data from an authenticated invitation lookup, NEVER a body field. */
 export function validateCommand(route, input, context = {}) {
@@ -79,7 +75,9 @@ export function validateCommand(route, input, context = {}) {
   if (kind === 'share') return {...result,channel:one(input.channel,['native','copy','kakao'],'channel')};
   const advice = input.advice == null ? null : one(input.advice,adviceOptions.map(a => a.id),'advice');
   const selectedAdvice = adviceOptions.find(a => a.id === advice);
-  const pool = selectedAdvice ? snapshot.products.filter(p => selectedAdvice.productIds.includes(p.id)) : context.snapshot ? snapshot.products : eligibleFor(snapshot.character);
+  // Imported/historical snapshots without the new marker retain their advice contract.
+  const pool = context.snapshot && snapshot.catalogPolicy !== 'all-products-v1' && selectedAdvice
+    ? snapshot.products.filter(p => selectedAdvice.productIds.includes(p.id)) : snapshot.products;
   const product = one(input.product,[...pool.map(p => p.id),'unsure'],'product');
   const selectedProduct = pool.find(p => p.id === product);
   const shade = input.shade == null ? null : one(input.shade,(selectedProduct?.options || []).map(o => o.id),'shade');
