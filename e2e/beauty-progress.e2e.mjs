@@ -22,7 +22,7 @@ try {
  }
  return route.continue();
  });
- await page.goto(base+'/beauty-play/?character='+character+'&test=1');
+ await page.goto(base+'/beauty-play/?character='+character+'&test=1&lang=ko');
  await page.locator('.advice-choices button').first().click();
  await page.locator('.staged-dock .primary').click();
  await page.locator('.staged-products .product').first().click();

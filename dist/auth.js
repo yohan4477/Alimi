@@ -7,9 +7,9 @@ const b64=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(
 export class GoogleAuth {
   constructor({fetchImpl=(...a)=>fetch(...a),storage=globalThis.localStorage,sessionStorage=globalThis.sessionStorage,location=globalThis.location}={}){Object.assign(this,{fetch:fetchImpl,storage,sessionStorage,location,session:null,user:null,pending:null,epoch:0});}
   async request(path,{method='GET',token,body}={}){
-    const r=await this.fetch(`${SUPABASE_URL}/auth/v1/${path}`,{method,headers:{apikey:SUPABASE_PUBLISHABLE_KEY,...(token?{Authorization:`Bearer ${token}`} : {}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});
+    let r;try{r=await this.fetch(`${SUPABASE_URL}/auth/v1/${path}`,{method,headers:{apikey:SUPABASE_PUBLISHABLE_KEY,...(token?{Authorization:`Bearer ${token}`} : {}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});}catch{throw Error(t('account.failed'));}
     const data=await r.json().catch(()=>({}));
-    if(!r.ok){const detail=data.msg||data.message||data.error_description||data.error||'';const e=new Error(/provider.*(enabled|found)|unsupported provider/i.test(detail)?t('account.providerDisabled'):detail||t('account.failed'));e.status=r.status;throw e;}return data;
+    if(!r.ok){const detail=data.msg||data.message||data.error_description||data.error||'';const e=new Error(/provider.*(enabled|found)|unsupported provider/i.test(detail)?t('account.providerDisabled'):t('account.failed'));e.status=r.status;throw e;}return data;
   }
   startGoogleLogin(){return this.startLogin('google');}
   async startLogin(provider){

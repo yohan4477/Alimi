@@ -40,6 +40,40 @@ async function reachable(locator,label) {
  assert.deepEqual(geometry.clipped,[],`${label}: control clipped by an ancestor`);
  assert.equal(geometry.hit,true,`${label}: control is covered or not hit-testable`);
 }
+async function reachableCatalog(page,products,label) {
+ const expected=new Set(products.map(product=>product.id)),seen=new Set();
+ const pages=Math.ceil(expected.size/10);
+ const brands=page.locator('.brand-track button');
+ await reachable(brands.first(),label+' all brands');
+ await reachable(brands.last(),label+' last brand filter');
+ await reachable(brands.first(),label+' return to all brands');
+ const previous=page.locator('.catalog-pages button').first(),next=page.locator('.catalog-pages button').last();
+ const waitForPage=number=>page.waitForFunction(value=>document.querySelector('.catalog-pages>span')?.textContent.trim().startsWith(`${value} /`),number);
+ for(let index=0;index<pages;index++){
+  await waitForPage(index+1);
+  await reachable(previous,label+' previous page');
+  await reachable(next,label+' next page');
+  assert.equal(await previous.isDisabled(),index===0,label+' previous page boundary');
+  assert.equal(await next.isDisabled(),index===pages-1,label+' next page boundary');
+  const cards=page.locator('.staged-products .product');
+  assert.equal(await cards.count(),Math.min(10,expected.size-index*10),label+' page size');
+  for(const card of await cards.all()){
+   const id=await card.getAttribute('data-product-id');
+   assert.ok(expected.has(id)&&!seen.has(id),label+' unique catalog product '+id);
+   // This checks the actual button geometry/hit target, not just rendered names.
+   // Pagination must not consume the carousel's height on the shortest viewport.
+   await reachable(card,label+' page '+(index+1)+' product '+id);
+   if(products.find(product=>product.id===id)?.matchStatus==='unconfirmed')await reachable(card.locator('.product-copy small').last(),label+' product '+id+' unconfirmed disclosure');
+   seen.add(id);
+  }
+  if(index<pages-1){await reachable(next,label+' next page after swiping');await next.click();}
+ }
+ assert.deepEqual(seen,expected,label+' complete catalog remains reachable');
+ for(let index=pages-1;index>0;index--){
+  await reachable(previous,label+' previous page after swiping');await previous.click();await waitForPage(index);
+ }
+ await noHorizontalOverflow(page,label+' after catalog navigation');
+}
 async function clickEvent(locator,events,name,label) {
  const count=events.filter(e=>e.name===name).length+1;
  await reachable(locator,label);await locator.click();await waitForEvent(events,name,count);
@@ -94,6 +128,9 @@ try {
    assert.equal(await page.locator('.advice-choices').count(),0,'legacy invitation must genuinely start at product selection');
   }
   await noHorizontalOverflow(page,label+' product stage');
+  await reachableCatalog(page,legacySnapshot.products,label);
+  assertStarts(events,path==='advice-first'?1:0,label+' browsing is not a choice');
+  assert.equal(events.filter(event=>event.name==='product_select').length,0,label+' pagination does not select products');
   await clickEvent(page.locator('.staged-products .product').first(),events,'product_select',label+' first product');
   await waitForEvent(events,'game_start',1);
   await clickEvent(page.locator('.staged-products .product').nth(1),events,'product_select',label+' changed product');
@@ -107,7 +144,7 @@ try {
   assert.equal(await page.locator('.account-link').count(),0);
   assert.deepEqual(unexpectedWrites,[],label+' must not write answers/shares/reflections');
   assert.deepEqual(errors,[],label+' runtime errors');
-  console.log(`ok - ${label}: reachable controls, no horizontal overflow, no impression starts, unique first-choice telemetry`);
+  console.log(`ok - ${label}: reachable full catalog and controls, no horizontal overflow, no impression starts, unique first-choice telemetry`);
   await context.close();
  }
  console.log('First-choice matrix passed: 3 mobile viewports × 2 languages × 2 entry paths; fixture-only API. Physical device/browser QA remains separate.');

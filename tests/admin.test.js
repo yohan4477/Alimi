@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Readable} from 'node:stream';
 import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
 import {createAdminHandler} from '../api/admin.js';
 import {SESSION_COOKIE, isAdmin, adminOrigin, readToken} from '../server/admin-auth.js';
 
@@ -113,6 +114,9 @@ test('no dashboard content resides in public assets; routing includes server-onl
   const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');assert.match(html,/미측정/);
   assert.match(html,/K-뷰티에 관심 있고/);assert.match(html,/미국 18~24세/);
   assert.match(html,/승인된 제휴 수수료 매출/);assert.match(html,/방문자 1,000명당 승인 제휴 수수료/);
+  const revenue=html.match(/<section[^>]+id="sb-revenue"[\s\S]*?<\/section>/)[0];
+  assert.match(revenue,/승인 주문/);assert.match(revenue,/확정 수수료/);
+  assert.match(revenue,/클릭 수를 매출로 표시하지 않습니다/);
 });
 
 test('planning review is authenticated and keeps original interactive UI isolated', async () => {
@@ -198,20 +202,96 @@ test('password sessions expire, rotate and fail closed without signing secret', 
   assert.equal(unavailable.statusCode,503);
 });
 
-test('developer dashboard is protected and differentiates specs, implementation and release',async()=>{
+test('status dashboard is protected and separates latest implementation state from history',async()=>{
   const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
   assert.match(html,/id="sb-dev-tab"/);assert.match(html,/id="sb-dev" role="tabpanel"/);
-  assert.match(html,/data-state-panel="current"/);assert.match(html,/data-state-panel="history"[^>]*hidden/);
-  for(const item of ['최신 현황','변경 이력','운영 DB 통합','검증 필요','UI만 완료','API 미연결'])assert.ok(html.includes(item),item);
-  assert.doesNotMatch(html,/data-dev-item=/);
+  const current=html.match(/<section data-state-panel="current"([^>]*)>([\s\S]*?)<\/section>/);
+  const history=html.match(/<section data-state-panel="history"([^>]*)>([\s\S]*?)<\/section>/);
+  assert.ok(current,'latest status section exists');assert.ok(history,'change history section exists');
+  for(const [section,id] of [[current,'admin-current-title'],[history,'admin-history-title']]){
+    assert.ok(section[1].includes(`aria-labelledby="${id}"`));
+    assert.ok(section[2].includes(`id="${id}"`));
+  }
+  assert.doesNotMatch(current[1],/\bhidden\b/);assert.match(history[1],/\bhidden\b/);
+  assert.match(html,/<button[^>]*data-state-view="current"[^>]*aria-pressed="true"/);
+  assert.match(html,/<button[^>]*data-state-view="history"[^>]*aria-pressed="false"/);
+  const states=[...current[2].matchAll(/<tr><th scope="row">([^<]+)<\/th><td>([^<]+)<\/td>/g)]
+    .map(([,item,state])=>[item,state]);
+  // One current row per capability; implemented UI must not imply live data or device QA.
+  assert.deepEqual(states,[
+    ['관리자 보드 UI','구현'],['회원 관리','UI만 완료'],['커뮤니티 관리','UI만 완료'],
+    ['제품 관리','UI만 완료'],['게임·투표 분석','데이터 연결 필요'],['제휴 수익','미연결'],
+    ['운영 DB 통합','검증 필요'],['모바일 QA','미검증'],
+  ]);
+  assert.equal(new Set(states.map(([item])=>item)).size,states.length);
+  assert.match(current[2],/수동 스냅샷/);assert.match(current[2],/운영 기능·실측 수치와 구분/);
+  assert.match(current[2],/승인 주문·수수료 데이터 미연결/);
+  assert.match(history[2],/변경 이력은 최신 현황에 중복 추가하지 않습니다/);
+  const evidence=[...history[2].matchAll(/<a href="https:\/\/github\.com\/yohan4477\/Alimi\/pull\/(\d+)"[^>]*>/g)];
+  assert.deepEqual(evidence.map(([,number])=>number),['191','190','186','185','184','183','182','181']);
+  assert.equal(new Set(evidence.map(([,number])=>number)).size,evidence.length);
+  for(const [link] of evidence)assert.match(link,/rel="noopener noreferrer"/);
+  assert.doesNotMatch(current[2],/github\.com\/yohan4477\/Alimi\/pull\//);
   const js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');
-  assert.match(js,/data-state-view/);assert.match(js,/section.hidden=section.dataset.statePanel!==selected/);
   assert.doesNotMatch(js,/seoulbeauty_admin|ADMIN_SHARED_PASSWORD|SECRET_KEY/);
-  const noAuth=await request({url:'/admin',readPage:()=>assert.fail('private developer dashboard was read')});
+  assert.doesNotThrow(()=>new Function(js));
+  const noAuth=await request({url:'/admin',readPage:()=>assert.fail('private status dashboard was read')});
   assert.equal(noAuth.statusCode,401);
+  assert.doesNotMatch(noAuth.body,/data-state-panel|admin-current-title|admin-history-title/);
+  const denied=await request({headers:cookie,fetchImpl:async()=>response({...admin,app_metadata:{}}),readPage:()=>assert.fail('private status dashboard was read')});
+  assert.equal(denied.statusCode,403);
   const readAllowed=await request({headers:cookie,readPage:()=>html});
-  assert.equal(readAllowed.statusCode,200);assert.match(readAllowed.body,/id="sb-dev"/);
+  assert.equal(readAllowed.statusCode,200);
+  assert.match(readAllowed.body,/data-state-panel="current"/);assert.match(readAllowed.body,/data-state-panel="history"/);
+  assert.match(readAllowed.headers['cache-control'],/no-store/);
 });
+
+test('status-only markup initializes deep links, view switching and logout without legacy cards',async()=>{
+  const js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');
+  const element=(id='',attributes={})=>({
+    id,hidden:false,dataset:{},attributes:{...attributes},listeners:{},
+    classList:{toggle(){}},querySelector:()=>null,querySelectorAll:()=>[],append(){},prepend(){},
+    setAttribute(name,value){this.attributes[name]=value},getAttribute(name){return this.attributes[name]??null},
+    addEventListener(type,listener){this.listeners[type]=listener},
+  });
+  const root=element('sb-management'),dashboard=element('sb-dashboard'),status=element('sb-dev');
+  const dashboardTab=element('sb-dashboard-tab',{'aria-controls':'sb-dashboard'});
+  const statusTab=element('sb-dev-tab',{'aria-controls':'sb-dev'});
+  const current=element(),historyPanel=element(),currentButton=element(),historyButton=element();
+  current.dataset.statePanel='current';historyPanel.dataset.statePanel='history';historyPanel.hidden=true;
+  currentButton.dataset.stateView='current';historyButton.dataset.stateView='history';
+  const logout=element('admin-logout');
+  const elements=new Map([root,dashboard,status,dashboardTab,statusTab,logout].map(item=>[item.id,item]));
+  root.querySelectorAll=selector=>({
+    '.sb-panel':[dashboard,status],'[role="tab"]':[dashboardTab,statusTab],
+    '[data-state-view]':[currentButton,historyButton],'[data-state-panel]':[current,historyPanel],
+  })[selector]??[];
+  // In #200 these elements no longer exist. Old initialization must not dereference them.
+  assert.equal(elements.has('sb-dev-result-count'),false);assert.equal(elements.has('sb-dev-empty'),false);
+  const saved=new Map(),windowListeners={},locations=[];
+  let reloads=0;
+  assert.doesNotThrow(()=>runInNewContext(js,{
+    document:{getElementById:id=>elements.get(id)??null,createElement:()=>element(),querySelector:()=>null,querySelectorAll:()=>[]},
+    location:{hash:'#sb-dev',reload(){reloads++}},history:{replaceState(_state,_unused,url){locations.push(url)}},
+    sessionStorage:{getItem:key=>saved.get(key)??null,setItem:(key,value)=>saved.set(key,value),removeItem:key=>saved.delete(key)},
+    addEventListener:(type,listener)=>{windowListeners[type]=listener},
+  }));
+  assert.equal(statusTab.getAttribute('aria-selected'),'true');assert.equal(status.hidden,false);
+  assert.equal(dashboardTab.getAttribute('aria-selected'),'false');assert.equal(dashboard.hidden,true);
+  assert.equal(saved.get('sb-admin-tab'),'sb-dev-tab');assert.deepEqual(locations,['#sb-dev']);
+  historyButton.listeners.click();
+  assert.equal(current.hidden,true);assert.equal(historyPanel.hidden,false);
+  assert.equal(historyButton.getAttribute('aria-pressed'),'true');assert.equal(currentButton.getAttribute('aria-pressed'),'false');
+  currentButton.listeners.click();
+  assert.equal(current.hidden,false);assert.equal(historyPanel.hidden,true);
+  assert.equal(currentButton.getAttribute('aria-pressed'),'true');assert.equal(historyButton.getAttribute('aria-pressed'),'false');
+  assert.equal(typeof logout.listeners.submit,'function');logout.listeners.submit();
+  assert.equal(root.hidden,true);assert.equal(saved.has('sb-admin-tab'),false);
+  root.hidden=false;windowListeners.pagehide();assert.equal(root.hidden,true);
+  windowListeners.pageshow({persisted:false});assert.equal(reloads,0);
+  windowListeners.pageshow({persisted:true});assert.equal(reloads,1);
+});
+
 
 
 test('production alias login accepts matching host, rejects cross-site and arbitrary hosts', async () => {
@@ -229,4 +309,11 @@ test('UI library is authenticated and keeps executable preview confined to hashe
   assert.match(r.headers['content-security-policy'],/frame-ancestors 'self'/);
   assert.match(r.headers['cache-control'],/no-store/);
   for(const [,script] of r.body.matchAll(/<script>([\s\S]*?)<\/script>/g))assert.doesNotThrow(()=>new Function(script));
+});
+
+test('Korean admin shell uses Korean console and library labels',async()=>{
+ const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
+ assert.match(html,/<html lang="ko">/);
+ assert.match(html,/관리자 콘솔/);assert.match(html,/UI 라이브러리/);
+ assert.doesNotMatch(html,/ADMIN CONSOLE|UI Library/);
 });

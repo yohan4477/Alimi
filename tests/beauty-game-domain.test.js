@@ -16,7 +16,7 @@ test('answer normalizes only allowed data, no client identity',()=>{
   invalid(()=>validateCommand('record',{...answer,invite:'attacker'}));
 });
 test('answer validates character, advice-product pairing, product option and reasons',()=>{
-  for(const patch of [{character:'nope'},{product:'69092'},{advice:'unknown'},{shade:'69092'},{reasons:['user@example.org']},{reasons:'not array'},{note:'x'.repeat(161)}]) invalid(()=>validateCommand('record',{...answer,...patch}));
+  for(const patch of [{character:'nope'},{product:'missing-product'},{advice:'unknown'},{shade:'69092'},{reasons:['user@example.org']},{reasons:'not array'},{note:'x'.repeat(161)}]) invalid(()=>validateCommand('record',{...answer,...patch}));
   assert.equal(JSON.parse(validateCommand('record',{...answer,reasons:[]}).reason).reasons.length,0);
   assert.deepEqual(JSON.parse(validateCommand('record',{...answer,reasons:[...answer.reasons,...answer.reasons]}).reason).reasons,answer.reasons);
   assert.equal(validateCommand('record',{...answer,product:'unsure',shade:null}).product,'unsure');
@@ -105,4 +105,12 @@ test('aggregation accepts normalized stats options but independently re-derives 
   const options=validateCommand('stats',{character:'mona',scope:'group'});
   assert.equal(aggregateAnswers([row(),row('madame'),row('venus')],options).votes[0].n,2);
   assert.equal(aggregateAnswers([row('venus')],{...options,characters:['venus']}).votes.length,0);
+});
+
+test('cross-scenario owned product can be saved and is preserved in invitation snapshot',()=>{
+ const snapshot=shareSnapshot('mona');const p=snapshot.products.find(p=>p.id==='69092');assert(p);
+ const command={...answer,product:p.id,shade:p.options[0].id};
+ assert.equal(validateCommand('record',command).product,p.id);
+ assert.equal(validateCommand('record',command,{snapshot}).product,p.id);
+ invalid(()=>validateCommand('record',{...command,shade:'64960'}));
 });
