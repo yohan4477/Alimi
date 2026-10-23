@@ -9,25 +9,10 @@
       "kind": "topic",
       "tag": "makeup",
       "concerns": [],
-      "members": 6,
-      "messages_24h": 0,
-      "sort": 100,
-      "last_message_at": "2026-10-17T20:14:00+09:00",
-      "demo": true
-    },
-    {
-      "id": "demo-cx-t02",
-      "title_ko": "쿠션 두 개 중 뭐가 야외 사진에서 덜 뜰까요?",
-      "title_en": "쿠션 두 개 중 뭐가 야외 사진에서 덜 뜰까요?",
-      "intro_ko": "토요일 낮에 야외 졸업사진을 찍어요. T존은 유분이 올라오고 볼은 쉽게 마르는데, A 쿠션은 처음에 예쁘지만 오후에 코 옆이 갈라지고 B 쿠션은 덜 무너지지만 너무 매트해 보여요. 사진 찍기 3시간 전에 화장한다고 할 때 어떤 쪽이 나을까요?",
-      "intro_en": "Synthetic conversation for UI testing",
-      "kind": "topic",
-      "tag": "talk",
-      "concerns": [],
       "members": 5,
       "messages_24h": 0,
-      "sort": 101,
-      "last_message_at": "2026-10-18T03:40:00+09:00",
+      "sort": 100,
+      "last_message_at": "2026-10-17T19:40:00+09:00",
       "demo": true
     },
     {
@@ -39,7 +24,7 @@
       "kind": "topic",
       "tag": "skin",
       "concerns": [],
-      "members": 4,
+      "members": 3,
       "messages_24h": 0,
       "sort": 102,
       "last_message_at": "2026-10-19T12:10:00+09:00",
@@ -106,21 +91,6 @@
       "demo": true
     },
     {
-      "id": "demo-cx-t08",
-      "title_ko": "이 립 이름 너무 긴데 검색이 안 돼요",
-      "title_en": "이 립 이름 너무 긴데 검색이 안 돼요",
-      "intro_ko": "제품명이 '글로시 워터 벨벳 하이드레이팅 립 컬러 리미티드 에디션 03 더스티 피치 로즈'처럼 길어요. 앞부분만 치면 비슷한 게 너무 많이 나오는데 색상 호수까지 정확하게 찾을 방법 없나요?",
-      "intro_en": "Synthetic conversation for UI testing",
-      "kind": "topic",
-      "tag": "talk",
-      "concerns": [],
-      "members": 2,
-      "messages_24h": 0,
-      "sort": 107,
-      "last_message_at": "2026-10-18T09:17:00+09:00",
-      "demo": true
-    },
-    {
       "id": "demo-cx-t09",
       "title_ko": "여드름 흔적 가리기: 컨실러 vs 쿠션 vs 컬러 코렉터",
       "title_en": "여드름 흔적 가리기: 컨실러 vs 쿠션 vs 컬러 코렉터",
@@ -129,7 +99,7 @@
       "kind": "topic",
       "tag": "talk",
       "concerns": [],
-      "members": 5,
+      "members": 4,
       "messages_24h": 0,
       "sort": 108,
       "last_message_at": "2026-10-20T15:36:00+09:00",
@@ -144,7 +114,7 @@
       "kind": "topic",
       "tag": "makeup",
       "concerns": [],
-      "members": 5,
+      "members": 4,
       "messages_24h": 0,
       "sort": 109,
       "last_message_at": "2026-10-20T22:10:00+09:00",
@@ -174,10 +144,10 @@
       "kind": "topic",
       "tag": "talk",
       "concerns": [],
-      "members": 5,
+      "members": 4,
       "messages_24h": 0,
       "sort": 111,
-      "last_message_at": "2026-10-21T12:23:00+09:00",
+      "last_message_at": "2026-10-21T12:10:00+09:00",
       "demo": true
     },
     {
@@ -189,25 +159,10 @@
       "kind": "topic",
       "tag": "talk",
       "concerns": [],
-      "members": 4,
+      "members": 3,
       "messages_24h": 0,
       "sort": 112,
-      "last_message_at": "2026-10-21T18:31:00+09:00",
-      "demo": true
-    },
-    {
-      "id": "demo-cx-t14",
-      "title_ko": "헤어에센스·오일·리브인 트리트먼트 셋 다 필요?",
-      "title_en": "헤어에센스·오일·리브인 트리트먼트 셋 다 필요?",
-      "intro_ko": "탈색모인데 머리 끝이 너무 푸석해요. 샤워 후 리브인, 드라이 전 에센스, 마무리 오일을 다 쓰니까 가끔 떡져 보여요. 지금은 어깨 아래 길이고 머리숱은 많은 편이에요.",
-      "intro_en": "Synthetic conversation for UI testing",
-      "kind": "topic",
-      "tag": "talk",
-      "concerns": [],
-      "members": 4,
-      "messages_24h": 0,
-      "sort": 113,
-      "last_message_at": "2026-10-22T02:23:00+09:00",
+      "last_message_at": "2026-10-20T18:05:00+09:00",
       "demo": true
     },
     {
@@ -219,7 +174,7 @@
       "kind": "topic",
       "tag": "makeup",
       "concerns": [],
-      "members": 4,
+      "members": 3,
       "messages_24h": 0,
       "sort": 114,
       "last_message_at": "2026-10-22T08:57:00+09:00",
@@ -234,7 +189,7 @@
       "kind": "topic",
       "tag": "talk",
       "concerns": [],
-      "members": 4,
+      "members": 3,
       "messages_24h": 0,
       "sort": 115,
       "last_message_at": "2026-10-22T15:57:00+09:00",
@@ -304,30 +259,6 @@
         "demo": true
       },
       {
-        "id": 980005,
-        "room_id": "demo-cx-t01",
-        "nickname": "수아",
-        "author_tag": "synthetic-u03",
-        "body": "여기 갑자기 들어왔는데 소개팅 립 고르는 방 맞나요? 쿨톤 추천만 모으는 건지 궁금해요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-15T18:39:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980006,
-        "room_id": "demo-cx-t01",
-        "nickname": "민지",
-        "author_tag": "synthetic-u01",
-        "body": "맞아요 ㅋㅋ 제가 오늘 바를 립 고민 중이고 피부톤 상관없이 경험 듣고 있어요!",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980005,
-        "created_at": "2026-10-15T18:42:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980007,
         "room_id": "demo-cx-t01",
         "nickname": "수아",
@@ -335,7 +266,7 @@
         "body": "그럼 지속력도 중요하겠네요. 밥 먹으면 없어지는 촉촉한 립은 어떻게 해요?",
         "likes": 0,
         "item": null,
-        "reply_to": 980006,
+        "reply_to": null,
         "created_at": "2026-10-15T18:47:00+09:00",
         "demo": true
       },
@@ -376,18 +307,6 @@
         "demo": true
       },
       {
-        "id": 980011,
-        "room_id": "demo-cx-t01",
-        "nickname": "유진",
-        "author_tag": "synthetic-u08",
-        "body": "사진 없는데도 댓글 읽으니까 상황이 그려져요ㅋㅋ 잘 다녀오세요!",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980010,
-        "created_at": "2026-10-15T19:12:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980012,
         "room_id": "demo-cx-t01",
         "nickname": "민지",
@@ -397,164 +316,6 @@
         "item": null,
         "reply_to": 980010,
         "created_at": "2026-10-17T19:40:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980013,
-        "room_id": "demo-cx-t01",
-        "nickname": "수아",
-        "author_tag": "synthetic-u03",
-        "body": "후기까지 와서 남겨 주는 거 좋다 ㅋㅋ 저도 이번 주말에 비슷하게 해 볼게요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980012,
-        "created_at": "2026-10-17T20:14:00+09:00",
-        "demo": true
-      }
-    ],
-    "demo-cx-t02": [
-      {
-        "id": 980014,
-        "room_id": "demo-cx-t02",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "토요일 낮에 야외 졸업사진을 찍어요. T존은 유분이 올라오고 볼은 쉽게 마르는데, A 쿠션은 처음에 예쁘지만 오후에 코 옆이 갈라지고 B 쿠션은 덜 무너지지만 너무 매트해 보여요. 사진 찍기 3시간 전에 화장한다고 할 때 어떤 쪽이 나을까요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-16T03:00:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980015,
-        "room_id": "demo-cx-t02",
-        "nickname": "서연",
-        "author_tag": "synthetic-u07",
-        "body": "저는 비슷한 피부인데 촬영 날은 지속력 우선이라 B에 볼만 미스트 아주 조금 썼어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980014,
-        "created_at": "2026-10-16T03:08:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980016,
-        "room_id": "demo-cx-t02",
-        "nickname": "나연",
-        "author_tag": "synthetic-u06",
-        "body": "볼이 건조하면 B는 사진에서 각질이 더 잡히지 않아요? 저는 오히려 A 얇게 두드리고 중간에 기름종이 썼어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980014,
-        "created_at": "2026-10-16T03:20:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980017,
-        "room_id": "demo-cx-t02",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "이게 고민인 게 카메라 플래시에서도 다르게 보일까요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980016,
-        "created_at": "2026-10-16T03:26:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980018,
-        "room_id": "demo-cx-t02",
-        "nickname": "유진",
-        "author_tag": "synthetic-u08",
-        "body": "자연광인지 플래시인지부터 확인해 보세요. 둘 다 턱 한쪽씩 발라서 휴대폰 후면 카메라로 3시간 뒤 찍는 게 제일 확실했어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980017,
-        "created_at": "2026-10-16T03:36:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980019,
-        "room_id": "demo-cx-t02",
-        "nickname": "다은",
-        "author_tag": "synthetic-u09",
-        "body": "아 이 방 A/B가 브랜드 이름인가요? 저는 검색으로 들어왔는데 어떤 쿠션인지 모르겠어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-16T03:49:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980020,
-        "room_id": "demo-cx-t02",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "브랜드는 아직 가렸어요. 제품 홍보처럼 보일까봐요. A는 촉촉한 글로우 타입, B는 세미매트 타입이에요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980019,
-        "created_at": "2026-10-16T03:55:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980021,
-        "room_id": "demo-cx-t02",
-        "nickname": "다은",
-        "author_tag": "synthetic-u09",
-        "body": "아하. 그럼 비교 사진이나 정확한 제품명도 접혀서 볼 수 있으면 좋겠어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980020,
-        "created_at": "2026-10-16T03:59:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980022,
-        "room_id": "demo-cx-t02",
-        "nickname": "서연",
-        "author_tag": "synthetic-u07",
-        "body": "저도 동의해요. 사실 제품명 모르면 저랑 똑같은 제품인지 판단이 안 돼요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980021,
-        "created_at": "2026-10-16T04:04:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980023,
-        "room_id": "demo-cx-t02",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "지금 시험 발라 봤는데 3시간 후 A는 코 옆 끼임, B는 볼 들뜸이 보여요. 일단 B를 볼에 아주 얇게 해 보려고요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980021,
-        "created_at": "2026-10-16T06:40:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980024,
-        "room_id": "demo-cx-t02",
-        "nickname": "나연",
-        "author_tag": "synthetic-u06",
-        "body": "B를 눈 아래에는 여러 번 올리지 마세요. 사진 확대하면 거기가 특히 두꺼워 보여요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980023,
-        "created_at": "2026-10-16T07:10:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980025,
-        "room_id": "demo-cx-t02",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "촬영 후 업데이트: B를 얇게 바르고 건조한 부분에만 베이스를 덜었더니 가까운 사진에서도 크게 들뜨지 않았어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980024,
-        "created_at": "2026-10-18T03:40:00+09:00",
         "demo": true
       }
     ],
@@ -605,42 +366,6 @@
         "item": null,
         "reply_to": 980027,
         "created_at": "2026-10-16T12:29:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980030,
-        "room_id": "demo-cx-t03",
-        "nickname": "예린",
-        "author_tag": "synthetic-u10",
-        "body": "검색하다 왔어요. 여기는 제품 추천방이에요, 아니면 루틴 얘기하는 방이에요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-16T12:46:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980031,
-        "room_id": "demo-cx-t03",
-        "nickname": "채원",
-        "author_tag": "synthetic-u04",
-        "body": "지금은 루틴 얘기 쪽이에요. 제품 추천보다 민감할 때 어떤 순서로 쓰는지 경험 공유하는 중!",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980030,
-        "created_at": "2026-10-16T12:52:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980032,
-        "room_id": "demo-cx-t03",
-        "nickname": "예린",
-        "author_tag": "synthetic-u10",
-        "body": "오 고마워요. 그럼 저도 저녁 세안 뒤 크림 하나만 써 본 경험 남겨 볼게요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980031,
-        "created_at": "2026-10-16T12:58:00+09:00",
         "demo": true
       },
       {
@@ -796,44 +521,6 @@
         "demo": true
       }
     ],
-    "demo-cx-t08": [
-      {
-        "id": 980045,
-        "room_id": "demo-cx-t08",
-        "nickname": "세아",
-        "author_tag": "synthetic-u11",
-        "body": "제품명이 '글로시 워터 벨벳 하이드레이팅 립 컬러 리미티드 에디션 03 더스티 피치 로즈'처럼 길어요. 앞부분만 치면 비슷한 게 너무 많이 나오는데 색상 호수까지 정확하게 찾을 방법 없나요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-18T09:00:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980046,
-        "room_id": "demo-cx-t08",
-        "nickname": "민지",
-        "author_tag": "synthetic-u01",
-        "body": "저는 호수부터 검색해요. 그런데 03만 치면 다른 브랜드도 나와서 브랜드 필터 있으면 좋겠어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980045,
-        "created_at": "2026-10-18T09:11:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980047,
-        "room_id": "demo-cx-t08",
-        "nickname": "세아",
-        "author_tag": "synthetic-u11",
-        "body": "맞아요. 긴 이름은 제목에서 다 잘리고 뒤에 있는 호수가 안 보여요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980046,
-        "created_at": "2026-10-18T09:17:00+09:00",
-        "demo": true
-      }
-    ],
     "demo-cx-t09": [
       {
         "id": 980048,
@@ -896,30 +583,6 @@
         "demo": true
       },
       {
-        "id": 980053,
-        "room_id": "demo-cx-t09",
-        "nickname": "다은",
-        "author_tag": "synthetic-u09",
-        "body": "뒤늦게 들어왔는데 붉은 자국 이야기인가요, 현재 올라온 트러블 이야기인가요? 둘은 다르게 접근해야 할 것 같아서요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-19T14:18:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980054,
-        "room_id": "demo-cx-t09",
-        "nickname": "수아",
-        "author_tag": "synthetic-u03",
-        "body": "둘 다요. 그래서 오히려 커버가 어려웠던 것 같아요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980053,
-        "created_at": "2026-10-19T14:31:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980055,
         "room_id": "demo-cx-t09",
         "nickname": "채원",
@@ -927,7 +590,7 @@
         "body": "예민하고 아픈 부위는 화장품으로 계속 덮다가 자극되기도 해서 조심해요. 저는 그런 날에는 무리해서 커버하지 않아요.",
         "likes": 0,
         "item": null,
-        "reply_to": 980054,
+        "reply_to": null,
         "created_at": "2026-10-19T14:44:00+09:00",
         "demo": true
       },
@@ -1042,30 +705,6 @@
         "demo": true
       },
       {
-        "id": 980065,
-        "room_id": "demo-cx-t10",
-        "nickname": "유진",
-        "author_tag": "synthetic-u08",
-        "body": "이 방 인기글에서 보고 왔는데 브랜드별 비교도 있나요? 제목에는 종류만 있어서요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-19T21:18:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980066,
-        "room_id": "demo-cx-t10",
-        "nickname": "서연",
-        "author_tag": "synthetic-u07",
-        "body": "아직 제품명은 안 정했어요. 실제로 쓴 사람들 얘기 듣고 종류부터 고르려고요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980065,
-        "created_at": "2026-10-19T21:31:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980067,
         "room_id": "demo-cx-t10",
         "nickname": "민지",
@@ -1164,30 +803,6 @@
         "demo": true
       },
       {
-        "id": 980075,
-        "room_id": "demo-cx-t11",
-        "nickname": "나연",
-        "author_tag": "synthetic-u06",
-        "body": "여기 선스틱 브랜드 추천하는 방이에요? 우연히 들어왔어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-20T04:18:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980076,
-        "room_id": "demo-cx-t11",
-        "nickname": "유진",
-        "author_tag": "synthetic-u08",
-        "body": "아니요 ㅋㅋ 덧바르기 방식 이야기 중이에요. 브랜드 추천도 좋지만 사용 상황도 알려 주세요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980075,
-        "created_at": "2026-10-20T04:31:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980077,
         "room_id": "demo-cx-t11",
         "nickname": "나연",
@@ -1195,7 +810,7 @@
         "body": "그러면 저는 야외에서 땀이 많아서 수건으로 닦은 후 로션형을 다시 발랐어요.",
         "likes": 0,
         "item": null,
-        "reply_to": 980076,
+        "reply_to": null,
         "created_at": "2026-10-20T04:44:00+09:00",
         "demo": true
       },
@@ -1286,30 +901,6 @@
         "demo": true
       },
       {
-        "id": 980085,
-        "room_id": "demo-cx-t12",
-        "nickname": "다은",
-        "author_tag": "synthetic-u09",
-        "body": "여기 사진 세 장 중 첫 번째가 크림인가요? 사진 순서가 잘 안 보여요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-20T11:18:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980086,
-        "room_id": "demo-cx-t12",
-        "nickname": "나연",
-        "author_tag": "synthetic-u06",
-        "body": "아직 사진 첨부 전이에요. 비교 사진이 있으면 한 번에 보여드릴게요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980085,
-        "created_at": "2026-10-20T11:31:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980087,
         "room_id": "demo-cx-t12",
         "nickname": "하린",
@@ -1343,18 +934,6 @@
         "item": null,
         "reply_to": 980088,
         "created_at": "2026-10-21T12:10:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980090,
-        "room_id": "demo-cx-t12",
-        "nickname": "하린",
-        "author_tag": "synthetic-u02",
-        "body": "이런 비교 후기 진짜 도움 돼요. 같은 조명 사진도 나중에 있으면 좋겠어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980089,
-        "created_at": "2026-10-21T12:23:00+09:00",
         "demo": true
       }
     ],
@@ -1417,164 +996,6 @@
         "item": null,
         "reply_to": 980094,
         "created_at": "2026-10-20T18:05:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980096,
-        "room_id": "demo-cx-t13",
-        "nickname": "예린",
-        "author_tag": "synthetic-u10",
-        "body": "검색 타고 왔는데 이 방은 향 추천보다 사용 예절 얘기인가요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-21T18:18:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980097,
-        "room_id": "demo-cx-t13",
-        "nickname": "하린",
-        "author_tag": "synthetic-u02",
-        "body": "네! 강의실에서 얼마나 조심해야 하나 묻는 중이에요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980096,
-        "created_at": "2026-10-21T18:31:00+09:00",
-        "demo": true
-      }
-    ],
-    "demo-cx-t14": [
-      {
-        "id": 980098,
-        "room_id": "demo-cx-t14",
-        "nickname": "세아",
-        "author_tag": "synthetic-u11",
-        "body": "탈색모인데 머리 끝이 너무 푸석해요. 샤워 후 리브인, 드라이 전 에센스, 마무리 오일을 다 쓰니까 가끔 떡져 보여요. 지금은 어깨 아래 길이고 머리숱은 많은 편이에요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-21T00:13:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980099,
-        "room_id": "demo-cx-t14",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "저는 리브인 하나 쓰고 완전히 말린 뒤 끝에만 오일 한 방울. 세 가지 다 쓰면 오히려 무거웠어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980098,
-        "created_at": "2026-10-21T00:26:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980100,
-        "room_id": "demo-cx-t14",
-        "nickname": "서연",
-        "author_tag": "synthetic-u07",
-        "body": "가느다란 모발은 오일이 금방 떡지던데 숱 많으면 다를 수도 있겠네요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980098,
-        "created_at": "2026-10-21T00:39:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980101,
-        "room_id": "demo-cx-t14",
-        "nickname": "세아",
-        "author_tag": "synthetic-u11",
-        "body": "에센스랑 오일의 역할이 같다고 봐도 되나요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980099,
-        "created_at": "2026-10-21T00:52:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980102,
-        "room_id": "demo-cx-t14",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "제 제품들은 제형이 달랐어요. 성분도 제품마다 다르니 꼭 같은 건 아닐 거예요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980101,
-        "created_at": "2026-10-21T01:05:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980103,
-        "room_id": "demo-cx-t14",
-        "nickname": "유진",
-        "author_tag": "synthetic-u08",
-        "body": "이 방이 제품 비교방이면 정확한 이름 알려 주실 수 있나요? 리브인 종류가 너무 많아서요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-21T01:18:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980104,
-        "room_id": "demo-cx-t14",
-        "nickname": "세아",
-        "author_tag": "synthetic-u11",
-        "body": "리브인은 브랜드 A의 밀크 제형, 에센스는 브랜드 B의 크림, 오일은 브랜드 C의 가벼운 타입이에요. 정리해서 본문에 추가할게요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980103,
-        "created_at": "2026-10-21T01:31:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980105,
-        "room_id": "demo-cx-t14",
-        "nickname": "서연",
-        "author_tag": "synthetic-u07",
-        "body": "드라이 열을 자주 쓰는지도 중요하지 않아요? 저는 고온 드라이 날과 자연건조 날이 달랐어요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980098,
-        "created_at": "2026-10-21T01:44:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980106,
-        "room_id": "demo-cx-t14",
-        "nickname": "세아",
-        "author_tag": "synthetic-u11",
-        "body": "맞아요. 거의 매일 드라이해서 그 조건을 빼먹었네요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980105,
-        "created_at": "2026-10-21T01:57:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980107,
-        "room_id": "demo-cx-t14",
-        "nickname": "지우",
-        "author_tag": "synthetic-u05",
-        "body": "저는 매일 쓰는 것 하나부터 정해 두고 나머지는 필요할 때만 더하는 쪽이에요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980106,
-        "created_at": "2026-10-22T02:10:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980108,
-        "room_id": "demo-cx-t14",
-        "nickname": "세아",
-        "author_tag": "synthetic-u11",
-        "body": "이틀 동안 리브인만 사용했는데 머리 끝 엉킴은 덜했고 묵직한 느낌도 줄었어요. 다만 탈색 부분의 푸석함은 남아 있네요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980107,
-        "created_at": "2026-10-22T02:23:00+09:00",
         "demo": true
       }
     ],
@@ -1640,18 +1061,6 @@
         "demo": true
       },
       {
-        "id": 980114,
-        "room_id": "demo-cx-t15",
-        "nickname": "채원",
-        "author_tag": "synthetic-u04",
-        "body": "그냥 지나가다 본 방인데 눈썹 모양 자체가 다를 때도 같은 방법이 통하나요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-21T08:18:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980115,
         "room_id": "demo-cx-t15",
         "nickname": "소희",
@@ -1659,7 +1068,7 @@
         "body": "저도 궁금해요. 제 경우는 높이도 살짝 달라요.",
         "likes": 0,
         "item": null,
-        "reply_to": 980114,
+        "reply_to": null,
         "created_at": "2026-10-21T08:31:00+09:00",
         "demo": true
       },
@@ -1750,30 +1159,6 @@
         "demo": true
       },
       {
-        "id": 980123,
-        "room_id": "demo-cx-t16",
-        "nickname": "유진",
-        "author_tag": "synthetic-u08",
-        "body": "처음 들어왔는데 실제 특정 제품 두 개를 비교하는 건가요?",
-        "likes": 0,
-        "item": null,
-        "reply_to": null,
-        "created_at": "2026-10-21T15:18:00+09:00",
-        "demo": true
-      },
-      {
-        "id": 980124,
-        "room_id": "demo-cx-t16",
-        "nickname": "예린",
-        "author_tag": "synthetic-u10",
-        "body": "아직 후보 찾는 중이에요. 가격대별 경험이 궁금해서요.",
-        "likes": 0,
-        "item": null,
-        "reply_to": 980123,
-        "created_at": "2026-10-21T15:31:00+09:00",
-        "demo": true
-      },
-      {
         "id": 980125,
         "room_id": "demo-cx-t16",
         "nickname": "나연",
@@ -1781,7 +1166,7 @@
         "body": "라인용이면 평소 쓰는 립 컬러와 맞추는 게 우선일 듯해요. 색이 다르면 경계가 확 보였어요.",
         "likes": 0,
         "item": null,
-        "reply_to": 980124,
+        "reply_to": null,
         "created_at": "2026-10-22T15:44:00+09:00",
         "demo": true
       },
