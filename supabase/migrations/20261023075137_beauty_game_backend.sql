@@ -16,6 +16,7 @@ create table beauty_game.sessions (
   device_id uuid not null unique default gen_random_uuid(),
   user_id uuid references auth.users(id),
   linked_at timestamptz,
+  sealed_at timestamptz,
   created_at timestamptz not null default now(),
   rate_started_at timestamptz not null default clock_timestamp(),
   rate_count integer not null default 0 check (rate_count >= 0)
@@ -119,6 +120,12 @@ begin
   else
     update beauty_game.sessions set rate_count = rate_count + 1 where session_hash = p_session_hash;
   end if;
+  -- Account linkage claims a completed history only, never future anonymous activity.
+  -- A retry may acknowledge the same account, but the old cookie cannot mutate history.
+  if v_session.sealed_at is not null then
+    if p_action = 'session' then return '{"ok":true,"rotate":true}'::jsonb; end if;
+    if p_action <> 'link' then return '{"error":"session_sealed","status":401}'::jsonb; end if;
+  end if;
   if p_action = 'session' then return jsonb_build_object('ok',true,'device_id',v_session.device_id); end if;
   -- Validation exceptions are caught inside this subtransaction so rate consumption survives.
   begin
@@ -131,7 +138,7 @@ begin
       if v_session.user_id is not null and v_session.user_id <> v_user then
         return '{"error":"already_linked","status":409}'::jsonb;
       end if;
-      update beauty_game.sessions set user_id = v_user, linked_at = coalesce(linked_at,v_now) where session_hash = p_session_hash;
+      update beauty_game.sessions set user_id = v_user, linked_at = coalesce(linked_at,v_now), sealed_at = coalesce(sealed_at,v_now) where session_hash = p_session_hash;
       return '{"ok":true}'::jsonb;
     end if;
     if p_action = 'stats' then

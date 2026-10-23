@@ -21,7 +21,7 @@ do $$
 declare
   a text := repeat('a',64); b text := repeat('b',64); c text := repeat('c',64);
   play text := '10000000-0000-4000-8000-000000000001';
-  p jsonb; q jsonb; r jsonb; sid text; sid2 text; d text;
+  p jsonb; q jsonb; r jsonb; sid text; sid2 text; d text; action text; sealed timestamptz;
 begin
   assert public.beauty_game_command('answer',a,'{}')->>'status' = '401';
   assert public.beauty_game_command('session','unsigned-device','{}')->>'status' = '400';
@@ -89,7 +89,19 @@ begin
   assert public.beauty_game_command('link',a,'{"user_id":"00000000-0000-4000-8000-000000000099","consent":true}')->>'status' = '400', 'link unknown auth user fails without raw FK detail';
   assert public.beauty_game_command('link',a,'{"user_id":"00000000-0000-4000-8000-000000000001","consent":true}')->>'ok' = 'true';
   assert public.beauty_game_command('link',a,'{"user_id":"00000000-0000-4000-8000-000000000002","consent":true}')->>'status' = '409';
+  select sealed_at into sealed from beauty_game.sessions where session_hash=a;
+  assert sealed is not null, 'successful link seals historical session';
+  assert public.beauty_game_command('session',a,'{}') = '{"ok":true,"rotate":true}'::jsonb, 'sealed session requests rotation without identity';
+  foreach action in array array['answer','experience','event','share','reflection','stats','invite'] loop
+    assert public.beauty_game_command(action,a,p)->>'status' = '401', 'sealed session rejects ' || action;
+  end loop;
+  assert public.beauty_game_command('link',a,'{"user_id":"00000000-0000-4000-8000-000000000001","consent":true}')->>'ok' = 'true', 'same account linkage retry idempotent';
+  assert (select sealed_at = sealed and user_id = '00000000-0000-4000-8000-000000000001'::uuid from beauty_game.sessions where session_hash=a), 'retry preserves seal and owner';
+  assert public.beauty_game_command('link',a,'{"user_id":"00000000-0000-4000-8000-000000000002","consent":true}')->>'status' = '409', 'another account cannot reclaim sealed history';
+  assert (select product = 'new-product' from beauty_game.answers where session_hash=a and character='muse' and not test), 'sealed history unchanged';
   assert (select user_id is null from beauty_game.sessions where session_hash=b), 'link session-scoped';
+  assert public.beauty_game_command('answer',b,p || '{"product":"later-anonymous-product"}')->>'ok' = 'true', 'new anonymous session remains writable';
+  assert (select user_id is null from beauty_game.sessions where session_hash=b), 'later anonymous play not attributed to linked account';
   perform public.beauty_game_command('session',c,'{}');
   for i in 1..239 loop perform public.beauty_game_command('answer',c,'{"play":"bad"}'); end loop;
   assert public.beauty_game_command('session',c,'{}')->>'status' = '429', 'invalid requests consume persisted quota';

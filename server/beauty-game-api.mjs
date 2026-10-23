@@ -53,6 +53,11 @@ export function createGameRpc({env=process.env,fetchImpl=fetch}={}) {
 
 export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=createGameRpc({env,fetchImpl}),allowedOrigins=ORIGINS,cookieSecure=true,randomToken=()=>randomBytes(32).toString('hex'),verifyAccount=async token=>authRequest('/user',{token,fetchImpl})}={}) {
   const cookieName=cookieSecure?GAME_COOKIE:'beauty_game_dev';
+  const setCookie=(res,token)=>res.setHeader('Set-Cookie',`${cookieName}=${token}; Path=/; HttpOnly; SameSite=Lax${cookieSecure?'; Secure':''}; Max-Age=15552000`);
+  const newSession=async()=>{
+    const token=randomToken();if(!/^[a-f0-9]{64}$/.test(token))throw error(503);
+    await rpc('session',createHash('sha256').update(token).digest('hex'),{});return token;
+  };
   return async(req,res)=>{
     for(const [k,v] of Object.entries({'Content-Type':'application/json; charset=utf-8','Cache-Control':'private, no-store','CDN-Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Vary':'Cookie'}))res.setHeader(k,v);
     const send=(status,data)=>{res.statusCode=status;return res.end(JSON.stringify(data));};
@@ -60,7 +65,7 @@ export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=cre
       const url=new URL(req.url,'https://seoulbeauty.me');
       const route=req.query?.route??url.searchParams.get('route');
       if(typeof route!=='string'||!Object.hasOwn(ROUTES,route))return send(404,{error:'Not found'});
-      // Account-switch/logout session rotation needs its own UI integration before release.
+      // Separate release gate: callers must use explicit consent and restart after rotation.
       if(route==='link-account'&&env.BEAUTY_GAME_ACCOUNT_LINK_ENABLED!=='true')return send(404,{error:'Not found'});
       if(req.method!==ROUTES[route]){res.setHeader('Allow',ROUTES[route]);return send(405,{error:'Method not allowed'});}
       if(req.headers['sec-fetch-site']==='cross-site')throw error(403);
@@ -68,11 +73,10 @@ export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=cre
       if(route==='share-config')return send(200,{kakaoKey:env.KAKAO_JAVASCRIPT_KEY||null});
       let token=sessionToken(req.headers,cookieName);
       if(route==='session') {
-        if(!token)token=randomToken();
-        if(!/^[a-f0-9]{64}$/.test(token))throw error(503);
-        await rpc('session',createHash('sha256').update(token).digest('hex'),{});
-        res.setHeader('Set-Cookie',`${cookieName}=${token}; Path=/; HttpOnly; SameSite=Lax${cookieSecure?'; Secure':''}; Max-Age=15552000`);
-        return send(200,{ok:true});
+        if(!token)token=await newSession();
+        else if((await rpc('session',createHash('sha256').update(token).digest('hex'),{})).rotate)token=await newSession();
+        setCookie(res,token);
+        return send(200,{ok:true,accountLinkEnabled:env.BEAUTY_GAME_ACCOUNT_LINK_ENABLED==='true'});
       }
       if(!token)throw error(401);
       const sessionHash=createHash('sha256').update(token).digest('hex');
@@ -95,6 +99,10 @@ export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=cre
         const user=await verifyAccount(bearer.slice(7));
         if(!user||!UUID.test(user.id||'')||user.is_anonymous!==false)throw error(401);
         const linked=await rpc('link',sessionHash,{user_id:user.id,consent:normalized.consent});
+        if(linked.ok!==true)throw error(503);
+        // The linked session is sealed in the same DB transaction. All future gameplay
+        // receives a fresh unlinked identity, including after logout/account switching.
+        setCookie(res,await newSession());
         return send(200,{ok:linked.ok===true});
       }
       if(route==='stats') {

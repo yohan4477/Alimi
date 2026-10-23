@@ -28,7 +28,12 @@ try {
   assert.equal((await request('record',{cookie:b,body:{...answer,play:play2,invite:share.body.id,note:'OTHER-PRIVATE'}})).statusCode,200);
   const reveal=await request('invite',{cookie:b,query:invite+'&reveal=1'});assert.equal(reveal.statusCode,200);assert.equal(reveal.body.product,product.id);assert(!JSON.stringify(reveal.body).includes('PRIVATE'));
   assert.equal((await request('reflection',{cookie:a,body:{character:'mona',play,test:false,mode:'used',text:'PRIVATE-REFLECTION',criteria:['사용감'],language:'ko'}})).statusCode,200);
-  assert.equal((await request('link-account',{cookie:a,body:{consent:true},auth:true})).statusCode,200);
+  const linked=await request('link-account',{cookie:a,body:{consent:true},auth:true});assert.equal(linked.statusCode,200);
+  const fresh=linked.headers['Set-Cookie'].split(';')[0];assert.notEqual(fresh,a);
+  assert.equal((await request('record',{cookie:a,body:answer})).statusCode,401);
   const finalStats=await request('stats',{cookie:b,query:'&character=mona&scope=group&test=0'});assert.equal(finalStats.statusCode,200);assert.equal(finalStats.body.votes[0].n,2);assert(!JSON.stringify(finalStats.body).includes('PRIVATE'));
+  assert.equal((await request('record',{cookie:fresh,body:{...answer,play:'33333333-3333-4333-8333-333333333333',note:''}})).statusCode,200);
+  const later=await db.query("select s.user_id from beauty_game.answers a join beauty_game.sessions s using(session_hash) where play='33333333-3333-4333-8333-333333333333'");assert.equal(later.rows[0].user_id,null);
+  const recovered=await request('session',{cookie:a});assert.equal(recovered.statusCode,200);assert.notEqual(recovered.headers['Set-Cookie'].split(';')[0],a);
   console.log('beauty-game-http: anonymous save/retry, experiences, aggregates, immutable share, recipient reveal, reflection and explicit account proof passed');
 }finally{await db.close();}

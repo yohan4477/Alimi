@@ -86,11 +86,31 @@ test('origin is canonical and cannot be configured to a path or insecure product
   assert.equal(adminOrigin({}), 'https://alimi-omega.vercel.app');
   for(const value of ['https://good.example/path','https://good.example/','http://good.example','https://user:pass@good.example'])assert.throws(()=>adminOrigin({ADMIN_ORIGIN:value,NODE_ENV:'production'}));
 });
+test('admin navigation preserves operations and planning panels with reciprocal ARIA links',async()=>{
+  const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
+  const expectedPanels=[
+    'sb-dashboard','sb-users','sb-community','sb-products','sb-game','sb-revenue','sb-system',
+    'sb-ui-library','sb-dev','sb-roadmap','sb-strategy','sb-plan','sb-design',
+  ];
+  const elements=role=>[...html.matchAll(new RegExp(`<[^>]+\\srole="${role}"[^>]*>`, 'g'))]
+    .map(([tag])=>Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([,name,value])=>[name,value])));
+  const tabs=elements('tab'),panels=elements('tabpanel');
+  // Exact identities catch missing, duplicate, orphaned, or accidentally renamed sections.
+  assert.deepEqual(panels.map(panel=>panel.id).sort(),[...expectedPanels].sort());
+  assert.deepEqual(tabs.map(tab=>tab.id).sort(),expectedPanels.map(id=>`${id}-tab`).sort());
+  for(const panel of panels){
+    const tab=tabs.find(tab=>tab.id===`${panel.id}-tab`);
+    assert.equal(tab['aria-controls'],panel.id);
+    assert.equal(panel['aria-labelledby'],tab.id);
+  }
+  assert.deepEqual(tabs.filter(tab=>tab['aria-selected']==='true').map(tab=>tab.id),['sb-dashboard-tab']);
+});
+
 test('no dashboard content resides in public assets; routing includes server-only HTML',async()=>{
   const conf=JSON.parse(await readFile(new URL('../vercel.json',import.meta.url),'utf8'));
   assert.equal(conf.outputDirectory,'dist');assert.ok(conf.rewrites.some(x=>x.source==='/admin'&&x.destination==='/api/admin'));assert.equal(conf.functions['api/admin.js'].includeFiles,'server/admin-*.html');
   const css=await readFile(new URL('../dist/admin.css',import.meta.url),'utf8'),js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');assert.doesNotMatch(css+js,/한국 뷰티에 대해 이야기하고|초기 고객|미국의 K뷰티/);
-  const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');assert.equal((html.match(/role="tabpanel"/g)||[]).length,7);assert.match(html,/미측정/);
+  const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');assert.match(html,/미측정/);
   assert.match(html,/K-뷰티에 관심 있고/);assert.match(html,/미국 18~24세/);
   assert.match(html,/승인된 제휴 수수료 매출/);assert.match(html,/방문자 1,000명당 제휴 수익/);
 });
@@ -180,7 +200,6 @@ test('password sessions expire, rotate and fail closed without signing secret', 
 
 test('developer dashboard is protected and differentiates specs, implementation and release',async()=>{
   const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
-  assert.equal((html.match(/role="tab"/g)||[]).length,7);
   assert.match(html,/id="sb-dev-tab"/);assert.match(html,/id="sb-dev" role="tabpanel"/);
   const cards=[...html.matchAll(/data-dev-item="(D\d+)"/g)];
   assert.equal(cards.length,10);assert.equal(new Set(cards.map(item=>item[1])).size,10);
@@ -188,7 +207,6 @@ test('developer dashboard is protected and differentiates specs, implementation 
   const js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');
   assert.match(js,/const devPanel = document.getElementById\('sb-dev'\)/);
   assert.match(js,/state\.platform/);assert.match(js,/state\.priority/);
-  assert.match(js,/'#sb-dev':'sb-dev-tab'/);
   assert.doesNotMatch(js,/seoulbeauty_admin|ADMIN_SHARED_PASSWORD|SECRET_KEY/);
   const noAuth=await request({url:'/admin',readPage:()=>assert.fail('private developer dashboard was read')});
   assert.equal(noAuth.statusCode,401);
