@@ -1,0 +1,43 @@
+name: Beauty launch private drafts and publication
+on:
+  pull_request:
+    paths:
+      - 'dist/**'
+      - 'supabase/**'
+      - 'server/affiliate-attribution.js'
+      - 'api/affiliate-import.js'
+      - 'scripts/test-launch-db.mjs'
+      - 'tests/**'
+      - 'e2e/beauty-*.e2e.mjs'
+      - '.github/workflows/beauty-launch-e2e.yml'
+permissions:
+  contents: read
+jobs:
+  mocked-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Unit and PostgreSQL security tests
+        run: |
+          npm ci
+          npm test
+          npm install --prefix /tmp/beauty-db-test --no-save @electric-sql/pglite@0.3.14
+          PGLITE_MODULE=/tmp/beauty-db-test/node_modules/@electric-sql/pglite/dist/index.js node scripts/test-launch-db.mjs
+      - name: Install pinned browser test runner
+        run: |
+          npm install --no-save playwright-core@1.49.1
+          npx playwright-core install --with-deps chromium
+      - name: Verify private drafts and explicit publication against fixtures only
+        run: |
+          set -euo pipefail
+          node scripts/dev-server.mjs > /tmp/beauty-test-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:3000/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node e2e/beauty-publication.e2e.mjs http://localhost:3000/
+          node e2e/beauty-account-drafts.e2e.mjs http://localhost:3000/

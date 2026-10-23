@@ -1,6 +1,41 @@
 // Presentation state only. Authorization is performed on every server request.
 const root = document.getElementById('sb-management');
 if (root) {
+  // Every admin tab has a navigable table of contents, without card containers.
+  for (const panel of root.querySelectorAll('.sb-panel')) {
+    const headings = [...panel.querySelectorAll('h2,h3')].filter(h => !h.closest('details') && !h.closest('[hidden]'));
+    const unique = headings.filter(h => h.textContent.trim().length > 0).slice(0, 25);
+    const nav = document.createElement('nav');
+    nav.className = 'admin-section-toc';
+    nav.setAttribute('aria-label', '이 화면의 목차');
+    const label = document.createElement('strong');
+    label.textContent = '목차';
+    nav.append(label);
+    const list = document.createElement('ol');
+    if (unique.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = '개요';
+      list.append(li);
+    } else {
+      unique.forEach((heading,index)=>{
+        if (!heading.id) heading.id = panel.id + '-heading-' + (index+1);
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '#' + heading.id;
+        a.textContent = heading.textContent.trim();
+        a.addEventListener('click', event=>{
+          event.preventDefault();
+          heading.scrollIntoView({behavior:'smooth',block:'start'});
+          heading.focus({preventScroll:true});
+        });
+        heading.tabIndex = -1;
+        li.append(a);
+        list.append(li);
+      });
+    }
+    nav.append(list);
+    panel.prepend(nav);
+  }
   let metricsBusy=false,lastMetricsFetch=0;
   async function refreshMetrics(force=false){
     const status=document.getElementById('metrics-status');if(!status||metricsBusy||(!force&&Date.now()-lastMetricsFetch<60000))return;

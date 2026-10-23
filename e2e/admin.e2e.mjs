@@ -26,6 +26,14 @@ try {
   browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{channel:'chrome'});
   const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
+  async function openAncestorDetails(target) {
+    assert.equal(await target.count(),1,'historical content target is unique');
+    // Open actual owners from outermost to innermost, not disclosures sharing a label.
+    for(const disclosure of await target.locator('xpath=ancestor::details').all()) {
+      if(!await disclosure.evaluate(element=>element.open))
+        await disclosure.locator(':scope > summary').click();
+    }
+  }
   let r=await page.goto(base+'/admin');assert.equal(r.status(),401);assert.equal(await page.locator('[role="tab"]').count(),0);
   assert.equal((await page.request.get(base+'/api/admin')).status(),401);
   for(const path of ['/server/admin-page.html','/admin.html','/server/admin-auth.js'])assert.equal((await page.request.get(base+path)).status(),404);
@@ -34,10 +42,14 @@ try {
     await Promise.all([page.waitForNavigation(),page.getByRole('button',{name:'로그인',exact:true}).click()]);
   }
   await login('regular@example.test');assert.match(await page.locator('[role="status"]').innerText(),/관리자 접근 권한/);assert.equal(await page.locator('[role="tab"]').count(),0);
-  await login('admin@example.test');await page.getByRole('tab',{name:'전략',exact:true}).waitFor();
+  await login('admin@example.test');await page.getByRole('tab',{name:'전략 자료',exact:true}).waitFor();
   const cookies=await page.context().cookies();const session=cookies.find(c=>c.name==='__Host-sb-admin');assert.ok(session?.httpOnly&&session.secure&&session.sameSite==='Strict');
   assert.equal(await page.evaluate(()=>document.cookie.includes('__Host-sb-admin')),false);
-  for(const name of ['전략','서비스 기획','디자인 리뷰','UI Library','개발','실행 로드맵','관리 대시보드']) {
+  await page.goto(base+'/admin#sb-dev');
+  await page.reload(); // Exercise initial deep-link selection, not a same-document hash change.
+  assert.equal(await page.locator('#sb-dev-tab').getAttribute('aria-selected'),'true');
+  assert.ok(await page.locator('#sb-dev').isVisible());
+  for(const name of ['운영 홈','회원','커뮤니티','제품','게임·투표','수익','시스템','UI Library','현황','실행 계획','전략 자료','서비스 기획','디자인 리뷰']) {
     await page.getByRole('tab',{name,exact:true}).click();assert.equal(await page.locator('[role="tabpanel"]:visible').count(),1);
     assert.equal(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
   }
@@ -57,9 +69,9 @@ try {
   assert.match(await library.getByRole('heading',{name:/맞혔어/}).innerText(),/맞혔어/);
 
   // Developer board: priority × platform filtering, links and tab jumps are presentational.
-  await page.getByRole('tab',{name:'개발',exact:true}).click();
+  await page.getByRole('tab',{name:'현황',exact:true}).click();
   const development=page.locator('#sb-dev');
-  await development.locator(':scope > details > summary').click();
+  await openAncestorDetails(development.locator('[data-dev-item="D01"]'));
   assert.equal(await development.locator('[data-dev-item]:visible').count(),10);
   await development.locator('[data-dev-filter="priority"][data-dev-value="P0"]').click();
   assert.equal(await development.locator('[data-dev-item]:visible').count(),6);
@@ -80,11 +92,11 @@ try {
   await page.setViewportSize({width:390,height:844});
   await development.locator('[data-dev-jump="sb-plan-tab"]').click();
   assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
-  await page.getByRole('tab',{name:'개발',exact:true}).click();
-    await page.getByRole('tab',{name:'전략',exact:true}).click();await page.getByRole('tab',{name:'전략',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
+  await page.getByRole('tab',{name:'현황',exact:true}).click();
+    await page.getByRole('tab',{name:'전략 자료',exact:true}).click();await page.getByRole('tab',{name:'전략 자료',exact:true}).press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'서비스 기획',exact:true}).getAttribute('aria-selected'),'true');
   // New pixel-character onboarding is a local admin-only simulation, not a customer signup.
   assert.equal(await page.locator('#sb-planning-review').getAttribute('src'),null,'collapsed historical preview does not start a request');
-  await page.locator('#sb-plan > details > summary').click();
+  await openAncestorDetails(page.locator('#sb-pixel-guide-demo'));
   assert.equal(await page.locator('#sb-planning-review').getAttribute('src'),null,'nested preview stays unloaded until explicitly opened');
   const guide = page.locator('#sb-pixel-guide-demo');
   await guide.waitFor();
@@ -148,7 +160,7 @@ try {
   await preview.locator('[data-onboard-room="demo-1"]').click();
   assert.ok(await preview.getByText('이 방은 기획 시안에서만 열립니다.',{exact:false}).isVisible());
   await page.getByRole('tab',{name:'디자인 리뷰',exact:true}).click();
-  await page.locator('#sb-design > details > summary').click();
+  await openAncestorDetails(page.locator('#sb-loading-design-review'));
   assert.ok(await page.getByText('맞춤 추천을 추가하되,',{exact:false}).first().isVisible());
   assert.equal(await page.locator('#sb-design [data-design-priority]:visible').count(),8);
   // Loading preview reuses launch assets; costume/avatar controls are gone.
@@ -179,7 +191,7 @@ try {
   await page.route('**/api/admin?view=planning-review', route=>route.fulfill({status:401,contentType:'text/html',body:'<main>Session expired</main>'}));
   await page.reload();
   await page.getByRole('tab',{name:'서비스 기획',exact:true}).click();
-  await page.locator('#sb-plan > details > summary').click();
+  await openAncestorDetails(page.locator('#sb-pixel-guide-demo'));
   await page.getByText('관심 분야·고민 복수 선택 인터랙티브 시안과 기존 화면 보기',{exact:true}).click();
   await page.getByText('시안을 열 수 없습니다. 로그인 상태를 확인하세요.',{exact:false}).waitFor();
   assert.equal(await page.locator('#sb-planning-review').getAttribute('src'),null);

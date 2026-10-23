@@ -59,7 +59,7 @@ test('posting sends the item reference only; the server fills in name and price'
 });
 
 test('web events are allowed by the latest database whitelist', () => {
-  const sql = readFileSync(new URL('../supabase/migrations/20261019010000_community.sql', import.meta.url), 'utf8');
+  const sql = ['20261019010000_community.sql', '20261023000000_beauty_community_events.sql'].map(file => readFileSync(new URL('../supabase/migrations/' + file, import.meta.url), 'utf8')).join('\n');
   for (const name of EVENT_NAMES) assert.ok(sql.includes(`'${name}'`), name);
 });
 

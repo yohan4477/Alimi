@@ -1,3 +1,4 @@
+import {createBeautyGameHandler} from '../server/beauty-game-api.mjs';
 const UPSTREAM='https://seoulbeauty-muse-play.yohan4477.chatgpt.site';
 const ROUTES={session:['GET'],record:['POST'],invite:['GET'],stats:['GET'],'share-config':['GET'],reflection:['POST']};
 const ORIGINS=new Set(['https://seoulbeauty.me','https://www.seoulbeauty.me','https://alimi-omega.vercel.app']);
@@ -17,4 +18,10 @@ export function createBeautyPlayHandler({fetcher=fetch,allowedOrigins=ORIGINS,co
  return res.end(Buffer.from(await upstream.arrayBuffer()));
  }catch{res.statusCode=502;res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({error:'연결하지 못했어요. 잠시 후 다시 시도해 주세요.'}));}
 };}
-export default createBeautyPlayHandler();
+// Fail closed on a mistaken backend value. Never fall back to D1 after Supabase writes.
+export function configuredBeautyPlayHandler(env=process.env){
+ if(env.BEAUTY_GAME_BACKEND==='supabase')return createBeautyGameHandler({env});
+ if(!env.BEAUTY_GAME_BACKEND||env.BEAUTY_GAME_BACKEND==='d1')return createBeautyPlayHandler();
+ return (_req,res)=>{res.statusCode=503;res.setHeader('Cache-Control','no-store');res.end('Game backend is not configured');};
+}
+export default configuredBeautyPlayHandler();
