@@ -308,8 +308,8 @@ function requestAccountDeletion(){
   const email=auth.user.email??'';
   const heading=lang==='ko'?'회원 탈퇴 요청':'Account deletion request';
   const body=lang==='ko'
-    ?'서울뷰티 회원 탈퇴 및 연결된 개인정보 삭제를 요청합니다. 본인 확인을 위한 안내를 보내 주세요.\n\n계정 이메일: '+email+'\n※ 이메일만으로 탈퇴가 완료되지 않으며, 운영자의 안전한 본인 확인 후 처리됩니다.'
-    :'I request deletion of my Seoul Beauty account and associated personal data. Please send instructions for secure identity verification.\n\nAccount email: '+email+'\nThis email does not immediately delete the account.';
+    ?'서울뷰티 회원 탈퇴 및 연결된 개인정보 삭제를 요청합니다. 본인 확인 안내를 보내 주세요.\\n\\n계정 이메일: '+email+'\\n이 요청만으로 탈퇴가 완료되지는 않습니다.'
+    :'I request deletion of my Seoul Beauty account and associated personal data. Please send identity verification instructions.\\n\\nAccount email: '+email+'\\nThis request does not immediately delete the account.';
   location.href='mailto:support@seoulbeauty.me?subject='+encodeURIComponent(heading)+'&body='+encodeURIComponent(body);
 }
 async function settingsAction(a){
