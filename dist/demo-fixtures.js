@@ -7,14 +7,11 @@ const ko=lang==='ko', L=(k,e)=>ko?k:e;
 const topicsKo=['여드름 진정','속건조 해결','민감성 피부','모공 관리','선크림 추천','장벽 회복','지성 피부','환절기 관리','기미 잡티','탄력 관리','스킨케어 입문','토너패드','립 조합','쿨톤 메이크업','웜톤 메이크업','쿠션 비교','컨실러','지속력 메이크업','내추럴 메이크업','데일리 메이크업','브러시 퍼프','눈썹 메이크업','글로우 매트','퍼스널 컬러','COSRX 후기','롬앤 틴트','클리오 쿠션','K뷰티 입문','미국 K뷰티','해외 직구','여행용 파우치','운동 후 관리','출근 메이크업','뷰티 질문','클렌징 루틴','틴트 발색'];
 const topicsEn=['Acne calming','Inner dryness','Sensitive skin','Pore care','Sunscreen picks','Barrier repair','Oily skin','Seasonal skin care','Dark spots','Firming care','Skincare basics','Toner pads','Lip combos','Cool-tone makeup','Warm-tone makeup','Cushion comparison','Concealer','Long-wear makeup','Natural makeup','Everyday makeup','Brushes & puffs','Brow makeup','Glow vs. matte','Personal color','COSRX reviews','rom&nd tints','CLIO cushions','K-beauty starter','K-beauty in the US','Shopping from Korea','Travel pouch','Post-workout care','Office makeup','Beauty questions','Cleansing routine','Tint swatches'];
 const concerns=['acne','dry','sensitive','pores','sensitive','dry','sebum','sensitive','spots','firmness','dry','pores','lip','shade','shade','cushion','base','longwear','base','lip','base','longwear','base','shade','acne','lip','cushion','sensitive','lip','base','longwear','sebum','longwear','dry','acne','shade'];
-const q=L(['요즘 어떤 제품 쓰세요?','비슷한 고민 있으신 분?','다른 분 경험도 궁금해요.','이 조합 써본 분 계세요?','피부 타입별로 차이가 있나요?','구매 전에 후기 더 들어보고 싶어요.'],
-  ['What are you using these days?','Anyone with a similar concern?','Curious how it went for others.','Has anyone tried this combo?','Does it differ by skin type?','I want to hear more reviews before buying.']);
-const a=L(['저도 그게 궁금해요!','저는 소량으로 테스트해봤어요.','저는 건성이라 조금 달랐어요.','사용감은 괜찮았는데 개인차가 있어요.','좋은 정보 감사합니다.','저도 며칠 더 써보려고요.'],
-  ['I was wondering the same!','I tested a small amount first.','My skin is dry, so it was a bit different.','The texture was nice, but it varies by person.','Thanks for the helpful info.',"I'm going to try it for a few more days."]);
 const names=L(['루나','피치','민트','제이','소라','코코','로지','모카','나나','하늘','유니','달빛'],['Luna','Peach','Mint','Jay','Sora','Coco','Rosie','Mocha','Nana','Sky','Uni','Moon']);
 const demoNow = Date.now();
-export const demoRooms=topicsKo.map((title,i)=>({id:'demo-'+i,title_ko:title,title_en:topicsEn[i],intro_ko:title+'에 대해 편하게 이야기해요.',intro_en:`Talk about ${topicsEn[i].toLowerCase()} together.`,kind:'topic',tag:i<12?'skin':i<24?'makeup':'talk',concerns:[concerns[i]],members:5+(i*7)%41,messages_24h:3+(i*5)%18,sort:i,last_message_at:new Date(Date.UTC(2026,9,20,3)-i*60000).toISOString(),demo:true}));
-export const demoMessages=Object.fromEntries(demoRooms.map((r,i)=>[r.id,Array.from({length:24},(_,j)=>({id:900000+i*100+j,room_id:r.id,nickname:names[(i+j)%12],author_tag:'demo-author-'+((i+j)%12),body:j%2?q[(i+j)%6]:a[(i+j)%6],likes:(i+j)%9,item:null,reply_to:null,created_at:new Date(Date.UTC(2026,9,18,5)+i*60000+j*3600000).toISOString(),demo:true}))]));
+export const demoRooms=topicsKo.map((title,i)=>({id:'demo-'+i,title_ko:title,title_en:topicsEn[i],intro_ko:title+'에 대해 편하게 이야기해요.',intro_en:`Talk about ${topicsEn[i].toLowerCase()} together.`,kind:'topic',tag:i<12?'skin':i<24?'makeup':'talk',concerns:[concerns[i]],members:0,messages_24h:0,sort:i,last_message_at:null,demo:true}));
+// Empty topic examples stay empty. Never pad conversations with generated repetitions.
+export const demoMessages=Object.fromEntries(demoRooms.map(r=>[r.id,[]]));
 
 // Explicit subject products: separate from an incidental product mention in a message.
 export const demoProducts = [
@@ -36,33 +33,14 @@ for (const [i, product] of demoProducts.entries()) {
     const id=`demo-product-${i}-${j}`;
     const room={id,title_ko:`${product.label_ko} · ${j?'조합·비교':'사용 후기'}`,title_en:`${product.label_en} · ${j?'Combos & comparisons':'Reviews'}`,intro_ko:`${product.label_ko} 사용 경험을 나눠요.`,intro_en:`Share experiences with ${product.label_en}.`,kind:'topic',tag:[5,6,7,11].includes(i)?'makeup':'skin',concerns:[[5,7,11].includes(i)?'lip':i===6?'cushion':'dry'],members:8+(i*3+j)%25,messages_24h:4+(i+j)%13,sort:36+i*2+j,last_message_at:new Date(Date.UTC(2026,9,20,7)-i*60000-j*30000).toISOString(),demo:true,topic_product:product};
     demoRooms.push(room);
-    demoMessages[id]=Array.from({length:24},(_,k)=>({id:950000+i*100+j*30+k,room_id:id,nickname:names[(i+j+k)%names.length],author_tag:`demo-author-${(i+j+k)%12}`,body:[product.question,product.answer,L(`${product.name} 써본 분들의 다른 경험도 듣고 싶어요.`,`I'd love to hear more from people who tried ${product.name}.`),L('저도 비슷한 고민이에요. 피부 타입이나 쓰는 양에 따라 다를 것 같아요.','Same concern here. It probably depends on skin type and how much you use.'),L('구매 전에 여기서 경험을 더 들어보려고요.','I want to hear more experiences here before buying.'),L('사용 순서도 함께 알려주셔서 도움됐어요.','Thanks for sharing the order you use it in too.')][k%6],likes:(i+j+k)%7,item:k%4===0?{demo:true,family_key:product.id,image_url:product.image_url,brand:product.brand,name:product.name,label:product.label}:null,reply_to:null,created_at:new Date(demoNow-(23-k)*3600000-i*60000).toISOString(),demo:true}));
+    // One question and one answer only in the review example; comparison starts empty.
+    demoMessages[id]=j ? [] : [product.question,product.answer].map((body,k)=>({id:950000+i*100+k,room_id:id,nickname:names[(i+k)%names.length],author_tag:`demo-author-${(i+k)%12}`,body,likes:0,item:k===0?{demo:true,family_key:product.id,image_url:product.image_url,brand:product.brand,name:product.name,label:product.label}:null,reply_to:k===1?950000+i*100:null,created_at:new Date(demoNow-(2-k)*3600000).toISOString(),demo:true}));
+    room.members=demoMessages[id].length; room.messages_24h=demoMessages[id].length;
+    room.last_message_at=demoMessages[id].at(-1)?.created_at ?? null;
   }
 }
-// Same person writing two lines in a row (a minute apart), so the chat shows grouped follow-ups.
-const followUps=L(['아 그리고 저는 아침저녁 둘 다 써요.','혹시 같은 고민이면 패치 테스트 먼저 해보세요!','사진은 나중에 더 올려볼게요.','참고로 저는 지성이에요.','양 조절이 제일 중요했어요.','이건 제 기준이에요 ㅎㅎ'],
-  ['Oh, and I use it morning and night.','If you have the same concern, patch test first!',"I'll post more photos later.",'For reference, my skin is oily.','Getting the amount right mattered most.',"That's just my experience :)"]);
-let followId=980000;
-for (const list of Object.values(demoMessages)) {
-  for (let j=list.length-1;j>=0;j--) if (j%4===1) {
-    const m=list[j];
-    list.splice(j+1,0,{...m,id:followId++,body:followUps[(m.id+j)%followUps.length],likes:m.likes%3,item:null,created_at:new Date(Date.parse(m.created_at)+70000).toISOString()});
-  }
-}
-// 내 활동 in demo mode: saved rooms, joined rooms, recent products and alerts — all synthetic.
-const lastOf=id=>demoMessages[id]?.at(-1);
-const hoursAgo=h=>new Date(demoNow-h*3600000).toISOString();
-export const demoActivity={
-  savedRooms:['demo-product-0-0','demo-1','demo-13','demo-product-5-1','demo-15'],
-  joined:['demo-0','demo-product-6-0','demo-4'].map(room_id=>({room_id,last:lastOf(room_id)})),
-  recent:['torriden-serum','romand-tint','clio-cushion','roundlab-sun'],
-  saved:['aestura-cream','anua-toner','laneige-lip'],
-  alerts:[
-    {title:L('여드름 진정 대화방에 새 답글이 3개 달렸어요.','3 new replies in Acne calming.'),room:{id:'demo-0'},at:hoursAgo(0.3)},
-    {title:L('저장한 롬앤 쥬시 래스팅 틴트 대화에 새 글이 있어요.','New posts in the rom&nd Juicy Lasting Tint chat you saved.'),room:{id:'demo-product-5-0'},at:hoursAgo(2)},
-    {title:L('선크림 추천 방에서 내 글에 좋아요 5개','5 likes on your post in Sunscreen picks'),room:{id:'demo-4'},at:hoursAgo(26)}
-  ]
-};
+// Do not fabricate personal activity or notifications for visitors.
+export const demoActivity={savedRooms:[],joined:[],recent:[],saved:[],alerts:[]};
 
 export function createDemoProductRoom({title,intro='',tag='talk',concerns=[],productName}) {
   const product=demoProducts.find(p=>p.label===productName)??{id:`custom-${demoRooms.length}`,brand:'',name:productName,label:productName};
