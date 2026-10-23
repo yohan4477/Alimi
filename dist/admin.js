@@ -32,6 +32,7 @@ if (root) {
     if (tab.id === 'sb-plan-tab') loadReview();
     if (tab.id === 'sb-ui-library-tab') loadLibrary();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
+    if (tab.id.startsWith('sb-')) { try { history.replaceState(null, '', '#' + tab.id.slice(0,-4)); } catch {} }
     if (focus) tab.focus();
     try { sessionStorage.setItem('sb-admin-tab', tab.id); } catch {}
   }
@@ -244,8 +245,9 @@ if (root) {
 
   document.querySelector('#sb-ui-library [data-dev-jump]')?.addEventListener('click', event => { event.preventDefault(); select(document.getElementById('sb-plan-tab')); });
   let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
-  const deepLink = {'#sb-plan':'sb-plan-tab','#sb-dev':'sb-dev-tab','#sb-ui-library':'sb-ui-library-tab'}[location.hash];
-  select(tabs.find(t => t.id === (deepLink || saved)) || tabs[0]);
+  const deepLink = tabs.find(t => '#' + t.id.slice(0,-4) === location.hash)?.id;
+  select(tabs.find(t => t.id === (deepLink || saved)) || document.getElementById('sb-dashboard-tab'));
+  if (!deepLink && !saved) history.replaceState(null, '', '#sb-dashboard');
   document.getElementById('admin-logout').addEventListener('submit', () => { root.hidden = true; try { sessionStorage.removeItem('sb-admin-tab'); } catch {} });
   // Do not show a protected snapshot from the browser back/forward cache after logout.
   addEventListener('pagehide', () => { root.hidden = true; });
