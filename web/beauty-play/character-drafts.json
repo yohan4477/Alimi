@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "id": "school_photo_friend",
+      "status": "draft_artwork_unassigned",
+      "artworkId": null,
+      "identity": {
+        "ko": "사진에 진심인 꾸미기파",
+        "en": "The photo-loving beauty friend"
+      },
+      "groupId": "important_plans",
+      "scenarioId": "after_school_photos",
+      "artworkFit": {
+        "ko": "의상·액세서리·자신감 있는 자세가 눈에 띄는 기존 남성 명화에 연결",
+        "en": "Bind to a saved male portrait with distinctive clothes, accessories or a confident pose"
+      },
+      "title": {
+        "ko": "오늘 네 컷 찍는데.\n얼굴에 어디부터 포인트 줄까?",
+        "en": "Photo booth after school.\nWhere should the focus go?"
+      },
+      "context": {
+        "ko": "친구들과 방과 후 사진을 찍기로 했어. 옷과 가방은 골랐고, 얼굴 표현의 마지막 한 끗을 네게 맡겼대.",
+        "en": "After-school photos with friends. The outfit and bag are ready; you choose the finishing touch."
+      },
+      "fictionalCondition": {
+        "ko": "볼은 건조하고 코는 번들거리는 가상 설정",
+        "en": "Fictional setting: dry cheeks and a shiny nose"
+      },
+      "choices": [
+        {
+          "id": "base",
+          "label": {
+            "ko": "얇게 베이스부터",
+            "en": "A light base first"
+          },
+          "productIds": [
+            "69092",
+            "62366"
+          ],
+          "reply": {
+            "ko": "좋아. 가까이서 찍어도 부담 없게 갈게.",
+            "en": "Ready for a close-up, then."
+          }
+        },
+        {
+          "id": "powder",
+          "label": {
+            "ko": "코에는 파우더만",
+            "en": "A little powder on the nose"
+          },
+          "productIds": [
+            "67330",
+            "101230"
+          ],
+          "reply": {
+            "ko": "오늘 조명은 내가 아니라 귀걸이가 받을게.",
+            "en": "Let the earrings catch the light today."
+          }
+        },
+        {
+          "id": "lip",
+          "label": {
+            "ko": "립에 포인트 주자",
+            "en": "Make the lips the focus"
+          },
+          "productIds": [
+            "66606",
+            "64960",
+            "106475"
+          ],
+          "reply": {
+            "ko": "오케이. 오늘 사진은 삭제 안 해도 되겠다.",
+            "en": "Okay, these photos might be keepers."
+          }
+        }
+      ]
+    },
+    {
+      "id": "school_last_minute_friend",
+      "status": "draft_artwork_unassigned",
+      "artworkId": null,
+      "identity": {
+        "ko": "등교 준비가 늘 막판인 실속파",
+        "en": "The practical, last-minute school friend"
+      },
+      "groupId": "in_a_hurry",
+      "scenarioId": "five_minutes_to_school",
+      "artworkFit": {
+        "ko": "급히 이동하거나 머리·복장이 흐트러진 특징과 연결 가능한 기존 남성 명화",
+        "en": "Bind to a saved male portrait whose pose, hair or outfit fits a hurried moment"
+      },
+      "title": {
+        "ko": "등교까지 5분.\n뭐 하나만 챙겨서 뛸까?",
+        "en": "Five minutes until school.\nGrab one thing and go?"
+      },
+      "context": {
+        "ko": "친구한테 벌써 어디냐고 연락 왔어. 파우치에서 딱 하나만 챙길 수 있대.",
+        "en": "A friend is already asking where you are. There is time to grab just one item."
+      },
+      "fictionalCondition": {
+        "ko": "앞머리가 흐트러지고 입술이 건조한 가상 설정",
+        "en": "Fictional setting: untidy fringe and dry lips"
+      },
+      "choices": [
+        {
+          "id": "hair",
+          "label": {
+            "ko": "머리부터 정돈하자",
+            "en": "Tidy the hair first"
+          },
+          "productIds": [
+            "39547",
+            "68025"
+          ],
+          "reply": {
+            "ko": "좋아. 머리만 정리하고 바로 뛴다.",
+            "en": "Hair sorted. Running now."
+          }
+        },
+        {
+          "id": "lip",
+          "label": {
+            "ko": "입술부터 편하게",
+            "en": "Keep the lips comfortable"
+          },
+          "productIds": [
+            "109909",
+            "14621"
+          ],
+          "reply": {
+            "ko": "이거 하나 가방에 넣었어. 나머지는 쉬는 시간에.",
+            "en": "This one goes in the bag. The rest can wait for break."
+          }
+        },
+        {
+          "id": "base",
+          "label": {
+            "ko": "쿠션으로 빠르게",
+            "en": "A quick cushion touch-up"
+          },
+          "productIds": [
+            "69092",
+            "62366"
+          ],
+          "reply": {
+            "ko": "딱 한 번만 두드리고 출발. 진짜 출발.",
+            "en": "One quick pat, then out the door. Really."
+          }
+        }
+      ]
+    }
+  ]
+}
