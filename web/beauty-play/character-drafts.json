@@ -6,14 +6,14 @@
       "status": "draft_artwork_unassigned",
       "artworkId": null,
       "identity": {
-        "ko": "사진에 진심인 꾸미기파",
-        "en": "The photo-loving beauty friend"
+        "ko": "네컷사진에 진심인 전학생",
+        "en": "The photo-booth transfer girl"
       },
       "groupId": "important_plans",
       "scenarioId": "after_school_photos",
       "artworkFit": {
-        "ko": "의상·액세서리·자신감 있는 자세가 눈에 띄는 기존 남성 명화에 연결",
-        "en": "Bind to a saved male portrait with distinctive clothes, accessories or a confident pose"
+        "ko": "남성 명화 인물의 얼굴과 표정은 알아볼 수 있게 유지하고, 교복·리본·가방·헤어핀을 더한 여고생 패러디. 원본이 퍼블릭 도메인이고 사용 이미지 권리가 확인된 작품만 채택.",
+        "en": "Recognizably retain the male painted subject's face and expression; restyle with a school uniform, ribbon, schoolbag and hairpin. Only use verified public-domain source art and cleared images."
       },
       "title": {
         "ko": "오늘 네 컷 찍는데.\n얼굴에 어디부터 포인트 줄까?",
@@ -74,21 +74,29 @@
             "en": "Okay, these photos might be keepers."
           }
         }
-      ]
+      ],
+      "concept": "male_masterpiece_as_high_school_girl",
+      "presentation": "fictional_schoolgirl_parody",
+      "artworkRequirements": {
+        "originalMaleSubject": true,
+        "publicDomainVerifiedBeforePublishing": true,
+        "transformation": "retain recognizable original face; schoolgirl outfit and accessories",
+        "status": "awaiting_artwork_selection_and_rights_review"
+      }
     },
     {
       "id": "school_last_minute_friend",
       "status": "draft_artwork_unassigned",
       "artworkId": null,
       "identity": {
-        "ko": "등교 준비가 늘 막판인 실속파",
-        "en": "The practical, last-minute school friend"
+        "ko": "지각 직전에도 꾸미는 반장",
+        "en": "The always-late class president"
       },
       "groupId": "in_a_hurry",
       "scenarioId": "five_minutes_to_school",
       "artworkFit": {
-        "ko": "급히 이동하거나 머리·복장이 흐트러진 특징과 연결 가능한 기존 남성 명화",
-        "en": "Bind to a saved male portrait whose pose, hair or outfit fits a hurried moment"
+        "ko": "남성 명화 인물의 얼굴과 포즈를 유지한 채 교복 재킷·치마·헝클어진 앞머리·책가방을 더한 여고생 패러디. 원본이 퍼블릭 도메인이고 사용 이미지 권리가 확인된 작품만 채택.",
+        "en": "Retain the male painted subject's recognizable face and pose; add a school blazer, skirt, tousled bangs and bookbag. Only use verified public-domain source art and cleared images."
       },
       "title": {
         "ko": "등교까지 5분.\n뭐 하나만 챙겨서 뛸까?",
@@ -148,7 +156,15 @@
             "en": "One quick pat, then out the door. Really."
           }
         }
-      ]
+      ],
+      "concept": "male_masterpiece_as_high_school_girl",
+      "presentation": "fictional_schoolgirl_parody",
+      "artworkRequirements": {
+        "originalMaleSubject": true,
+        "publicDomainVerifiedBeforePublishing": true,
+        "transformation": "retain recognizable original face; schoolgirl outfit and accessories",
+        "status": "awaiting_artwork_selection_and_rights_review"
+      }
     }
   ]
 }
