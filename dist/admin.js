@@ -87,7 +87,7 @@ if (root) {
   }));
   const review = document.getElementById('sb-planning-review');
   const tabs = [...root.querySelectorAll('[role="tab"][id^="sb-"]')];
-  function select(tab, focus = false) {
+  function select(tab, focus = false, historyMode = 'push') {
     if (!tabs.includes(tab)) return;
     for (const t of tabs) {
       const active = t === tab;
@@ -98,9 +98,9 @@ if (root) {
     if (tab.id === 'sb-plan-tab') loadReview();
     if (tab.id === 'sb-ui-library-tab') loadLibrary();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
-    if (tab.id.startsWith('sb-')) { try { history.replaceState(null, '', '#' + tab.id.slice(0,-4)); } catch {} }
+    const hash = '#' + tab.id.slice(0,-4);
+    if (location.hash !== hash) { try { history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', hash); } catch {} }
     if (focus) tab.focus();
-    try { sessionStorage.setItem('sb-admin-tab', tab.id); } catch {}
   }
   for (const [i, tab] of tabs.entries()) {
     tab.addEventListener('click', () => select(tab));
@@ -319,10 +319,14 @@ if (root) {
     });
     root.querySelectorAll('[data-quality-panel]').forEach(panel => { panel.hidden = panel.dataset.qualityPanel !== selected; });
   }));
-  let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
-  const deepLink = tabs.find(t => '#' + t.id.slice(0,-4) === location.hash)?.id;
-  select(tabs.find(t => t.id === (deepLink || saved)) || document.getElementById('sb-dashboard-tab'));
-  if (!deepLink && !saved) history.replaceState(null, '', '#sb-dashboard');
+  // The URL is the only navigation state. A fresh /admin always starts at operations home.
+  function selectLocation() {
+    const tab = tabs.find(t => '#' + t.id.slice(0,-4) === location.hash) || document.getElementById('sb-dashboard-tab');
+    select(tab, false, 'replace');
+  }
+  selectLocation();
+  addEventListener('hashchange', selectLocation);
+  addEventListener('popstate', selectLocation);
   document.getElementById('admin-logout').addEventListener('submit', () => { root.hidden = true; try { sessionStorage.removeItem('sb-admin-tab'); } catch {} });
   // Do not show a protected snapshot from the browser back/forward cache after logout.
   addEventListener('pagehide', () => { root.hidden = true; });
