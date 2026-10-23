@@ -67,7 +67,20 @@ export async function fetchProductTalk(familyKey, fetchImpl = fetch) {
   const reviewIds = new Set(mentions.filter(m => m.source === 'review').map(m => m.post_id));
   return {reviews: posts.filter(p => reviewIds.has(p.id)), posts: posts.filter(p => !reviewIds.has(p.id)), chatMentions: mentions.filter(m => m.source === 'chat').length};
 }
-const itemArgs = item => ({p_retailer: item?.retailer ?? null, p_market: item?.market ?? null, p_sku: item?.sku ?? null});
+// Never submit incomplete product references: an SKU without its retailer and
+// market cannot safely identify the same purchasable option in a discussion.
+export function validatePostProduct(item) {
+  if (item == null) return null;
+  if (typeof item !== 'object' || Array.isArray(item)) throw Error('Invalid product');
+  const fields = ['retailer', 'market', 'sku'];
+  const values = fields.map(key => item[key]);
+  if (values.some(v => typeof v !== 'string' || !v.trim() || v.length > 160)) throw Error('Invalid product');
+  return Object.fromEntries(fields.map((key,i)=>[key,values[i].trim()]));
+}
+const itemArgs = item => {
+  const validated = validatePostProduct(item);
+  return {p_retailer:validated?.retailer ?? null,p_market:validated?.market ?? null,p_sku:validated?.sku ?? null};
+};
 export const createPost = (secret, room, {kind, title, body = '', item = null, reasons = [], fromMessage = null, review = {}}, fetchImpl = fetch) =>
   rpc('create_post', {p_secret: secret, p_room: room, p_kind: kind, p_title: title, p_body: body, ...itemArgs(item), p_reasons: reasons, p_from_message: fromMessage, p_review: kind === 'review' ? review : {}}, fetchImpl);
 export const addComment = (secret, post, body, item = null, fetchImpl = fetch) => rpc('add_comment', {p_secret: secret, p_post: post, p_body: body, ...itemArgs(item)}, fetchImpl);
