@@ -7,11 +7,10 @@ export function setCurrentMarket(value){activeMarket=validMarket(value);return a
 export function marketDecision({pathname='',search='',storage,suggestedRegion=null}={}) {
  const path=validMarket(pathname.split('/')[1]);
  const query=validMarket(new URLSearchParams(search).get('region'));
- let manual,legacy;try{manual=validMarket(storage?.getItem(MANUAL_MARKET_KEY));legacy=validMarket(storage?.getItem('seoulbeauty-region'));}catch{}
+ let manual;try{manual=validMarket(storage?.getItem(MANUAL_MARKET_KEY));}catch{}
  if(path||query||manual)return {region:path||query||manual,needsChoice:false,recommended:null};
- // Earlier versions persisted the automatic US fallback under the same key as
- // manual selections. Preserve that ambiguous value, but never treat it as consent.
- if(legacy)return {region:null,needsChoice:true,recommended:suggestedRegion==='kr'?'kr':null};
+ // Legacy storage also contained an automatic US default. Without a verified
+ // manual marker, use the trusted Korean country suggestion without an extra prompt.
  return suggestedRegion==='kr'?{region:'kr',needsChoice:false,recommended:null}:{region:null,needsChoice:true,recommended:null};
 }
 export function rememberMarket(value,storage=globalThis.localStorage) {

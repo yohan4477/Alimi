@@ -23,7 +23,7 @@ try {
   {country:'KR',path:'/',lang:'ko',market:'kr'},
   {country:'JP',path:'/',lang:'en',market:null},
   {country:'XX',locale:'ko-KR',path:'/',lang:'ko',market:null},
-  {country:'KR',path:'/',saved:{'seoulbeauty-region':'us'},lang:'ko',market:null},
+  {country:'KR',path:'/',saved:{'seoulbeauty-region':'us'},lang:'ko',market:'kr'},
   {country:'KR',path:'/',saved:{'seoulbeauty-region-manual':'us','seoulbeauty-language':'en'},lang:'en',market:'us'},
   {country:'KR',path:'/us?lang=ko&room=fixture',lang:'ko',market:'us'},
   {country:'US',path:'/kr?lang=en',lang:'en',market:'kr'},
@@ -36,6 +36,8 @@ try {
   await f.context.close();
  }
  for(const width of [320,390]){
+  const automatic=await fixture({country:'KR',width,saved:{'seoulbeauty-region':'us'}});await automatic.page.goto(base+'/');await automatic.page.waitForFunction(()=>window.fixtureRegion==='kr');
+  assert.equal(await automatic.page.locator('html').getAttribute('lang'),'ko');assert.equal(await automatic.page.locator('[data-market-choice]').count(),0);await automatic.page.reload();await automatic.page.waitForFunction(()=>window.fixtureRegion==='kr');assert.equal(await automatic.page.locator('[data-market-choice]').count(),0);await automatic.context.close();
   const gated=await fixture({country:'JP',width});await gated.page.goto(base+'/');await gated.page.locator('[data-market-choice="kr"]').waitFor();
   assert.equal(await gated.page.locator('#tabbar').isVisible(),false);
   assert.equal(await gated.page.locator('.screen:visible').count(),0);
@@ -47,7 +49,7 @@ try {
   assert.equal(await failed.page.locator('#tabbar').isVisible(),false);
   assert.equal(await failed.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await failed.context.close();
  }
- const choose=await fixture({country:'KR',saved:{'seoulbeauty-region':'us'}});
+ const choose=await fixture({country:'JP',saved:{'seoulbeauty-region':'us'}});
  await choose.page.goto(base+'/?lang=en&room=synthetic&code=oauth-fixture');await choose.page.locator('[data-market-choice="kr"]').click();
  await choose.page.waitForURL(url=>url.pathname==='/kr');await choose.page.waitForFunction(()=>window.fixtureRegion==='kr');
  const chosen=new URL(choose.page.url());assert.equal(chosen.searchParams.get('room'),'synthetic');assert.equal(chosen.searchParams.get('code'),'oauth-fixture');assert.equal(chosen.searchParams.get('lang'),'en');
