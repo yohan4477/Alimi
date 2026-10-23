@@ -37,7 +37,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: npm run build:beauty-play
       - run: npm test
+      - run: node --experimental-strip-types --test tests/beauty-random.test.mjs
       - name: Admin access and mobile flow (mocked auth)
         run: |
           npm install --no-save playwright-core@1.49.1
