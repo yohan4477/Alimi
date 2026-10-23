@@ -29,16 +29,17 @@ try{
   f.release();await f.page.waitForFunction(value=>document.documentElement.lang===value,lang);
   if(path.startsWith('/beauty-play'))await f.page.locator('.pilot-entry').waitFor();
   else{await f.page.waitForFunction(()=>!document.documentElement.hasAttribute('data-locale-pending'));assert.equal(new URL(f.page.url()).pathname,path);}
-  assert.equal(f.count(),1);await f.context.close();
+  // Game imports Auth/i18n and resolves its own provider; both read the same server locale.
+  assert.equal(f.count(),path.startsWith('/beauty-play')?2:1);await f.context.close();
  }
  // Explicit link doesn't replace a remembered manual choice; manual toggle does.
- const f=await fixture();f.release();await f.page.goto(base+'/beauty-play/');await f.page.locator('.language-switch').waitFor();
+ const f=await fixture();f.release();await f.page.goto(base+'/beauty-play/');await f.page.locator('.language-switch').waitFor();const initialRequests=f.count();assert.equal(initialRequests,2);
  await f.page.locator('.language-switch').click();await f.page.waitForFunction(()=>document.documentElement.lang==='ko');assert.equal(await f.page.locator('html').getAttribute('lang'),'ko');
  const cookie=(await f.context.cookies()).find(c=>c.name==='seoulbeauty-language');assert.equal(cookie.value,'ko');assert.equal(cookie.path,'/');
  await f.page.goto(base+'/beauty-play/?lang=en');await f.page.locator('.pilot-entry').waitFor();assert.equal(await f.page.locator('html').getAttribute('lang'),'en');
  assert.equal((await f.context.cookies()).find(c=>c.name==='seoulbeauty-language').value,'ko');
  await f.page.goto(base+'/us');await f.page.waitForFunction(()=>!document.documentElement.hasAttribute('data-locale-pending'));
- assert.equal(await f.page.locator('html').getAttribute('lang'),'ko');assert.equal(new URL(f.page.url()).pathname,'/us');assert.equal(f.count(),1);
+ assert.equal(await f.page.locator('html').getAttribute('lang'),'ko');assert.equal(new URL(f.page.url()).pathname,'/us');assert.equal(f.count(),initialRequests,'explicit links and manual preference must not request server locale again');
  await f.context.close();
  for(const locale of ['en-US','ko-KR']){
   const g=await fixture({fail:true,privateMode:true,locale});g.release();await g.page.goto(base+'/beauty-play/');await g.page.locator('.pilot-entry').waitFor();
