@@ -19,6 +19,14 @@
   },
   "rewrites": [
     {
+      "source": "/live",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/live/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/beauty-play/api/:route",
       "destination": "/api/beauty-play?route=:route"
     },
