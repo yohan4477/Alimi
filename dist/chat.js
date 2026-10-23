@@ -21,7 +21,7 @@ import {share, shareUrl} from './share.js';
 // Live chat polls every few seconds while open.
 import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
-import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine, concernsOf, roomTags} from './room-card.js';
+import {participationLabel, roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine, concernsOf, roomTags} from './room-card.js';
 import {exploreRow} from './explore.js';
 import {readSavedRooms, readRecentRooms, addRecentRoom} from './saved-rooms.js';
 import {loadRevisit, joinedCard, unreadCount, ago as timeAgo} from './revisit.js';
@@ -94,7 +94,7 @@ export async function openChat(opts = {}) {
   track('community_open', null, beautyDraft && !demoActive ? {source:'beauty_play',handoff_id:beautyDraft.id}:{});
   if (beautyDraft && !demoActive && initial) track('beauty_draft_open',null,{source:'beauty_play',handoff_id:beautyDraft.id});
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
-  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
+  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : [...demoRooms.filter(r=>r.id.startsWith('demo-cx-')), ...await fetchRooms().catch(() => [])]; const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   const showLaunch = initial && readInterests()?.done;
   const finish = showLaunch ? beginStartupLoading({label: t('loading'), line1: t('splash.line1'), line2: t('splash.line2')}) : () => {};
   finishStartup = finish;
@@ -260,13 +260,13 @@ async function renderHome() {
     drawHome();
     return;
   }
-  let posts = [], joined = [], postsFailed = false;
-  try { [chat.rooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
+  let fetchedRooms = [], posts = [], joined = [], postsFailed = false;
+  try { [fetchedRooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
   if (version !== homeVersion || !$('#community-home')) return;
   // Include synthetic rooms in the normal community without writing to the production database.
   const syntheticRooms = demoRooms.filter(r => r.id.startsWith('demo-cx-'));
-  chat.rooms = [...syntheticRooms, ...chat.rooms.filter(r => !syntheticRooms.some(d => d.id === r.id))];
+  chat.rooms = [...syntheticRooms, ...fetchedRooms.filter(r => !syntheticRooms.some(d => d.id === r.id))];
   const scopedPosts = posts.filter(p=>chat.rooms.some(r=>r.id===p.room_id));
   const recent = visiblePosts(scopedPosts), hot = [...syntheticRooms.slice(0,6), ...activeRooms(chat.rooms.filter(r=>!r.demo))], topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => (a.sort??999)-(b.sort??999));
   const entries = [...recent.map(p => ({...p,source:'post'})), ...syntheticRooms.flatMap(r => (demoMessages[r.id]||[]).map(m => ({...m,source:'chat'})))];
@@ -286,7 +286,7 @@ async function renderHome() {
 }
 const trendCard = r => `<button class="trend-card" data-chat-room="${esc(r.id)}" data-live="1"><span class="trend-img">${home.images.get(r.id) ? `<img src="${esc(home.images.get(r.id))}" alt="" loading="lazy">` : roomThumb(r)}</span><b>${esc(roomTitle(r))}</b><small>${esc(t('room.newToday', {n: r.messages_24h}))}</small></button>`;
 // Home list row (journey 1): picture, title, latest line, real members and last activity.
-const hotRow = (r, image, note) => `<button class="hot-row" data-chat-room="${esc(r.id)}"${r.messages_24h > 0 ? ' data-live="1"' : ''}>${roomThumb(r, image)}<span class="hot-text"><b>${esc(roomTitle(r))}</b>${note ? `<small>${esc(note)}</small>` : ''}<span class="hot-meta"><span>${icon.people}${esc(t('room.joined', {n: r.members ?? 0}))}</span>${r.last_message_at ? `<span>${icon.clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>`;
+const hotRow = (r, image, note) => `<button class="hot-row" data-chat-room="${esc(r.id)}"${!r.demo && r.messages_24h > 0 ? ' data-live="1"' : ''}>${roomThumb(r, image)}<span class="hot-text"><b>${esc(roomTitle(r))}</b>${note ? `<small>${esc(note)}</small>` : ''}<span class="hot-meta"><span>${icon.people}${esc(participationLabel(r))}</span>${r.last_message_at ? `<span>${icon.clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>`;
 const homeHero = () => `<section class="home-hero"><div class="home-hero-text"><h1>${esc(t('home.hero.title'))}</h1><p>${esc(t('home.hero.sub'))}</p><button class="hero-cta" data-home-tab="discover">${esc(t('home.hero.cta'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div><img src="assets/seoul-beauty-model.webp" alt="" width="1254" height="1254"></section>`;
 const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big-head-row"><div><h2 class="big-head">${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div><button class="text-link" ${more}>${esc(t('home.seeAll'))} ›</button></div>`;
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
@@ -383,7 +383,7 @@ function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null; inRoom(true); addRecentRoom(room.id);
   const other = mode === 'posts' ? 'live' : 'posts';
   // Journey 3 room header: back, centred title with real member count, ⋯ menu (share / posts ↔ live).
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(t('room.joined', {n: room.members ?? 0}))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${mode === 'posts' ? esc(t('community.live')) : `<b>${esc(t('room.noticeTitle'))}</b><small>${esc(roomIntro(room))}</small>`}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(participationLabel(room))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${mode === 'posts' ? esc(t('community.live')) : `<b>${esc(t('room.noticeTitle'))}</b><small>${esc(roomIntro(room))}</small>`}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
   if (room.demo) { startLive(room); return; }
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
@@ -427,6 +427,7 @@ async function sendComment() {
 
 // Write a post (optionally from one of my chat messages: "Save as post").
 function openWrite(draft = {}) {
+  if (chat.room?.demo) { toast(locale().startsWith('ko') ? '가상 대화에서는 아래 입력창으로 참여해 주세요.' : 'Use the message field in sample conversations.'); return; }
   view.draft = {kind: 'question', title: '', body: '', item: null, reasons: [], fromMessage: null, usedFor: '', skinType: '', skinTone: '', undertone: '', climate: '', goal: '', photos: [], where: '', price: '', shipCountry: '', shipDays: '', sponsored: false, saveProfile: false, ...reviewPrefill(), ...draft};
   renderWrite(); $('#post-write').showModal();
 }
@@ -630,7 +631,7 @@ function picked1(i) {
 function roomIntroCard() {
   const r = chat.room; if (!r) return '';
   const image = home?.images?.get(r.id) ?? r.topic_product?.image_url;
-  const stats = [t('room.joined', {n: r.members ?? 0}), r.last_message_at ? t('room.lastActive', {t: relTime(r.last_message_at)}) : ''].filter(Boolean).join(' · ');
+  const stats = [participationLabel(r), r.last_message_at ? t('room.lastActive', {t: relTime(r.last_message_at)}) : ''].filter(Boolean).join(' · ');
   return `<section class="room-intro-card">${image ? `<img class="room-intro-photo" src="${esc(image)}" alt="" loading="lazy">` : ''}<div class="room-intro-head">${image ? '' : roomThumb(r)}<div><h2>${esc(roomTitle(r))}</h2><small>${esc(stats)}</small></div></div>${concernsOf(r).length ? `<div class="room-tags">${roomTags(r)}</div>` : ''}<button class="text-link" data-chat-action="related">${esc(t('room.related'))} ›</button></section>`;
 }
 const RELATED = ['product', 'brand', 'concern'];
