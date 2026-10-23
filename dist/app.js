@@ -9,6 +9,7 @@ import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-ca
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
 import {AccountSync} from './account-sync.js';
+import {loadAccountActivity} from './account-activity.js';
 import {openProfile,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
 import {openProductRoomsNext,openRoomListNext,openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData,relTime} from './chat.js';
 import {renderMyRooms,renderAlerts,renderShareHub,addRecent,readRecent,loadRevisit,unreadCount} from './revisit.js';
@@ -261,8 +262,14 @@ function renderSaved(){
     ${quick(lang==='ko'?'뷰티 프로필':'Beauty profile',lang==='ko'?'선택한 피부·관심사 수정':'Edit optional skin and interests','data-activity-profile')}
     ${quick(lang==='ko'?'계정·개인정보 관리':'Account & privacy',lang==='ko'?'로그인·설정 내보내기·탈퇴 요청':'Sign in, export preferences, deletion request','data-screen="settings"')}
   </div><p class="set-hint">${esc(lang==='ko'?'투표·작성글 전체는 아직 계정별로 통합되지 않았습니다.':'Votes and authored posts are not yet fully linked to your account.')}</p></section>`;
+  const activityRows=accountActivity?[
+    ['posts',lang==='ko'?'내 작성 글':'My posts',r=>`<button class="post-row" data-post="${esc(r.id)}"><span class="post-main"><b>${esc(r.title)}</b></span></button>`],
+    ['comments',lang==='ko'?'내 댓글':'My comments',r=>`<div class="post-row"><span class="post-main"><small>#${esc(r.post_id)}</small><b>${esc(r.body)}</b></span></div>`],
+    ['messages',lang==='ko'?'내 메시지':'My messages',r=>`<button class="post-row" data-open-room="${esc(r.room_id)}"><span class="post-main"><b>${esc(r.body)}</b></span></button>`]
+  ].map(([key,label,render])=>`<section class="activity-section"><h2 class="chat-section">${esc(label)} · ${(accountActivity[key]||[]).length}</h2>${(accountActivity[key]||[]).slice(0,10).map(render).join('')||`<p class="home-note">${esc(lang==='ko'?'기록 없음':'No activity yet')}</p>`}</section>`).join(''):'';
+  const accountActivityNotice=auth.user?(accountActivityStatus==='failed'?(lang==='ko'?'계정 활동을 불러올 수 없습니다. 서버 마이그레이션·연결 상태를 확인해 주세요.':'Account activity unavailable. Check server migration and connection.'):(lang==='ko'?'계정으로 확인된 활동만 표시합니다.':'Only account-verified activity is shown.')):(lang==='ko'?'로그인하면 이 기기의 활동을 안전하게 계정에 연결할 수 있습니다.':'Sign in to securely link this device’s activity.');
   const more=attrs=>`<button class="text-link" ${attrs}>${esc(t('home.seeAll'))} ›</button>`;
-  $('#saved').innerHTML=`<div class="logo-head activity-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="230" height="69"><span class="sb-head-actions"><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="service-context">${regionButton()}</div>${myHub}<div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<section id="activity-talk">${loadingMarkup(t('loading'))}</section>`}</div>
+  $('#saved').innerHTML=`<div class="logo-head activity-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="230" height="69"><span class="sb-head-actions"><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="service-context">${regionButton()}</div>${myHub}<p class="set-hint">${esc(accountActivityNotice)}</p>${activityRows}<div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<section id="activity-talk">${loadingMarkup(t('loading'))}</section>`}</div>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('activity.savedProducts'))}</h2>${n?more('data-activity-tab="saved"'):''}</div>${n?`<div class="saved-mini-grid">${list.slice(0,4).map(savedCard).join('')}</div>`:isDemo()?`<div class="saved-mini-grid">${demoPicks(demoActivity.saved).map(demoSavedCard).join('')}</div>`:activityEmpty(t('activity.savedEmpty'),'products')}</section>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('alerts.title'))}</h2>${more('data-screen="alerts"')}</div><div id="activity-alerts">${loadingMarkup(t('loading'))}</div></section>${interestRow()}`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
@@ -276,13 +283,13 @@ const linkRow=(ic,label,href)=>`<a class="set-row" href="${href}" target="_blank
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
 // Optional account with owner-isolated cloud preferences.
 const auth=new GoogleAuth();
-let syncStatus='local',authBusy=false;
+let syncStatus='local',authBusy=false,accountActivity=null,accountActivityStatus='local';
 const accountSync=new AccountSync(auth,{storage,onChange:()=>{
   state=readState(storage);products=mergeCatalogSaves(products.filter(p=>!p.id.startsWith('catalog|')),readCatalogSaves(storage)).filter(p=>inMarket(p));
   updateCount();if(screen==='saved')renderSaved();
 },onStatus:value=>{syncStatus=value;if(screen==='settings')renderSettings()}});
 for(const event of ['profile-change','interests-change'])document.addEventListener(event,()=>accountSync.changed());
-async function restoreAccount(){try{await auth.restore();if(auth.user)await accountSync.start();else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}if(screen==='settings')renderSettings();}
+async function restoreAccount(){try{await auth.restore();if(auth.user){await accountSync.start();try{accountActivity=await loadAccountActivity(auth,{storage});accountActivityStatus='ready'}catch{accountActivity=null;accountActivityStatus='failed'}}else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();accountActivity=null;accountActivityStatus='local';}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}if(screen==='settings')renderSettings();}
 setInterval(()=>{if(!document.hidden)restoreAccount()},60000);
 window.addEventListener('online',()=>restoreAccount().then(()=>accountSync.flush()));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreAccount()});
