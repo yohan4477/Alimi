@@ -90,7 +90,7 @@ test('admin navigation preserves operations and planning panels with reciprocal 
   const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
   const expectedPanels=[
     'sb-dashboard','sb-users','sb-community','sb-products','sb-game','sb-revenue','sb-system',
-    'sb-ui-library','sb-dev','sb-roadmap','sb-strategy','sb-plan','sb-design',
+    'sb-ui-library','sb-dev','sb-roadmap','sb-strategy','sb-plan','sb-design','sb-quality',
   ];
   const elements=role=>[...html.matchAll(new RegExp(`<[^>]+\\srole="${role}"[^>]*>`, 'g'))]
     .map(([tag])=>Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([,name,value])=>[name,value])));
