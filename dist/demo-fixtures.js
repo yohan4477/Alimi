@@ -1,3 +1,4 @@
+import cxDataset from './cx-demo-fixtures.json' with {type:'json'};
 import productImages from './demo-product-images.json' with {type:'json'};
 import {lang} from './i18n.js';
 // Isolated synthetic chat examples for presentation. Not actual users or KPIs.
@@ -70,3 +71,6 @@ export function createDemoProductRoom({title,intro='',tag='talk',concerns=[],pro
 }
 
 export const demoEntries = () => Object.values(demoMessages).flat().map(m=>({...m,source:'chat'}));
+
+// Existing community renderer uses these synthetic discussion fixtures.
+if (ko) { for (const room of cxDataset.rooms) { demoRooms.push(room); demoMessages[room.id] = cxDataset.messages[room.id]; } }
