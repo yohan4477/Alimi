@@ -70,5 +70,6 @@
       "source": "/terms/",
       "destination": "/terms.html"
     }
-  ]
+  ],
+  "buildCommand": "npm run build:beauty-play"
 }
