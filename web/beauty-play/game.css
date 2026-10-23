@@ -83,3 +83,9 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 .pilot-top nav>a{display:none}.pilot-more{margin:22px 0}.pilot-more>summary{padding:14px;border:1px solid #dfe6f2;border-radius:10px;font-size:13px;color:#617592;cursor:pointer}
 
 .draft-region{display:flex;align-items:center;gap:8px;margin:12px 0;font-size:13px}.draft-region select{min-width:0;max-width:100%;padding:8px;border:1px solid #d9dfe9;border-radius:8px;background:white;color:#25334a}
+
+/* Keep the result heading directly beneath its back navigation. */
+.result-main .progress-nav{padding:12px 0 6px;margin:0 auto}
+.result-main .result-top{padding:8px 0 16px}
+.result-main .result-top h1{margin-top:8px}
+.result-main .result-screen{margin:0 auto}
