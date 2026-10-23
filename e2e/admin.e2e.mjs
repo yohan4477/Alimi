@@ -50,7 +50,7 @@ try {
   assert.equal(await page.locator('#sb-dev-tab').getAttribute('aria-selected'),'true');
   assert.ok(await page.locator('#sb-dev').isVisible());
   for(const name of ['운영 홈','회원','커뮤니티','제품','게임·투표','수익','시스템','UI Library','현황','실행 계획','전략 자료','서비스 기획','디자인 리뷰']) {
-    await page.getByRole('tab',{name,exact:true}).click();assert.equal(await page.locator('[role="tabpanel"]:visible').count(),1);
+    await page.getByRole('tab',{name,exact:true}).click();assert.equal(await page.locator('.sb-panel[role="tabpanel"]:visible').count(),1);
     assert.equal(await page.getByRole('tab',{name,exact:true}).getAttribute('aria-selected'),'true');
   }
 
@@ -78,6 +78,8 @@ try {
   for(const width of [320,390,1024]){
     await page.setViewportSize({width,height:844});
     for(const tile of [domestic,unknown]){
+      await affiliates.getByRole('tab',{name:tile===domestic?'제휴':'미제휴',exact:true}).click();
+      assert.equal(await page.locator('#sb-revenue-tab').getAttribute('aria-selected'),'true');
       const summary=tile.locator('summary');await summary.focus();await summary.press('Enter');
       assert.equal(await tile.getAttribute('open'),'');
       assert.ok(await tile.locator('.affiliate-brand-detail').isVisible());
@@ -89,6 +91,16 @@ try {
     }
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'affiliate tile grid overflows at '+width);
   }
+  await affiliates.getByRole('tab',{name:'제휴',exact:true}).click();
+  assert.equal(await affiliates.locator('.affiliate-brand-tile:visible').count(),35);
+  await affiliates.getByRole('tab',{name:'제휴',exact:true}).press('ArrowRight');
+  assert.equal(await affiliates.getByRole('tab',{name:'미제휴',exact:true}).getAttribute('aria-selected'),'true');
+  assert.equal(await affiliates.locator('.affiliate-brand-tile:visible').count(),43);
+  await affiliates.getByRole('tab',{name:'미제휴',exact:true}).press('Home');
+  const logo=affiliates.locator('[data-brand-logo]').first();
+  await logo.evaluate(img=>img.dispatchEvent(new Event('error')));
+  assert.ok(await logo.isHidden());
+  assert.ok(await logo.locator('xpath=following-sibling::span').isVisible());
   await page.setViewportSize({width:390,height:844});
 
   // Current status and change history are separate, protected views.

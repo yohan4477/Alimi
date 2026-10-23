@@ -94,7 +94,7 @@ test('admin navigation preserves operations and planning panels with reciprocal 
   ];
   const elements=role=>[...html.matchAll(new RegExp(`<[^>]+\\srole="${role}"[^>]*>`, 'g'))]
     .map(([tag])=>Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([,name,value])=>[name,value])));
-  const tabs=elements('tab'),panels=elements('tabpanel');
+  const tabs=elements('tab').filter(x=>x.id.startsWith('sb-')),panels=elements('tabpanel').filter(x=>x.id.startsWith('sb-'));
   // Exact identities catch missing, duplicate, orphaned, or accidentally renamed sections.
   assert.deepEqual(panels.map(panel=>panel.id).sort(),[...expectedPanels].sort());
   assert.deepEqual(tabs.map(tab=>tab.id).sort(),expectedPanels.map(id=>`${id}-tab`).sort());
