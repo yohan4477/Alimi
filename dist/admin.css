@@ -448,3 +448,27 @@
 #sb-quality .quality-process{padding-left:25px}
 #sb-quality .quality-process li{padding:10px 0;border-bottom:1px solid var(--border)}
 @media(max-width:480px){#sb-quality .quality-tab{padding:9px 10px;font-size:.82rem}}
+/* Affiliate coverage stays in the protected revenue panel; tiles are native disclosures. */
+#sb-revenue .admin-affiliate-coverage{margin-top:28px;padding-top:24px;border-top:1px solid var(--border);min-width:0}
+#sb-revenue .affiliate-summary{font-weight:650;line-height:1.65}
+#sb-revenue .affiliate-state-legend{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 22px}
+#sb-revenue .affiliate-state-legend span{font-size:.72rem;border:1px solid var(--border);border-radius:4px;padding:4px 7px}
+#sb-revenue .affiliate-market-group{margin:24px 0}
+#sb-revenue .affiliate-market-group>p{font-size:.85rem;color:var(--muted-foreground);line-height:1.65}
+#sb-revenue .affiliate-brand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;align-items:start}
+#sb-revenue .affiliate-brand-tile{min-width:0;border:1px solid var(--border);border-radius:5px;background:var(--background);overflow:hidden;margin:0;padding:0}
+#sb-revenue .affiliate-brand-tile>summary{min-height:63px;padding:11px 10px;cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:5px}
+#sb-revenue .affiliate-brand-tile>summary::-webkit-details-marker{display:none}
+#sb-revenue .affiliate-brand-tile>summary strong{font-size:.87rem;overflow-wrap:anywhere}
+#sb-revenue .affiliate-tile-status{font-size:.68rem;color:var(--muted-foreground);line-height:1.4}
+#sb-revenue .affiliate-brand-tile[data-coverage="verified"]>summary{border-left:3px solid var(--primary)}
+#sb-revenue .affiliate-brand-tile>summary:focus-visible{outline:3px solid var(--primary);outline-offset:-3px}
+#sb-revenue .affiliate-brand-tile[open]{grid-column:1/-1}
+#sb-revenue .affiliate-brand-tile[open]>summary{background:var(--accent)}
+#sb-revenue .affiliate-brand-detail{padding:5px 14px 16px;overflow-wrap:anywhere}
+#sb-revenue .affiliate-brand-detail dl>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;border-bottom:1px solid var(--border);padding:9px 0;font-size:.8rem;line-height:1.6}
+#sb-revenue .affiliate-brand-detail dt{font-weight:650}
+#sb-revenue .affiliate-brand-detail dd{margin:0}
+#sb-revenue .affiliate-source-list{padding-left:20px;font-size:.78rem;line-height:1.8}
+#sb-revenue .affiliate-route-caveats{border-top:1px solid var(--border);padding-top:16px;font-size:.85rem}
+@media(max-width:480px){#sb-revenue .affiliate-brand-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#sb-revenue .affiliate-brand-detail dl>div{grid-template-columns:1fr;gap:2px}#sb-revenue .affiliate-brand-tile>summary{padding:10px 7px;min-height:70px}}
