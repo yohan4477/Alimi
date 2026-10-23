@@ -91,6 +91,7 @@ export async function openChat(opts = {}) {
   chat.myTag ||= await tagOf(secret);
   if (version !== communityOpenVersion) return;
   track('community_open', null, beautyDraft && !demoActive ? {source:'beauty_play',handoff_id:beautyDraft.id}:{});
+  if (beautyDraft && !demoActive && initial) track('beauty_draft_open',null,{source:'beauty_play',handoff_id:beautyDraft.id});
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
   if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   const showLaunch = initial && readInterests()?.done;
@@ -194,6 +195,7 @@ function openBeautyDraftInRoom(room) {
   beautyDraft=readHandoff(handoffStorage(),{id:incomingBeautyId,region});
   if(!beautyDraft||!room||!inRegion(room)||room.demo)return;
   $('#beauty-draft-rooms')?.close();
+  track('beauty_room_selected',null,{source:'beauty_play',handoff_id:beautyDraft.id});
   askRules(room,()=>{openTopic(room,'posts');openWrite({title:beautyDraft.title||'',body:beautyDraft.body,beautyHandoffId:beautyDraft.id});});
 }
 
@@ -428,7 +430,7 @@ async function submitPost() {
     const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
     track('post_create', null, {room: chat.room.id, kind: d.kind, item: d.item ? 1 : 0, from_chat: d.fromMessage ? 1 : 0, photos: d.photos.length, reasons: d.reasons.join(',')});
     if (d.kind === 'review' && d.saveProfile) saveFromReview(d).catch(() => {});
-    if(d.beautyHandoffId){clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
+    if(d.beautyHandoffId){track('beauty_post_published',null,{source:'beauty_play',handoff_id:d.beautyHandoffId});clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
     $('#post-write').close();
     if (d.fromMessage) toast(t('community.savedAsPost'));
     openTopic(chat.room, 'posts'); openPost(p.id);
