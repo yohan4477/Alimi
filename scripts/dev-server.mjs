@@ -1,3 +1,4 @@
+import languageHandler from '../api/language.js';
 import {createBeautyPlayHandler} from '../api/beauty-play.js';
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -14,6 +15,7 @@ export function createLocalServer({adminHandler = createAdminHandler({env: {...p
     const url = new URL(req.url, 'http://localhost');
     if(url.pathname.startsWith('/beauty-play/api/')){req.url='/api/beauty-play?'+new URLSearchParams({...Object.fromEntries(url.searchParams),route:url.pathname.slice('/beauty-play/api/'.length)});return beautyPlayHandler(req,res);}
     if (['/admin','/admin/','/api/admin'].includes(url.pathname)) return adminHandler(req, res);
+    if (url.pathname === '/api/language') return languageHandler(req,res);
     if (url.pathname === '/api/coupang') return coupangHandler(req, res);
     if (url.pathname === '/api/oliveyoung') return oliveYoungHandler(req, res);
     if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405); return res.end(); }
