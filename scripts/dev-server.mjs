@@ -1,6 +1,6 @@
 import {staticEntryPath} from '../dist/public-routes.js';
 import languageHandler from '../api/language.js';
-import {createBeautyPlayHandler} from '../api/beauty-play.js';
+import {configuredBeautyPlayHandler} from '../api/beauty-play.js';
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -9,7 +9,7 @@ import {createAdminHandler} from '../api/admin.js';
 import {createCoupangHandler} from '../api/coupang.js';
 import {createOliveYoungHandler} from '../api/oliveyoung.js';
 const root = fileURLToPath(new URL('../dist/', import.meta.url));
-const beautyPlayHandler=createBeautyPlayHandler({cookieSecure:false,allowedOrigins:new Set(['https://seoulbeauty.me','http://localhost:3000','http://terminal.local:4173'])});
+const beautyPlayHandler=configuredBeautyPlayHandler(process.env,{cookieSecure:false,allowedOrigins:new Set(['https://seoulbeauty.me','http://localhost:3000','http://terminal.local:4173'])});
 const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webp':'image/webp'};
 export function createLocalServer({adminHandler = createAdminHandler({env: {...process.env, ADMIN_ORIGIN: process.env.ADMIN_ORIGIN || 'http://localhost:3000'}}), coupangHandler = createCoupangHandler(), oliveYoungHandler = createOliveYoungHandler()} = {}) {
   return http.createServer(async (req, res) => {

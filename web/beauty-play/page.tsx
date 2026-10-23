@@ -41,7 +41,6 @@ useEffect(()=>{
   (async()=>{try{
     const start=await resolveGameStart({invite:token,play:play.current,signal:controller.signal});
     if(!alive)return;
-    if(start.legacyInviteUrl){window.location.replace(start.legacyInviteUrl);return;}
     const sessionInfo=start.sessionInfo,ids=availableCharacterIds(sessionInfo,characters.map(x=>x.id));
     setActiveIds(ids);setAccountLinkEnabled(sessionInfo.accountLinkEnabled===true);
     const v=start.invitation;let initialCharacter=characters[Math.max(initial,0)].id;
@@ -61,11 +60,11 @@ useEffect(()=>{
       const run=activeRun(ids,u.searchParams.get('character'),runScope.current);
       runState.current=run;play.current=run.play;setWho(characters.findIndex(x=>x.id===run.character));setShareUnlocked(run.shared);initialCharacter=run.character;
     }
-    // Historical destinations and restored invitation plays resolve before any records.
+    // Invitation lookups and restored plays resolve before any records.
     canWrite.current=true;setReady(true);
     event('pilot_view','pilot',initialCharacter);event('landing_view',u.searchParams.get('pilot')==='1'?'pilot':'selection',initialCharacter);event('character_view','selection',initialCharacter);
     if(v){event('invite_open','context',v.character);event('character_view','context',v.character);}
-  }catch{if(alive)setError('연결을 확인해 주세요. 새로고침 후 다시 참여할 수 있어요.');}})();
+  }catch(e){if(alive)setError((e as {code?:string}).code==='invitation_unavailable'?(lang==='ko'?'이 초대 링크는 더 이상 사용할 수 없어요. 새 초대 링크로 참여해 주세요.':'This invite link is unavailable. Please ask for a new invite link.'):(lang==='ko'?'연결을 확인해 주세요. 새로고침 후 다시 참여할 수 있어요.':'Please check your connection and refresh to try again.'));}})();
   return()=>{alive=false;canWrite.current=false;controller.abort();};
 },[]);
 useEffect(()=>{if(!ready||screen!==0)return;const observer=new IntersectionObserver(es=>es.forEach(e=>{const id=(e.target as HTMLElement).dataset.character;if(e.isIntersecting&&id&&!sentViews.current.has(id)){sentViews.current.add(id);event('character_view','gallery',id);}}),{threshold:.5});document.querySelectorAll('[data-character]').forEach(el=>observer.observe(el));return()=>observer.disconnect();},[screen,ready]);
