@@ -33,10 +33,10 @@ test('room tag choices: 19 specific tags, aliases merge, fourth selection blocke
 test('missing create RPC is surfaced as server update, never a successful creation',async()=>{
  await assert.rejects(createRoom(owner,{title:'Test room'},async()=>({ok:false,status:404,json:async()=>({code:'PGRST202',message:'Could not find the function public.create_room'})})),e=>errorKey(e.message)==='chat.err.unavailable');
 });
-test('unapproved lifecycle RPCs fail closed before sending ownership proof',async()=>{
- for(const fn of [leaveRoom,deleteRoom,roomActions]) {
-  let called=false;await assert.rejects(fn(owner,'u-test',async()=>{called=true;}),/chat:unavailable/);
-  assert.equal(called,false);
+test('management API never sends a claimed owner, only the caller proof and target',async()=>{
+ for(const [fn,name] of [[leaveRoom,'leave_room'],[deleteRoom,'delete_room'],[roomActions,'room_actions']]) {
+  let seen; await fn(owner,'u-test',async(url,o)=>{seen={url,body:JSON.parse(o.body)};return {ok:true,status:200,json:async()=>null};});
+  assert.ok(seen.url.endsWith('/'+name));assert.deepEqual(seen.body,{p_secret:owner,p_room:'u-test'});
  }
 });
 test('database rules under anon: creation, ownership, participation history, messages, closure and archive',async()=>{

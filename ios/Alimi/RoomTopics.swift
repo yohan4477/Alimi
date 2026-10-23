@@ -2,8 +2,8 @@ import Foundation
 
 // Build-time gates only. Activate after the separately approved schema/grants are verified.
 enum RoomFeatureRelease {
-    static let lifecycle = false
-    static let experiences = false
+    static let lifecycle = true
+    static let experiences = true
     static func allowsRPC(_ name: String) -> Bool {
         if ["room_actions", "leave_room", "delete_room", "delete_chat_message"].contains(name) { return lifecycle }
         if ["set_room_experience", "delete_room_experience"].contains(name) { return experiences }

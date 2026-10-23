@@ -252,6 +252,16 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(RoomText.activity(quiet, now: now), "오늘 5개의 새 글")
         XCTAssertNil(RoomText.activity(idle, now: now), "no activity claim without messages")
     }
+    func testOwnerlessRoomActionsDecodeWithoutGrantingDeletion() throws {
+        for json in [#"{"joined":false,"can_delete":null}"#, #"{"joined":true}"#] {
+            let actions = try JSONDecoder().decode(ChatAPI.RoomActions.self, from: Data(json.utf8))
+            XCTAssertFalse(actions.can_delete)
+        }
+        let owner = try JSONDecoder().decode(ChatAPI.RoomActions.self, from: Data(#"{"joined":true,"can_delete":true}"#.utf8))
+        XCTAssertTrue(owner.joined)
+        XCTAssertTrue(owner.can_delete)
+        XCTAssertThrowsError(try JSONDecoder().decode(ChatAPI.RoomActions.self, from: Data(#"{"joined":true,"can_delete":"yes"}"#.utf8)))
+    }
     func testShareLinksOpenTheWebScreen() {
         XCTAssertEqual(ShareLinks.room("acne").absoluteString, "https://seoulbeauty.me/us?room=acne")
         XCTAssertEqual(ShareLinks.product("anua|oil").absoluteString, "https://seoulbeauty.me/us?product=anua%7Coil")

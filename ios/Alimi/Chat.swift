@@ -159,7 +159,16 @@ enum ChatAPI {
             throw error
         }
     }
-    struct RoomActions: Decodable { let joined: Bool; let can_delete: Bool }
+    struct RoomActions: Decodable {
+        let joined: Bool
+        let can_delete: Bool
+        enum CodingKeys: String, CodingKey { case joined, can_delete }
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            joined = try values.decodeIfPresent(Bool.self, forKey: .joined) ?? false
+            can_delete = try values.decodeIfPresent(Bool.self, forKey: .can_delete) ?? false
+        }
+    }
     static func actions(room: String) async throws -> RoomActions {
         try JSONDecoder().decode(RoomActions.self, from: await rpc("room_actions", ["p_secret": secret, "p_room": room]))
     }

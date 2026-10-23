@@ -1,18 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ROOM_LIFECYCLE_ENABLED,ROOM_EXPERIENCES_ENABLED,roomRpcAllowed} from '../dist/room-feature-release.js';
+import {ROOM_LIFECYCLE_ENABLED,ROOM_EXPERIENCES_ENABLED,roomRpcAllowed,roomRpcAllowedFor} from '../dist/room-feature-release.js';
 import {rpc} from '../dist/supabase.js';
 import {chatSecret} from '../dist/chat-api.js';
-test('room capabilities default OFF and all privileged client RPCs fail without network I/O',async()=>{
- assert.equal(ROOM_LIFECYCLE_ENABLED,false);assert.equal(ROOM_EXPERIENCES_ENABLED,false);
+test('approved room gates are explicit and disabled gate logic fails closed',async()=>{
+ assert.equal(ROOM_LIFECYCLE_ENABLED,true);assert.equal(ROOM_EXPERIENCES_ENABLED,true);
  for(const name of ['room_actions','leave_room','delete_room','delete_chat_message','set_room_experience','delete_room_experience']){
-  assert.equal(roomRpcAllowed(name),false);let sent=false;
-  await assert.rejects(rpc(name,{},async()=>{sent=true;}),/chat:unavailable/);assert.equal(sent,false);
+  assert.equal(roomRpcAllowedFor(name),false);
+  assert.equal(roomRpcAllowed(name),true);let sent=false;
+  await rpc(name,{},async()=>{sent=true;return {ok:true,status:200,json:async()=>null};});assert.equal(sent,true);
  }
  for(const name of ['create_region_room','create_room','post_chat','like_chat','report_chat'])assert.equal(roomRpcAllowed(name),true);
+ assert.equal(roomRpcAllowedFor('room_actions',false,true),false);
+ assert.equal(roomRpcAllowedFor('set_room_experience',true,false),false);
+ const client=readFileSync(new URL('../dist/supabase.js',import.meta.url),'utf8');assert.match(client,/if\s*\(!roomRpcAllowed\(name\)\)/);
  const native=readFileSync(new URL('../ios/Alimi/RoomTopics.swift',import.meta.url),'utf8');
- assert.match(native,/static let lifecycle = false/);assert.match(native,/static let experiences = false/);
+ assert.match(native,/static let lifecycle = true/);assert.match(native,/static let experiences = true/);
  const api=readFileSync(new URL('../ios/Alimi/Chat.swift',import.meta.url),'utf8');assert.match(api,/guard RoomFeatureRelease.allowsRPC\(name\)/);
 });
 test('new device ownership proof is random UUID-v4 and not a public author tag',()=>{

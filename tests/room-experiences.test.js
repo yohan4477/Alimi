@@ -46,8 +46,7 @@ test('products come only from explicit subjects or attachments, never text parsi
 test('online reads page to completion and saves with the established ownership secret',async()=>{
  let n=0;const rows=await fetchExperiences('r',async()=>({ok:true,json:async()=>++n===1?[{room_id:'r',author_tag:'a',product_key:'p'}]:[]}));
  assert.equal(n,2);assert.equal(rows.length,1);
- let sent=false;await assert.rejects(saveExperience('secret','r','p',{status:'using'},async()=>{sent=true;}),/chat:unavailable/);
- assert.equal(sent,false);await assert.rejects(gatedFetchExperiences('r',async()=>{sent=true;}),/chat:unavailable/);assert.equal(sent,false);
+ await saveExperience('secret','r','p',{status:'using'},async(url,opts)=>{assert.ok(url.endsWith('/rpc/set_room_experience'));assert.equal(JSON.parse(opts.body).p_secret,'secret');return {ok:true,status:200,json:async()=>({})}});
 });
 test('keyset reads more than the API row cap, escapes cursor keys, and rejects partial or looping data',async()=>{
  const source=Array.from({length:1005},(_,i)=>({room_id:'r',author_tag:String(i).padStart(6,'0'),product_key:i===499?'quoted"product':'p'}));
