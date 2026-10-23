@@ -62,7 +62,11 @@ try {
   }
   // Mocked login return preserves a valid deep link, but stale links land at home.
   for(const hash of ['#sb-dev','#removed-tab','']) {
-    await page.context().clearCookies();await page.goto(base+'/admin'+hash);await login('admin@example.test');
+    await page.context().clearCookies();await page.goto(base+'/admin'+hash);
+    // Changing only the hash can reuse the protected document without a request.
+    const loginResponse=await page.reload();assert.equal(loginResponse.status(),401);
+    assert.equal(await page.locator('[role="tab"]').count(),0);
+    await login('admin@example.test');
     const expected=hash==='#sb-dev'?'sb-dev-tab':'sb-dashboard-tab';
     await page.waitForFunction(id=>document.getElementById(id)?.getAttribute('aria-selected')==='true',expected);
   }
