@@ -16,7 +16,7 @@ test('answer normalizes only allowed data, no client identity',()=>{
   invalid(()=>validateCommand('record',{...answer,invite:'attacker'}));
 });
 test('answer validates character, advice-product pairing, product option and reasons',()=>{
-  for(const patch of [{character:'nope'},{product:'69092'},{advice:'unknown'},{shade:'69092'},{reasons:['user@example.org']},{reasons:'not array'},{note:'x'.repeat(161)}]) invalid(()=>validateCommand('record',{...answer,...patch}));
+  for(const patch of [{character:'nope'},{product:'missing-product'},{advice:'unknown'},{shade:'69092'},{reasons:['user@example.org']},{reasons:'not array'},{note:'x'.repeat(161)}]) invalid(()=>validateCommand('record',{...answer,...patch}));
   assert.equal(JSON.parse(validateCommand('record',{...answer,reasons:[]}).reason).reasons.length,0);
   assert.deepEqual(JSON.parse(validateCommand('record',{...answer,reasons:[...answer.reasons,...answer.reasons]}).reason).reasons,answer.reasons);
   assert.equal(validateCommand('record',{...answer,product:'unsure',shade:null}).product,'unsure');
@@ -84,7 +84,7 @@ test('snapshot is isolated, complete for every advice path, and contains no play
   for(const id of ['mona','pearl','venus','madame','camille','ophelia']) {
     const s=shareSnapshot(id); assert.equal(s.character.id,id); assert.ok(s.character.name && s.character.bg && s.character.quote && s.character.reasonOptions);
     for(const a of s.advice) for(const p of a.productIds) assert.ok(s.products.some(x=>x.id===p),`${id}/${a.id}/${p}`);
-    assert.deepEqual(Object.keys(s).sort(),['advice','character','products']);
+    assert.deepEqual(Object.keys(s).sort(),['advice','catalogPolicy','character','products']);
     s.character.name='mutated'; assert.notEqual(shareSnapshot(id).character.name,'mutated');
   }
 });
@@ -105,4 +105,28 @@ test('aggregation accepts normalized stats options but independently re-derives 
   const options=validateCommand('stats',{character:'mona',scope:'group'});
   assert.equal(aggregateAnswers([row(),row('madame'),row('venus')],options).votes[0].n,2);
   assert.equal(aggregateAnswers([row('venus')],{...options,characters:['venus']}).votes.length,0);
+});
+
+test('cross-scenario owned product can be saved and is preserved in invitation snapshot',()=>{
+ const snapshot=shareSnapshot('mona');const p=snapshot.products.find(p=>p.id==='69092');assert(p);
+ const command={...answer,product:p.id,shade:p.options[0].id};
+ assert.equal(validateCommand('record',command).product,p.id);
+ assert.equal(validateCommand('record',command,{snapshot}).product,p.id);
+ invalid(()=>validateCommand('record',{...command,shade:'64960'}));
+});
+
+test('unmarked historical snapshot retains its original advice-product restriction',()=>{
+ const snapshot=shareSnapshot('mona');delete snapshot.catalogPolicy;
+ snapshot.products=[{id:'old-recommended',options:[{id:'old-option'}]},{id:'old-other',options:[{id:'other-option'}]}];
+ snapshot.advice=[{id:'old-advice',productIds:['old-recommended'],reasonOptions:[]}];
+ const command={...answer,advice:'old-advice',product:'old-recommended',shade:'old-option',reasons:[]};
+ assert.equal(validateCommand('record',command,{snapshot}).product,'old-recommended');
+ invalid(()=>validateCommand('record',{...command,product:'old-other',shade:'other-option'},{snapshot}));
+ snapshot.catalogPolicy='unrecognized-policy';
+ invalid(()=>validateCommand('record',{...command,product:'old-other',shade:'other-option'},{snapshot}));
+ invalid(()=>validateCommand('record',{...command,shade:'other-option'},{snapshot}));
+ invalid(()=>validateCommand('record',{...command,catalogPolicy:'all-products-v1'}));
+ snapshot.catalogPolicy='all-products-v1';
+ assert.equal(validateCommand('record',{...command,product:'old-other',shade:'other-option'},{snapshot}).product,'old-other');
+ invalid(()=>validateCommand('record',{...command,shade:'other-option'},{snapshot}));
 });
