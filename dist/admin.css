@@ -299,3 +299,24 @@
 .admin-empty-state p{max-width:690px}
 @media(max-width:850px){#sb-management{display:block}#sb-management>.admin-navigation{position:static;max-height:none;overflow:visible} .admin-navigation .nav{flex-direction:row;flex-wrap:wrap} .admin-navigation .nav-link{width:auto;border:1px solid var(--border)} .admin-nav-separator{flex-basis:100%} .admin-brand{display:none}}
 @media(max-width:480px){.admin-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-kpi{padding:13px}.admin-navigation .nav-link{width:auto;flex:0 1 auto}}
+
+/* Mobile planning tables: turn five-column prose into legible stacked cards. */
+@media (max-width: 700px) {
+ #sb-product-chat-entry-plan {min-width:0;max-width:100%;overflow-wrap:break-word}
+ #sb-product-chat-entry-plan h4+div {width:100%;max-width:100%;overflow:visible!important}
+ #sb-product-chat-entry-plan h4+div>table {width:100%!important;min-width:0!important;table-layout:auto!important;display:block!important}
+ #sb-product-chat-entry-plan h4+div>table thead {display:none!important}
+ #sb-product-chat-entry-plan h4+div>table tbody {display:block!important}
+ #sb-product-chat-entry-plan h4+div>table tr {display:block!important;margin:0 0 14px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--background)}
+ #sb-product-chat-entry-plan h4+div>table td {display:block!important;width:100%!important;min-width:0!important;border:0!important;padding:6px 0!important;white-space:normal!important;overflow-wrap:anywhere;word-break:keep-all;line-height:1.55}
+ #sb-product-chat-entry-plan h4+div>table td:before {display:block;font-size:.76rem;font-weight:700;color:var(--muted-foreground);margin-bottom:3px}
+ #sb-product-chat-entry-plan h4+div>table tr td:first-child {font-weight:700;font-size:1rem;border-bottom:1px solid var(--border)!important;margin-bottom:8px;padding-bottom:10px!important}
+ #sb-product-chat-entry-plan h4+div>table tr td:first-child:before {display:none}
+ #sb-product-chat-entry-plan h4+div>table tr td:nth-child(2):before {content:"목적"}
+ #sb-product-chat-entry-plan h4+div>table tr td:nth-child(3):before {content:"노출 방식 · 문구"}
+ #sb-product-chat-entry-plan h4+div>table tr td:nth-child(4):before {content:"선택 후 행동"}
+ #sb-product-chat-entry-plan h4+div>table tr td:nth-child(5):before {content:"확인 지표"}
+ #sb-product-chat-entry-plan h4+div>table tr:has(td:nth-child(3):last-child) td:nth-child(2):before {content:"질문 시점"}
+ #sb-product-chat-entry-plan h4+div>table tr:has(td:nth-child(3):last-child) td:nth-child(3):before {content:"저장 · 활용 규칙"}
+ .sb-panel,.card,.admin-shell {min-width:0}
+}
