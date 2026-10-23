@@ -298,7 +298,7 @@ function drawHome() {
   if(region==='kr' && !demoActive && !chat.rooms.length) { box.innerHTML=`<p class="empty">${esc(t('region.krPending'))}</p><button data-service-region>${esc(t('region.open'))}</button>`; return; }
   if (homeTab === 'rec') {
     const interests = readInterests();
-    const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (hot.length ? hot : topics).slice(0, 4);
+    const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (topics.some(r => !r.demo) ? topics.filter(r => !r.demo) : hot.length ? hot : topics).slice(0, 4);
     const mine = home.revisit?.activity?.length ? sectionHead(t('rooms.mine'), '', `<button class="text-link" data-screen="rooms">${esc(t('home.seeAll'))} ›</button>`) + home.revisit.activity.slice(0, 2).map(a => joinedCard(a, images.get(a.room.id))).join('') : '';
     const seeAll = `<button class="text-link" data-home-tab="rooms">${esc(t('home.seeAll'))} ›</button>`;
     const trend = hot.length ? sectionHead(t('home.hot'), '', seeAll) + hot.map(r => hotRow(r, images.get(r.id), previews.get(r.id) || roomIntro(r))).join('') : '';
