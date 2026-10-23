@@ -24,7 +24,8 @@ try{
   if(body===undefined){const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>2048)return send(413,{error:'Too large'});chunks.push(chunk);}body=Buffer.concat(chunks).toString();}
   if(typeof body==='string'){if(Buffer.byteLength(body)>2048)return send(413,{error:'Too large'});body=JSON.parse(body);}
   if(!body||!CHOICES.has(body.choice))return send(400,{error:'Invalid choice'});
-  const response=await fetcher(endpoint+'?on_conflict=product_id,voter_id',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({product_id:product,voter_id:id,choice:body.choice,updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(8000)});
+  if(body.note!==undefined&&(typeof body.note!=='string'||body.note.length>160||/[\\u0000-\\u001f]/.test(body.note)))return send(400,{error:'Invalid note'});
+  const response=await fetcher(endpoint+'?on_conflict=product_id,voter_id',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({product_id:product,voter_id:id,choice:body.choice,...(body.note!==undefined?{private_note:body.note.trim()}:{}),updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(8000)});
   if(!response.ok)return send(503,{error:'Vote could not be saved'});
  }
  const query=new URLSearchParams({select:'choice,voter_id',product_id:'eq.'+product,limit:'10001'});
