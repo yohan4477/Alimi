@@ -21,7 +21,8 @@ try{
  browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{channel:'chrome'});
  for(const [path,lang] of [['/beauty-play/','en'],['/beauty-play/','ko'],['/kr','en'],['/us','ko']]){
   const f=await fixture({countryLanguage:lang,locale:lang==='en'?'ko-KR':'en-US'});
-  await f.page.goto(base+path,{waitUntil:'domcontentloaded'});await f.started;
+  // Community modules await locale resolution, so DOMContentLoaded must not gate releasing this response.
+  await f.page.goto(base+path,{waitUntil:'commit'});await f.started;
   if(path.startsWith('/beauty-play'))assert.equal(await f.page.locator('#root').innerText(),'');
   else assert.equal(await f.page.locator('body').evaluate(el=>getComputedStyle(el).visibility),'hidden');
   f.release();await f.page.waitForFunction(value=>document.documentElement.lang===value,lang);

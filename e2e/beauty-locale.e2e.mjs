@@ -30,7 +30,7 @@ try{
   await page.locator('.pilot-cards a').first().click();
   assert.equal(new URL(page.url()).searchParams.get('test'),'1');
   assert.equal(new URL(page.url()).searchParams.get('lang'),lang);
-  await page.locator('.testflag').waitFor();
+  await page.locator('.testflag').waitFor({state:'attached'});
   await page.locator('.advice-choices button').first().click();await page.locator('.staged-dock .primary').click();
   if(await page.locator('.catalog-pages').count()){const text=await page.locator('.catalog-pages').innerText();if(lang==='en'){assert.doesNotMatch(text,/[가-힣]/);assert.match(text,/items/);}else assert.match(text,/개/);}
   await page.locator('.staged-products .product').first().click();await page.locator('.staged-dock .primary').click();
@@ -53,7 +53,7 @@ try{
   assert(writes.some(body=>body.kind==='answer'));assert(writes.every(body=>body.test===true));
   // The random entry button must preserve test mode as well as the explicit cards.
   await page.goto(base+'/beauty-play/?lang='+lang+'&test=1');await page.locator('.pilot-entry>.primary').click();
-  await page.locator('.testflag').waitFor();assert.equal(new URL(page.url()).searchParams.get('test'),'1');
+  await page.locator('.testflag').waitFor({state:'attached'});assert.equal(new URL(page.url()).searchParams.get('test'),'1');
   console.log(`ok - ${lang}: test entry, localized failure/language switch, dynamic result counts, share label; fixture only`);
   await context.close();
  }
