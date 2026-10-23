@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>관리자 페이지 · SeoulBeauty</title><link rel="stylesheet" href="/admin.css"><script src="/admin.js" defer></script></head><body><main class="admin-shell"><div id="sb-management">
   
-  <div class="sb-header"><div class="admin-top-brand"><span class="admin-logo-symbol" aria-hidden="true">▦</span><div><a class="wordmark" href="/">Seoul Beauty</a><p>ADMIN CONSOLE</p></div></div><form id="admin-logout" method="post" action="/api/admin?action=logout"><button class="btn" type="submit">로그아웃</button></form></div>
-<nav class="admin-navigation" aria-label="관리자 업무"><div class="admin-brand"><strong>Seoul Beauty</strong><span>ADMIN CONSOLE</span></div><p class="admin-nav-label">운영</p><div class="nav nav-pills" role="tablist" aria-label="SeoulBeauty 관리 영역"><button class="nav-link active" id="sb-dashboard-tab" type="button" role="tab" aria-controls="sb-dashboard" aria-selected="true">운영 홈</button>
+  <div class="sb-header"><div class="admin-top-brand"><span class="admin-logo-symbol" aria-hidden="true">▦</span><div><a class="wordmark" href="/">Seoul Beauty</a><p>관리자 콘솔</p></div></div><form id="admin-logout" method="post" action="/api/admin?action=logout"><button class="btn" type="submit">로그아웃</button></form></div>
+<nav class="admin-navigation" aria-label="관리자 업무"><div class="admin-brand"><strong>Seoul Beauty</strong><span>관리자 콘솔</span></div><p class="admin-nav-label">운영</p><div class="nav nav-pills" role="tablist" aria-label="SeoulBeauty 관리 영역"><button class="nav-link active" id="sb-dashboard-tab" type="button" role="tab" aria-controls="sb-dashboard" aria-selected="true">운영 홈</button>
 <button class="nav-link" id="sb-users-tab" type="button" role="tab" aria-controls="sb-users" aria-selected="false">회원</button>
 <button class="nav-link" id="sb-community-tab" type="button" role="tab" aria-controls="sb-community" aria-selected="false">커뮤니티</button>
 <button class="nav-link" id="sb-products-tab" type="button" role="tab" aria-controls="sb-products" aria-selected="false">제품</button>
 <button class="nav-link" id="sb-game-tab" type="button" role="tab" aria-controls="sb-game" aria-selected="false">게임·투표</button>
 <button class="nav-link" id="sb-revenue-tab" type="button" role="tab" aria-controls="sb-revenue" aria-selected="false">수익</button>
-<button class="nav-link" id="sb-system-tab" type="button" role="tab" aria-controls="sb-system" aria-selected="false">시스템</button><p class="admin-nav-label admin-nav-separator">기획·관리</p><button class="nav-link" id="sb-ui-library-tab" type="button" role="tab" aria-controls="sb-ui-library" aria-selected="false">UI Library</button>
+<button class="nav-link" id="sb-system-tab" type="button" role="tab" aria-controls="sb-system" aria-selected="false">시스템</button><p class="admin-nav-label admin-nav-separator">기획·관리</p><button class="nav-link" id="sb-ui-library-tab" type="button" role="tab" aria-controls="sb-ui-library" aria-selected="false">UI 라이브러리</button>
 <button class="nav-link" id="sb-dev-tab" type="button" role="tab" aria-controls="sb-dev" aria-selected="false">현황</button>
 <button class="nav-link" id="sb-roadmap-tab" type="button" role="tab" aria-controls="sb-roadmap" aria-selected="false">실행 계획</button>
 <button class="nav-link" id="sb-strategy-tab" type="button" role="tab" aria-controls="sb-strategy" aria-selected="false">전략 자료</button>
@@ -230,10 +230,10 @@
   </details></section>
 
   <section class="sb-panel" id="sb-ui-library" role="tabpanel" aria-labelledby="sb-ui-library-tab" hidden>
-    <h2>UI Library</h2><p>취향 카드·친구 투표 9개 화면. 기존 사용자 여정 시안은 서비스 기획 탭에 있습니다.</p>
-    <p><a href="/api/admin?view=ui-library" target="_blank" rel="noopener">UI Library 크게 열기 ↗</a> · <a href="#sb-plan" data-dev-jump="sb-plan-tab">기존 사용자 여정 보기</a></p>
+    <h2>UI 라이브러리</h2><p>취향 카드·친구 투표 9개 화면. 기존 사용자 여정 시안은 서비스 기획 탭에 있습니다.</p>
+    <p><a href="/api/admin?view=ui-library" target="_blank" rel="noopener">UI 라이브러리 크게 열기 ↗</a> · <a href="#sb-plan" data-dev-jump="sb-plan-tab">기존 사용자 여정 보기</a></p>
     <p id="sb-library-status" role="status"></p>
-    <iframe id="sb-library-frame" class="sb-library-frame" title="Seoul Beauty UI Library — 9개 화면과 인터랙티브 체험" data-src="/api/admin?view=ui-library"></iframe>
+    <iframe id="sb-library-frame" class="sb-library-frame" title="Seoul Beauty UI 라이브러리 — 9개 화면과 인터랙티브 체험" data-src="/api/admin?view=ui-library"></iframe>
   </section>
   <section class="sb-panel" id="sb-design" role="tabpanel" aria-labelledby="sb-design-tab" hidden><div class="admin-flat-section"><span class="viz-badge">2026.10.20 · 사용자 확정 · 최신 기준</span><h3>하나의 Seoul Beauty · 한국/미국 서비스 · 언어는 별도</h3><p>미국 진출 확정. 한국의 접근성을 활용한 제품 개선과 미국 실제 수요 검증을 병행합니다. 국내 성과를 미국 진출의 선행 조건으로 두지 않습니다.</p><p><strong>/kr · 한국 / /us · 미국</strong> — 지역별 대화·판매처·가격을 구분하고 화면 언어는 독립 선택. 관심·고민 → 선택형 정보 → 제품별 대화찾기, 자동 방 입장 없음. 주제별 탐색·자유 방 생성 유지.</p><p>국가별 첫 발화·답변·상품/판매처 이동·D7·승인 수수료를 분리 측정합니다. 이벤트별 고유 기기 진단은 순차 퍼널이 아닙니다. 미국 진출은 확정 결정이며 조사 기반 대화 소재·효과는 검증 가설입니다.</p><p><strong>운영 한계:</strong> 운영 DB 권한 부족으로 지역 마이그레이션 미적용. 한국 대화·실판매처 연결 및 iPhone 실기기 검증은 완료가 아닙니다. 웹 /kr·/us 배포, 웹 150개 테스트 및 iOS 기본 23개·화면 10개 통과. iPhone 1.0 (28.1) App Store Connect 업로드 성공. <a href="https://github.com/yohan4477/Alimi/blob/main/docs/PRODUCT_STATUS.md">배포·Apple 처리 증거 ↗</a> (테스터 설치는 미검증).</p><a href="https://github.com/yohan4477/Alimi/blob/main/docs/SERVICE_REGIONS.md">지역·언어 상세 명세 ↗</a></div><details><summary>이전 시안·상태 기록 (현재 지시 아님)</summary>
     <div class="admin-flat-section" id="sb-design-release-update"><span class="viz-badge">2026.10.19 23:21 KST · 최신 디자인 결정</span><h3>기존 시안 유지 · 흰 상품 배경 · 익명 닉네임 중심</h3>

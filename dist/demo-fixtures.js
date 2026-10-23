@@ -70,3 +70,20 @@ export function createDemoProductRoom({title,intro='',tag='talk',concerns=[],pro
 }
 
 export const demoEntries = () => Object.values(demoMessages).flat().map(m=>({...m,source:'chat'}));
+
+// Deterministic structured responses: these are not inferred from the fixture conversations.
+export const demoRoomExperiences={};
+for(const [index,scenario] of ['first','mixed','compare'].entries()) {
+  const id=`demo-experience-${scenario}`, product=demoProducts[1], other=demoProducts[9];
+  const title=['처음 온 방 · 첫 경험 남기기','사용 경험 · 추천과 아쉬움','제품 비교 · 중복 없이 집계'][index];
+  const room={id,title_ko:title,title_en:title,intro_ko:'가상 시나리오 · 선택한 경험이 집계되는 과정을 확인해요.',intro_en:'Synthetic scenario · Try sharing and editing an experience.',kind:'topic',tag:'skin',concerns:['dry'],members:index?8:0,messages_24h:index?8:0,sort:-3+index,demo:true,topic_product:product};
+  demoRooms.unshift(room);
+  const base=index?Array.from({length:8},(_,i)=>({room_id:id,author_tag:`demo-experience-author-${i}`,product_key:product.id,status:i<6?'using':'curious',period:i<6?['trial','short','weeks','months','','months'][i]:'',repeat:i===3?'third':i===5?'again':i<6?'first':'',skin:i<5?'oily':'combination',concerns:i<6?['dry']:['acne'],opinion:i<4?'recommend':i===4?'mixed':i===5?'regret':'',reasons:i<4?['moisture']:i<6?['sticky']:[],source_message:980000+index*100+i,updated_at:new Date(demoNow-60000*(8-i)).toISOString()})):[];
+  if(index===2)base.push(...base.slice(0,3).map((r,i)=>({...r,product_key:other.id,opinion:'recommend',reasons:['light'],source_message:980300+i,updated_at:new Date(demoNow-1000).toISOString()})));
+  demoRoomExperiences[id]=base;
+  demoMessages[id]=base.map((r,i)=>{const p=r.product_key===other.id?other:product;return {id:r.source_message,room_id:id,nickname:names[i%8],author_tag:r.author_tag,body:r.status==='curious'?'아직 안 써봤어요. 구매 전에 경험을 듣고 싶어요.':r.reasons.includes('light')?'아침에 쓰기 가벼워서 추천해요.':r.opinion==='mixed'?'보습은 좋지만 끈적임이 아쉬워요.':r.opinion==='regret'?'제 피부에는 끈적여서 아쉬웠어요.':r.repeat==='third'?'세 통째 쓰고 있어요. 보습이 좋아서 추천해요.':'직접 써보니 보습이 좋아서 추천해요.',item:{...p,demo:true,family_key:p.id},likes:0,reply_to:null,created_at:r.updated_at,demo:true};});
+}
+// Existing product rooms also have structured examples; real/online rooms never use these.
+for(const room of demoRooms.filter(r=>r.topic_product&&!r.id.startsWith('demo-experience-'))) {
+  demoRoomExperiences[room.id]=[];
+}

@@ -44,10 +44,12 @@ export class BeautyAccountDrafts {
   }
   async save(draft){
     const data=draftPayload(draft);
-    // Bind the explicit save and its revision to this owner/login epoch.
-    const startingEpoch=this.auth.epoch;
+    // Bind intent before the first restore too: a changed stored login must
+    // never send the previous account's private draft under a new account.
+    const startingEpoch=this.auth.epoch,startingOwner=this.auth.user?.id;
+    if(!startingOwner||!this.auth.session?.access_token)throw Error('login_required');
     await this.auth.restore();
-    if(this.auth.epoch!==startingEpoch)throw Error('account_changed');
+    if(this.auth.epoch!==startingEpoch||this.auth.user?.id!==startingOwner)throw Error('account_changed');
     const binding={owner:this.auth.user?.id,epoch:this.auth.epoch};
     if(!binding.owner||!this.auth.session?.access_token)throw Error('login_required');
     if(this.owner!==binding.owner){this.revisions.clear();this.owner=binding.owner;}

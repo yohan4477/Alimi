@@ -1,3 +1,4 @@
+import {requireServerCatalogItem} from './catalog-attachments.js';
 // Community posts and comments (topic Q&A next to each topic's live chat). Same anonymous identity,
 // filters and error codes as chat (see chat-api.js); writes go through RPCs, clients only read.
 import {currency} from './region.js';
@@ -67,7 +68,20 @@ export async function fetchProductTalk(familyKey, fetchImpl = fetch) {
   const reviewIds = new Set(mentions.filter(m => m.source === 'review').map(m => m.post_id));
   return {reviews: posts.filter(p => reviewIds.has(p.id)), posts: posts.filter(p => !reviewIds.has(p.id)), chatMentions: mentions.filter(m => m.source === 'chat').length};
 }
-const itemArgs = item => ({p_retailer: item?.retailer ?? null, p_market: item?.market ?? null, p_sku: item?.sku ?? null});
+// A retail SKU is only meaningful together with its retailer and market.
+export function validatePostProduct(item) {
+  requireServerCatalogItem(item);
+  if (item == null) return null;
+  if (typeof item !== 'object' || Array.isArray(item)) throw Error('chat:item');
+  const fields = ['retailer', 'market', 'sku'];
+  const values = fields.map(key => item[key]);
+  if (values.some(value => typeof value !== 'string' || !value.trim() || value.length > 160)) throw Error('chat:item');
+  return Object.fromEntries(fields.map((key, i) => [key, values[i].trim()]));
+}
+const itemArgs = item => {
+  const valid = validatePostProduct(item);
+  return {p_retailer: valid?.retailer ?? null, p_market: valid?.market ?? null, p_sku: valid?.sku ?? null};
+};
 export const createPost = (secret, room, {kind, title, body = '', item = null, reasons = [], fromMessage = null, review = {}}, fetchImpl = fetch) =>
   rpc('create_post', {p_secret: secret, p_room: room, p_kind: kind, p_title: title, p_body: body, ...itemArgs(item), p_reasons: reasons, p_from_message: fromMessage, p_review: kind === 'review' ? review : {}}, fetchImpl);
 export const addComment = (secret, post, body, item = null, fetchImpl = fetch) => rpc('add_comment', {p_secret: secret, p_post: post, p_body: body, ...itemArgs(item)}, fetchImpl);

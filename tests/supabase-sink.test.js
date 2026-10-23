@@ -34,3 +34,76 @@ test('rejects unregistered offers, HTTP errors and foreign hosts', async () => {
   await assert.rejects(sinkObservation(row, opts(() => ({ok: false, status: 401}))), /Supabase HTTP 401/);
   await assert.rejects(sinkObservation(row, {url: 'https://evil.example.com', key: 'k'}), /Unexpected Supabase URL/);
 });
+
+// All requests below are local mocks; no production import or retry is performed.
+const catalogItems = Array.from({length: 1001}, (_, i) => ({retailer: 'Stylevana US', market: 'US', sku: String(i)}));
+const watermark = '2020-01-01T00:00:00.000Z';
+
+test('catalog transport failure identifies batch and acknowledged rows without retry or deactivation', async () => {
+  const {upsertCatalog} = await import('../scripts/supabase-sink.mjs');
+  const methods = [];
+  await assert.rejects(upsertCatalog(catalogItems, watermark, opts((u, init) => {
+    methods.push(init.method);
+    if (methods.length === 2) throw Error('SECRET upstream URL and token');
+    return ok(null);
+  })), error => {
+    assert.deepEqual(error.diagnostics, {stage: 'upsert', batchIndex: 2, totalBatches: 3,
+      acknowledgedRows: 500, failureKind: 'transport', failedRequestOutcome: 'unknown'});
+    assert.doesNotMatch(error.message, /SECRET|token/);
+    return true;
+  });
+  assert.deepEqual(methods, ['POST', 'POST']);
+});
+
+test('catalog timeout at deactivation reports all acknowledged upserts, not deactivation success', async () => {
+  const {upsertCatalog} = await import('../scripts/supabase-sink.mjs');
+  const methods = [];
+  await assert.rejects(upsertCatalog(catalogItems, watermark, opts((u, init) => {
+    methods.push(init.method);
+    if (init.method === 'PATCH') throw Object.assign(Error('PRIVATE'), {name: 'TimeoutError'});
+    return ok(null);
+  })), error => {
+    assert.deepEqual(error.diagnostics, {stage: 'deactivate', batchIndex: null, totalBatches: 3,
+      acknowledgedRows: 1001, failureKind: 'timeout', failedRequestOutcome: 'unknown'});
+    assert.doesNotMatch(error.message, /PRIVATE/);
+    return true;
+  });
+  assert.deepEqual(methods, ['POST', 'POST', 'POST', 'PATCH']);
+});
+
+test('catalog HTTP failure reports status but never reads response body', async () => {
+  const {upsertCatalog} = await import('../scripts/supabase-sink.mjs');
+  await assert.rejects(upsertCatalog(catalogItems, watermark, opts(() => ({ok: false, status: 503,
+    text: () => { throw Error('must not read error body'); }}))), error => {
+    assert.equal(error.diagnostics.failureKind, 'http');
+    assert.equal(error.diagnostics.httpStatus, 503);
+    assert.equal(error.diagnostics.acknowledgedRows, 0);
+    return true;
+  });
+});
+
+test('catalog success preserves default batch size and one final deactivation', async () => {
+  const {upsertCatalog} = await import('../scripts/supabase-sink.mjs');
+  const sizes = [];
+  assert.deepEqual(await upsertCatalog(catalogItems, watermark, opts((u, init) => {
+    sizes.push(init.method === 'POST' ? JSON.parse(init.body).length : 'PATCH');
+    return ok(null);
+  })), {skipped: false, upserted: 1001});
+  assert.deepEqual(sizes, [500, 500, 1, 'PATCH']);
+});
+
+test('response read failures and malformed bodies stay sanitized', async () => {
+  const {upsertCatalog} = await import('../scripts/supabase-sink.mjs');
+  for (const [text, expected] of [
+    [async () => { throw Error('SECRET body read'); }, 'transport'],
+    [async () => 'SECRET malformed JSON', 'response']
+  ]) {
+    await assert.rejects(upsertCatalog(catalogItems, watermark, opts(() => ({ok: true, status: 200, text}))), error => {
+      assert.equal(error.diagnostics.failureKind, expected);
+      assert.equal(error.diagnostics.acknowledgedRows, 0);
+      assert.equal(error.diagnostics.failedRequestOutcome, 'unknown');
+      assert.doesNotMatch(error.message, /SECRET|malformed JSON|body read/);
+      return true;
+    });
+  }
+});

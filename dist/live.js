@@ -1,6 +1,7 @@
 // Catalog and product data from Supabase (public read-only API; see supabase.js).
 import {region, market, currency, inMarket, money, amount} from './region.js';
 import {t, lang} from './i18n.js';
+import {manualCatalog} from './manual-offers.js';
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet} from './supabase.js';
 export {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY};
 export const OFFERS_QUERY = '/rest/v1/offers?select=external_id,retailer,market,currency,url,affiliate_url,image_url,' +
@@ -69,7 +70,7 @@ export function catalogSearchUrl(q, limit = 30) {
   });
   return SUPABASE_URL + '/rest/v1/catalog_items?' + params;
 }
-export async function searchCatalog(q, fetchImpl = fetch) {
+async function remoteSearchCatalog(q, fetchImpl = fetch) {
   const url = catalogSearchUrl(q);
   if (!url) return [];
   const rows = await restGet(url, fetchImpl);
@@ -84,7 +85,7 @@ export function familiesPageUrl(category, offset, limit = 24, brand = null) {
   params.set('market','eq.'+market); params.set('currency','eq.'+currency);
   return SUPABASE_URL + '/rest/v1/catalog_region_families?' + params;
 }
-export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
+async function remoteFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
   let rows;
   try { rows=await restGet(familiesPageUrl(category,offset,limit,brand),fetchImpl); }
   catch(e) {
@@ -116,7 +117,7 @@ export function collapseVariants(rows) {
   return list.map(v => ({...v, price: amount(v.price_minor,v.currency), unitPrice: amount(v.unit_price_minor,v.currency),
     bestValue: bestUnit != null && v.unit_price_minor === bestUnit}));
 }
-export async function fetchFamily(familyKey, fetchImpl = fetch) {
+async function remoteFamily(familyKey, fetchImpl = fetch) {
   const params = new URLSearchParams({select: CATALOG_FIELDS + ',size_label,option_label,unit,unit_price_minor,url,affiliate_url', market: 'eq.'+market, currency: 'eq.'+currency, active: 'eq.true', family_key: 'eq.' + familyKey, limit: '60'});
   const rows = await restGet(SUPABASE_URL + '/rest/v1/catalog_items?' + params, fetchImpl);
   return collapseVariants(rows);
@@ -125,7 +126,7 @@ export async function fetchFamily(familyKey, fetchImpl = fetch) {
 // owns brand images); until then the client draws an initials badge in a stable per-brand color.
 export const brandsUrl = (limit = 15) => SUPABASE_URL + '/rest/v1/catalog_brands?' +
   new URLSearchParams({select: 'brand,brand_ko,families,logo_url', order: 'families.desc', limit: String(limit)});
-export async function fetchBrands(fetchImpl = fetch) {
+async function remoteBrands(fetchImpl = fetch) {
   const rows = await restGet(brandsUrl(), fetchImpl);
   return rows.map(b => ({...b, brandKo: b.brand_ko ?? null}));
 }
@@ -217,7 +218,7 @@ export function watchSummary(p, now = new Date()) {
     text: lowest ? t('watch.lowest', {days}) : t('watch.changes', {days, n: prices.length - 1})};
 }
 export const trackedDays = (p, now = new Date()) => p.history.length ? Math.floor((now - Date.parse(p.history[0].at)) / DAY) + 1 : 0;
-export const usd = n => money(n);
+export const usd = n => n == null ? t('price.atRetailer') : money(n);
 export const alertState = (target, current) => t(target == null ? 'alert.unset' : current <= target ? 'alert.reached' : 'alert.waiting');
 
 export function parseTarget(raw) {
@@ -238,3 +239,27 @@ export function readState(storage) {
 }
 export function writeState(storage, state) { storage.setItem(KEY, JSON.stringify(state)); }
 export function toggleFavorite(s, id) { s.favorites = s.favorites.includes(id) ? s.favorites.filter(x => x !== id) : [...s.favorites, id]; return s; }
+
+// Owner-supplied merchant offers are real links, separate from offline demo fixtures.
+export async function searchCatalog(q, fetchImpl = fetch) {
+  const term=catalogQuery(q);if(term.length<2)return [];
+  const local = manualCatalog(market, {query:term}).map(toCatalog);
+  try {return [...local, ...(await remoteSearchCatalog(q, fetchImpl)).filter(r=>!local.some(l=>l.family_key===r.family_key&&l.retailer===r.retailer))];}
+  catch(e){if(local.length)return local;throw e;}
+}
+export async function fetchFamiliesPage(category, offset, limit = 24, fetchImpl = fetch, brand = null) {
+  const local = manualCatalog(market,{category,brand}).map(p=>({...p,brandKo:p.brand_ko,variants:1,minPrice:null,maxPrice:null}));
+  const prefix = local.slice(offset,offset+limit);
+  if(prefix.length===limit)return prefix;
+  try {return [...prefix,...await remoteFamiliesPage(category,Math.max(0,offset-local.length),limit-prefix.length,fetchImpl,brand)];}
+  catch(e){if(prefix.length)return prefix;throw e;}
+}
+export async function fetchFamily(key, fetchImpl = fetch) {
+  const local=manualCatalog(market).filter(p=>p.family_key===key);
+  return local.length?collapseVariants(local):remoteFamily(key,fetchImpl);
+}
+export async function fetchBrands(fetchImpl = fetch) {
+  const local=manualCatalog(market).map(p=>({brand:p.brand,brand_ko:p.brand_ko,brandKo:p.brand_ko,families:1,logo_url:null}));
+  try {const rows=await remoteBrands(fetchImpl);return [...rows,...local.filter(l=>!rows.some(r=>r.brand===l.brand))];}
+  catch(e){if(local.length)return local;throw e;}
+}

@@ -8,12 +8,19 @@ function client({url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERV
   if (base.protocol !== 'https:' || !base.hostname.endsWith('.supabase.co')) throw Error('Unexpected Supabase URL');
   const headers = {apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json'};
   return async (path, init = {}) => {
-    let res;
-    try { res = await fetchImpl(new URL(path, base), {...init, headers: {...headers, ...init.headers}, redirect: 'error', signal: AbortSignal.timeout(30000)}); }
-    catch { throw Error('Supabase request failed'); }
-    if (!res.ok) throw Error('Supabase HTTP ' + res.status);
-    const text = await res.text();
-    return text ? JSON.parse(text) : null;
+    const signal = AbortSignal.timeout(30000);
+    let res, text;
+    try {
+      res = await fetchImpl(new URL(path, base), {...init, headers: {...headers, ...init.headers}, redirect: 'error', signal});
+      if (res.ok) text = await res.text();
+    } catch (cause) {
+      // Never propagate upstream messages, URLs, headers or response bodies.
+      const failureKind = signal.aborted || cause?.name === 'TimeoutError' ? 'timeout' : 'transport';
+      throw Object.assign(Error('Supabase request failed (' + failureKind + ')'), {failureKind});
+    }
+    if (!res.ok) throw Object.assign(Error('Supabase HTTP ' + res.status), {failureKind: 'http', httpStatus: res.status});
+    try { return text ? JSON.parse(text) : null; }
+    catch { throw Object.assign(Error('Supabase response invalid'), {failureKind: 'response'}); }
   };
 }
 
@@ -39,12 +46,27 @@ export async function upsertCatalog(items, seenAt, options, batch = 500) {
   const call = client(options);
   if (!call) return {skipped: true};
   if (!items.length) throw Error('Empty catalog; refusing to deactivate everything');
+  let acknowledgedRows = 0;
+  const totalBatches = Math.ceil(items.length / batch);
+  const diagnose = (error, stage, batchIndex) => {
+    const diagnostics = {stage, batchIndex, totalBatches, acknowledgedRows,
+      failureKind: error.failureKind ?? 'unknown', failedRequestOutcome: 'unknown'};
+    if (Number.isInteger(error.httpStatus)) diagnostics.httpStatus = error.httpStatus;
+    // Acknowledged rows are NOT a committed-row count: the failed request may have committed.
+    return Object.assign(Error('Supabase catalog write failed: ' + JSON.stringify(diagnostics)), {diagnostics});
+  };
   for (let i = 0; i < items.length; i += batch) {
-    await call('/rest/v1/catalog_items?on_conflict=retailer,market,sku', {method: 'POST',
-      headers: {Prefer: 'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify(items.slice(i, i + batch))});
+    const rows = items.slice(i, i + batch);
+    try {
+      await call('/rest/v1/catalog_items?on_conflict=retailer,market,sku', {method: 'POST',
+        headers: {Prefer: 'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify(rows)});
+    } catch (error) { throw diagnose(error, 'upsert', Math.floor(i / batch) + 1); }
+    acknowledgedRows += rows.length;
   }
   const stale = new URLSearchParams({retailer: 'eq.' + items[0].retailer, market: 'eq.' + items[0].market, seen_at: 'lt.' + seenAt, active: 'eq.true'});
-  await call('/rest/v1/catalog_items?' + stale, {method: 'PATCH', headers: {Prefer: 'return=minimal'}, body: JSON.stringify({active: false})});
+  try {
+    await call('/rest/v1/catalog_items?' + stale, {method: 'PATCH', headers: {Prefer: 'return=minimal'}, body: JSON.stringify({active: false})});
+  } catch (error) { throw diagnose(error, 'deactivate', null); }
   return {skipped: false, upserted: items.length};
 }
 

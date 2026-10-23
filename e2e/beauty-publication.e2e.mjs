@@ -26,7 +26,7 @@ try {
    if (resource === 'community_posts') return route.fulfill({json:posts.filter(p => !url.searchParams.has('id') || url.searchParams.get('id') === 'eq.' + p.id)});
    if (resource === 'create_post') {
     const payload = request.postDataJSON(); writes.push(payload);
-    if (fail) return route.fulfill({status:503,json:{message:'unavailable'}});
+    if (fail) return route.fulfill({status:400,json:{message:'chat:short',code:'P0001'}});
     const post = {id:9001,room_id:room.id,author_tag:'fixture-author',nickname:'QA fixture',kind:payload.p_kind,title:payload.p_title,body:payload.p_body,item:null,reasons:[],photos:[],comments:0,likes:0,created_at:new Date().toISOString(),last_activity_at:new Date().toISOString()};
     posts.push(post); return route.fulfill({json:post});
    }
@@ -57,7 +57,8 @@ try {
   assert.equal(await page.locator('#write-body').inputValue(),'Edited public text');
   assert.equal(await page.evaluate(key => JSON.parse(sessionStorage.getItem(key)).body,key),'Edited public text');
   assert.equal(events.filter(e => e.name === 'beauty_post_published').length,0,'failed submission is not a publication');
-  // A full reload, not just an in-memory reopening, preserves unsent edits.
+  // A definite 400 RPC rejection may be corrected and retried, including after reload.
+  // Ambiguous 5xx/lost responses are covered separately and must not be retried.
   await page.reload(); await page.locator('[data-chat-action="beauty-draft-choose"]').click();
   await page.locator('[data-beauty-draft-room="tint"]').click();
   await page.locator('#post-write[open]').waitFor();

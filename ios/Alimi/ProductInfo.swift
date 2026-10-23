@@ -1,5 +1,23 @@
 import SwiftUI
 
+struct ContentPermission: Decodable {
+    let status, retailer, market, evidenceUrl, checkedAt: String
+    let platforms, uses: [String]
+    let expiresAt: String?
+    static func permits(_ raw: String, retailer: String) -> Bool {
+        guard let data = raw.data(using: .utf8),
+              let grant = try? JSONDecoder().decode(ContentPermission.self, from: data),
+              grant.status == "verified", grant.retailer == retailer, grant.market == "US",
+              grant.platforms.contains("native"), grant.uses.contains("product_description"),
+              ISODate.parse(grant.checkedAt) != nil,
+              let evidence = URL(string: grant.evidenceUrl), evidence.scheme == "https",
+              evidence.host != nil, evidence.user == nil, evidence.password == nil else { return false }
+        if let expiry = grant.expiresAt {
+            guard let date = ISODate.parse(expiry), date > Date() else { return false }
+        }
+        return true
+    }
+}
 struct LicensedProductCopy: Decodable {
     let retailer, market, sku, description, sourceUrl, permissionReference: String
 }
@@ -12,7 +30,7 @@ enum ProductInformation {
     }()
     static func copy(retailer: String, sku: String) -> LicensedProductCopy? {
         items.first { $0.retailer == retailer && $0.market == "US" && $0.sku == sku &&
-            !$0.permissionReference.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.description.isEmpty &&
+            ContentPermission.permits($0.permissionReference, retailer: retailer) && !$0.description.isEmpty &&
             Purchase.buyURL($0.sourceUrl) != nil }
     }
 }
@@ -24,7 +42,7 @@ struct CatalogCopyRow: Decodable {
     enum CodingKeys: String, CodingKey { case url, description, descriptionPermission = "description_permission" }
     func copy(retailer: String, sku: String) -> LicensedProductCopy? {
         guard let text = description?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty,
-              let permission = descriptionPermission?.trimmingCharacters(in: .whitespacesAndNewlines), !permission.isEmpty,
+              let permission = descriptionPermission, ContentPermission.permits(permission, retailer: retailer),
               let url, Purchase.buyURL(url) != nil else { return nil }
         return LicensedProductCopy(retailer: retailer, market: "US", sku: sku, description: text, sourceUrl: url, permissionReference: permission)
     }

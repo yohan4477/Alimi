@@ -1,3 +1,4 @@
+import {contentGrant} from '../dist/content-rights.js';
 // Publish only descriptions covered by an explicitly recorded advertiser permission.
 // No crawling. Input must be the approved advertiser's Awin feed; matching uses retailer + market + SKU.
 import {readFile, writeFile} from 'node:fs/promises';
@@ -10,12 +11,13 @@ import {makeBrandInfo} from './catalog-taxonomy.mjs';
 import {descriptionText} from './stylevana-catalog.mjs';
 export {descriptionText};
 export function licensedDescriptions(rows, items, permissionReference, checkedAt) {
-  if (!permissionReference?.trim()) throw Error('Advertiser permission reference is required; no descriptions published');
+  const grant=contentGrant(permissionReference,{retailer:'Stylevana US',market:'US'});
+  if (!grant) throw Error('Verified advertiser permission is required; no descriptions published');
   const index = new Map(rows.filter(r => r.description).map(r => [r.merchant_product_id, r]));
   return items.flatMap(i => {
     const row = index.get(i.sku), description = descriptionText(row?.description);
     return description ? [{retailer:i.retailer, market:i.market, sku:i.sku, description, sourceUrl:i.url,
-      permissionReference:permissionReference.trim(), checkedAt}] : [];
+      permissionReference:JSON.stringify(grant), checkedAt}] : [];
   });
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -28,7 +30,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const brandInfo = makeBrandInfo(JSON.parse(await readFile('data/brands.json','utf8')));
     const at = new Date().toISOString(), items = buildCatalogItems(rows,catalog,at,brandInfo);
     const output = JSON.stringify({version:1,items:licensedDescriptions(rows,items,evidence,at)},null,2)+'\n';
-    await writeFile('dist/product-content.json',output); await writeFile('ios/Alimi/product-content.json',output);
+    await writeFile('dist/product-content.json',output); await writeFile('ios/Alimi/product-content.json',contentGrant(evidence,{retailer:'Stylevana US',platform:'native'}) ? output : JSON.stringify({version:1,items:[]})+'\n');
     console.log('Published licensed descriptions for ' + items.length + ' catalog candidates');
   } catch(e) { console.error(e.message); process.exitCode=1; }
 }

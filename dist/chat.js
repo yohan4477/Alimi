@@ -1,6 +1,12 @@
+import {canAttachCatalogItem,catalogItemPrice} from './catalog-attachments.js';
+import {createGuardedPost} from './beauty-post-retry-guard.js';
 import {BeautyAccountDrafts} from './beauty-account-drafts.js';
 import {readHandoff,writeHandoff,updateHandoff,clearHandoff,handoffStorage} from './beauty-handoff.js';
 import {suggestDraftRooms} from './beauty-room-suggest.js';
+import {ROOM_LIFECYCLE_ENABLED,ROOM_EXPERIENCES_ENABLED} from './room-feature-release.js';
+import {label as experienceLabel,productKey} from './room-experiences.js';
+import {mountRoomExperiences} from './room-experience-ui.js';
+import {offeredTags, canonicalTags, toggleRoomTag, deletedMessage} from './room-policy.js';
 import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {roomArt} from './topic-art.js';
 import {nick} from './nickname.js';
@@ -12,7 +18,7 @@ import {productSortControls,rankProducts,aggregateProductStats} from './product-
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
 import {createDemoChatStore} from './demo-chat-store.js';
-import {demoRooms, demoMessages, demoEntries, createDemoProductRoom, demoActivity} from './demo-fixtures.js';
+import {demoRooms as allDemoRooms, demoMessages, demoEntries as allDemoEntries, demoRoomExperiences, createDemoProductRoom, demoActivity} from './demo-fixtures.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
@@ -20,6 +26,7 @@ import {share, shareUrl} from './share.js';
 // comment or chat message opens the same product sheet and carries the source as Awin clickref.
 // Live chat polls every few seconds while open.
 import {reviewPrefill, saveFromReview, cachedProfile} from './profile.js';
+import {experienceMarkup, installExperienceChoices, preferredExperienceReviews} from './product-experience.js';
 import {activeRooms, mentionedProducts} from './community-home.js';
 import {roomImages, roomListCard, roomThumb, roomCategory, topicPictures, pickCard, memberLine, concernsOf, roomTags} from './room-card.js';
 import {exploreRow} from './explore.js';
@@ -30,17 +37,20 @@ import {track} from './events.js';
 import {t, locale} from './i18n.js';
 import {searchCatalog, brandLabel, usd, brandInitials, brandColor, fetchBrands, fetchFamiliesPage} from './live.js';
 import {chatSecret, readBlocked, block, hasAgreed, agree, roomTitle, roomIntro, visible, errorKey,
-  fetchRooms, createRoom, fetchMessages, fetchMyRooms, postMessage, likeMessage, reportMessage} from './chat-api.js';
-import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, filterReviews, photoUrl, reviewPayload, uploadPhoto, ago, fetchPosts, fetchPost, fetchComments, fetchProductTalk, createPost, addComment, likeCommunity, reportCommunity} from './community-api.js';
+  roomActions, leaveRoom, deleteRoom, deleteMessage, fetchRooms, createRoom, fetchMessages, fetchMyRooms, postMessage, likeMessage, reportMessage} from './chat-api.js';
+import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, filterReviews, photoUrl, reviewPayload, uploadPhoto, ago, fetchPosts, fetchPost, fetchComments, fetchProductTalk, addComment, likeCommunity, reportCommunity} from './community-api.js';
 
 import {$, esc} from './util.js';
 let storage; try { storage = localStorage; } catch {}
 const secret = chatSecret(storage);
 const demoChat = createDemoChatStore(storage);
+const demoRooms=ROOM_EXPERIENCES_ENABLED?allDemoRooms:allDemoRooms.filter(r=>!r.id.startsWith('demo-experience-'));
+const demoEntries=()=>allDemoEntries().filter(m=>ROOM_EXPERIENCES_ENABLED||!m.room_id.startsWith('demo-experience-'));
 const likedKey = 'seoulbeauty-chat-hearts-' + secret;
 let liked; try { liked = new Set(JSON.parse(storage.getItem(likedKey)) || []); } catch { liked = new Set(); }
 const liking = new Set();
 let unreadMessages = 0;
+let roomExperienceRows = [], roomExperienceController = null;
 const chat = {rooms: [], room: null, messages: [], nickname: '', myTag: '', item: null, replyTo: null, menuFor: null, poll: null, sending: false};
 const view = {mode: 'posts', post: null, comments: [], commentItem: null, draft: null};
 let onClose = () => {}, toast = () => {}, pickFor = 'chat';
@@ -63,7 +73,7 @@ export function relTime(iso, now = Date.now()) {
   return s < 60 ? f.format(0, 'second') : s < 3600 ? f.format(-Math.floor(s / 60), 'minute') : s < 86400 ? f.format(-Math.floor(s / 3600), 'hour') : f.format(-Math.floor(s / 86400), 'day');
 }
 // ref = where the card was seen ("post-12", "comment-4", "chat-88"); passed on to the product sheet / Awin.
-const itemCard = (it, ref = '') => it.demo ? `<button class="chat-item" data-demo-product="${esc(it.label)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="${esc(it.name)}" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(it.brand)} · ${esc(t('rooms.demoProducts'))}</small><b>${esc(it.name)}</b></span></button>` : `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}" data-sku="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"` : `data-chat-product="${esc(JSON.stringify(it))}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
+const itemCard = (it, ref = '') => it.demo ? `<button class="chat-item" data-demo-product="${esc(it.label)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="${esc(it.name)}" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(it.brand)} · ${esc(t('rooms.demoProducts'))}</small><b>${esc(it.name)}</b></span></button>` : `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}" data-sku="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"` : `data-chat-product="${esc(JSON.stringify(it))}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: catalogItemPrice(it)}))}</em></span></button>`;
 const shell = inner => { $('#chat').innerHTML = inner; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
@@ -109,7 +119,7 @@ export function leaveChat() { rememberDraft(); communityOpenVersion++; finishSta
 // Product sheet "대화에 첨부": only while a live room's composer is on screen.
 export const canAttachToChat = () => Boolean(chat.room && $('#chat-text'));
 export function attachToChat(it) {
-  if (!canAttachToChat() || !it) return false;
+  if (!canAttachToChat() || !canAttachCatalogItem(it)) return false;
   chat.item = it; renderContext(); $('#chat-text').focus();
   return true;
 }
@@ -160,39 +170,61 @@ let homeVersion = 0, homeTab = 'rec', home = null, catalogPics = null;
 let incomingBeautyId = new URLSearchParams(globalThis.location?.search ?? '').get('beautyDraft');
 let beautyDraft = incomingBeautyId ? readHandoff(handoffStorage(),{id:incomingBeautyId,region}) : null;
 let beautyDraftDismissed = false;
-let accountDrafts;
+let accountDrafts,accountDraftGeneration=0,accountDraftActionVersion=0;
 const CLOUD_DRAFT_OWNER='seoulbeauty-cloud-draft-owner';
-export function configureBeautyDraftAccount(auth){accountDrafts=new BeautyAccountDrafts(auth);}
+export function configureBeautyDraftAccount(auth){accountDraftGeneration++;accountDrafts=new BeautyAccountDrafts(auth);}
+function accountDraftContext(){
+  const auth=accountDrafts?.auth;
+  return {client:accountDrafts,generation:accountDraftGeneration,action:++accountDraftActionVersion,owner:auth?.user?.id,epoch:auth?.epoch,signedIn:!!auth?.session?.access_token};
+}
+// Bind UI intent to an account/login epoch, not access tokens that may refresh.
+// The data client separately guards its credential-bound network response.
+function currentAccountDraftContext(context,action=false){
+  const auth=context.client?.auth;
+  return !!context.owner&&context.signedIn&&context.client===accountDrafts&&context.generation===accountDraftGeneration&&(!action||context.action===accountDraftActionVersion)&&auth?.user?.id===context.owner&&auth?.epoch===context.epoch&&!!auth?.session?.access_token;
+}
 export function refreshBeautyDraftAccount(){
+  accountDraftGeneration++;
   const owner=handoffStorage()?.getItem(CLOUD_DRAFT_OWNER);
   if(owner&&owner!==accountDrafts?.auth.user?.id){clearHandoff(handoffStorage());handoffStorage()?.removeItem(CLOUD_DRAFT_OWNER);beautyDraft=null;}
-  const dlg=$('#beauty-account-drafts');if(dlg){dlg.close();dlg.drafts=[];dlg.innerHTML='';}
+  const dlg=$('#beauty-account-drafts');if(dlg){dlg.close();dlg.drafts=[];dlg.draftContext=null;dlg.innerHTML='';}
   renderBeautyDraft();
 }
 const draftText=(ko,en)=>locale().startsWith('ko')?ko:en;
 async function accountDraftAction(action,id){
+  const context=accountDraftContext(),client=context.client;
+  const assertCurrent=()=>{if(!currentAccountDraftContext(context,true))throw Error('account_changed');};
   try{
-    if(!accountDrafts)throw Error('login_required');
+    if(!client||!context.owner||!context.signedIn)throw Error('login_required');
     if(action==='save'){
       const d=readHandoff(handoffStorage(),{id:incomingBeautyId,region});
       if(!d)return;
-      await accountDrafts.save(d);
-      handoffStorage()?.setItem(CLOUD_DRAFT_OWNER,accountDrafts.owner);
+      await client.save(d);assertCurrent();
+      handoffStorage()?.setItem(CLOUD_DRAFT_OWNER,context.owner);
       toast(draftText('계정에 비공개로 저장했어. 30일 동안 다른 기기에서 복구할 수 있어.','Saved privately for 30 days. Recover on another device after signing in.'));
     }else if(action==='list'){
-      const rows=await accountDrafts.list(region);
-      let dlg=$('#beauty-account-drafts');if(!dlg){dlg=document.createElement('dialog');dlg.id='beauty-account-drafts';dlg.className='chat-dialog';dlg.addEventListener('close',()=>{if(!dlg.open){dlg.drafts=[];dlg.innerHTML='';}});document.body.append(dlg);}
+      const existing=$('#beauty-account-drafts');if(existing){existing.drafts=[];existing.draftContext=null;existing.innerHTML='';}
+      const rows=await client.list(region);assertCurrent();
+      let dlg=$('#beauty-account-drafts');if(!dlg){dlg=document.createElement('dialog');dlg.id='beauty-account-drafts';dlg.className='chat-dialog';dlg.addEventListener('close',()=>{if(!dlg.open){accountDraftGeneration++;dlg.drafts=[];dlg.draftContext=null;dlg.innerHTML='';}});document.body.append(dlg);}
       dlg.innerHTML=`<form method="dialog"><button class="close-dialog">×</button></form><h2>${esc(draftText('내 비공개 초안','My private drafts'))}</h2><p>${esc(draftText('복구하면 현재 탭의 초안을 대체해. 공개 게시되지는 않아.','Recovering replaces this tab’s draft. It does not publish.'))}</p>${rows.length?rows.map(d=>`<div><button data-account-draft-restore="${esc(d.id)}">${esc(d.title||d.body.slice(0,80))}</button><button data-account-draft-delete="${esc(d.id)}">${esc(draftText('계정에서 삭제','Delete from account'))}</button></div>`).join(''):`<p>${esc(draftText('저장된 초안이 없어.','No saved drafts.'))}</p>`}`;
       // Keep private text in this dialog's memory only, never analytics or localStorage.
-      dlg.drafts=rows;dlg.showModal();
+      dlg.drafts=rows;dlg.draftContext=context;if(!dlg.open)dlg.showModal();
     }else if(action==='restore'){
-      const dlg=$('#beauty-account-drafts'),d=dlg?.drafts?.find(x=>x.id===id);if(!d)return;
-      await accountDrafts.auth.restore();if(accountDrafts.owner!==accountDrafts.auth.user?.id)throw Error('account_changed');
-      writeHandoff(handoffStorage(),d);handoffStorage()?.setItem(CLOUD_DRAFT_OWNER,accountDrafts.owner);updateHandoff(handoffStorage(),d.id,d.body,d.title);incomingBeautyId=d.id;beautyDraftDismissed=false;
+      const dlg=$('#beauty-account-drafts'),dialogContext=dlg?.draftContext,d=dlg?.drafts?.find(x=>x.id===id);if(!d)return;
+      if(!dlg.open||!dialogContext||!currentAccountDraftContext(dialogContext))throw Error('account_changed');
+      await client.auth.restore();assertCurrent();
+      if(!dlg.open||dlg.draftContext!==dialogContext||!dlg.drafts.includes(d))throw Error('account_changed');
+      writeHandoff(handoffStorage(),d);handoffStorage()?.setItem(CLOUD_DRAFT_OWNER,context.owner);updateHandoff(handoffStorage(),d.id,d.body,d.title);incomingBeautyId=d.id;beautyDraftDismissed=false;
       const url=new URL(location.href);url.searchParams.set('beautyDraft',d.id);history.replaceState({},'',url);
       dlg.close();dlg.drafts=[];renderBeautyDraft();
-    }else if(action==='delete'){await accountDrafts.remove(id);$('#beauty-account-drafts')?.close();await accountDraftAction('list');}
-  }catch(e){toast(e.message==='login_required'?draftText('설정에서 로그인한 뒤 다시 시도해 줘.','Sign in in Settings, then try again.'):e.message==='draft_conflict'?draftText('다른 기기에서 변경됐어. 계정 초안을 복구한 뒤 다시 저장해 줘.','Changed on another device. Recover the account draft before saving again.'):draftText('계정 초안을 처리하지 못했어. 이 탭의 초안은 유지돼.','Account draft unavailable. This tab’s draft is kept.'));}
+    }else if(action==='delete'){
+      const dlg=$('#beauty-account-drafts'),dialogContext=dlg?.draftContext;
+      if(!dlg?.open||!dialogContext||!currentAccountDraftContext(dialogContext)||!dlg.drafts?.some(d=>d.id===id))throw Error('account_changed');
+      await client.remove(id);assertCurrent();
+      if(!dlg.open||dlg.draftContext!==dialogContext)throw Error('account_changed');
+      await accountDraftAction('list');
+    }
+  }catch(e){if(e.message!=='login_required'&&!currentAccountDraftContext(context,true))return;toast(e.message==='login_required'?draftText('설정에서 로그인한 뒤 다시 시도해 줘.','Sign in in Settings, then try again.'):e.message==='draft_conflict'?draftText('다른 기기에서 변경됐어. 계정 초안을 복구한 뒤 다시 저장해 줘.','Changed on another device. Recover the account draft before saving again.'):draftText('계정 초안을 처리하지 못했어. 이 탭의 초안은 유지돼.','Account draft unavailable. This tab’s draft is kept.'));}
 }
 
 let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
@@ -367,10 +399,40 @@ export async function renderMyConversations(box) {
   } catch { if(box.isConnected)box.innerHTML = `<p class="home-note">${esc(t('home.retry'))}</p>`; }
 }
 
+
+async function loadRoomActions(room, showError = false) {
+  if(!ROOM_LIFECYCLE_ENABLED)return;
+  try {
+    const actions = await roomActions(secret, room.id);
+    if (chat.room?.id !== room.id) return;
+    const menu = $('#room-menu'); if (!menu) return;
+    menu.querySelectorAll('[data-room-management]').forEach(e => e.remove());
+    menu.insertAdjacentHTML('beforeend', `${actions.joined ? `<button data-room-management data-chat-action="leave-room">${esc(t('room.leave'))}</button>` : ''}${actions.can_delete ? `<button data-room-management data-chat-action="delete-room">${esc(t('room.delete'))}</button>` : ''}`);
+  } catch(e) {
+    if (chat.room?.id !== room.id) return;
+    if (showError) toast(t(errorKey(e.message)));
+    if (!$('#room-menu [data-room-management]')) $('#room-menu')?.insertAdjacentHTML('beforeend', `<button data-room-management data-chat-action="retry-room-actions">${esc(t('room.manage'))}</button>`);
+  }
+}
+let managingRoom = false;
+async function manageRoom(action) {
+  if(!ROOM_LIFECYCLE_ENABLED)return;
+  const room = chat.room; if (!room || managingRoom) return;
+  if (!confirm(t(action === 'delete' ? 'room.deleteConfirm' : 'room.leaveConfirm'))) return;
+  managingRoom = true;
+  try {
+    await (action === 'delete' ? deleteRoom : leaveRoom)(secret, room.id);
+    homeJoined = homeJoined.filter(j => j.room_id !== room.id);
+    leaveChat(); roomDrafts.delete(room.id); await renderHome();
+    toast(t(action === 'delete' ? 'room.deleted' : 'room.left'));
+  } catch(e) { toast(t(errorKey(e.message))); }
+  finally { managingRoom = false; }
+}
+
 function askRules(room, then) {
   if (hasAgreed(storage)) { then(); return; }
   const dlg = $('#chat-join');
-  dlg.innerHTML = `<h2>${esc(t('chat.rulesTitle'))}</h2><p class="chat-intro">${esc(roomIntro(room))}</p><p class="chat-rules">${esc(t('chat.rules'))}</p><div class="chat-join-actions"><button data-chat-action="join-cancel">${esc(t('cancel'))}</button><button class="primary" data-chat-action="join-ok">${esc(t('community.agree'))}</button></div>`;
+  dlg.innerHTML = `<h2>${esc(t('chat.rulesTitle'))}</h2><p class="chat-intro">${esc(room.status === 'closed' ? room.closure_reason || t('room.closed') : roomIntro(room))}</p><p class="chat-rules">${esc(t('chat.rules'))}</p><div class="chat-join-actions"><button data-chat-action="join-cancel">${esc(t('cancel'))}</button><button class="primary" data-chat-action="join-ok">${esc(t('community.agree'))}</button></div>`;
   joinThen = then; dlg.showModal();
 }
 let joinThen = () => {};
@@ -380,12 +442,13 @@ function openTopic(room, mode = 'live') {
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null; inRoom(true); addRecentRoom(room.id);
   const other = mode === 'posts' ? 'live' : 'posts';
   // Journey 3 room header: back, centred title with real member count, ⋯ menu (share / posts ↔ live).
-  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(t('room.joined', {n: room.members ?? 0}))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${mode === 'posts' ? esc(t('community.live')) : `<b>${esc(t('room.noticeTitle'))}</b><small>${esc(roomIntro(room))}</small>`}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
+  shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(t('room.joined', {n: room.members ?? 0}))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${mode === 'posts' ? esc(t('community.live')) : `<b>${esc(t('room.noticeTitle'))}</b><small>${esc(room.status === 'closed' ? room.closure_reason || t('room.closed') : roomIntro(room))}</small>`}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
   if (room.demo) { startLive(room); return; }
+  loadRoomActions(room);
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
-  body(`<button class="write-btn" data-chat-action="write">${icon.pen}<span>${esc(t('community.write'))}</span></button><div id="post-list">${loadingMarkup(t('loading'))}</div>`);
+  body(`${room.status==='closed'?`<p class="chat-rules">${esc(room.closure_reason||t('room.closed'))}</p>`:`<button class="write-btn" data-chat-action="write">${icon.pen}<span>${esc(t('community.write'))}</span></button>`}<div id="post-list">${loadingMarkup(t('loading'))}</div>`);
   let posts; try { posts = visiblePosts(await fetchPosts(room.id)); } catch { posts = null; }
   const list = $('#post-list'); if (!list || chat.room?.id !== room.id || view.mode !== 'posts') return; // user moved on
   if (!posts) { list.innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
@@ -408,6 +471,7 @@ function renderPost() {
   const p = view.post, blocked = readBlocked(storage), mine = p.author_tag === chat.myTag;
   const comments = view.comments.filter(c => !blocked.includes(c.author_tag));
   $('#post-view').innerHTML = `<article class="post-full"><span class="post-kind k-${esc(p.kind)}">${esc(t('community.kind.' + p.kind))}</span><h1>${esc(p.title)}</h1><small class="post-meta">${esc(nick(p.nickname))} · ${esc(ago(p.created_at))}</small>${p.body ? `<p class="post-body">${esc(p.body)}</p>` : ''}${p.reasons?.length ? `<div class="reason-chips">${p.reasons.map(r => `<span>${esc(t('reason.' + r))}</span>`).join('')}</div>` : ''}${reviewFacts(p)}${p.photos?.length ? `<div class="post-photos">${p.photos.map(ph => `<a href="${esc(photoUrl(ph))}" target="_blank" rel="noopener"><img src="${esc(photoUrl(ph))}" alt="" loading="lazy"></a>`).join('')}</div>` : ''}${p.item ? itemCard(p.item, 'post-' + p.id) : ''}${buyerInfo(p)}<div class="post-actions"><button data-community-like="post:${p.id}">♡ ${p.likes || ''}</button><button data-community-save="${p.id}" class="${readSavedPosts().some(x => x.id === p.id) ? 'on' : ''}">${esc(t(readSavedPosts().some(x => x.id === p.id) ? 'community.saved' : 'community.save'))}</button>${mine ? '' : `<button data-community-menu="post:${p.id}">⋯</button>`}</div></article><h3 class="chat-section">${esc(t('community.comments', {n: comments.length}))}</h3>${comments.length ? comments.map(c => `<article class="comment"><small class="chat-nick">${esc(nick(c.nickname))} · ${esc(ago(c.created_at))}</small>${c.body ? `<p>${esc(c.body)}</p>` : ''}${c.item ? itemCard(c.item, 'comment-' + c.id) : ''}<div class="post-actions"><button data-community-like="comment:${c.id}">♡ ${c.likes || ''}</button>${c.author_tag === chat.myTag ? '' : `<button data-community-menu="comment:${c.id}">⋯</button>`}</div></article>`).join('') : `<p class="empty">${esc(t('community.noComments'))}</p>`}<form id="comment-form" class="chat-composer"><div id="comment-context">${view.commentItem ? `<div class="chat-chip">${esc(brandLabel(view.commentItem))} · ${esc(view.commentItem.name)}<button type="button" data-chat-action="comment-item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : ''}</div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach-comment" aria-label="${esc(t('chat.attach'))}">＋</button><textarea id="comment-text" rows="1" maxlength="1000" placeholder="${esc(t('community.commentPh'))}"></textarea><button class="chat-send primary" aria-label="${esc(t('chat.send'))}">↑</button></div></form>`;
+  if(chat.room?.status==='closed'){$('#comment-form').innerHTML=`<p class="chat-rules">${esc(chat.room.closure_reason||t('room.closed'))}</p>`;return;}
   $('#comment-form').onsubmit = e => { e.preventDefault(); sendComment(); };
 }
 async function sendComment() {
@@ -424,6 +488,7 @@ async function sendComment() {
 
 // Write a post (optionally from one of my chat messages: "Save as post").
 function openWrite(draft = {}) {
+  if(chat.room?.status==='closed'){toast(t('room.closed'));return;}
   view.draft = {kind: 'question', title: '', body: '', item: null, reasons: [], fromMessage: null, usedFor: '', skinType: '', skinTone: '', undertone: '', climate: '', goal: '', photos: [], where: '', price: '', shipCountry: '', shipDays: '', sponsored: false, saveProfile: false, ...reviewPrefill(), ...draft};
   renderWrite(); $('#post-write').showModal();
 }
@@ -464,33 +529,40 @@ async function submitPost() {
   if(d.submitting)return;
   d.submitting=true;const submit=$('[data-chat-action="write-submit"]');if(submit)submit.disabled=true;
   try {
-    const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
+    const p = await createGuardedPost(secret, chat.room.id, {...d, review: reviewPayload(d)}, {storage: handoffStorage()});
     track('post_create', null, {room: chat.room.id, kind: d.kind, item: d.item ? 1 : 0, from_chat: d.fromMessage ? 1 : 0, photos: d.photos.length, reasons: d.reasons.join(',')});
     if (d.kind === 'review' && d.saveProfile) saveFromReview(d).catch(() => {});
     if(d.beautyHandoffId){track('beauty_post_published',null,{source:'beauty_play',handoff_id:d.beautyHandoffId});clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
     $('#post-write').close();
     if (d.fromMessage) toast(t('community.savedAsPost'));
     openTopic(chat.room, 'posts'); openPost(p.id);
-  } catch (e) { toast(t(errorKey(e.message))); }
+  } catch (e) {
+    const key = {'post:storage':'postGuard.storage', 'post:uncertain':'postGuard.uncertain', 'post:already':'postGuard.already'}[e.code];
+    toast(t(key || errorKey(e.message)));
+  }
   finally {d.submitting=false;if(submit)submit.disabled=false;}
 }
 
 // Live chat inside a topic.
 async function startLive(room) {
   const draft=roomDrafts.get(room.id);
+  roomExperienceRows = []; roomExperienceController = null;
   chat.messages = []; chat.item = draft?.item??null; chat.replyTo = draft?.replyTo??null; unreadMessages = 0;
   const setupNudge = shouldSuggestSetup(readInterests(), storage) ? `<aside id="setup-nudge" class="setup-nudge"><b>${esc(t('onb.nudgeTitle'))}</b><p>${esc(t('onb.nudgeHint'))}</p><div><button class="text-link" data-onb-manage data-onb-context="chat">${esc(t('onb.manage'))}</button><button class="text-btn" data-setup-snooze>${esc(t('onb.snooze'))}</button></div></aside>` : '';
   logSort = 'all';
-  body(`${setupNudge}<div class="log-sorts" role="group" aria-label="${esc(t('community.live'))}">${LOG_SORTS.map(k => `<button data-log-sort="${k}" aria-pressed="${k === 'all'}" class="${k === 'all' ? 'on' : ''}">${esc(t('chat.sort.' + k))}</button>`).join('')}</div><div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><div class="composer-tools"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><button type="button" class="exp-open" data-chat-action="experience">${icon.spark}<span>${esc(t('exp.open'))}</span></button></div><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">${icon.plus}</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.composePh'))}"></textarea><button class="chat-send" aria-label="${esc(t('chat.send'))}">${icon.send}</button></div></form>`);
+  body(`${ROOM_EXPERIENCES_ENABLED?`<section id="room-experiences" class="room-experiences" aria-label="${locale().startsWith('ko')?'이 방의 사용 경험':'Room experiences'}"></section>`:''}${setupNudge}<div class="log-sorts" role="group" aria-label="${esc(t('community.live'))}">${LOG_SORTS.map(k => `<button data-log-sort="${k}" aria-pressed="${k === 'all'}" class="${k === 'all' ? 'on' : ''}">${esc(t('chat.sort.' + k))}</button>`).join('')}</div><div id="chat-log" class="chat-log" aria-live="polite">${loadingMarkup(t('loading'))}</div><button id="chat-latest" class="chat-latest" data-chat-action="latest" hidden></button><form id="chat-form" class="chat-composer"><div class="composer-tools"><p class="chat-rules">${esc(t('chat.quickRules'))}</p><button type="button" class="exp-open" data-chat-action="experience">${icon.spark}<span>${esc(t('exp.open'))}</span></button></div><div id="chat-context"></div><div class="chat-input-row"><button type="button" class="chat-attach" data-chat-action="attach" aria-label="${esc(t('chat.attach'))}">${icon.plus}</button><textarea id="chat-text" rows="1" maxlength="500" placeholder="${esc(t('chat.composePh'))}"></textarea><button class="chat-send" aria-label="${esc(t('chat.send'))}">${icon.send}</button></div></form>`);
   {
+    if (room.status === 'closed') { $('#chat-form').innerHTML = `<p class="chat-rules">${esc(room.closure_reason || t('room.closed'))}</p>`; } else {
     $('#chat-text').value=draft?.text??'';renderContext();
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
+    }
   }
   if (room.demo) {
     chat.messages = [...(demoMessages[room.id] || []), ...demoChat.messages(room.id)];
     $('#chat-form .chat-rules').textContent = locale().startsWith('ko') ? '데모 대화 · 작성한 메시지는 이 기기에만 저장돼요' : 'Demo chat · Messages stay on this device';
     renderLog(true);
+    mountExperiences(room);
     return;
   }
   try {
@@ -500,7 +572,13 @@ async function startLive(room) {
   } catch { if(chat.room?.id!==room.id||!$('#chat-log'))return; $('#chat-log').innerHTML = `<p class="empty">${esc(t('chat.loadFailed'))}</p>`; return; }
   track('chat_open',null,{room:room.id,entry_mode:roomFindMode});
   renderLog(true);
+  mountExperiences(room);
   startPolling();
+}
+function mountExperiences(room) {
+  if(!ROOM_EXPERIENCES_ENABLED)return;
+  const host = $('#room-experiences');
+  if (host) roomExperienceController = mountRoomExperiences(host,{room,messages:chat.messages,author:chat.myTag,secret,storage,seed:demoRoomExperiences[room.id]??[],blocked:readBlocked(storage),toast,onChange:rows=>{if(chat.room?.id===room.id){roomExperienceRows=rows;renderLog(false);}}});
 }
 const SEEN_KEY = 'seoulbeauty-seen-v1';
 const readSeen = () => { try { return JSON.parse(storage.getItem(SEEN_KEY)) || {}; } catch { return {}; } };
@@ -521,6 +599,15 @@ function nicknameColor(nickname) {
 const LOG_SORTS = ['all', 'new', 'top'];
 let logSort = 'all';
 const msgTime = iso => Date.now() - Date.parse(iso) < 86400000 ? relTime(iso) : time(iso);
+function experienceBadge(message) {
+  const key=productKey(message.item??chat.room?.topic_product);
+  const row=roomExperienceRows.find(r=>r.author_tag===message.author_tag&&r.product_key===key);
+  if(!row)return '';
+  const ko=locale().startsWith('ko');
+  const facts=[experienceLabel('skin',row.skin,ko),experienceLabel('period',row.period,ko),row.repeat==='first'?'':experienceLabel('repeat',row.repeat,ko)];
+  if(row.status==='curious')facts.push(experienceLabel('status',row.status,ko));
+  return facts.filter(Boolean).length?`<small class="chat-experience-badge">${esc(facts.filter(Boolean).join(' · '))}</small>`:'';
+}
 function renderLog(scroll) {
   const log = $('#chat-log'); if (!log) return;
   const near = logSort === 'all' && log.scrollHeight - log.scrollTop - log.clientHeight < 120;
@@ -539,7 +626,7 @@ function renderLog(scroll) {
     const grouped = logSort === 'all' && !divider && prev?.author_tag === m.author_tag && elapsed >= 0 && elapsed <= 300000;
     previousDay = day;
     // Journey 3 feed row: nickname · time, text, product card, ♡ / 답글. No avatars (removed by product decision).
-    return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(nick(m.nickname))}</b>${mine ? `<span class="me-tag">${esc(t('chat.meTag'))}</span>` : ''}<time class="msg-time" datetime="${esc(m.created_at)}">${esc(msgTime(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(nick(parent.nickname))}</b><span>${esc(parent.body || parent.item?.name || '')}</span></button>` : ''}${m.body ? msgBody(m.body) : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></article>`;
+    return `${divider}<article class="chat-msg feed${mine ? ' mine' : ''}${grouped ? ' grouped' : ''}" data-id="${m.id}" tabindex="0"><div class="msg-main">${!grouped ? `<div class="msg-head"><b class="chat-nick" style="color:${nicknameColor(m.nickname)}">${esc(nick(m.nickname))}</b>${deletedMessage(m) ? '' : experienceBadge(m)}${mine ? `<span class="me-tag">${esc(t('chat.meTag'))}</span>` : ''}<time class="msg-time" datetime="${esc(m.created_at)}">${esc(msgTime(m.created_at))}</time></div>` : ''}${parent ? `<button class="chat-quote" data-chat-jump="${parent.id}"><b style="color:${nicknameColor(parent.nickname)}">${esc(nick(parent.nickname))}</b><span>${esc(deletedMessage(parent) ? t('chat.deleted') : parent.body || parent.item?.name || '')}</span></button>` : ''}${deletedMessage(m) ? `<p class="deleted-message">${esc(t('chat.deleted'))}</p>` : m.body ? msgBody(m.body) : ''}${m.item ? itemCard(m.item, 'chat-' + m.id) : ''}</div><div class="msg-actions"><button class="chat-heart${liked.has(m.id) ? ' selected' : ''}" data-chat-like="${m.id}" aria-label="${esc(t('chat.like'))}" aria-pressed="${liked.has(m.id)}" ${liking.has(m.id) || deletedMessage(m) || chat.room?.status === 'closed' ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>${m.likes || 0}</span></button><button class="msg-reply" data-chat-reply="${m.id}">${icon.reply}<span>${esc(t('chat.replyShort'))}</span></button></div></article>`;
   }).join('') : `<p class="empty">${esc(t('chat.empty'))}</p>`);
   log.oncontextmenu = e => { const row = e.target.closest('.chat-msg'); if (row) { e.preventDefault(); openMenu(+row.dataset.id); } };
   log.onkeydown = e => { if (e.target.matches('.chat-msg') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(+e.target.dataset.id); } };
@@ -552,12 +639,13 @@ function renderLog(scroll) {
   else { log.scrollTop = oldTop; }
   const latest = $('#chat-latest');
   if (latest) { latest.hidden = unreadMessages === 0; latest.textContent = t('chat.newMessages', {n: unreadMessages}); }
+  roomExperienceController?.updateMessages(chat.messages);
   log.onscroll = () => { if (log.scrollHeight - log.scrollTop - log.clientHeight < 120) { unreadMessages = 0; if(chat.room&&chat.messages.length)markSeen(chat.room.id,chat.messages.at(-1).created_at); if (latest) latest.hidden = true; } };
 }
 function renderContext() {
   const box = $('#chat-context'); if (!box) return;
   const reply = chat.replyTo ? chat.messages.find(m => m.id === chat.replyTo) : null;
-  box.innerHTML = (reply ? `<div class="chat-chip"><span>${esc(t('chat.replyingTo', {name: nick(reply.nickname)}))}<small>${esc(reply.body || reply.item?.name || '')}</small></span><button type="button" data-chat-action="reply-cancel" aria-label="${esc(t('close'))}">×</button></div>` : '') +
+  box.innerHTML = (reply ? `<div class="chat-chip"><span>${esc(t('chat.replyingTo', {name: nick(reply.nickname)}))}<small>${esc(deletedMessage(reply) ? t('chat.deleted') : reply.body || reply.item?.name || '')}</small></span><button type="button" data-chat-action="reply-cancel" aria-label="${esc(t('close'))}">×</button></div>` : '') +
     (chat.item ? `<div class="chat-chip">${esc(brandLabel(chat.item))} · ${esc(chat.item.name)}<button type="button" data-chat-action="item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : '');
 }
 async function send() {
@@ -574,6 +662,7 @@ async function send() {
     }
     const m = await postMessage(secret, roomId, text, item, replyTo);
     roomDrafts.delete(roomId);
+    if (chat.room?.id === roomId) loadRoomActions(chat.room);
     if (!homeJoined.some(j => j.room_id === roomId)) homeJoined.unshift({room_id: roomId, last: m});
     chat.nickname = m.nickname;
     track('chat_send', null, {room:roomId,item:item?1:0,reply:replyTo?1:0});
@@ -590,9 +679,12 @@ function startPolling() {
     if (!chat.room || document.hidden || view.mode !== 'live') return;
     const roomId=chat.room.id,last = chat.messages.at(-1)?.id ?? 0;
     try {
-      const fresh = (await fetchMessages(roomId, last)).filter(m => !chat.messages.some(x => x.id === m.id));
+      const page = await fetchMessages(roomId);
+      const updates = new Map(page.map(m => [m.id,m]));
+      const fresh = page.filter(m => !chat.messages.some(x => x.id === m.id));
       if(chat.room?.id!==roomId)return;
-      if (fresh.length) { unreadMessages += fresh.length; chat.messages.push(...fresh); renderLog(false); }
+      chat.messages = chat.messages.map(m => updates.get(m.id) ?? m);
+      unreadMessages += fresh.length; chat.messages.push(...fresh); renderLog(false);
     } catch {}
   }, 4000);
 }
@@ -608,7 +700,7 @@ function openPicker(target) {
   $('#chat-pick-q').oninput = e => {
     clearTimeout(pickTimer); const q = e.target.value; const seq = ++pickSeq;
     pickTimer = setTimeout(async () => {
-      try { picked = await searchCatalog(q); } catch { picked = []; }
+      try { picked = (await searchCatalog(q)).filter(canAttachCatalogItem); } catch { picked = []; }
       if (seq !== pickSeq) return;
       $('#chat-pick-list').innerHTML = picked.slice(0, 20).map((c, i) => `<button class="chat-pick-row" data-chat-pick="${i}">${c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel(c))}</small><b>${esc(c.name)}</b></span><strong>${usd(c.price)}</strong></button>`).join('') || (q.trim().length >= 2 ? `<p class="empty">${esc(t('empty.catalogSearch'))}</p>` : '');
     }, 300);
@@ -616,7 +708,7 @@ function openPicker(target) {
   $('#chat-pick-q').focus();
 }
 function picked1(i) {
-  const it = picked[i]; $('#chat-pick').close();
+  const it = picked[i]; if(!canAttachCatalogItem(it))return; $('#chat-pick').close();
   if (pickFor === 'comment') { view.commentItem = it; renderPost(); $('#comment-text')?.focus(); }
   else if (pickFor === 'write') { view.draft.item = it; renderWrite(); }
   else { chat.item = it; renderContext(); if ($('#exp-sheet')?.open) renderExperience(); else $('#chat-text')?.focus(); }
@@ -730,7 +822,7 @@ let menuTarget = null;
 function openMenu(id) {
   chat.menuFor = chat.messages.find(m => m.id === id); if (!chat.menuFor) return;
   const mine = chat.menuFor.author_tag === chat.myTag; menuTarget = {type: 'chat', id};
-  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button><button data-chat-action="save-message">${esc(t(readSavedMessages().some(m=>m.room_id===chat.room?.id&&m.id===id)?'activity.unsaveMessage':'activity.saveMessage'))}</button>${chat.room?.demo ? '' : mine ? `<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
+  $('#chat-menu').innerHTML = `<div class="chat-menu-list"><button data-chat-action="reply">${esc(t('chat.reply'))}</button><button data-chat-action="copy">${esc(t('chat.copy'))}</button><button data-chat-action="save-message">${esc(t(readSavedMessages().some(m=>m.room_id===chat.room?.id&&m.id===id)?'activity.unsaveMessage':'activity.saveMessage'))}</button>${chat.room?.demo ? '' : mine && !deletedMessage(chat.menuFor) ? `${ROOM_LIFECYCLE_ENABLED?`<button data-chat-action="delete-message">${esc(t('chat.delete'))}</button>`:''}<button data-chat-action="save-as-post">${esc(t('community.saveAsPost'))}</button>` : `<button data-chat-action="report">${esc(t('chat.report'))}</button><button data-chat-action="block">${esc(t('chat.block'))}</button>`}<button data-chat-action="menu-close">${esc(t('cancel'))}</button></div>`;
   $('#chat-menu').showModal();
 }
 function openCommunityMenu(spec) {
@@ -751,20 +843,21 @@ export async function renderProductTalk(box, familyKey) {
   box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))}</h3>${loadingMarkup(t('loading'))}`;
   let talk; try { talk = await fetchProductTalk(familyKey); } catch { if(box.talkRequest===request)box.innerHTML = ''; return; }
   if(box.talkRequest!==request||!box.isConnected)return;
-  talkState = {box, talk}; talkFilter = {}; drawTalk();
+  talkState = {box, talk, familyKey}; talkFilter = {}; installExperienceChoices(box,familyKey,drawTalk); drawTalk();
 }
 // Filter reviews by the conditions writers chose to show (skin type / tone); a reference, not a promise.
 let talkState = null, talkFilter = {};
 function drawTalk() {
-  if (!talkState) return; const {box, talk} = talkState;
-  const all = visiblePosts(talk.reviews), reviews = filterReviews(all, talkFilter), posts = visiblePosts(talk.posts);
-  if(!all.length&&!posts.length&&!talk.chatMentions){box.innerHTML=`<p class="home-note">${esc(t('product.talkEmpty'))}</p>`;return;}
+  if (!talkState || !talkState.box.isConnected) return; const {box, talk, familyKey} = talkState;
+  const all = visiblePosts(talk.reviews), reviews = preferredExperienceReviews(filterReviews(all, talkFilter),familyKey,cachedProfile()), posts = visiblePosts(talk.posts);
+  const experience = experienceMarkup(familyKey,all.length,cachedProfile());
+  if(!all.length&&!posts.length&&!talk.chatMentions){box.innerHTML=experience+`<p class="home-note">${esc(t('product.talkEmpty'))}</p>`;return;}
   const chips = (key, prefix) => [...new Set(all.map(r => r[key]).filter(Boolean))].map(v => `<button data-review-filter="${key}:${v}" class="${talkFilter[key] === v ? 'on' : ''}">${esc(t(prefix + '.' + v))}</button>`).join('');
   const me = cachedProfile(), mine = me && (me.skin_type || me.skin_tone);
   // "People like me" applies the person's own self-reported skin; without a profile it invites them to add one.
   const similar = !all.length ? '' : mine ? `<button data-review-similar class="${talkFilter.skin_type === (me.skin_type ?? '') && talkFilter.skin_tone === (me.skin_tone ?? '') ? 'on' : ''}">${esc(t('profile.similar'))}</button>` : `<button data-profile-open>${esc(t('profile.similarAdd'))}</button>`;
   const filters = similar + chips('skin_type', 'skin') + chips('skin_tone', 'tone');
-  box.innerHTML = `<h3 class="chat-section">${esc(t('product.reviews'))} ${all.length ? `<em>${all.length}</em>` : ''}</h3>${filters ? `<div class="chat-chips review-filter">${filters}</div><p class="similar-note">${esc(t('product.similarNote'))}</p>` : ''}${reviews.length ? reviews.map(postRow).join('') : `<p class="empty talk-empty">${esc(t('product.reviewsEmpty'))}</p>`}<h3 class="chat-section">${esc(t('product.related'))}</h3>${posts.map(postRow).join('')}${talk.chatMentions ? `<p class="talk-chat">${esc(t('product.inChat'))} · ${talk.chatMentions}</p>` : ''}${!posts.length && !talk.chatMentions ? `<p class="empty talk-empty">${esc(t('product.talkEmpty'))}</p>` : ''}`;
+  box.innerHTML = experience + `<h3 class="chat-section">${esc(t('product.reviews'))} ${all.length ? `<em>${all.length}</em>` : ''}</h3>${filters ? `<div class="chat-chips review-filter">${filters}</div><p class="similar-note">${esc(t('product.similarNote'))}</p>` : ''}${reviews.length ? reviews.map(postRow).join('') : `<p class="empty talk-empty">${esc(t('product.reviewsEmpty'))}</p>`}<h3 class="chat-section">${esc(t('product.related'))}</h3>${posts.map(postRow).join('')}${talk.chatMentions ? `<p class="talk-chat">${esc(t('product.inChat'))} · ${talk.chatMentions}</p>` : ''}${!posts.length && !talk.chatMentions ? `<p class="empty talk-empty">${esc(t('product.talkEmpty'))}</p>` : ''}`;
 }
 // A post tapped outside the community (product sheet, detail page) opens there next time the screen opens.
 // "Start a conversation": pick a topic in a sheet, then go straight to the write form for it.
@@ -776,24 +869,29 @@ function openStart() {
 }
 // Free room creation: any subject. Field and concern tags are optional and only help others find the room.
 const ROOM_TAGS = ['talk', 'skin', 'makeup'], TAG_GROUP = {skin: 'skincare', makeup: 'makeup'};
-const newRoom = {productName: '', tag: 'talk', concerns: [], title: '', intro: '', error: '', busy: false};
+const newRoom = {more: false, productName: '', tag: 'talk', concerns: [], title: '', intro: '', error: '', busy: false};
 function openCreateRoom(productName = '') {
   $('#chat-start')?.open && $('#chat-start').close();
   const sel = readInterests();
   newRoom.tag = sel?.skincare && !sel.makeup ? 'skin' : sel?.makeup && !sel.skincare ? 'makeup' : 'talk';
-  Object.assign(newRoom, {productName: String(productName), concerns: [...(sel?.concerns ?? [])], title: String(productName).slice(0, 40), intro: '', error: '', busy: false});
+  Object.assign(newRoom, {more: false, productName: String(productName), concerns: ROOM_LIFECYCLE_ENABLED?canonicalTags(sel?.concerns ?? []).filter(id => offeredTags(newRoom.tag).some(t => t.id === id)).slice(0, 3):[...(sel?.concerns??[])], title: String(productName).slice(0, 40), intro: '', error: '', busy: false});
   let dlg = $('#room-create'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'room-create'; dlg.className = 'chat-dialog post-write room-create'; dlg.setAttribute('aria-labelledby', 'room-create-title'); document.body.append(dlg); }
   renderCreateRoom(); dlg.showModal(); $('#room-title').focus();
 }
 const keepRoomText = () => { newRoom.title = $('#room-title')?.value ?? newRoom.title; newRoom.intro = $('#room-intro')?.value ?? newRoom.intro; };
 function renderCreateRoom() {
-  const group = TAG_GROUP[newRoom.tag], offered = CONCERNS.filter(c => !group || c.group === group);
+  const group=TAG_GROUP[newRoom.tag],offered=ROOM_LIFECYCLE_ENABLED?offeredTags(newRoom.tag):CONCERNS.filter(c=>!group||c.group===group);
   newRoom.concerns = newRoom.concerns.filter(id => offered.some(c => c.id === id));
+  const popular = ['acne','dry','sensitive','pores','shade','longwear','lip','base'];
+  const shown = !ROOM_LIFECYCLE_ENABLED || newRoom.more ? offered : offered.filter(c => popular.includes(c.id) || newRoom.concerns.includes(c.id));
   const chip = (attr, id, on, label) => `<button type="button" ${attr}="${id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(label)}</button>`;
-  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t(demoActive ? 'rooms.demoCreate' : 'room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${offered.map(c => chip('data-room-concern', c.id, newRoom.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div><p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t('room.create'))}</button>`;
+  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t(demoActive ? 'rooms.demoCreate' : 'room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${ROOM_LIFECYCLE_ENABLED?['skin','makeup','product'].map(group=>{const tags=shown.filter(c=>c.group===group);return tags.length?`<div><p class="write-label">${esc(t('room.group.'+group))}</p>${tags.map(c=>chip('data-room-concern',c.id,newRoom.concerns.includes(c.id),t('room.topic.'+c.id))).join('')}</div>`:'';}).join(''):shown.map(c=>chip('data-room-concern',c.id,newRoom.concerns.includes(c.id),t('onb.c.'+c.id))).join('')}</div>${ROOM_LIFECYCLE_ENABLED?`<button type="button" class="text-btn" data-chat-action="more-room-tags" aria-expanded="${newRoom.more}">${esc(t(newRoom.more ? 'room.lessTags' : 'room.moreTags'))}</button><p class="write-note">${esc(t('chat.err.tags'))}</p>`:''}<p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t(newRoom.busy ? 'room.creating' : 'room.create'))}</button>`;
+  if(newRoom.busy)$('#room-create').querySelectorAll('input,textarea,button').forEach(el=>el.disabled=true);
 }
 async function submitRoom() {
+  if (newRoom.busy) return;
   keepRoomText();
+  if (ROOM_LIFECYCLE_ENABLED && newRoom.concerns.length > 3) { newRoom.error=t('chat.err.tags'); renderCreateRoom(); return; }
   if (newRoom.title.trim().length < 3) { newRoom.error = t('chat.err.short'); renderCreateRoom(); $('#room-title').focus(); return; }
   newRoom.busy = true; newRoom.error = ''; renderCreateRoom();
   try {
@@ -839,16 +937,20 @@ document.addEventListener('click', async e => {
     openCreateRoom(selected?.name ?? productRoomQuery);
   }
   else if (a === 'room-more') { const m = $('#room-menu'); if (m) { m.hidden = !m.hidden; b.setAttribute('aria-expanded', String(!m.hidden)); } }
+  else if (a === 'retry-room-actions') loadRoomActions(chat.room, true);
+  else if (a === 'leave-room') manageRoom('leave');
+  else if (a === 'delete-room') manageRoom('delete');
   else if (b.dataset.chatJump) { $('#chat-log [data-id="' + b.dataset.chatJump + '"]')?.scrollIntoView({block:'center', behavior:'smooth'}); }
   else if (a === 'save-message') { try { const on=toggleSavedMessage({...chat.menuFor,room_id:chat.room.id,room_title:roomTitle(chat.room)}); $('#chat-menu').close(); toast(t(on?'activity.messageSaved':'activity.messageRemoved')); } catch { toast(t('saveLocalOnly')); } }
   else if (a === 'copy') { try { await navigator.clipboard.writeText(chat.menuFor.body || chat.menuFor.item?.name || ''); $('#chat-menu').close(); } catch { toast(t('chat.err.other')); } }
-  else if (b.dataset.chatReply) { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
+  else if (b.dataset.chatReply && chat.room?.status!=='closed') { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
   else if (a === 'share-room' && chat.room && !chat.room.demo) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
   else if (a === 'find-topic') openStart();
   else if (a === 'create-room') { if (demoActive) return; openCreateRoom(); }
   else if (a === 'room-submit') submitRoom();
+  else if (a === 'more-room-tags') { keepRoomText(); newRoom.more = !newRoom.more; renderCreateRoom(); }
   else if (b.dataset.roomTag) { keepRoomText(); newRoom.tag = b.dataset.roomTag; renderCreateRoom(); $(`[data-room-tag="${newRoom.tag}"]`).focus(); }
-  else if (b.dataset.roomConcern) { keepRoomText(); const id = b.dataset.roomConcern; newRoom.concerns = newRoom.concerns.includes(id) ? newRoom.concerns.filter(c => c !== id) : [...newRoom.concerns, id]; renderCreateRoom(); $(`[data-room-concern="${id}"]`).focus(); }
+  else if (b.dataset.roomConcern) { keepRoomText(); const id = b.dataset.roomConcern; newRoom.error = ROOM_LIFECYCLE_ENABLED && !newRoom.concerns.includes(id) && newRoom.concerns.length >= 3 ? t('chat.err.tags') : ''; newRoom.concerns = ROOM_LIFECYCLE_ENABLED?toggleRoomTag(newRoom.concerns,id):newRoom.concerns.includes(id)?newRoom.concerns.filter(c=>c!==id):[...newRoom.concerns,id]; renderCreateRoom(); $(`[data-room-concern="${id}"]`).focus(); }
   else if (b.dataset.chatStart) { const room = chat.rooms.find(r => r.id === b.dataset.chatStart); $('#chat-start').close(); if (room) { chat.room = room; askRules(room, () => openWrite()); } }
   else if (a === 'topic') openTopic(chat.room, 'posts');
   else if (b.dataset.topicMode) openTopic(chat.room, b.dataset.topicMode);
@@ -882,8 +984,15 @@ document.addEventListener('click', async e => {
   else if (a === 'reply-cancel') { chat.replyTo = null; renderContext(); }
   else if (a === 'item-cancel') { chat.item = null; renderContext(); }
   else if (a === 'menu-close') $('#chat-menu').close();
-  else if (a === 'reply') { chat.replyTo = chat.menuFor.id; $('#chat-menu').close(); renderContext(); $('#chat-text').focus(); }
+  else if (a === 'reply' && chat.room?.status!=='closed') { chat.replyTo = chat.menuFor.id; $('#chat-menu').close(); renderContext(); $('#chat-text').focus(); }
   else if (a === 'save-as-post' && !chat.room?.demo) { const m = chat.menuFor; $('#chat-menu').close(); openWrite({kind: 'recommend', title: m.body.slice(0, 60), body: m.body, item: m.item, fromMessage: m.id}); }
+  else if (a === 'delete-message') {
+    const message=chat.menuFor, room=chat.room;
+    if (!ROOM_LIFECYCLE_ENABLED || !message || room?.demo || !confirm(t('chat.deleteConfirm'))) return;
+    b.disabled=true;
+    try { await deleteMessage(secret,message.id); $('#chat-menu').close(); if(chat.room?.id===room.id) { message.body='';message.item=null;message.likes=0;renderLog(false);renderContext(); } }
+    catch(e) { b.disabled=false;toast(t(errorKey(e.message))); }
+  }
   else if (a === 'report') openReport();
   else if (a === 'block') {
     block(storage, menuTarget.type === 'chat' ? chat.menuFor.author_tag : menuTarget.author); $('#chat-menu').close();
