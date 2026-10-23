@@ -8,6 +8,9 @@ The existing game data remains in its original D1 store. A bounded `/beauty-play
 
 Only the game's device cookie is forwarded; community auth cookies, authorization and identity headers are never forwarded. The returned game cookie is restricted to `/beauty-play`, with HttpOnly, SameSite and Secure retained in production. POST origins are checked before forwarding. Unknown paths/methods, redirects and oversized bodies fail closed.
 
-Validation: the full Node suite passes, including five game integration tests; actual session and test-answer writes through the adapter return200. Native browser rendering and route transitions were checked locally. The managed preview process could not consistently reach the upstream backend, so full browser save/share on the production hostname remains a release check. Vercel MCP project inspection currently reports a team-access403; the repository's existing main-branch deploy integration is the release path.
+Validation (2026-10-23): PR #167 merged as 08df28a and the main-branch Vercel deployment succeeded. The full Node suite passed (186 tests), including five game integration tests. Production session and test-answer writes returned 200; invitation creation, a fresh recipient answer and gated comparison were checked through the production domain. A production browser play-through also saved an answer and produced a same-domain invitation. Physical iOS/Android, production 100-user concurrency, unified community attribution and actual order reconciliation remain unverified. Vercel MCP project inspection reported team-access403; the repository main-branch integration completed deployment.
 
 No public user messages or invitations are sent as part of this change. The old game URL remains online for existing links and rollback.
+
+
+Canonical planning: [end-to-end CX](BEAUTY_JOURNEY_CX.md) and [PRD](BEAUTY_JOURNEY_PRD.md), v1.0 dated 2026-10-23. The current handoff opens a regional home and supports manual text copying; contextual community handoff, account linkage and end-to-end purchase attribution are requirements, not completed integration.
