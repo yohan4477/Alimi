@@ -1,4 +1,5 @@
 import {readHandoff,updateHandoff,clearHandoff,handoffStorage} from './beauty-handoff.js';
+import {suggestDraftRooms} from './beauty-room-suggest.js';
 import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {roomArt} from './topic-art.js';
 import {nick} from './nickname.js';
@@ -184,7 +185,10 @@ async function chooseBeautyRoom() {
   if(!dlg.open)return;
   chat.rooms=rooms;
   const list=$('#beauty-draft-room-list');
-  list.innerHTML=rooms.length?rooms.filter(r=>inRegion(r)&&!r.demo).map(r=>`<button class="beauty-draft-room" data-beauty-draft-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b><small>${esc(roomIntro(r))}</small></button>`).join(''):`<p>${esc(tr('아직 이 지역에 대화방이 없어. 초안을 보관한 채 새 대화방을 만들 수 있어.','No conversations in this region yet. Keep your draft and create a conversation.'))}</p><button data-chat-action="beauty-draft-create">${esc(t('room.new'))}</button>`;
+  const regional=rooms.filter(r=>inRegion(r)&&!r.demo);
+  const suggested=suggestDraftRooms(beautyDraft.body,regional);
+  const ranked=[...suggested.map(x=>x.room),...regional.filter(r=>!suggested.some(x=>x.room.id===r.id))];
+  list.innerHTML=ranked.length?ranked.map((r,i)=>`<button class="beauty-draft-room" data-beauty-draft-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b>${i<suggested.length?`<small>${esc(tr('관련 대화','Related conversation'))}</small>`:''}<small>${esc(roomIntro(r))}</small></button>`).join(''):`<p>${esc(tr('아직 이 지역에 대화방이 없어. 초안을 보관한 채 새 대화방을 만들 수 있어.','No conversations in this region yet. Keep your draft and create a conversation.'))}</p><button data-chat-action="beauty-draft-create">${esc(t('room.new'))}</button>`;
 }
 function openBeautyDraftInRoom(room) {
   beautyDraft=readHandoff(handoffStorage(),{id:incomingBeautyId,region});
