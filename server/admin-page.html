@@ -9,6 +9,7 @@
 <button class="nav-link" id="sb-game-tab" type="button" role="tab" aria-controls="sb-game" aria-selected="false">게임·투표</button>
 <button class="nav-link" id="sb-revenue-tab" type="button" role="tab" aria-controls="sb-revenue" aria-selected="false">수익</button>
 <button class="nav-link" id="sb-system-tab" type="button" role="tab" aria-controls="sb-system" aria-selected="false">시스템</button><p class="admin-nav-label admin-nav-separator">기획·관리</p><button class="nav-link" id="sb-ui-library-tab" type="button" role="tab" aria-controls="sb-ui-library" aria-selected="false">UI Library</button>
+<button class="nav-link" id="sb-quality-tab" type="button" role="tab" aria-controls="sb-quality" aria-selected="false">품질 관리</button>
 <button class="nav-link" id="sb-dev-tab" type="button" role="tab" aria-controls="sb-dev" aria-selected="false">현황</button>
 <button class="nav-link" id="sb-roadmap-tab" type="button" role="tab" aria-controls="sb-roadmap" aria-selected="false">실행 계획</button>
 <button class="nav-link" id="sb-strategy-tab" type="button" role="tab" aria-controls="sb-strategy" aria-selected="false">전략 자료</button>
@@ -402,6 +403,23 @@
     <div class="sb-step"><span class="sb-label">6</span><div><span class="sb-label">효용이 확인된 기능 확장</span><p>사진·피부 정보·번역·콘텐츠·추가 판매처를 하나씩 판단.</p><p class="text-small text-muted">핵심 수요·사용 조건·운영 부담을 보고 결정</p></div></div>
     <div class="sb-links"><a href="https://github.com/yohan4477/Alimi/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener noreferrer">실행 로드맵 원문 ↗</a></div>
   </details></section>
+<section class="sb-panel" id="sb-quality" role="tabpanel" aria-labelledby="sb-quality-tab" hidden>
+<header class="admin-state-heading"><p class="admin-eyebrow">ADMIN / QUALITY</p><h2>품질 관리</h2><p>가상 데이터 기반 CX·UI 검증을 반복 관리합니다. 현재 수치는 실제 사용자 KPI가 아닙니다.</p></header>
+<div class="quality-tabs" role="group" aria-label="품질 관리 세부 메뉴">
+<button class="quality-tab active" type="button" data-quality-view="overview" aria-pressed="true">개요</button>
+<button class="quality-tab" type="button" data-quality-view="cases" aria-pressed="false">시나리오</button>
+<button class="quality-tab" type="button" data-quality-view="issues" aria-pressed="false">이슈</button>
+<button class="quality-tab" type="button" data-quality-view="history" aria-pressed="false">이력</button></div>
+<div data-quality-panel="overview"><h3>검증 개요</h3>
+<div class="quality-metrics"><div><strong>16</strong><span>데모 대화방</span></div><div><strong>127</strong><span>가상 메시지</span></div><div><strong>—</strong><span>모바일 검증률</span></div><div><strong>—</strong><span>미해결 이슈 수 · 미집계</span></div></div>
+<h3>최근 검증 작업</h3><div class="quality-record"><div class="quality-record-head"><strong>CX-001 · 커뮤니티 모바일 평가</strong><span class="quality-status">검증 필요</span></div><p>16개 대화방 데이터 연결, Vercel Production READY. 실제 모바일 조작 검증은 남아 있습니다.</p><small>GitHub <a href="https://github.com/yohan4477/Alimi/commit/9aa57430a1effeefae2bb31098e0d6ff84e6b95a" target="_blank" rel="noopener noreferrer">9aa5743 ↗</a> · 메인 커뮤니티</small></div>
+<h3>반복 검증 프로세스</h3><ol class="quality-process"><li>데이터 준비 — 가상 사용자·제품·대화</li><li>실제 화면 평가 — 모바일 터치·스크롤</li><li>문제 등록 — 재현 단계·스크린샷·우선순위</li><li>수정 — GitHub Issue → PR → 테스트</li><li>재검증·배포 — 운영 URL에서 확인</li></ol></div>
+<div data-quality-panel="cases" hidden><h3>고객 여정 테스트 시나리오</h3><p class="text-small text-muted">실제 브라우저 조작 여부를 기준으로 통과/실패를 기록합니다.</p>
+<div class="quality-record-list"><div><small>CX-01 · 신규 사용자</small><strong>첫 방문 → 대화 발견 → 참여</strong><span>미검증</span></div><div><small>CX-02 · 적극 참여</small><strong>질문 → 답변 → 후속 대화</strong><span>미검증</span></div><div><small>CX-03 · 중간 참여</small><strong>중간 입장 → 맥락 파악</strong><span>미검증</span></div><div><small>CX-04 · 제품 탐색</small><strong>제품 비교 → 선택</strong><span>미검증</span></div><div><small>CX-05 · 재방문</small><strong>알림 → 이전 대화 복귀</strong><span>미검증</span></div><div><small>CX-06 · 전환</small><strong>게임 → 공유 → 커뮤니티</strong><span>미검증</span></div></div></div>
+<div data-quality-panel="issues" hidden><h3>이슈 관리</h3><p class="text-small text-muted">아래는 평가 대상이며 재현 전 결함으로 확정하지 않습니다. P0/P1은 확인 우선순위입니다.</p>
+<div class="quality-record-list"><div><small>P0 · 실측 필요</small><strong>댓글 답장 대상 파악</strong></div><div><small>P1 · 실측 필요</small><strong>긴 제품명·색상 줄바꿈</strong></div><div><small>P1 · 데이터 부족</small><strong>이미지 확대 및 비교</strong></div><div><small>P0 · 실측 필요</small><strong>알림에서 기존 대화 복귀</strong></div></div><p class="text-small">실제 이슈 등록과 담당자 배정은 GitHub Issues에서 관리하며, 자동 동기화는 아직 연결되지 않았습니다.</p></div>
+<div data-quality-panel="history" hidden><h3>검증 실행 이력</h3><div class="quality-record-list"><div><small>2026.10.23 · 데이터</small><strong>16개 대화방, 127개 메시지 생성</strong><span>완료</span></div><div><small>2026.10.23 · 코드</small><strong>기존 커뮤니티 UI 데이터 연결</strong><span>배포 확인</span></div><div><small>실행 대기 · 모바일</small><strong>실제 화면 조작 및 회귀 검증</strong><span>미완료</span></div></div></div>
+<p class="text-small text-muted">수동 상태 스냅샷 · 현재 테스트 실행/이슈 동기화 API는 미구현 · 실제 KPI와 분리</p></section>
   <section class="sb-panel" id="sb-dashboard" role="tabpanel" aria-labelledby="sb-dashboard-tab" hidden>
 <div class="admin-ref-dash">
 <h2>운영 홈</h2>
