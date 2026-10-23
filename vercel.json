@@ -23,6 +23,18 @@
       "destination": "/api/beauty-play?route=:route"
     },
     {
+      "source": "/",
+      "destination": "/sample.html"
+    },
+    {
+      "source": "/live",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/live/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/beauty-play",
       "destination": "/beauty-play/index.html"
     },
@@ -40,19 +52,19 @@
     },
     {
       "source": "/kr",
-      "destination": "/index.html"
+      "destination": "/sample.html"
     },
     {
       "source": "/kr/",
-      "destination": "/index.html"
+      "destination": "/sample.html"
     },
     {
       "source": "/us",
-      "destination": "/index.html"
+      "destination": "/sample.html"
     },
     {
       "source": "/us/",
-      "destination": "/index.html"
+      "destination": "/sample.html"
     },
     {
       "source": "/privacy",

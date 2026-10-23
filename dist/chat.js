@@ -9,11 +9,9 @@ import {shouldSuggestSetup,snoozeSetup} from './onboarding-nudge.js';
 import {region, inRegion} from './region.js';
 import {regionButton} from './region-picker.js';
 import {findProductRooms,productRoomGroups} from './room-search.js';
-import {productSortControls,rankProducts,aggregateProductStats} from './product-sort.js';
+import {productSortControls,rankProducts} from './product-sort.js';
 // Temporarily disabled for the anonymous SeoulBeauty community.
 import {loadingMarkup} from './loading-companion.js';
-import {createDemoChatStore} from './demo-chat-store.js';
-import {demoRooms, demoMessages, demoEntries, createDemoProductRoom, demoActivity} from './demo-fixtures.js';
 import {beginStartupLoading} from './startup-loading.js';
 import {share, shareUrl} from './share.js';
 // Community screen: topics → each topic has Posts (questions / recommendations / reviews with comments)
@@ -37,7 +35,6 @@ import {KINDS, REASONS, USED_FOR, SKIN_TYPES, SKIN_TONES, UNDERTONES, CLIMATES, 
 import {$, esc} from './util.js';
 let storage; try { storage = localStorage; } catch {}
 const secret = chatSecret(storage);
-const demoChat = createDemoChatStore(storage);
 const likedKey = 'seoulbeauty-chat-hearts-' + secret;
 let liked; try { liked = new Set(JSON.parse(storage.getItem(likedKey)) || []); } catch { liked = new Set(); }
 const liking = new Set();
@@ -64,26 +61,15 @@ export function relTime(iso, now = Date.now()) {
   return s < 60 ? f.format(0, 'second') : s < 3600 ? f.format(-Math.floor(s / 60), 'minute') : s < 86400 ? f.format(-Math.floor(s / 3600), 'hour') : f.format(-Math.floor(s / 86400), 'day');
 }
 // ref = where the card was seen ("post-12", "comment-4", "chat-88"); passed on to the product sheet / Awin.
-const itemCard = (it, ref = '') => it.demo ? `<button class="chat-item" data-demo-product="${esc(it.label)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="${esc(it.name)}" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(it.brand)} · ${esc(t('rooms.demoProducts'))}</small><b>${esc(it.name)}</b></span></button>` : `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}" data-sku="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"` : `data-chat-product="${esc(JSON.stringify(it))}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
+const itemCard = (it, ref = '') => it.demo ? '' : `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}" data-sku="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"` : `data-chat-product="${esc(JSON.stringify(it))}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
 let stopGameEntrance = () => {};
 const shell = inner => { stopGameEntrance(); $('#chat').innerHTML = inner; const entrance = $('#chat [data-game-entrance]'); stopGameEntrance = entrance ? mountGameEntranceCarousel(entrance, {lang:locale().startsWith('ko') ? 'ko' : 'en'}) : () => {}; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
-const communityModeKey = 'seoulbeauty-community-mode';
-const modeQuery = new URLSearchParams(globalThis.location?.search ?? '');
-let savedMode; try { savedMode = storage?.getItem(communityModeKey); } catch {}
-let demoActive = modeQuery.has('demo') ? modeQuery.get('demo') === '1' : savedMode === 'offline';
-function saveCommunityMode() {
-  try { storage?.setItem(communityModeKey, demoActive ? 'offline' : 'online'); } catch {}
-  // Keep reloads and region/language navigation in the selected mode too.
-  try {
-    const url = new URL(globalThis.location.href);
-    url.searchParams.set('demo', demoActive ? '1' : '0');
-    globalThis.history.replaceState(globalThis.history.state, '', url);
-  } catch {}
-}
-if (modeQuery.has('demo')) saveCommunityMode();
-export const isDemo = () => demoActive;
+// The actual community never loads sample data, regardless of old storage or ?demo.
+export const isDemo = () => false;
+const isLiveRoom = room => Boolean(room?.id && !room.demo && !String(room.id).startsWith('demo-'));
+const fetchLiveRooms = async () => (await fetchRooms()).filter(isLiveRoom);
 let firstCommunityLoad = true, communityOpenVersion = 0;
 let finishStartup = () => {};
 export async function openChat(opts = {}) {
@@ -93,10 +79,10 @@ export async function openChat(opts = {}) {
   onClose = opts.onClose ?? onClose; toast = opts.toast ?? toast;
   chat.myTag ||= await tagOf(secret);
   if (version !== communityOpenVersion) return;
-  track('community_open', null, beautyDraft && !demoActive ? {source:'beauty_play',handoff_id:beautyDraft.id}:{});
-  if (beautyDraft && !demoActive && initial) track('beauty_draft_open',null,{source:'beauty_play',handoff_id:beautyDraft.id});
-  if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
-  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : [...demoRooms.filter(r=>r.id.startsWith('demo-cx-')), ...await fetchRooms().catch(() => [])]; const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
+  track('community_open', null, beautyDraft ? {source:'beauty_play',handoff_id:beautyDraft.id}:{});
+  if (beautyDraft && initial) track('beauty_draft_open',null,{source:'beauty_play',handoff_id:beautyDraft.id});
+  if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchLiveRooms().catch(() => []); chat.room = null; openPost(id); return; }
+  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = await fetchLiveRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   const showLaunch = initial && readInterests()?.done;
   const finish = showLaunch ? beginStartupLoading({label: t('loading'), line1: t('splash.line1'), line2: t('splash.line2')}) : () => {};
   finishStartup = finish;
@@ -222,7 +208,7 @@ async function chooseBeautyRoom() {
   if (!dlg) { dlg=document.createElement('dialog');dlg.id='beauty-draft-rooms';dlg.className='chat-dialog';document.body.append(dlg); }
   dlg.innerHTML=`<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(tr('어디서 이야기할까?','Where would you like to talk?'))}</h2><p>${esc(tr('방을 고른다고 글이 바로 올라가지는 않아.','Choosing a conversation does not publish your draft.'))}</p><div id="beauty-draft-room-list">${loadingMarkup(t('loading'))}</div>`;
   dlg.showModal();
-  let rooms;try{rooms=await fetchRooms();}catch{const list=$('#beauty-draft-room-list');if(list)list.innerHTML=`<p role="alert">${esc(t('chat.loadFailed'))}</p><button data-chat-action="beauty-draft-retry">${esc(t('retry'))}</button>`;return;}
+  let rooms;try{rooms=await fetchLiveRooms();}catch{const list=$('#beauty-draft-room-list');if(list)list.innerHTML=`<p role="alert">${esc(t('chat.loadFailed'))}</p><button data-chat-action="beauty-draft-retry">${esc(t('retry'))}</button>`;return;}
   if(!dlg.open)return;
   chat.rooms=rooms;
   const list=$('#beauty-draft-room-list');
@@ -252,30 +238,21 @@ async function renderHome() {
   rememberDraft(); stopPolling(); chat.room = null; view.post = null; inRoom(false);
   // Journey 1 home: wordmark left, alerts / search right, hero, then trending conversations. No sub-tabs:
   // topic / product / brand browsing lives in the 탐색 tab; 대화방 and 발견 open as sub-pages with a back button.
-  shell(`<div class="logo-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span class="sb-head-actions"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></span></div><div class="service-context"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${esc(t(demoActive ? 'chat.modeDemo' : 'chat.modeLive'))}</button>${regionButton()}</div>${gameEntrance()}<section id="beauty-draft-arrival" class="beauty-draft-arrival" hidden></section><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+  shell(`<div class="logo-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span class="sb-head-actions"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></span></div><div class="service-context"><span class="service-mode">${esc(t('chat.modeLive'))}</span>${regionButton()}</div>${gameEntrance()}<section id="beauty-draft-arrival" class="beauty-draft-arrival" hidden></section><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room">＋ ${esc(t('room.new'))}</button>`);
 
   renderBeautyDraft();
 
-  if (demoActive) {
-    chat.rooms = demoRooms;
-    const entries = demoEntries();
-    home = {hot:demoRooms.slice(0,6),topics:demoRooms,recent:[],previews:new Map(demoRooms.map(r => [r.id, demoMessages[r.id]?.at(-1)?.body ?? ''])),partial:false,joined:[],images:roomImages(entries),products:mentionedProducts(entries)};
-    drawHome();
-    return;
-  }
   let fetchedRooms = [], posts = [], joined = [], postsFailed = false;
-  try { [fetchedRooms, posts, joined] = await Promise.all([fetchRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
+  try { [fetchedRooms, posts, joined] = await Promise.all([fetchLiveRooms(), fetchPosts(null, 40).catch(() => { postsFailed = true; return []; }), fetchMyRooms(chat.myTag).catch(() => [])]); }
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
   if (version !== homeVersion || !$('#community-home')) return;
-  // Include synthetic rooms in the normal community without writing to the production database.
-  const syntheticRooms = demoRooms.filter(r => r.id.startsWith('demo-cx-'));
-  chat.rooms = [...syntheticRooms, ...fetchedRooms.filter(r => !syntheticRooms.some(d => d.id === r.id))];
+  chat.rooms = fetchedRooms;
   const scopedPosts = posts.filter(p=>chat.rooms.some(r=>r.id===p.room_id));
-  const recent = visiblePosts(scopedPosts), hot = [...syntheticRooms.slice(0,6), ...activeRooms(chat.rooms.filter(r=>!r.demo))], topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => (a.sort??999)-(b.sort??999));
-  const entries = [...recent.map(p => ({...p,source:'post'})), ...syntheticRooms.flatMap(r => (demoMessages[r.id]||[]).map(m => ({...m,source:'chat'})))];
+  const recent = visiblePosts(scopedPosts), hot = activeRooms(chat.rooms), topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => (a.sort??999)-(b.sort??999));
+  const entries = recent.map(p => ({...p,source:'post'}));
   let partial = postsFailed;
   const previews = new Map();
-  await Promise.all(hot.map(async r => { if(r.demo){ previews.set(r.id, demoMessages[r.id]?.at(-1)?.body ?? ''); return; } try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, list.at(-1)?.body ?? ''); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
+  await Promise.all(hot.map(async r => { try { const list = visible(await fetchMessages(r.id), readBlocked(storage)); previews.set(r.id, list.at(-1)?.body ?? ''); entries.push(...list.map(m => ({...m,room_id:r.id,source:'chat'}))); } catch { partial = true; } }));
   if (version !== homeVersion || !$('#community-home')) return;
   home = {hot, topics, recent, previews, partial, joined, images: roomImages(entries), products: mentionedProducts(entries, readBlocked(storage))};
   homeJoined = joined;
@@ -299,7 +276,7 @@ function drawHome() {
   const box = $('#community-home'); if (!box || !home) return;
   box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
   const {hot, topics, recent, previews, partial, joined, images, products} = home;
-  if(region==='kr' && !demoActive && !chat.rooms.length) { box.innerHTML=`<p class="empty">${esc(t('region.krPending'))}</p><button data-service-region>${esc(t('region.open'))}</button>`; return; }
+  if(region==='kr' && !chat.rooms.length) { box.innerHTML=`<p class="empty">${esc(t('region.krPending'))}</p><button data-service-region>${esc(t('region.open'))}</button>`; return; }
   if (homeTab === 'rec') {
     const interests = readInterests();
     const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (topics.some(r => !r.demo) ? topics.filter(r => !r.demo) : hot.length ? hot : topics).slice(0, 4);
@@ -322,7 +299,7 @@ function drawHome() {
     box.innerHTML = `${sub('home.tab.rooms')}<section class="room-topic-section">${sectionHead(t('home.topics'), '')}${topicRooms.slice(0, topicRoomLimit).map(r => roomListCard(r, {image: images.get(r.id), note: previews.get(r.id) || roomIntro(r)})).join('') || `<p class="empty">${esc(t('home.quiet'))}</p>`}${topicRooms.length > topicRoomLimit ? `<button class="text-link" data-chat-action="more-topic-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}</section><section class="room-product-section">${sectionHead(t('rooms.byProduct'), '')}<label class="room-product-search"><span>${esc(t('rooms.productLabel'))}</span><input id="room-product-query" type="search" maxlength="200" autocomplete="off" placeholder="${esc(t('rooms.productPh'))}" value="${esc(productRoomQuery)}"></label><div id="product-room-results" aria-live="polite"></div></section>`;
     drawProductRooms();
   } else if (homeTab === 'discover') {
-    const mentioned = products.length ? `<div class="mentioned-products">${rankProducts(products, undefined, demoActive ? aggregateProductStats(demoEntries()) : undefined).map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
+    const mentioned = products.length ? `<div class="mentioned-products">${rankProducts(products).map(g => `<article>${itemCard(g.item, g.entries[0].source + '-' + g.entries[0].id)}<small>${esc(t('home.mentionCount',{people:g.authors.size,rooms:g.rooms.size}))}</small><button class="conversation-link" ${g.entries[0].source === 'post' ? `data-post="${g.entries[0].id}"` : `data-chat-room="${esc(g.entries[0].room_id)}" data-live="1"`}>${esc(t('home.viewConversation'))} ›</button></article>`).join('')}</div>` : `<p class="empty">${esc(t('home.noProducts'))}</p><button class="text-link" data-home-tab="rooms">${esc(t('home.topics'))} ›</button>`;
     const talk = `${sectionHead(t('home.mentioned'), t('home.scope'))}${productSortControls()}${partial ? `<p class="home-note" role="status">${esc(t('home.productsFailed'))}</p>` : ''}${mentioned}`;
     // Discovery reflects actual conversation mentions, including an honest empty state.
     box.innerHTML = `${sub('home.tab.discover')}${talk}${recent.length ? `<h2 class="chat-section">${esc(t('home.questions'))}</h2>${recent.slice(0,6).map(postRow).join('')}` : ''}`;
@@ -343,7 +320,7 @@ function drawProductRooms() {
     return;
   }
   if (groups.length) {
-    box.innerHTML = `${demoActive ? `<p class="home-note">${esc(t('rooms.demoProducts'))}</p>` : ''}<div class="product-room-list">${shownGroups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}">${g.image_url ? `<img class="product-room-photo" src="${esc(g.image_url)}" alt="" loading="lazy">` : '<span class="product-room-photo" aria-hidden="true"></span>'}<span class="product-room-label"><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>${!query && groups.length > productGroupLimit ? `<button class="text-link" data-chat-action="more-product-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}`;
+    box.innerHTML = `<div class="product-room-list">${shownGroups.map(g => `<button class="product-room-row" data-product-room-group="${esc(g.id)}">${g.image_url ? `<img class="product-room-photo" src="${esc(g.image_url)}" alt="" loading="lazy">` : '<span class="product-room-photo" aria-hidden="true"></span>'}<span class="product-room-label"><b>${esc(g.name)}</b><small>${esc(t('rooms.productCount', {n:g.rooms.length}))}</small></span><i aria-hidden="true">›</i></button>`).join('')}</div>${!query && groups.length > productGroupLimit ? `<button class="text-link" data-chat-action="more-product-rooms">${locale().startsWith('ko') ? '더보기' : 'See more'} ›</button>` : ''}`;
 
   } else if (query && rooms.length) {
     box.innerHTML = `<p class="home-note">${esc(t('rooms.productCount', {n:rooms.length}))}</p>${rooms.map(r => roomListCard(r, {attrs: `data-chat-room="${esc(r.id)}" data-live="1"`})).join('')}${create}`;
@@ -364,7 +341,7 @@ export async function renderMyConversations(box) {
   box.innerHTML = `<p class="home-note">${esc(t('loading'))}</p>`;
   try {
     const tag = chat.myTag || await tagOf(secret);
-    const [data, joined] = await Promise.all([exploreData(), demoActive ? [] : fetchMyRooms(tag)]);
+    const [data, joined] = await Promise.all([exploreData(), fetchMyRooms(tag)]);
     if (!box.isConnected) return;
     const joinedIds=new Set(joined.map(j=>j.room_id));
     const bookmarks=readSavedRooms().map(id=>data.rooms.find(r=>r.id===id)).filter(r=>r&&!joinedIds.has(r.id));
@@ -384,11 +361,11 @@ let joinThen = () => {};
 
 // Topic: header + Posts / Live chat switch. The two never share one stream.
 function openTopic(room, mode = 'live') {
+  if (!isLiveRoom(room)) return;
   rememberDraft(); stopPolling(); chat.room = room; view.mode = mode; view.post = null; inRoom(true); addRecentRoom(room.id);
   const other = mode === 'posts' ? 'live' : 'posts';
   // Journey 3 room header: back, centred title with real member count, ⋯ menu (share / posts ↔ live).
   shell(`<div class="room-top"><button class="room-back" data-chat-action="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><div class="room-top-text"><h1>${esc(roomTitle(room))}</h1><small class="room-count">${esc(participationLabel(room))}</small></div>${!room.demo ? `<div class="room-more-wrap"><button class="room-more" data-chat-action="room-more" aria-label="${esc(t('chat.more'))}" aria-expanded="false">${icon.more}</button><div class="room-menu" id="room-menu" hidden><button data-chat-action="share-room">${esc(t('share.room'))}</button><button data-topic-mode="${other}">${esc(t(other === 'posts' ? 'community.posts' : 'community.live'))}</button></div></div>` : '<span class="room-more-wrap" aria-hidden="true"></span>'}</div><${room.demo ? 'div' : 'button'} class="room-notice" ${room.demo ? '' : `data-topic-mode="${other}"`}><span class="room-notice-ico">${icon.notice}</span><span>${mode === 'posts' ? esc(t('community.live')) : `<b>${esc(t('room.noticeTitle'))}</b><small>${esc(roomIntro(room))}</small>`}</span>${room.demo ? '' : '<i aria-hidden="true">›</i>'}</${room.demo ? 'div' : 'button'}><div id="topic-body"></div>`);
-  if (room.demo) { startLive(room); return; }
   if (mode === 'posts') renderTopicPosts(room); else startLive(room);
 }
 async function renderTopicPosts(room) {
@@ -495,12 +472,6 @@ async function startLive(room) {
     $('#chat-form').onsubmit = e => { e.preventDefault(); send(); };
     $('#chat-text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
   }
-  if (room.demo) {
-    chat.messages = [...(demoMessages[room.id] || []), ...demoChat.messages(room.id)];
-    $('#chat-form .chat-rules').textContent = locale().startsWith('ko') ? '데모 대화 · 작성한 메시지는 이 기기에만 저장돼요' : 'Demo chat · Messages stay on this device';
-    renderLog(true);
-    return;
-  }
   try {
     const messages = await fetchMessages(room.id);
     if(chat.room?.id!==room.id||!$('#chat-log'))return;
@@ -569,17 +540,10 @@ function renderContext() {
     (chat.item ? `<div class="chat-chip">${esc(brandLabel(chat.item))} · ${esc(chat.item.name)}<button type="button" data-chat-action="item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : '');
 }
 async function send() {
-  const box = $('#chat-text'); if(!box||!chat.room)return;const text = box.value.trim(),roomId=chat.room.id,item=chat.item,replyTo=chat.replyTo;
+  const box = $('#chat-text'); if(!box||!isLiveRoom(chat.room))return;const text = box.value.trim(),roomId=chat.room.id,item=chat.item,replyTo=chat.replyTo;
   if (chat.sending || (!text && !chat.item)) return;
   chat.sending = true;box.disabled=true;
   try {
-    if (chat.room.demo) {
-      const {message, persisted} = demoChat.send(roomId, text, item, replyTo, chat.myTag);
-      chat.messages.push(message); roomDrafts.delete(roomId);
-      box.value = ''; chat.item = null; chat.replyTo = null; renderContext(); renderLog(true);
-      if (!persisted) toast(locale().startsWith('ko') ? '기기 저장이 안 돼요. 이번 실행 중에만 유지됩니다.' : 'Storage unavailable. Messages last for this session only.');
-      return;
-    }
     const m = await postMessage(secret, roomId, text, item, replyTo);
     roomDrafts.delete(roomId);
     if (!homeJoined.some(j => j.room_id === roomId)) homeJoined.unshift({room_id: roomId, last: m});
@@ -798,20 +762,15 @@ function renderCreateRoom() {
   const group = TAG_GROUP[newRoom.tag], offered = CONCERNS.filter(c => !group || c.group === group);
   newRoom.concerns = newRoom.concerns.filter(id => offered.some(c => c.id === id));
   const chip = (attr, id, on, label) => `<button type="button" ${attr}="${id}" aria-pressed="${on}" class="${on ? 'on' : ''}">${esc(label)}</button>`;
-  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t(demoActive ? 'rooms.demoCreate' : 'room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${offered.map(c => chip('data-room-concern', c.id, newRoom.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div><p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t('room.create'))}</button>`;
+  $('#room-create').innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2 id="room-create-title">${esc(t('room.new'))}</h2><p class="chat-sub">${esc(t('room.newHint'))}</p><input id="room-title" maxlength="40" autocomplete="off" aria-label="${esc(t('room.titlePh'))}" placeholder="${esc(t('room.titlePh'))}" value="${esc(newRoom.title)}"><textarea id="room-intro" rows="2" maxlength="120" aria-label="${esc(t('room.introPh'))}" placeholder="${esc(t('room.introPh'))}">${esc(newRoom.intro)}</textarea><p class="write-label">${esc(t('room.field'))}</p><div class="chat-chips" role="group" aria-label="${esc(t('room.field'))}">${ROOM_TAGS.map(tag => chip('data-room-tag', tag, newRoom.tag === tag, t('room.tag.' + tag))).join('')}</div><p class="write-label">${esc(t('room.concerns'))}</p><div class="chat-chips room-concerns" role="group" aria-label="${esc(t('room.concerns'))}">${offered.map(c => chip('data-room-concern', c.id, newRoom.concerns.includes(c.id), t('onb.c.' + c.id))).join('')}</div><p class="write-note">${esc(t('room.note'))}</p><p class="write-warn" id="room-error" role="alert">${esc(newRoom.error)}</p><button class="primary" data-chat-action="room-submit" ${newRoom.busy ? 'disabled' : ''}>${esc(t('room.create'))}</button>`;
 }
 async function submitRoom() {
   keepRoomText();
   if (newRoom.title.trim().length < 3) { newRoom.error = t('chat.err.short'); renderCreateRoom(); $('#room-title').focus(); return; }
   newRoom.busy = true; newRoom.error = ''; renderCreateRoom();
   try {
-    if (demoActive) {
-      const room = createDemoProductRoom({...newRoom, productName: newRoom.productName || newRoom.title});
-      chat.rooms = demoRooms; $('#room-create').close(); newRoom.busy = false; home = null;
-      toast(t('rooms.demoCreated')); openTopic(room, 'live'); return;
-    }
     const id = await createRoom(secret, newRoom);
-    chat.rooms = await fetchRooms().catch(() => chat.rooms);
+    chat.rooms = await fetchLiveRooms().catch(() => chat.rooms);
     $('#room-create').close(); toast(t('room.created'));
     const room = chat.rooms.find(r => r.id === id);
     if (room) { chat.room = room; if(beautyDraft)openBeautyDraftInRoom(room);else openTopic(room, 'live'); } else renderHome();
@@ -820,7 +779,7 @@ async function submitRoom() {
 let pendingPost = null;
 export const openPostNext = id => { pendingPost = id; };
 let pendingRoom = null;
-export const openRoomNext = id => { pendingRoom = id; };
+export const openRoomNext = id => { pendingRoom = isLiveRoom({id}) ? id : null; };
 
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -833,7 +792,6 @@ document.addEventListener('click', async e => {
   else if (a === 'beauty-account-list') { await accountDraftAction('list'); }
   else if (a === 'beauty-draft-dismiss') { clearHandoff(handoffStorage(),incomingBeautyId);beautyDraft=null;beautyDraftDismissed=true;renderBeautyDraft(); }
   else if (a === 'beauty-draft-copy') { try{await navigator.clipboard.writeText(beautyDraft.body);toast(locale().startsWith('ko')?'복사했어':'Copied');}catch{toast(locale().startsWith('ko')?'위 글을 직접 선택해서 복사해 줘.':'Select and copy the text above.');} }
-  else if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rec'; renderHome(); }
   else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
@@ -853,7 +811,7 @@ document.addEventListener('click', async e => {
   else if (b.dataset.chatReply) { chat.replyTo = +b.dataset.chatReply; renderContext(); $('#chat-text')?.focus(); }
   else if (a === 'share-room' && chat.room && !chat.room.demo) share({title: roomTitle(chat.room), url: shareUrl({room: chat.room.id})}, toast);
   else if (a === 'find-topic') openStart();
-  else if (a === 'create-room') { if (demoActive) return; openCreateRoom(); }
+  else if (a === 'create-room') openCreateRoom();
   else if (a === 'room-submit') submitRoom();
   else if (b.dataset.roomTag) { keepRoomText(); newRoom.tag = b.dataset.roomTag; renderCreateRoom(); $(`[data-room-tag="${newRoom.tag}"]`).focus(); }
   else if (b.dataset.roomConcern) { keepRoomText(); const id = b.dataset.roomConcern; newRoom.concerns = newRoom.concerns.includes(id) ? newRoom.concerns.filter(c => c !== id) : [...newRoom.concerns, id]; renderCreateRoom(); $(`[data-room-concern="${id}"]`).focus(); }
@@ -934,16 +892,14 @@ document.addEventListener('click', async e => {
 
 // Rooms and their pictures for the first-visit flow (onboarding.js).
 export async function onboardingData() {
-  const rooms = demoActive ? demoRooms : chat.rooms.length ? chat.rooms : (chat.rooms = await fetchRooms());
-  if (demoActive) return {rooms, products:productRoomGroups(rooms), pictures:new Map()};
+  const rooms = chat.rooms.length ? chat.rooms : (chat.rooms = await fetchLiveRooms());
   const pics = await loadCatalogPictures(rooms).catch(() => null);
   return {rooms, products: productRoomGroups(rooms, pics?.popular ?? []), pictures: pics ? topicPictures(rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map()};
 }
-export const openRoomById = id => { pendingRoom = id; };
+export const openRoomById = openRoomNext;
 // Rooms and their pictures for the 탐색 tab (explore.js); same sources as the community home.
 export async function exploreData() {
-  if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : [...demoRooms.filter(r=>r.id.startsWith('demo-cx-')), ...(await fetchRooms())];
-  if (demoActive) return {rooms: chat.rooms, images: home?.images ?? roomImages(demoEntries()), popular: []};
+  if (!chat.rooms.length) chat.rooms = await fetchLiveRooms();
   const pics = await loadCatalogPictures(chat.rooms).catch(() => null);
   const images = home?.images ?? (pics ? topicPictures(chat.rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map());
   return {rooms: chat.rooms, images, popular: pics?.popular ?? []};

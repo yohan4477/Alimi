@@ -12,7 +12,7 @@ const response = (data, status = 200) => ({ok: status >= 200 && status < 300, st
 
 test('Google sign-in creates PKCE and state, then navigates to Supabase authorize', async () => {
   const calls = [], sessionStorage = new MemoryStorage();
-  const location = {origin: 'https://alimi.example', pathname: '/', search: '?lang=ko', assign: url => { location.assigned = url; }};
+  const location = {origin: 'https://alimi.example', pathname: '/live', search: '?lang=ko&region=kr', assign: url => { location.assigned = url; }};
   const auth = new GoogleAuth({sessionStorage, location, storage: new MemoryStorage(), fetchImpl: async (url, options) => {
     calls.push({url, options}); return response({url: 'https://accounts.google.com/o/oauth2/auth'});
   }});
@@ -23,6 +23,8 @@ test('Google sign-in creates PKCE and state, then navigates to Supabase authoriz
   assert.equal(requestURL.searchParams.has('skip_http_redirect'), false);
   assert.equal(requestURL.searchParams.get('provider'), 'google');
   assert.equal(requestURL.searchParams.get('code_challenge_method'), 's256');
+  assert.equal(new URL(requestURL.searchParams.get('redirect_to')).pathname, '/');
+  assert.equal(new URL(requestURL.searchParams.get('redirect_to')).searchParams.get('region'), 'kr');
   assert.equal(new URL(requestURL.searchParams.get('redirect_to')).searchParams.get('lang'), 'ko');
   assert.equal(new URL(requestURL.searchParams.get('redirect_to')).searchParams.get('sb_login_state'), sessionStorage.getItem(AUTH_STORAGE_KEYS.STATE_KEY));
   assert.match(requestURL.searchParams.get('code_challenge'), /^[A-Za-z0-9_-]{43}$/);

@@ -44,7 +44,7 @@ test('non-KR and unknown legacy entry require market choice; shared query surviv
   await startVisitorEntry({document,location:{pathname:'/',search:'?room=synthetic&code=oauth-fixture&lang=en',href:'https://seoulbeauty.me/?room=synthetic&code=oauth-fixture&lang=en',assign:value=>{target=value;}},storage:storage(values),fetchImpl:server(country),loadApp:()=>assert.fail('unresolved market loaded application')});
   assert.equal(document.documentElement.lang,'en');const buttons=document.body.children[0].children.filter(child=>child.dataset.marketChoice);
   assert.equal(buttons.length,2);buttons[0].listeners.click();const url=new URL(target);
-  assert.equal(url.pathname,'/kr');assert.equal(url.searchParams.get('lang'),'en');assert.equal(url.searchParams.get('room'),'synthetic');assert.equal(url.searchParams.get('code'),'oauth-fixture');assert.equal(values[MANUAL_MARKET_KEY],'kr');
+  assert.equal(url.pathname,'/live');assert.equal(url.searchParams.get('region'),'kr');assert.equal(url.searchParams.get('lang'),'en');assert.equal(url.searchParams.get('room'),'synthetic');assert.equal(url.searchParams.get('code'),'oauth-fixture');assert.equal(values[MANUAL_MARKET_KEY],'kr');
  }
 });
 test('unknown country falls back to browser language but still requires market choice',async()=>{

@@ -18,6 +18,11 @@ export class GoogleAuth {
     const challenge=b64(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
     this.sessionStorage.setItem(VERIFIER_KEY,verifier);this.sessionStorage.setItem(STATE_KEY,nonce);this.sessionStorage.setItem(FLOW_TIME,String(Date.now()));
     const redirect=new URL(`${this.location.origin}${this.location.pathname}${this.location.search}`);
+    const legacyMarket=/^\/(kr|us)\/?$/.exec(redirect.pathname)?.[1];
+    // Keep the established root OAuth callback; public-entry dispatches it to /live.
+    // No new provider/Supabase redirect allowlist entry is assumed or configured.
+    redirect.pathname='/';if(legacyMarket)redirect.searchParams.set('region',legacyMarket);
+    redirect.searchParams.delete('demo');
     for(const k of ['code','state','error','error_description','sb_login_state'])redirect.searchParams.delete(k);
     // Supabase owns upstream OAuth state. Bind our callback through redirect_to + PKCE.
     redirect.searchParams.set('sb_login_state',nonce);

@@ -1,8 +1,15 @@
+import {isSyntheticTarget,isSyntheticProductTarget} from './public-routes.js';
 // Community posts and comments (topic Q&A next to each topic's live chat). Same anonymous identity,
 // filters and error codes as chat (see chat-api.js); writes go through RPCs, clients only read.
 import {currency} from './region.js';
 import {fetchRooms} from './chat-api.js';
 import {SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, restGet, rpc} from './supabase.js';
+
+const assertActualTarget = value => { if (isSyntheticTarget(value)) throw Error('Synthetic content is unavailable in the actual service'); };
+const assertActualProduct = value => { if (isSyntheticProductTarget(value)) throw Error('Synthetic content is unavailable in the actual service'); };
+const actualItem = item => !item?.demo && ![item?.id,item?.family_key,item?.familyKey,item?.sku].some(isSyntheticProductTarget);
+const actualRow = row => row && !row.demo && actualItem(row.item) && !isSyntheticTarget(row.id) && !isSyntheticTarget(row.room_id) && !isSyntheticTarget(row.post_id);
+const emptyTalk = () => ({reviews:[],posts:[],chatMentions:0});
 
 export const POST_FIELDS = 'id,room_id,author_tag,nickname,kind,title,body,item,reasons,comments,likes,created_at,last_activity_at,' +
   'used_for,skin_type,skin_tone,undertone,climate,goal,photos,bought_where,bought_price_minor,bought_currency,ship_country,ship_days,sponsored';
@@ -43,36 +50,50 @@ export async function uploadPhoto(blob, fetchImpl = fetch) {
 }
 
 const rest = (table, params) => SUPABASE_URL + '/rest/v1/' + table + '?' + new URLSearchParams(params);
-export const postsUrl = (room = null, limit = 30) => rest('community_posts', {select: POST_FIELDS, ...(room ? {room_id: 'eq.' + room, order: 'last_activity_at.desc'} : {order: 'created_at.desc'}), limit: String(limit)});
-export const commentsUrl = post => rest('community_comments', {select: COMMENT_FIELDS, post_id: 'eq.' + post, order: 'id.asc', limit: '200'});
-export const mentionsUrl = familyKey => rest('product_mentions', {select: 'source,source_id,post_id,room_id,created_at', family_key: 'eq.' + familyKey, order: 'created_at.desc', limit: '100'});
+export const postsUrl = (room = null, limit = 30) => { assertActualTarget(room); return rest('community_posts', {select: POST_FIELDS, ...(room ? {room_id: 'eq.' + room, order: 'last_activity_at.desc'} : {order: 'created_at.desc'}), limit: String(limit)}); };
+export const commentsUrl = post => { assertActualTarget(post); return rest('community_comments', {select: COMMENT_FIELDS, post_id: 'eq.' + post, order: 'id.asc', limit: '200'}); };
+export const mentionsUrl = familyKey => { assertActualProduct(familyKey); return rest('product_mentions', {select: 'source,source_id,post_id,room_id,created_at', family_key: 'eq.' + familyKey, order: 'created_at.desc', limit: '100'}); };
 
 const get = restGet;
 
 export const fetchPosts = async (room = null, limit = 30, fetchImpl = fetch) => {
+  if (isSyntheticTarget(room)) return [];
   const rooms=await fetchRooms(fetchImpl), ids=new Set(rooms.map(r=>r.id));
   if(room && !ids.has(room)) return [];
   if(!ids.size) return [];
   const u=new URL(postsUrl(room,limit)); if(!room)u.searchParams.set('room_id','in.('+[...ids].join(',')+')');
-  return get(u.href,fetchImpl);
+  return (await get(u.href,fetchImpl)).filter(p=>actualRow(p)&&ids.has(p.room_id));
 };
-export async function fetchPost(id, fetchImpl = fetch) { const [p] = await get(rest('community_posts', {select: POST_FIELDS, id: 'eq.' + id}), fetchImpl); return p && (await fetchRooms(fetchImpl)).some(r=>r.id===p.room_id) ? p : null; }
-export const fetchComments = (post, fetchImpl = fetch) => get(commentsUrl(post), fetchImpl);
+export async function fetchPost(id, fetchImpl = fetch) {
+  if (isSyntheticTarget(id)) return null;
+  const [p] = await get(rest('community_posts', {select: POST_FIELDS, id: 'eq.' + id}), fetchImpl);
+  return actualRow(p) && (await fetchRooms(fetchImpl)).some(r=>r.id===p.room_id) ? p : null;
+}
+export const fetchComments = async (post, fetchImpl = fetch) => isSyntheticTarget(post) ? [] : (await get(commentsUrl(post), fetchImpl)).filter(actualRow);
 // Everything said about one product: posts (directly or via a comment) and the number of chat mentions.
 export async function fetchProductTalk(familyKey, fetchImpl = fetch) {
+  if (isSyntheticProductTarget(familyKey)) return emptyTalk();
   const idsInRegion=new Set((await fetchRooms(fetchImpl)).map(r=>r.id));
-  const mentions = (await get(mentionsUrl(familyKey), fetchImpl)).filter(m=>m.post_id != null || idsInRegion.has(m.room_id));
+  if (!idsInRegion.size) return emptyTalk();
+  const mentions = (await get(mentionsUrl(familyKey), fetchImpl)).filter(m=>actualRow(m)&&!isSyntheticTarget(m.source_id)&&(m.post_id != null || idsInRegion.has(m.room_id)));
   const ids = [...new Set(mentions.map(m => m.post_id).filter(Boolean))].slice(0, 20);
-  const posts = ids.length ? await get(rest('community_posts', {select: POST_FIELDS, id: `in.(${ids.join(',')})`, order: 'last_activity_at.desc'}), fetchImpl).then(rows=>rows.filter(p=>idsInRegion.has(p.room_id))) : [];
+  const posts = ids.length ? await get(rest('community_posts', {select: POST_FIELDS, id: `in.(${ids.join(',')})`, order: 'last_activity_at.desc'}), fetchImpl).then(rows=>rows.filter(p=>actualRow(p)&&idsInRegion.has(p.room_id))) : [];
   const reviewIds = new Set(mentions.filter(m => m.source === 'review').map(m => m.post_id));
   return {reviews: posts.filter(p => reviewIds.has(p.id)), posts: posts.filter(p => !reviewIds.has(p.id)), chatMentions: mentions.filter(m => m.source === 'chat').length};
 }
-const itemArgs = item => ({p_retailer: item?.retailer ?? null, p_market: item?.market ?? null, p_sku: item?.sku ?? null});
-export const createPost = (secret, room, {kind, title, body = '', item = null, reasons = [], fromMessage = null, review = {}}, fetchImpl = fetch) =>
-  rpc('create_post', {p_secret: secret, p_room: room, p_kind: kind, p_title: title, p_body: body, ...itemArgs(item), p_reasons: reasons, p_from_message: fromMessage, p_review: kind === 'review' ? review : {}}, fetchImpl);
-export const addComment = (secret, post, body, item = null, fetchImpl = fetch) => rpc('add_comment', {p_secret: secret, p_post: post, p_body: body, ...itemArgs(item)}, fetchImpl);
-export const likeCommunity = (secret, target, id, fetchImpl = fetch) => rpc('like_community', {p_secret: secret, p_target: target, p_id: id}, fetchImpl);
-export const reportCommunity = (secret, target, id, reason, fetchImpl = fetch) => rpc('report_community', {p_secret: secret, p_target: target, p_id: id, p_reason: reason}, fetchImpl);
+const itemArgs = item => {
+  if (item?.demo) throw Error('Synthetic content is unavailable in the actual service');
+  for (const key of [item?.id,item?.family_key,item?.familyKey,item?.sku]) assertActualProduct(key);
+  return {p_retailer: item?.retailer ?? null, p_market: item?.market ?? null, p_sku: item?.sku ?? null};
+};
+export const createPost = async (secret, room, {kind, title, body = '', item = null, reasons = [], fromMessage = null, review = {}, demo = false}, fetchImpl = fetch) => {
+  assertActualTarget(room); assertActualTarget(fromMessage);
+  if (demo) throw Error('Synthetic content is unavailable in the actual service');
+  return rpc('create_post', {p_secret: secret, p_room: room, p_kind: kind, p_title: title, p_body: body, ...itemArgs(item), p_reasons: reasons, p_from_message: fromMessage, p_review: kind === 'review' ? review : {}}, fetchImpl);
+};
+export const addComment = async (secret, post, body, item = null, fetchImpl = fetch) => { assertActualTarget(post); return rpc('add_comment', {p_secret: secret, p_post: post, p_body: body, ...itemArgs(item)}, fetchImpl); };
+export const likeCommunity = async (secret, target, id, fetchImpl = fetch) => { assertActualTarget(id); return rpc('like_community', {p_secret: secret, p_target: target, p_id: id}, fetchImpl); };
+export const reportCommunity = async (secret, target, id, reason, fetchImpl = fetch) => { assertActualTarget(id); return rpc('report_community', {p_secret: secret, p_target: target, p_id: id, p_reason: reason}, fetchImpl); };
 // "3m", "2h", "5d" style age for post lists.
 // Product page review filter: reviews matching every chosen condition (skin type / tone).
 export const filterReviews = (reviews, f = {}) => reviews.filter(r => (!f.skin_type || r.skin_type === f.skin_type) && (!f.skin_tone || r.skin_tone === f.skin_tone));
