@@ -1,6 +1,6 @@
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './supabase.js';
 // Deliberately exclude auth tokens, anonymous chat secrets and demo conversations.
-export const SYNC_KEYS=['alimi-live-v1','seoulbeauty-catalog-saves-v1','seoulbeauty-interests-v1','seoulbeauty-profile-v1'];
+export const SYNC_KEYS=['alimi-live-v1','seoulbeauty-catalog-saves-v1','seoulbeauty-interests-v1','seoulbeauty-profile-v1','seoulbeauty-game-picks-v1'];
 const OWNER='seoulbeauty-data-owner',cache=id=>'seoulbeauty-account-cache:'+id,pending=id=>'seoulbeauty-account-pending:'+id;
 export class AccountSync {
   constructor(auth,{storage=globalThis.localStorage,fetchImpl=(...a)=>fetch(...a),onChange=()=>{},onStatus=()=>{}}={}){Object.assign(this,{auth,storage,fetch:fetchImpl,onChange,onStatus,userId:null,baseline:{},dirty:{},ready:false,queue:Promise.resolve(),generation:0});}
