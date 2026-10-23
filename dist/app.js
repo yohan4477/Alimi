@@ -9,6 +9,7 @@ import {readCatalogSaves,saveCatalogSnapshot,mergeCatalogSaves} from './saved-ca
 import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
 import {AccountSync} from './account-sync.js';
+import {loadAccountActivity} from './account-activity.js';
 import {openProfile,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
 import {openProductRoomsNext,openRoomListNext,openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData,relTime} from './chat.js';
 import {renderMyRooms,renderAlerts,renderShareHub,addRecent,readRecent,loadRevisit,unreadCount} from './revisit.js';
@@ -249,8 +250,30 @@ function renderSaved(){
     $('#saved').innerHTML=`<div class="page-bar"><button class="icon-btn" data-activity-tab="rooms" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('activity.savedProducts'))}</h1></div>${n===0?activityEmpty(t('activity.savedEmpty'),'products'):productSortControls()+`<div class="saved-grid">${list.map(savedCard).join('')}</div>`}`;
     return;
   }
+  // My Seoul Beauty: one entrypoint. Room and saved-post sections retain their existing device/anonymous ownership semantics.
+  const myLabel=lang==='ko'?'마이 서울뷰티':'My Seoul Beauty';
+  const userName=auth.user?.user_metadata?.name||auth.user?.user_metadata?.nickname||auth.user?.email||'';
+  const identityHint=auth.user?(lang==='ko'?'로그인됨 · 계정 설정 동기화':'Signed in · account preferences sync'):(lang==='ko'?'비회원 · 이 기기의 활동':'Guest · activity on this device');
+  const quick=(title,sub,attr)=>`<button class="interest-row" ${attr}><span><b>${esc(title)}</b><small>${esc(sub)}</small></span><span aria-hidden="true">›</span></button>`;
+  const myHub=`<section class="activity-section" aria-label="${esc(myLabel)}"><h1 style="font-size:24px;margin:8px 0">${esc(myLabel)}</h1><p class="home-note">${esc(userName?userName+' · '+identityHint:identityHint)}</p><div class="activity-section">
+    ${quick(lang==='ko'?'저장한 제품':'Saved products',lang==='ko'?`${n}개 저장됨`:`${n} saved`,'data-hub-tab="saved"')}
+    ${quick(lang==='ko'?'내 대화와 참여':'My conversations',lang==='ko'?'이 기기의 대화 참여 내역':'Conversations on this device','data-hub-tab="rooms"')}
+    ${quick(lang==='ko'?'저장한 글·메시지':'Saved posts & messages',lang==='ko'?'이 기기에 저장된 항목':'Items saved on this device','data-hub-tab="talk"')}
+    ${quick(lang==='ko'?'뷰티 프로필':'Beauty profile',lang==='ko'?'선택한 피부·관심사 수정':'Edit optional skin and interests','data-activity-profile')}
+    ${quick(lang==='ko'?'계정·개인정보 관리':'Account & privacy',lang==='ko'?'로그인·설정 내보내기·탈퇴 요청':'Sign in, export preferences, deletion request','data-screen="settings"')}
+  </div><p class="set-hint">${esc(lang==='ko'?'투표·작성글 전체는 아직 계정별로 통합되지 않았습니다.':'Votes and authored posts are not yet fully linked to your account.')}</p></section>`;
+  const activityRows=accountActivity?[
+    ['posts',lang==='ko'?'내 작성 글':'My posts',r=>`<button class="post-row" data-post="${esc(r.id)}"><span class="post-main"><b>${esc(r.title)}</b></span></button>`],
+    ['comments',lang==='ko'?'내 댓글':'My comments',r=>`<div class="post-row"><span class="post-main"><small>#${esc(r.post_id)}</small><b>${esc(r.body)}</b></span></div>`],
+    ['messages',lang==='ko'?'내 메시지':'My messages',r=>`<button class="post-row" data-open-room="${esc(r.room_id)}"><span class="post-main"><b>${esc(r.body)}</b></span></button>`]
+  ].map(([key,label,render])=>`<section class="activity-section"><h2 class="chat-section">${esc(label)} · ${(accountActivity[key]||[]).length}</h2>${(accountActivity[key]||[]).slice(0,10).map(render).join('')||`<p class="home-note">${esc(lang==='ko'?'기록 없음':'No activity yet')}</p>`}</section>`).join(''):'';
+  // Game answers will come from PR #188's authenticated, consent-gated beauty_game API.
+  // Do not claim ownership based on browser localStorage or account_preferences.
+  const gameSection=`<section class="activity-section"><h2 class="chat-section">${esc(lang==='ko'?'게임 선택 기록':'Game picks')}</h2><p class="home-note">${esc(lang==='ko'?'게임 기록의 계정 연결은 검증 및 동의 기능 준비 후 제공됩니다. 기존 게임 기록은 그대로 유지됩니다.':'Account-linked game history will become available after verified consent-based linking. Existing game data remains intact.')}</p></section>`;
+  const votesSummary=accountActivity?`<section class="activity-section"><h2 class="chat-section">${esc(lang==='ko'?'내 반응·투표':'My reactions & votes')} · ${(accountActivity.votes||[]).length}</h2><p class="home-note">${esc(lang==='ko'?'커뮤니티 좋아요·선택 내역입니다. 게임 투표는 별도 연동이 필요합니다.':'Community likes and choices only. Game votes require separate integration.')}</p></section>`:'';
+  const accountActivityNotice=auth.user?(accountActivityStatus==='failed'?(lang==='ko'?'계정 활동을 불러올 수 없습니다. 서버 마이그레이션·연결 상태를 확인해 주세요.':'Account activity unavailable. Check server migration and connection.'):(lang==='ko'?'계정으로 확인된 활동만 표시합니다.':'Only account-verified activity is shown.')):(lang==='ko'?'로그인하면 이 기기의 활동을 안전하게 계정에 연결할 수 있습니다.':'Sign in to securely link this device’s activity.');
   const more=attrs=>`<button class="text-link" ${attrs}>${esc(t('home.seeAll'))} ›</button>`;
-  $('#saved').innerHTML=`<div class="logo-head activity-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="230" height="69"><span class="sb-head-actions"><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="service-context">${regionButton()}</div><div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<section id="activity-talk">${loadingMarkup(t('loading'))}</section>`}</div>
+  $('#saved').innerHTML=`<div class="logo-head activity-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="230" height="69"><span class="sb-head-actions"><button class="icon-btn" data-screen="alerts" aria-label="${esc(t('alerts.title'))}">${bellIcon}</button><button class="icon-btn" data-screen="settings" aria-label="${esc(t('settings.open'))}">${icon.gear}</button></span></div><div class="service-context">${regionButton()}</div>${myHub}<p class="set-hint">${esc(accountActivityNotice)}</p>${activityRows}${votesSummary}${gameSection}<div class="home-tabs activity-tabs" role="tablist" aria-label="${esc(t('nav.activity'))}">${ACTIVITY_TABS.map(k=>`<button role="tab" id="activity-tab-${k}" data-activity-tab="${k}" aria-selected="${activityTab===k}" class="${activityTab===k?'on':''}">${esc(activityTabLabel(k))}</button>`).join('')}</div><div role="tabpanel" class="activity-panel" aria-labelledby="activity-tab-${activityTab}">${activityTab==='rooms'?'<section id="activity-conversations"></section>':activityTab==='recent'?recentList():`<section id="activity-talk">${loadingMarkup(t('loading'))}</section>`}</div>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('activity.savedProducts'))}</h2>${n?more('data-activity-tab="saved"'):''}</div>${n?`<div class="saved-mini-grid">${list.slice(0,4).map(savedCard).join('')}</div>`:isDemo()?`<div class="saved-mini-grid">${demoPicks(demoActivity.saved).map(demoSavedCard).join('')}</div>`:activityEmpty(t('activity.savedEmpty'),'products')}</section>
 <section class="activity-section"><div class="section-head"><h2 class="chat-section">${esc(t('alerts.title'))}</h2>${more('data-screen="alerts"')}</div><div id="activity-alerts">${loadingMarkup(t('loading'))}</div></section>${interestRow()}`;
   if(activityTab==='rooms')renderMyConversations($('#activity-conversations'));
@@ -264,13 +287,13 @@ const linkRow=(ic,label,href)=>`<a class="set-row" href="${href}" target="_blank
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
 // Optional account with owner-isolated cloud preferences.
 const auth=new GoogleAuth();
-let syncStatus='local',authBusy=false;
+let syncStatus='local',authBusy=false,accountActivity=null,accountActivityStatus='local';
 const accountSync=new AccountSync(auth,{storage,onChange:()=>{
   state=readState(storage);products=mergeCatalogSaves(products.filter(p=>!p.id.startsWith('catalog|')),readCatalogSaves(storage)).filter(p=>inMarket(p));
   updateCount();if(screen==='saved')renderSaved();
 },onStatus:value=>{syncStatus=value;if(screen==='settings')renderSettings()}});
 for(const event of ['profile-change','interests-change'])document.addEventListener(event,()=>accountSync.changed());
-async function restoreAccount(){try{await auth.restore();if(auth.user)await accountSync.start();else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}if(screen==='settings')renderSettings();}
+async function restoreAccount(){try{await auth.restore();if(auth.user){await accountSync.start();try{accountActivity=await loadAccountActivity(auth,{storage});accountActivityStatus='ready'}catch{accountActivity=null;accountActivityStatus='failed'}}else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();accountActivity=null;accountActivityStatus='local';}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}if(screen==='settings')renderSettings();if(screen==='saved')renderSaved();}
 setInterval(()=>{if(!document.hidden)restoreAccount()},60000);
 window.addEventListener('online',()=>restoreAccount().then(()=>accountSync.flush()));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreAccount()});
@@ -287,13 +310,34 @@ async function authAction(a){
 const providerLabel=p=>({'custom:kakao':lang==='ko'?'카카오':'Kakao','custom:naver':lang==='ko'?'네이버':'Naver'})[p]||'Google';
 function renderSettings(){
   $('#settings').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="saved" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('settings.title'))}</h1></div>
-<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||auth.user.user_metadata?.name||auth.user.user_metadata?.nickname||t('account.signedIn',{provider:providerLabel(auth.user.app_metadata?.provider)}))}</b><em>${esc(t('account.sync.'+syncStatus))}</em></span></div><button class="auth-button secondary" data-auth="sync" ${authBusy?'disabled':''}>${esc(t('account.syncRetry'))}</button><button class="auth-button secondary" data-auth="signout" ${authBusy?'disabled':''}>${esc(t('account.signout'))}</button>`:`${region==='kr'?`<button class="auth-button auth-kakao" data-auth="kakao" ${authBusy?'disabled':''}>${icon.kakao}${esc(t('account.kakao'))}</button><button class="auth-button auth-naver" data-auth="naver" ${authBusy?'disabled':''}>${icon.naver}${esc(t('account.naver'))}</button>`:''}<button class="auth-button" data-auth="google" ${authBusy?'disabled':''}><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
+<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||auth.user.user_metadata?.name||auth.user.user_metadata?.nickname||t('account.signedIn',{provider:providerLabel(auth.user.app_metadata?.provider)}))}</b><em>${esc(t('account.sync.'+syncStatus))}</em></span></div><button class="auth-button secondary" data-auth="sync" ${authBusy?'disabled':''}>${esc(t('account.syncRetry'))}</button><button class="auth-button secondary" data-auth="signout" ${authBusy?'disabled':''}>${esc(t('account.signout'))}</button><button class="auth-button secondary" data-set="account-export" ${authBusy?'disabled':''}>${lang==='ko'?'기기에 저장된 계정 설정 다운로드':'Download saved account preferences'}</button><button class="auth-button secondary" data-set="account-deletion-request" ${authBusy?'disabled':''}>${lang==='ko'?'회원 탈퇴 요청':'Request account deletion'}</button><p class="set-hint">${lang==='ko'?'탈퇴는 현재 운영자 확인 후 처리됩니다. 요청만으로 즉시 삭제되지는 않습니다.':'Account deletion currently requires operator review. Requesting does not delete your account immediately.'}</p>`:`${region==='kr'?`<button class="auth-button auth-kakao" data-auth="kakao" ${authBusy?'disabled':''}>${icon.kakao}${esc(t('account.kakao'))}</button><button class="auth-button auth-naver" data-auth="naver" ${authBusy?'disabled':''}>${icon.naver}${esc(t('account.naver'))}</button>`:''}<button class="auth-button" data-auth="google" ${authBusy?'disabled':''}><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
 <section class="set-group"><h3>${esc(t('settings.service'))}</h3>
 <div class="set-row static"><span class="set-label">${esc(t('region.title'))}</span>${regionButton()}</div><div class="set-row static"><span class="set-ico">${icon.globe}</span><span class="set-label">${esc(t('settings.language'))}</span><span class="seg"><button data-lang="ko" class="${lang==='ko'?'on':''}">한국어</button><button data-lang="en" class="${lang==='en'?'on':''}">English</button></span></div><p class="set-hint">${esc(t('settings.languageHint'))}</p></section>
 <section class="set-group"><h3>${esc(t('settings.data'))}</h3>${row(icon.lock,t('profile.title'),'data-profile-open')}${row(icon.lock,t('profile.doNotSell'),'data-set="do-not-sell"')}${row(icon.tray,t('settings.clearSaved'),'data-set="clear-saved"')}${row(icon.trash,t('settings.clearCache'),'data-set="clear-cache"')}</section>
 <section class="set-group"><h3>${esc(t('settings.support'))}</h3><button class="feedback-card" data-set="soon"><span class="set-ico">${icon.chat}</span><span><b>${esc(t('settings.feedback'))}</b><em>${esc(t('settings.feedbackSub'))}</em></span></button>${linkRow(icon.doc,t('settings.terms'),'/terms')}${linkRow(icon.lock,t('settings.privacy'),'/privacy')}<div class="set-row static"><span class="set-ico">${icon.info}</span><span class="set-label">${esc(t('settings.version',{v:'web 1.0'}))}</span></div></section>`;
 }
+// Download only the user's own locally held preferences; no auth credentials or tokens.
+function exportAccountData(){
+  if(!auth.user)throw Error(lang==='ko'?'로그인이 필요합니다.':'Sign in first.');
+  const permitted=['alimi-live-v1','seoulbeauty-catalog-saves-v1','seoulbeauty-interests-v1','seoulbeauty-profile-v1'];
+  const data={exported_at:new Date().toISOString(),account:{id:auth.user.id,email:auth.user.email??null,provider:auth.user.app_metadata?.provider??null},preferences:{}};
+  for(const key of permitted){const value=storage?.getItem(key);if(value!==null&&value!==undefined){try{data.preferences[key]=JSON.parse(value)}catch{data.preferences[key]=value}}}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='seoulbeauty-my-data.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function requestAccountDeletion(){
+  if(!auth.user)return;
+  const email=auth.user.email??'';
+  const heading=lang==='ko'?'회원 탈퇴 요청':'Account deletion request';
+  const body=lang==='ko'
+    ?'서울뷰티 회원 탈퇴 및 연결된 개인정보 삭제를 요청합니다. 본인 확인 안내를 보내 주세요.\\n\\n계정 이메일: '+email+'\\n이 요청만으로 탈퇴가 완료되지는 않습니다.'
+    :'I request deletion of my Seoul Beauty account and associated personal data. Please send identity verification instructions.\\n\\nAccount email: '+email+'\\nThis request does not immediately delete the account.';
+  location.href='mailto:support@seoulbeauty.me?subject='+encodeURIComponent(heading)+'&body='+encodeURIComponent(body);
+}
 async function settingsAction(a){
+  if(a==='account-export'){try{exportAccountData()}catch(e){toast(e.message)}return}
+  if(a==='account-deletion-request'){requestAccountDeletion();return}
   if(a==='soon'){toast(t('settings.soon'));return}
   if(a==='do-not-sell'){try{await optOutOfSale();toast(t('profile.doNotSellDone'))}catch{toast(t('profile.failed'))}return}
   if(a==='clear-saved'){if(!confirm(t('settings.clearSavedConfirm')))return;state={favorites:[],targets:{}};save();renderList();toast(t('settings.cleared'));return}
@@ -420,6 +464,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.shareCopy!==undefined){const url=$('#share-sheet').dataset.url;navigator.clipboard.writeText(url).then(()=>toast(t('share.copied')),()=>toast(`${t('share.failed')} ${url}`));return}
   if(b.dataset.shareMore!==undefined){const d=$('#share-sheet');share({title:d.dataset.title,url:d.dataset.url},toast);return}
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
+  if(b.dataset.hubTab){activityTab=b.dataset.hubTab;renderSaved();return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`)?.focus();return}
   if('activityProfile' in b.dataset){openActivityProfile();return}
   if('activitySkin' in b.dataset){$('#activity-profile-dialog').close();openProfile();return}
