@@ -26,13 +26,15 @@ export async function syncGamePicks(fetchImpl:typeof fetch=fetch,storage:Storage
  if(!me.ok)return false;
  const user=await me.json();
  if(!user?.id)return false;
+ const activeUser=user.id, activeToken=session.access_token;
+ const stillSameSession=()=>{const current=json(storage.getItem(SESSION));return current?.access_token===activeToken&&current?.user?.id!==undefined?current.user.id===activeUser:current?.access_token===activeToken;};
  const owner=storage.getItem('seoulbeauty-data-owner');
  // Do not transfer one account's cached picks to another account.
  if(owner&&owner!=='guest'&&owner!==user.id)return false;
  const path=URL+'/rest/v1/account_preferences';
  const headers={apikey:API_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'};
  const result=await fetchImpl(path+'?select=value&user_id=eq.'+encodeURIComponent(user.id)+'&key=eq.'+KEY,{headers});
- if(!result.ok)return false;
+ if(!result.ok||!stillSameSession())return false;
  const existing=await result.json();
  const remote=json(existing?.[0]?.value);
  const current=readGamePicks(storage);
@@ -40,8 +42,9 @@ export async function syncGamePicks(fetchImpl:typeof fetch=fetch,storage:Storage
  for(const p of Array.isArray(remote)?remote:[])if(p&&typeof p.id==='string')merged.set(p.id,p);
  for(const p of current)merged.set(p.id,p);
  const value=JSON.stringify([...merged.values()].slice(-50));
+ if(!stillSameSession())return false;
  const saved=await fetchImpl(path+'?on_conflict=user_id,key',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{user_id:user.id,key:KEY,value}])});
- if(!saved.ok)return false;
+ if(!saved.ok||!stillSameSession())return false;
  storage.setItem(KEY,value);
  return true;
 }
