@@ -1,3 +1,4 @@
+import {readHandoff,updateHandoff,clearHandoff,handoffStorage} from './beauty-handoff.js';
 import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {roomArt} from './topic-art.js';
 import {nick} from './nickname.js';
@@ -88,7 +89,7 @@ export async function openChat(opts = {}) {
   onClose = opts.onClose ?? onClose; toast = opts.toast ?? toast;
   chat.myTag ||= await tagOf(secret);
   if (version !== communityOpenVersion) return;
-  track('community_open', null);
+  track('community_open', null, beautyDraft && !demoActive ? {source:'beauty_play',handoff_id:beautyDraft.id}:{});
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
   if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   const showLaunch = initial && readInterests()?.done;
@@ -153,6 +154,9 @@ export const postRow = p => `<button class="post-row" data-post="${p.id}"><span 
 const HOME_TABS = ['rec', 'rooms', 'discover'];
 let topicRoomLimit = 3, productGroupLimit = 3;
 let homeVersion = 0, homeTab = 'rec', home = null, catalogPics = null;
+const incomingBeautyId = new URLSearchParams(globalThis.location?.search ?? '').get('beautyDraft');
+let beautyDraft = incomingBeautyId ? readHandoff(handoffStorage(),{id:incomingBeautyId,region}) : null;
+let beautyDraftDismissed = false;
 let roomFindMode = new URLSearchParams(globalThis.location?.search ?? '').get('productRooms') === '1' ? 'products' : 'topics', productRoomQuery = '', selectedProductGroup = null;
 let keepHomeTab = false;
 export function openProductRoomsNext(query = '') {
@@ -161,6 +165,34 @@ export function openProductRoomsNext(query = '') {
 export function openRoomListNext() {
   pendingRoom = null; pendingPost = null; homeTab = 'rooms'; keepHomeTab = true; roomFindMode = 'topics'; productRoomQuery = ''; selectedProductGroup = null;
 }
+function renderBeautyDraft() {
+  const box = $('#beauty-draft-arrival'); if (!box || !incomingBeautyId || beautyDraftDismissed) return;
+  beautyDraft = readHandoff(handoffStorage(),{id:incomingBeautyId,region});
+  box.hidden = false;
+  const ko = locale().startsWith('ko'), tr = (k,e) => ko?k:e;
+  box.innerHTML = beautyDraft ? `<h2>${esc(tr('네 이야기를 이어왔어','Your story, continued'))}</h2><p class="beauty-draft-text">${esc(beautyDraft.body)}</p><small>${esc(tr('아직 공개되지 않았어. 대화방을 고른 뒤 수정하고 게시해. 24시간 안에 이 탭에서 이어서 작성할 수 있어.','Not public yet. Choose a conversation, edit, then post. Continue in this tab within 24 hours.'))}</small><div class="beauty-draft-actions"><button class="primary" data-chat-action="beauty-draft-choose">${esc(tr('대화방 골라 이야기하기','Choose a conversation'))}</button><button data-chat-action="beauty-draft-copy">${esc(tr('글 복사','Copy text'))}</button><button data-chat-action="beauty-draft-dismiss">${esc(tr('초안 삭제하고 둘러보기','Delete draft and browse'))}</button></div>` : `<p>${esc(tr('다른 탭·기기에서 열었거나 초안이 만료됐어. 게임에서 다시 이어오거나 서울뷰티를 둘러봐.','This draft is unavailable in this tab or has expired. Continue again from the game, or browse Seoul Beauty.'))}</p><button data-chat-action="beauty-draft-dismiss">${esc(tr('둘러보기','Browse'))}</button>`;
+}
+async function chooseBeautyRoom() {
+  beautyDraft = readHandoff(handoffStorage(),{id:incomingBeautyId,region});
+  if (!beautyDraft) { renderBeautyDraft(); return; }
+  const ko=locale().startsWith('ko'), tr=(k,e)=>ko?k:e;
+  let dlg=$('#beauty-draft-rooms');
+  if (!dlg) { dlg=document.createElement('dialog');dlg.id='beauty-draft-rooms';dlg.className='chat-dialog';document.body.append(dlg); }
+  dlg.innerHTML=`<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(tr('어디서 이야기할까?','Where would you like to talk?'))}</h2><p>${esc(tr('방을 고른다고 글이 바로 올라가지는 않아.','Choosing a conversation does not publish your draft.'))}</p><div id="beauty-draft-room-list">${loadingMarkup(t('loading'))}</div>`;
+  dlg.showModal();
+  let rooms;try{rooms=await fetchRooms();}catch{const list=$('#beauty-draft-room-list');if(list)list.innerHTML=`<p role="alert">${esc(t('chat.loadFailed'))}</p><button data-chat-action="beauty-draft-retry">${esc(t('retry'))}</button>`;return;}
+  if(!dlg.open)return;
+  chat.rooms=rooms;
+  const list=$('#beauty-draft-room-list');
+  list.innerHTML=rooms.length?rooms.filter(r=>inRegion(r)&&!r.demo).map(r=>`<button class="beauty-draft-room" data-beauty-draft-room="${esc(r.id)}"><b>${esc(roomTitle(r))}</b><small>${esc(roomIntro(r))}</small></button>`).join(''):`<p>${esc(tr('아직 이 지역에 대화방이 없어. 초안을 보관한 채 새 대화방을 만들 수 있어.','No conversations in this region yet. Keep your draft and create a conversation.'))}</p><button data-chat-action="beauty-draft-create">${esc(t('room.new'))}</button>`;
+}
+function openBeautyDraftInRoom(room) {
+  beautyDraft=readHandoff(handoffStorage(),{id:incomingBeautyId,region});
+  if(!beautyDraft||!room||!inRegion(room)||room.demo)return;
+  $('#beauty-draft-rooms')?.close();
+  askRules(room,()=>{openTopic(room,'posts');openWrite({title:beautyDraft.title||'',body:beautyDraft.body,beautyHandoffId:beautyDraft.id});});
+}
+
 // Top catalog products per category (real images) to illustrate rooms; loaded once, never blocks the home.
 async function loadCatalogPictures(rooms) {
   if (catalogPics) return catalogPics;
@@ -174,8 +206,9 @@ async function renderHome() {
   rememberDraft(); stopPolling(); chat.room = null; view.post = null; inRoom(false);
   // Journey 1 home: wordmark left, alerts / search right, hero, then trending conversations. No sub-tabs:
   // topic / product / brand browsing lives in the 탐색 tab; 대화방 and 발견 open as sub-pages with a back button.
-  shell(`<div class="logo-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span class="sb-head-actions"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></span></div><div class="service-context"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${esc(t(demoActive ? 'chat.modeDemo' : 'chat.modeLive'))}</button>${regionButton()}</div><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+  shell(`<div class="logo-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span class="sb-head-actions"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></span></div><div class="service-context"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${esc(t(demoActive ? 'chat.modeDemo' : 'chat.modeLive'))}</button>${regionButton()}</div><section id="beauty-draft-arrival" class="beauty-draft-arrival" hidden></section><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
 
+  renderBeautyDraft();
 
   if (demoActive) {
     chat.rooms = demoRooms;
@@ -212,6 +245,7 @@ const homeHero = () => `<section class="home-hero"><div class="home-hero-text"><
 const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big-head-row"><div><h2 class="big-head">${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div><button class="text-link" ${more}>${esc(t('home.seeAll'))} ›</button></div>`;
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
 function drawHome() {
+  renderBeautyDraft();
   const box = $('#community-home'); if (!box || !home) return;
   box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
   const {hot, topics, recent, previews, partial, joined, images, products} = home;
@@ -355,12 +389,14 @@ function renderWrite() {
   let dlg = $('#post-write'); if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'post-write'; dlg.className = 'chat-dialog post-write'; document.body.append(dlg); }
   dlg.innerHTML = `<form method="dialog"><button class="close-dialog" aria-label="${esc(t('close'))}">×</button></form><h2>${esc(t('community.write'))} · ${esc(roomTitle(chat.room))}</h2><div class="chat-chips write-kinds">${KINDS.map(k => `<button type="button" data-write-kind="${k}" class="${d.kind === k ? 'on' : ''}">${esc(t('community.kind.' + k))}</button>`).join('')}</div><input id="write-title" maxlength="120" placeholder="${esc(t('community.titlePh'))}" value="${esc(d.title)}"><textarea id="write-body" rows="4" maxlength="2000" placeholder="${esc(t('community.bodyPh'))}">${esc(d.body)}</textarea>${d.item ? `<div class="chat-chip">${esc(brandLabel(d.item))} · ${esc(d.item.name)}<button type="button" data-chat-action="write-item-cancel" aria-label="${esc(t('chat.removeItem'))}">×</button></div>` : `<button type="button" class="write-attach" data-chat-action="attach-write">＋ ${esc(t('chat.attach'))}</button>`}${d.kind === 'review' ? reviewFields(d) : ''}<p class="write-label">${esc(t('community.reasons'))}</p><div class="chat-chips reason-pick">${REASONS.map(r => `<button type="button" data-write-reason="${r}" class="${d.reasons.includes(r) ? 'on' : ''}">${esc(t('reason.' + r))}</button>`).join('')}</div><button class="primary" data-chat-action="write-submit">${esc(t('community.post'))}</button>`;
 }
+document.addEventListener('input',e=>{if(e.target.matches?.('#write-title,#write-body')&&view.draft?.beautyHandoffId)keepDraftText();});
 // One optional single-choice row in the review form (tap again to clear).
 const chipRow = (label, values, prefix, current, field) => `<p class="write-label">${esc(t(label))}</p><div class="chat-chips">${values.map(v => `<button type="button" data-write-field="${field}" data-value="${v}" class="${current === v ? 'on' : ''}">${esc(t(prefix + '.' + v))}</button>`).join('')}</div>`;
 const reviewFields = d => `${d.item ? '' : `<p class="write-warn">${esc(t('review.needItem'))}</p>`}<p class="write-label">${esc(t('review.usedFor'))}</p><div class="chat-chips">${USED_FOR.map(u => `<button type="button" data-write-used="${u}" class="${d.usedFor === u ? 'on' : ''}">${esc(t('review.used.' + u))}</button>`).join('')}</div><p class="write-note">${esc(t('review.showMine'))}</p>${chipRow('review.skin', SKIN_TYPES, 'skin', d.skinType, 'skinType')}${chipRow('review.tone', SKIN_TONES, 'tone', d.skinTone, 'skinTone')}${chipRow('review.undertone', UNDERTONES, 'under', d.undertone, 'undertone')}<label class="profile-check"><input type="checkbox" id="write-save-profile" ${d.saveProfile ? 'checked' : ''}><span><b>${esc(t('profile.saveFromReview'))}</b></span></label><input id="write-goal" maxlength="60" placeholder="${esc(t('review.goal'))}" value="${esc(d.goal)}"><p class="write-label">${esc(t('review.photos'))}</p><p class="write-note">${esc(t('review.photoNote'))}</p><div class="write-photos">${d.photos.map((ph, i) => `<span><img src="${esc(photoUrl(ph))}" alt=""><button type="button" data-write-photo-remove="${i}" aria-label="${esc(t('close'))}">×</button></span>`).join('')}${d.photos.length < 4 ? `<label class="photo-add">＋<input id="write-photo" type="file" accept="image/*" hidden><span>${esc(t('review.addPhoto'))}</span></label>` : ''}</div><p class="write-label">${esc(t('review.purchase'))}</p><div class="write-grid"><input id="write-where" maxlength="60" placeholder="${esc(t('review.where'))}" value="${esc(d.where)}"><input id="write-price" inputmode="decimal" placeholder="${esc(t('review.price'))}" value="${esc(d.price)}"><input id="write-country" maxlength="2" placeholder="${esc(t('review.shipCountry'))}" value="${esc(d.shipCountry)}"><input id="write-days" inputmode="numeric" placeholder="${esc(t('review.shipDays'))}" value="${esc(d.shipDays)}"></div><label class="write-check"><input id="write-sponsored" type="checkbox" ${d.sponsored ? 'checked' : ''}> ${esc(t('review.sponsored'))}</label>`;
 const keepDraftText = () => {
   if (!$('#write-title')) return; const d = view.draft;
   d.title = $('#write-title').value; d.body = $('#write-body').value;
+  if(d.beautyHandoffId)updateHandoff(handoffStorage(),d.beautyHandoffId,d.body,d.title);
   if ($('#write-goal')) { d.goal = $('#write-goal').value; d.where = $('#write-where').value; d.price = $('#write-price').value; d.shipCountry = $('#write-country').value; d.shipDays = $('#write-days').value; d.sponsored = $('#write-sponsored').checked; d.saveProfile = !!$('#write-save-profile')?.checked; }
 };
 // Re-encode in the browser before upload: drops EXIF (location, device) and shrinks to <= 1600px JPEG.
@@ -382,14 +418,18 @@ document.addEventListener('change', async e => {
 async function submitPost() {
   if (chat.room?.demo) return;
   keepDraftText(); const d = view.draft;
+  if(d.submitting)return;
+  d.submitting=true;const submit=$('[data-chat-action="write-submit"]');if(submit)submit.disabled=true;
   try {
     const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
     track('post_create', null, {room: chat.room.id, kind: d.kind, item: d.item ? 1 : 0, from_chat: d.fromMessage ? 1 : 0, photos: d.photos.length, reasons: d.reasons.join(',')});
     if (d.kind === 'review' && d.saveProfile) saveFromReview(d).catch(() => {});
+    if(d.beautyHandoffId){clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
     $('#post-write').close();
     if (d.fromMessage) toast(t('community.savedAsPost'));
     openTopic(chat.room, 'posts'); openPost(p.id);
   } catch (e) { toast(t(errorKey(e.message))); }
+  finally {d.submitting=false;if(submit)submit.disabled=false;}
 }
 
 // Live chat inside a topic.
@@ -723,7 +763,7 @@ async function submitRoom() {
     chat.rooms = await fetchRooms().catch(() => chat.rooms);
     $('#room-create').close(); toast(t('room.created'));
     const room = chat.rooms.find(r => r.id === id);
-    if (room) { chat.room = room; openTopic(room, 'live'); } else renderHome();
+    if (room) { chat.room = room; if(beautyDraft)openBeautyDraftInRoom(room);else openTopic(room, 'live'); } else renderHome();
   } catch (e) { newRoom.busy = false; newRoom.error = t(errorKey(e.message)); renderCreateRoom(); }
 }
 let pendingPost = null;
@@ -734,7 +774,13 @@ export const openRoomNext = id => { pendingRoom = id; };
 document.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
   const a = b.dataset.chatAction;
-  if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rec'; renderHome(); }
+  if (a === 'beauty-draft-choose') { await chooseBeautyRoom(); }
+  else if (a === 'beauty-draft-retry') { $('#beauty-draft-rooms')?.close();await chooseBeautyRoom(); }
+  else if (b.dataset.beautyDraftRoom) { openBeautyDraftInRoom(chat.rooms.find(r=>r.id===b.dataset.beautyDraftRoom)); }
+  else if (a === 'beauty-draft-create') { $('#beauty-draft-rooms')?.close();openCreateRoom(); }
+  else if (a === 'beauty-draft-dismiss') { clearHandoff(handoffStorage(),incomingBeautyId);beautyDraft=null;beautyDraftDismissed=true;$('#beauty-draft-arrival')?.remove(); }
+  else if (a === 'beauty-draft-copy') { try{await navigator.clipboard.writeText(beautyDraft.body);toast(locale().startsWith('ko')?'복사했어':'Copied');}catch{toast(locale().startsWith('ko')?'위 글을 직접 선택해서 복사해 줘.':'Select and copy the text above.');} }
+  else if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rec'; renderHome(); }
   else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
