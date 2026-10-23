@@ -67,20 +67,10 @@ const itemCard = (it, ref = '') => it.demo ? `<button class="chat-item" data-dem
 const shell = inner => { $('#chat').innerHTML = inner; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
-const communityModeKey = 'seoulbeauty-community-mode';
-const modeQuery = new URLSearchParams(globalThis.location?.search ?? '');
-let savedMode; try { savedMode = storage?.getItem(communityModeKey); } catch {}
-let demoActive = modeQuery.has('demo') ? modeQuery.get('demo') === '1' : savedMode === 'offline';
-function saveCommunityMode() {
-  try { storage?.setItem(communityModeKey, demoActive ? 'offline' : 'online'); } catch {}
-  // Keep reloads and region/language navigation in the selected mode too.
-  try {
-    const url = new URL(globalThis.location.href);
-    url.searchParams.set('demo', demoActive ? '1' : '0');
-    globalThis.history.replaceState(globalThis.history.state, '', url);
-  } catch {}
-}
-if (modeQuery.has('demo')) saveCommunityMode();
+// Partner presentation and real-user service are selected by the pathname,
+// never by query parameters or a persisted browser preference.
+const demoActive = !/^\\/live(?:\\/|$)/.test(globalThis.location?.pathname ?? '/');
+function saveCommunityMode() { /* fixed by entry point; no browser mode switch */ }
 export const isDemo = () => demoActive;
 let firstCommunityLoad = true, communityOpenVersion = 0;
 let finishStartup = () => {};
@@ -94,7 +84,7 @@ export async function openChat(opts = {}) {
   track('community_open', null, beautyDraft && !demoActive ? {source:'beauty_play',handoff_id:beautyDraft.id}:{});
   if (beautyDraft && !demoActive && initial) track('beauty_draft_open',null,{source:'beauty_play',handoff_id:beautyDraft.id});
   if (pendingPost) { const id = pendingPost; pendingPost = null; if (!chat.rooms.length) chat.rooms = await fetchRooms().catch(() => []); chat.room = null; openPost(id); return; }
-  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : [...demoRooms.filter(r=>r.id.startsWith('demo-cx-')), ...await fetchRooms().catch(() => [])]; const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
+  if (pendingRoom) { if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms().catch(() => []); const r = chat.rooms.find(r => r.id === pendingRoom); pendingRoom = null; if (r) { openTopic(r, 'live'); return; } }
   const showLaunch = initial && readInterests()?.done;
   const finish = showLaunch ? beginStartupLoading({label: t('loading'), line1: t('splash.line1'), line2: t('splash.line2')}) : () => {};
   finishStartup = finish;
@@ -249,7 +239,7 @@ async function renderHome() {
   rememberDraft(); stopPolling(); chat.room = null; view.post = null; inRoom(false);
   // Journey 1 home: wordmark left, alerts / search right, hero, then trending conversations. No sub-tabs:
   // topic / product / brand browsing lives in the 탐색 tab; 대화방 and 발견 open as sub-pages with a back button.
-  shell(`<div class="logo-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span class="sb-head-actions"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></span></div><div class="service-context"><button class="demo-toggle" data-chat-action="toggle-demo" aria-pressed="${demoActive}">${esc(t(demoActive ? 'chat.modeDemo' : 'chat.modeLive'))}</button>${regionButton()}</div>${gameEntrance()}<section id="beauty-draft-arrival" class="beauty-draft-arrival" hidden></section><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
+  shell(`<div class="logo-head sb-head"><img class="sb-logo" src="assets/seoul-beauty-logo.webp" alt="Seoul Beauty" width="200" height="60"><span class="sb-head-actions"><button class="icon-btn home-alerts" data-screen="alerts" aria-label="${esc(t('alerts.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button><button class="icon-btn" data-screen="search" aria-label="${esc(t('search.title'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></span></div><div class="service-context">${regionButton()}</div>${gameEntrance()}<section id="beauty-draft-arrival" class="beauty-draft-arrival" hidden></section><div class="chat-rooms" id="community-home">${loadingMarkup(t('loading'))}</div><button class="start-conversation" data-chat-action="create-room" ${demoActive ? 'hidden disabled' : ''}>＋ ${esc(t('room.new'))}</button>`);
 
   renderBeautyDraft();
 
@@ -265,7 +255,7 @@ async function renderHome() {
   catch { if (version === homeVersion && $('#community-home')) $('#community-home').innerHTML = `<p class="empty">${esc(t('home.retry'))}</p><button data-chat-action="rooms">${esc(t('retry'))}</button>`; return; }
   if (version !== homeVersion || !$('#community-home')) return;
   // Include synthetic rooms in the normal community without writing to the production database.
-  const syntheticRooms = demoRooms.filter(r => r.id.startsWith('demo-cx-'));
+  const syntheticRooms = demoActive ? demoRooms.filter(r => r.id.startsWith('demo-cx-')) : [];
   chat.rooms = [...syntheticRooms, ...fetchedRooms.filter(r => !syntheticRooms.some(d => d.id === r.id))];
   const scopedPosts = posts.filter(p=>chat.rooms.some(r=>r.id===p.room_id));
   const recent = visiblePosts(scopedPosts), hot = [...syntheticRooms.slice(0,6), ...activeRooms(chat.rooms.filter(r=>!r.demo))], topics = chat.rooms.filter(r => r.kind !== 'brand').sort((a,b) => (a.sort??999)-(b.sort??999));
@@ -833,7 +823,7 @@ document.addEventListener('click', async e => {
   else if (a === 'beauty-account-list') { await accountDraftAction('list'); }
   else if (a === 'beauty-draft-dismiss') { clearHandoff(handoffStorage(),incomingBeautyId);beautyDraft=null;beautyDraftDismissed=true;renderBeautyDraft(); }
   else if (a === 'beauty-draft-copy') { try{await navigator.clipboard.writeText(beautyDraft.body);toast(locale().startsWith('ko')?'복사했어':'Copied');}catch{toast(locale().startsWith('ko')?'위 글을 직접 선택해서 복사해 줘.':'Select and copy the text above.');} }
-  else if (a === 'toggle-demo') { demoActive = !demoActive; saveCommunityMode(); home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rec'; renderHome(); }
+  else if (a === 'toggle-demo') { /* fixed mode: no toggle */ home = null; homeJoined = []; chat.rooms = []; chat.messages = []; homeTab = 'rec'; renderHome(); }
   else if (a === 'latest') { const log = $('#chat-log'); if (log) log.scrollTop = log.scrollHeight; unreadMessages = 0; b.hidden = true; }
   else if (a === 'rooms') renderHome();
   else if (a === 'resume') renderJoined();
@@ -942,7 +932,7 @@ export async function onboardingData() {
 export const openRoomById = id => { pendingRoom = id; };
 // Rooms and their pictures for the 탐색 tab (explore.js); same sources as the community home.
 export async function exploreData() {
-  if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : [...demoRooms.filter(r=>r.id.startsWith('demo-cx-')), ...(await fetchRooms())];
+  if (!chat.rooms.length) chat.rooms = demoActive ? demoRooms : await fetchRooms();
   if (demoActive) return {rooms: chat.rooms, images: home?.images ?? roomImages(demoEntries()), popular: []};
   const pics = await loadCatalogPictures(chat.rooms).catch(() => null);
   const images = home?.images ?? (pics ? topicPictures(chat.rooms.filter(r => r.kind !== 'brand'), pics.byCategory) : new Map());
