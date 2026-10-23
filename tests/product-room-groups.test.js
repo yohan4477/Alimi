@@ -9,8 +9,11 @@ test('the demo lists 12 explicit products and two rooms per product with separat
  const groups=productRoomGroups(demoRooms);
  assert.equal(groups.length,12);
  assert.ok(groups.every(g=>g.rooms.length===2));
- assert.equal(Object.values(demoMessages).reduce((n,rows)=>n+rows.length,0),1800); // 60 rooms × (24 lines + 6 same-person follow-ups)
- assert.ok(groups.every(g=>g.rooms.every(r=>demoMessages[r.id].some(m=>m.body.includes(r.topic_product.name)))));
+ assert.equal(Object.values(demoMessages).reduce((n,rows)=>n+rows.length,0),24); // Only one question/answer pair per product; no repeated filler
+ assert.ok(groups.every(g=>g.rooms.some(r=>demoMessages[r.id].length===2)));
+ assert.ok(groups.every(g=>g.rooms.some(r=>demoMessages[r.id].length===0)));
+ const bodies=Object.values(demoMessages).flat().map(m=>m.body);
+ assert.equal(new Set(bodies).size,bodies.length,'no repeated filler across rooms');
 });
 
 test('incidental mentions do not create product groups; known catalog subjects do',()=>{
