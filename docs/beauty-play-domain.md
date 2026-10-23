@@ -1,5 +1,7 @@
 # Beauty Beauty under Seoul Beauty
 
+> Development direction (2026-10-23): new backend work targets existing SeoulBeauty Supabase, not new D1 features. D1 is still the legacy production writer and deletion is on hold. Preserve the proxy and data until a verified transition is approved. Follow [the canonical policy](BEAUTY_BACKEND_POLICY.md) and [migration runbook](beauty-game-database-migration.md); a draft replacement PR does not mean consolidation is complete.
+
 `/beauty-play/` renders the native React game bundle from `dist/beauty-play/`. It is not an iframe or a redirect to the Sites frontend. The original community routes are retained. The game handoff opens the actual `/kr` or `/us` community entry.
 
 The current UI was imported from the reviewed Beauty Beauty prototype. Source lives in `web/beauty-play/`; run `npm install` and `npm run build:beauty-play` to rebuild committed static output. Genuine product/option images and public-domain portraits are bundled under the game path.
