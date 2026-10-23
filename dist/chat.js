@@ -449,7 +449,7 @@ async function submitPost() {
   } catch (e) {
     // Known server rejections (no write committed) may be retried after correction.
     // Timeouts, connection failures and 5xx can represent a committed write.
-    const knownRejection = /^(HTTP 400|HTTP 401|HTTP 403|HTTP 404|HTTP 409|HTTP 422|HTTP 429)\\b/.test(String(e.message));
+    const knownRejection = /^(HTTP 400|HTTP 401|HTTP 403|HTTP 404|HTTP 409|HTTP 422|HTTP 429)\b/.test(String(e.message));
     if (pendingKey && knownRejection) { try { handoffStore.removeItem(pendingKey); } catch {} }
     if (pendingKey && !knownRejection) {
       toast(locale().startsWith('ko') ? '게시 결과가 불확실해. 중복 게시를 막기 위해 다시 보내지 않았어. 내 글에서 확인해 줘. 초안은 유지돼.' : 'Posting status is uncertain. Check your posts before resubmitting; your draft is kept.');
