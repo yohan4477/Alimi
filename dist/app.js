@@ -10,7 +10,7 @@ import {track} from './events.js';
 import {GoogleAuth} from './auth.js';
 import {AccountSync} from './account-sync.js';
 import {openProfile,refreshProfile,cachedProfile,optOutOfSale} from './profile.js';
-import {openProductRoomsNext,openRoomListNext,openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData,relTime} from './chat.js';
+import {refreshBeautyDraftAccount,configureBeautyDraftAccount,openProductRoomsNext,openRoomListNext,openChat,leaveChat,renderProductTalk,openPostNext,readSavedPosts,openRoomNext,renderMyConversations,canAttachToChat,attachToChat,onboardingData,relTime} from './chat.js';
 import {renderMyRooms,renderAlerts,renderShareHub,addRecent,readRecent,loadRevisit,unreadCount} from './revisit.js';
 import {t,lang,locale,categoryLabel} from './i18n.js';
 import {readInterests,openOnboarding} from './onboarding.js';
@@ -264,13 +264,14 @@ const linkRow=(ic,label,href)=>`<a class="set-row" href="${href}" target="_blank
 const row=(ic,label,attrs='',tail=icon.chevron)=>`<button class="set-row" ${attrs}><span class="set-ico">${ic}</span><span class="set-label">${esc(label)}</span><span class="set-tail">${tail}</span></button>`;
 // Optional account with owner-isolated cloud preferences.
 const auth=new GoogleAuth();
+configureBeautyDraftAccount(auth);
 let syncStatus='local',authBusy=false;
 const accountSync=new AccountSync(auth,{storage,onChange:()=>{
   state=readState(storage);products=mergeCatalogSaves(products.filter(p=>!p.id.startsWith('catalog|')),readCatalogSaves(storage)).filter(p=>inMarket(p));
   updateCount();if(screen==='saved')renderSaved();
 },onStatus:value=>{syncStatus=value;if(screen==='settings')renderSettings()}});
 for(const event of ['profile-change','interests-change'])document.addEventListener(event,()=>accountSync.changed());
-async function restoreAccount(){try{await auth.restore();if(auth.user)await accountSync.start();else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}if(screen==='settings')renderSettings();}
+async function restoreAccount(){try{await auth.restore();if(auth.user)await accountSync.start();else if(accountSync.userId||storage.getItem('seoulbeauty-data-owner'))accountSync.stop();}catch{if(!auth.session&&accountSync.userId)accountSync.stop();syncStatus='failed';}refreshBeautyDraftAccount();if(screen==='settings')renderSettings();}
 setInterval(()=>{if(!document.hidden)restoreAccount()},60000);
 window.addEventListener('online',()=>restoreAccount().then(()=>accountSync.flush()));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreAccount()});
@@ -280,7 +281,7 @@ async function authAction(a){
   try{
     if((a==='google'||region==='kr'&&['kakao','naver'].includes(a))){await auth.startLogin(a);return;}
     if(a==='sync'){await accountSync.flush();accountSync.ready=false;await accountSync.start();return;}
-    await accountSync.flush();try{await auth.signOut()}finally{accountSync.stop()}toast(t('account.signedOut'));
+    await accountSync.flush();try{await auth.signOut()}finally{accountSync.stop();refreshBeautyDraftAccount()}toast(t('account.signedOut'));
   }catch(error){toast(error?.message||t('account.failed'))}
   finally{authBusy=false;renderSettings();}
 }

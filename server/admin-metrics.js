@@ -25,6 +25,6 @@ export async function readMetrics({env = process.env, fetchImpl = fetch, now = n
     const scoped = base.serviceRegion === 'all' ? clean : clean.filter(r=>r.props?.service_region === base.serviceRegion);
     const count = name => new Set(scoped.filter(r => r.name === name).map(r => r.device_id)).size;
     return {...base, state: scoped.length ? 'received' : 'no_data', unknownRegionEvents: unknownRegion, lastEventAt: scoped[0]?.received_at ?? null,
-      metrics: scoped.length ? {community: count('community_open'), rooms: count('chat_open'), detail: count('product_view'), merchant: count('merchant_click'), saved: count('wishlist_add')} : null};
+      metrics: scoped.length ? {community: count('community_open'), rooms: count('chat_open'), detail: count('product_view'), merchant: count('merchant_click'), saved: count('wishlist_add'), beautyDraftOpen: new Set(scoped.filter(r=>r.name==='beauty_draft_open'&&r.props?.source==='beauty_play').map(r=>r.device_id)).size, beautyRoomSelected: new Set(scoped.filter(r=>r.name==='beauty_room_selected'&&r.props?.source==='beauty_play').map(r=>r.device_id)).size, beautyPublished: new Set(scoped.filter(r=>r.name==='beauty_post_published'&&r.props?.source==='beauty_play').map(r=>r.device_id)).size} : null};
   } catch { return {...base, state: 'unavailable', metrics: null}; }
 }
