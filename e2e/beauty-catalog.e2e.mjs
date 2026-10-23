@@ -1,6 +1,8 @@
 // Fixture-only browser regression. No live writes or public messages.
 import {chromium} from 'playwright-core';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const ko=JSON.parse(readFileSync('web/beauty-play/translations.json','utf8')).ko;
 import {createLocalServer} from '../scripts/dev-server.mjs';
 import {shareSnapshot,validateCommand} from '../server/beauty-game-domain.mjs';
 const server=createLocalServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;let browser;
@@ -17,7 +19,7 @@ try{
  while(true){const cards=page.locator('.staged-products .product');assert(await cards.count()<=10);for(const name of await cards.locator('.product-copy strong').allTextContents())seen.add(name);const next=page.locator('.catalog-pages button').last();if(await next.isDisabled())break;await next.click();}
  assert.equal(seen.size,new Set(snapshot.products.map(p=>p.name)).size);
  // A brand whose product was outside the initial ten remains selectable.
- const target=snapshot.products.find(p=>p.id==='69092');await page.locator('.brand-track button').filter({hasText:target.brand}).click();
+ const target=snapshot.products.find(p=>p.id==='69092');await page.locator('.brand-track button').filter({hasText:ko[target.brand]||target.brand}).click();
  await page.locator('.staged-products .product').filter({has:page.getByText(target.name,{exact:true})}).click();await page.locator('.staged-dock .primary').click();
  if(await page.locator('.staged-atelier').getAttribute('data-stage')==='option'){await page.locator('.shade-option').first().click();await page.locator('.staged-dock .primary').click();}
  await page.locator('.staged-dock .primary').click();await page.locator('.result-screen').waitFor();assert.equal(writes.find(x=>x.kind==='answer').product,target.id);
