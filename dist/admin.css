@@ -349,3 +349,23 @@
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(min-width:851px){#sb-management{column-gap:26px;grid-template-columns:190px minmax(0,1fr)}}
 @media(max-width:520px){.admin-ref-dash h2{font-size:1.55rem}.admin-ref-cards article{padding:14px;min-height:95px}.admin-ref-cards strong{font-size:1.12rem}.admin-ref-funnel{padding:18px}.admin-top-brand .wordmark{font-size:1.2rem}}
+
+/* Roadmap timeline: circular milestones connected by a continuous vertical line */
+.admin-milestone-board{padding:0 0 28px;max-width:860px}
+.admin-milestone-heading h2{font-size:1.65rem;font-weight:750;margin:2px 0 8px}
+.admin-milestone-heading p:last-child{color:var(--muted-foreground);font-size:.9rem}
+.admin-timeline{list-style:none!important;margin:26px 0 0!important;padding:0 0 0 42px!important;position:relative}
+.admin-timeline:before{content:"";position:absolute;top:22px;bottom:45px;left:15px;width:2px;background:var(--border)}
+.admin-timeline-item{position:relative;margin:0 0 18px!important;padding:0!important}
+.admin-timeline-node{position:absolute;left:-42px;top:17px;z-index:1;display:grid;place-items:center;width:32px;height:32px;border:3px solid var(--border);border-radius:50%;background:var(--background);color:var(--primary);font-size:.82rem;font-weight:800}
+.admin-timeline-item.is-done .admin-timeline-node{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.admin-timeline-item.is-current .admin-timeline-node{border-color:var(--primary);box-shadow:0 0 0 5px var(--accent)}
+.admin-timeline-card{border:1px solid var(--border);background:var(--background);border-radius:14px;padding:16px 18px}
+.admin-timeline-item.is-current .admin-timeline-card{border-color:var(--primary)}
+.admin-timeline-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.admin-timeline-index{font-size:.75rem;font-weight:700;color:var(--muted-foreground)}
+.admin-timeline-status{font-size:.75rem;border-radius:20px;padding:3px 9px;background:var(--accent)}
+.admin-timeline-card h3{font-weight:700;margin:7px 0}
+.admin-timeline-card p{font-size:.9rem;margin:0 0 10px}
+.admin-timeline-date,.admin-timeline-footnote{font-size:.8rem;color:var(--muted-foreground)}
+@media(max-width:480px){.admin-timeline{padding-left:36px!important}.admin-timeline-node{left:-36px;width:28px;height:28px}.admin-timeline:before{left:13px}.admin-timeline-card{padding:13px}}
