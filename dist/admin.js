@@ -1,6 +1,29 @@
 // Presentation state only. Authorization is performed on every server request.
 const root = document.getElementById('sb-management');
 if (root) {
+  // Nested affiliate tabs are independent of the main admin navigation and its saved state.
+  const affiliateTabs = [...root.querySelectorAll('.affiliate-tabs [role="tab"]')];
+  function selectAffiliate(tab, focus = false) {
+    for (const button of affiliateTabs) {
+      const active = button === tab;
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+      document.getElementById(button.getAttribute('aria-controls')).hidden = !active;
+    }
+    if (focus) tab.focus();
+  }
+  affiliateTabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => selectAffiliate(tab));
+    tab.addEventListener('keydown', event => {
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? affiliateTabs.length - 1 : event.key === 'ArrowRight' ? (index + 1) % affiliateTabs.length : event.key === 'ArrowLeft' ? (index + affiliateTabs.length - 1) % affiliateTabs.length : null;
+      if (next !== null) { event.preventDefault(); selectAffiliate(affiliateTabs[next], true); }
+    });
+  });
+  root.querySelectorAll('[data-brand-logo]').forEach(img => {
+    const failed = () => { img.hidden = true; img.nextElementSibling.hidden = false; };
+    img.addEventListener('error', failed);
+    if (img.complete && img.naturalWidth === 0) failed();
+  });
   // Every admin tab has a navigable table of contents, without card containers.
   for (const panel of root.querySelectorAll('.sb-panel')) {
     const headings = [...panel.querySelectorAll('h2,h3')].filter(h => !h.closest('details') && !h.closest('[hidden]'));
@@ -63,7 +86,7 @@ if (root) {
     document.querySelectorAll('.period-choice').forEach(item=>{item.classList.toggle('active',item===button);item.setAttribute('aria-pressed',String(item===button));});
   }));
   const review = document.getElementById('sb-planning-review');
-  const tabs = [...root.querySelectorAll('[role="tab"]')];
+  const tabs = [...root.querySelectorAll('[role="tab"][id^="sb-"]')];
   function select(tab, focus = false) {
     if (!tabs.includes(tab)) return;
     for (const t of tabs) {

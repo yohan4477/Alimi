@@ -36,3 +36,39 @@ test('native brand disclosures have unique accessible targets and safe public so
  }
  for(const path of ['../dist/admin.js','../dist/index.html'])assert.ok(!readFileSync(new URL(path,import.meta.url),'utf8').includes('affiliate-brand-tile'),'coverage data stays in protected server HTML');
 });
+test('affiliate tabs isolate approved coverage from unverified entries without changing main navigation',()=>{
+ const approved=coverage.split('id="affiliate-panel-verified"')[1].split('id="affiliate-panel-unverified"')[0];
+ const unverified=coverage.split('id="affiliate-panel-unverified"')[1];
+ assert.equal((approved.match(/data-coverage="verified"/g)||[]).length,35);
+ assert.doesNotMatch(approved,/data-coverage="unverified"/);
+ assert.equal((unverified.match(/data-coverage="unverified"/g)||[]).length,43);
+ assert.doesNotMatch(unverified,/data-coverage="verified"/);
+ for(const state of ['verified','unverified']){
+  assert.match(coverage,new RegExp('id="affiliate-tab-'+state+'" aria-controls="affiliate-panel-'+state+'"'));
+  assert.match(coverage,new RegExp('id="affiliate-panel-'+state+'" aria-labelledby="affiliate-tab-'+state+'"'));
+ }
+ assert.match(coverage,/id="affiliate-panel-unverified"[^>]+hidden/);
+ const js=readFileSync(new URL('../dist/admin.js',import.meta.url),'utf8');
+ assert.ok(js.includes(`root.querySelectorAll('[role="tab"][id^="sb-"]')`));
+ assert.match(js,/img\.addEventListener\('error', failed\)/);
+ assert.match(js,/img\.complete && img\.naturalWidth === 0/);
+});
+test('logos use verified official raster bytes with local paths and truthful accessible fallbacks',async()=>{
+ const {createHash}=await import('node:crypto');
+ const sources=JSON.parse(readFileSync(new URL('./admin-brand-logo-sources.json',import.meta.url),'utf8'));
+ assert.ok(sources.length>=2);
+ for(const source of sources){
+  const bytes=readFileSync(new URL('../'+source.path,import.meta.url));
+  assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),source.sha256);
+  assert.equal(new URL(source.sourceUrl).protocol,'https:');
+  assert.ok(coverage.includes('src="/'+source.path.replace(/^dist\//,'')+'"'));
+  assert.ok(coverage.includes('alt="'+source.brand+' 로고"'));
+ }
+ for(const image of coverage.matchAll(/<img ([^>]+)>/g)){
+  assert.match(image[1],/src="\/brand-logos\/admin\//);
+  assert.match(image[1],/alt="[^"]+ 로고"/);
+ }
+ assert.match(coverage,/공식 로고 미확보/);assert.match(coverage,/로고 표시 불가/);
+ assert.doesNotMatch(coverage,/<img[^>]+src="https?:/);
+});

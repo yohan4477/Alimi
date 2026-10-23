@@ -472,3 +472,14 @@
 #sb-revenue .affiliate-source-list{padding-left:20px;font-size:.78rem;line-height:1.8}
 #sb-revenue .affiliate-route-caveats{border-top:1px solid var(--border);padding-top:16px;font-size:.85rem}
 @media(max-width:480px){#sb-revenue .affiliate-brand-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#sb-revenue .affiliate-brand-detail dl>div{grid-template-columns:1fr;gap:2px}#sb-revenue .affiliate-brand-tile>summary{padding:10px 7px;min-height:70px}}
+
+/* Affiliate sub-tabs do not replace the main admin navigation. */
+#sb-revenue .affiliate-tabs{display:flex;gap:6px;margin:18px 0 10px}
+#sb-revenue .affiliate-tabs button{min-height:44px;padding:8px 24px;border:1px solid var(--border);border-radius:5px;background:var(--background);color:var(--foreground);cursor:pointer;font:inherit}
+#sb-revenue .affiliate-tabs button[aria-selected="true"]{background:var(--primary);color:var(--primary-foreground);font-weight:700}
+#sb-revenue .affiliate-tabs button:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+#sb-revenue .affiliate-logo-frame{height:56px;display:flex;align-items:center;justify-content:center;background:white;color:#222;border-radius:3px;min-width:0;padding:4px}
+#sb-revenue .affiliate-logo-frame img{object-fit:contain;max-width:100%;width:140px;height:48px}
+#sb-revenue .affiliate-logo-frame [hidden]{display:none}
+#sb-revenue .affiliate-logo-missing{flex-direction:column;gap:3px;background:var(--muted);color:var(--foreground)}
+#sb-revenue .affiliate-logo-missing>span,#sb-revenue .affiliate-logo-fallback{font-size:.68rem;text-align:center;overflow-wrap:anywhere}

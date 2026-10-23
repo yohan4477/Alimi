@@ -1,0 +1,29 @@
+[
+  {
+    "brand": "에뛰드",
+    "path": "dist/brand-logos/admin/etude.png",
+    "officialPage": "https://www.etude.com",
+    "sourceUrl": "https://int.etude.com/wp-content/uploads/2023/05/img_logo2023-1.png",
+    "retrieved": "2026-10-23",
+    "sha256": "6a9ea485fe64403676223a8b924a9e1acb92c6c03d3b7bd8f1014fd35444186d",
+    "usage": "Official-site logo used solely for identification; no endorsement or logo license claimed. Original bytes, CSS contain sizing only."
+  },
+  {
+    "brand": "네이처리퍼블릭",
+    "path": "dist/brand-logos/admin/nature-republic.png",
+    "officialPage": "https://www.naturerepublic.com",
+    "sourceUrl": "https://cfimg.naturerepublic.com/img/icon/icon_logo_pc.png",
+    "retrieved": "2026-10-23",
+    "sha256": "491f87555147ab69788377ea73be3aa81a0e731278e048c1bf7f1f677643d79c",
+    "usage": "Official-site logo used solely for identification; no endorsement or logo license claimed. Original bytes, CSS contain sizing only."
+  },
+  {
+    "brand": "라운드랩",
+    "path": "dist/brand-logos/admin/round-lab.png",
+    "officialPage": "https://www.roundlab.co.kr",
+    "sourceUrl": "https://www.roundlab.co.kr/_dj/img/logo_.png",
+    "retrieved": "2026-10-23",
+    "sha256": "f1e6855e7b9b562026dd7b711a5dfe877f370f9e7065e70660e38f86884f2eb8",
+    "usage": "Official-site logo used solely for identification; no endorsement or logo license claimed. Original bytes, CSS contain sizing only."
+  }
+]
