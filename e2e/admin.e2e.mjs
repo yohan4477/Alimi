@@ -68,6 +68,29 @@ try {
   await library.locator('[data-guess="1"]').click();
   assert.match(await library.getByRole('heading',{name:/맞혔어/}).innerText(),/맞혔어/);
 
+  // Brand coverage is a manual protected inventory, never a direct-partnership or revenue claim.
+  await page.getByRole('tab',{name:'수익',exact:true}).click();
+  const affiliates=page.locator('#admin-affiliate-coverage');
+  assert.equal(await affiliates.locator('.affiliate-brand-tile').count(),78);
+  assert.equal(await affiliates.locator('[data-affiliate-market="us"][data-coverage="verified"]').count(),30);
+  const domestic=affiliates.locator('[data-affiliate-market="kr"][data-brand-name="클리오"]');
+  const unknown=affiliates.locator('[data-affiliate-market="us"][data-brand-name="루나"]');
+  for(const width of [320,390,1024]){
+    await page.setViewportSize({width,height:844});
+    for(const tile of [domestic,unknown]){
+      const summary=tile.locator('summary');await summary.focus();await summary.press('Enter');
+      assert.equal(await tile.getAttribute('open'),'');
+      assert.ok(await tile.locator('.affiliate-brand-detail').isVisible());
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'affiliate details overflow at '+width);
+      assert.match(await tile.innerText(),/국가·언어·채널/);assert.match(await tile.innerText(),/2026-10-23/);
+      if(tile===domestic)assert.match(await tile.innerText(),/링크 준비 · 미배포/);
+      else assert.equal(await tile.getAttribute('data-coverage'),'unverified');
+      await summary.press('Enter');assert.equal(await tile.getAttribute('open'),null);
+    }
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'affiliate tile grid overflows at '+width);
+  }
+  await page.setViewportSize({width:390,height:844});
+
   // Current status and change history are separate, protected views.
   await page.getByRole('tab',{name:'현황',exact:true}).click();
   const development=page.locator('#sb-dev');
