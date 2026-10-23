@@ -14,7 +14,7 @@ const originalCharacters=[
 {id:'ophelia',name:'오필리아',tag:'꽃보다 눈에 띄고 싶은 날',title:'꽃은 준비됐어.\n내 립도 골라줄래?',short:'꽃밭에서 찍을 오늘의 사진',context:'꽃밭에서 친구와 사진을 찍기로 했어. 입술 각질은 신경 쓰이고, 꽃과 어울리는 부드러운 색을 고르고 싶대.',condition:'입술 각질이 신경 쓰여요',want:'부드러운 색감 · 촉촉한 표현',quote:'꽃도 예쁘지만, 오늘 네 선택도 마음에 들어.',bg:'#e6e2d6'}] as const;
 export const characters=originalCharacters.map(c=>({...c,...scenarios[c.id],quote:c.id==='mona'?c.quote:'네가 골라준 아이템, 오늘 파우치에 넣었어.'}));
 export const reasons=[...new Set([...legacyReasons,...Object.values(scenarios).flatMap(s=>s.reasonOptions)])];
-export function eligibleFor(character:string){const c=characters.find(c=>c.id===character);if(c?.category==='mixed')return ['64960','69092','67330','39547','43287'].map(id=>products.find(p=>p.id===id)!);if(c?.category==='lip')return ['64960','66606','106475','100982','109909'].map(id=>products.find(p=>p.id===id)!);return products.filter(p=>p.category===c?.category);}
+export function eligibleFor(_character:string){return products;}
 export const eventNames=['pilot_view','pilot_complete','pilot_feedback_more','pilot_feedback_once','pilot_feedback_confusing','advice_select','landing_view','character_view','game_start','step_view','product_select','brand_select','shade_select','back','skip','answer_saved','result_view','experience_saved','share_click','share_link_created','invite_open','comparison_view','next_game','product_open','reflection_start','reflection_saved','community_open','card_download'] as const;
 
 // Keep historical single-reason answers and share snapshots readable.
