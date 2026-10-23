@@ -43,6 +43,33 @@ try {
   }
   await login('regular@example.test');assert.match(await page.locator('[role="status"]').innerText(),/관리자 접근 권한/);assert.equal(await page.locator('[role="tab"]').count(),0);
   await login('admin@example.test');await page.getByRole('tab',{name:'전략 자료',exact:true}).waitFor();
+  await mkdir('e2e-artifacts',{recursive:true});
+  for(const width of [320,390]) {
+    await page.setViewportSize({width,height:844});
+    await page.evaluate(()=>sessionStorage.setItem('sb-admin-tab','sb-plan-tab'));
+    await page.goto(base+'/admin');await page.reload();
+    assert.equal(await page.locator('#sb-dashboard-tab').getAttribute('aria-selected'),'true');
+    await page.screenshot({path:`e2e-artifacts/admin-entry-home-${width}.png`});
+    await page.goto(base+'/admin#sb-dev');
+    await page.waitForFunction(()=>document.querySelector('#sb-dev-tab')?.getAttribute('aria-selected')==='true');
+    await page.reload();assert.equal(await page.locator('#sb-dev-tab').getAttribute('aria-selected'),'true');
+    await page.screenshot({path:`e2e-artifacts/admin-entry-deeplink-${width}.png`});
+    await page.locator('#sb-dashboard-tab').click();await page.locator('#sb-users-tab').click();
+    await page.goBack();await page.waitForFunction(()=>document.querySelector('#sb-dashboard-tab')?.getAttribute('aria-selected')==='true');
+    await page.goForward();await page.waitForFunction(()=>document.querySelector('#sb-users-tab')?.getAttribute('aria-selected')==='true');
+    await page.goto(base+'/admin#removed-tab');await page.waitForFunction(()=>document.querySelector('#sb-dashboard-tab')?.getAttribute('aria-selected')==='true');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  }
+  // Mocked login return preserves a valid deep link, but stale links land at home.
+  for(const hash of ['#sb-dev','#removed-tab','']) {
+    await page.context().clearCookies();await page.goto(base+'/admin'+hash);
+    // Changing only the hash can reuse the protected document without a request.
+    const loginResponse=await page.reload();assert.equal(loginResponse.status(),401);
+    assert.equal(await page.locator('[role="tab"]').count(),0);
+    await login('admin@example.test');
+    const expected=hash==='#sb-dev'?'sb-dev-tab':'sb-dashboard-tab';
+    await page.waitForFunction(id=>document.getElementById(id)?.getAttribute('aria-selected')==='true',expected);
+  }
   const cookies=await page.context().cookies();const session=cookies.find(c=>c.name==='__Host-sb-admin');assert.ok(session?.httpOnly&&session.secure&&session.sameSite==='Strict');
   assert.equal(await page.evaluate(()=>document.cookie.includes('__Host-sb-admin')),false);
   await page.goto(base+'/admin#sb-dev');

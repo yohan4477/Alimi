@@ -8,6 +8,7 @@ const pageFile = new URL('../server/admin-page.html', import.meta.url);
 const beautyPickFile = new URL('../server/admin-beauty-pick.html', import.meta.url);
 const libraryFile = new URL('../server/admin-ui-library.html', import.meta.url);
 const reviewFile = new URL('../server/admin-planning-review.html', import.meta.url);
+const adminTabIds = new Set(['sb-dashboard', 'sb-users', 'sb-community', 'sb-products', 'sb-game', 'sb-revenue', 'sb-system', 'sb-ui-library', 'sb-quality', 'sb-dev', 'sb-roadmap', 'sb-strategy', 'sb-plan', 'sb-design']);
 const headers = {
   'Content-Type': 'text/html; charset=utf-8',
   'Cache-Control': 'private, no-store, max-age=0',
@@ -20,7 +21,7 @@ const headers = {
 function renderLoginPage(message, passwordOnly = false) {
   message ??= passwordOnly ? '관리자 비밀번호를 입력하세요.' : '관리자로 지정된 계정으로 로그인하세요.';
   // Only fixed, server-owned messages are passed here; never interpolate user input.
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>관리자 로그인 · SeoulBeauty</title><link rel="stylesheet" href="/admin.css"></head><body><main class="login-shell"><a class="wordmark" href="/">SeoulBeauty</a><h1>관리자 페이지</h1><p role="status">${message}</p><form method="post" action="/api/admin?action=login">${passwordOnly ? '' : '<label>이메일<input type="email" name="email" autocomplete="username" required maxlength="254"></label>'}<label>비밀번호<input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label><button class="btn btn-primary" type="submit">로그인</button></form><p class="text-small text-muted">${passwordOnly ? '아이디 없이 비밀번호로 입장합니다.' : '일반 계정에는 관리자 권한이 부여되지 않습니다.'}</p></main></body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>관리자 로그인 · SeoulBeauty</title><link rel="stylesheet" href="/admin.css"></head><body><main class="login-shell"><a class="wordmark" href="/">SeoulBeauty</a><h1>관리자 페이지</h1><p role="status">${message}</p><form method="post" action="/api/admin?action=login">${passwordOnly ? '' : '<label>이메일<input type="email" name="email" autocomplete="username" required maxlength="254"></label>'}<label>비밀번호<input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label><button class="btn btn-primary" type="submit">로그인</button></form><p class="text-small text-muted">${passwordOnly ? '아이디 없이 비밀번호로 입장합니다.' : '일반 계정에는 관리자 권한이 부여되지 않습니다.'}</p></main><script src="/admin-login.js" defer></script></body></html>`;
 }
 async function credentials(req, passwordOnly = false) {
   if (!String(req.headers['content-type'] || '').startsWith('application/x-www-form-urlencoded')) return null;
@@ -49,7 +50,12 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
   return async function admin(req, res) {
     for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
     const send = (status, body) => { res.statusCode = status; res.end(body); };
-    const redirect = () => { res.statusCode = 303; res.setHeader('Location', passwordOnly ? '/admin#sb-plan' : '/admin'); res.end(); };
+    const redirect = () => {
+      const url = new URL(req.url, 'https://internal.invalid');
+      const tab = url.searchParams.get('tab');
+      const target = url.searchParams.get('action') === 'login' && adminTabIds.has(tab) ? '/admin#' + tab : '/admin';
+      res.statusCode = 303; res.setHeader('Location', target); res.end();
+    };
     try {
       const url = new URL(req.url, 'https://internal.invalid');
       const action = url.searchParams.get('action');
