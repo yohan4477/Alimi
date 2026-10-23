@@ -287,13 +287,34 @@ async function authAction(a){
 const providerLabel=p=>({'custom:kakao':lang==='ko'?'카카오':'Kakao','custom:naver':lang==='ko'?'네이버':'Naver'})[p]||'Google';
 function renderSettings(){
   $('#settings').innerHTML=`<div class="page-bar"><button class="icon-btn" data-screen="saved" aria-label="${esc(t('back'))}">${icon.back}</button><h1>${esc(t('settings.title'))}</h1></div>
-<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||auth.user.user_metadata?.name||auth.user.user_metadata?.nickname||t('account.signedIn',{provider:providerLabel(auth.user.app_metadata?.provider)}))}</b><em>${esc(t('account.sync.'+syncStatus))}</em></span></div><button class="auth-button secondary" data-auth="sync" ${authBusy?'disabled':''}>${esc(t('account.syncRetry'))}</button><button class="auth-button secondary" data-auth="signout" ${authBusy?'disabled':''}>${esc(t('account.signout'))}</button>`:`${region==='kr'?`<button class="auth-button auth-kakao" data-auth="kakao" ${authBusy?'disabled':''}>${icon.kakao}${esc(t('account.kakao'))}</button><button class="auth-button auth-naver" data-auth="naver" ${authBusy?'disabled':''}>${icon.naver}${esc(t('account.naver'))}</button>`:''}<button class="auth-button" data-auth="google" ${authBusy?'disabled':''}><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
+<section class="set-group"><h3>${esc(t('account.title'))}</h3>${auth.user?`<div class="account-card"><span><b>${esc(auth.user.email||auth.user.user_metadata?.name||auth.user.user_metadata?.nickname||t('account.signedIn',{provider:providerLabel(auth.user.app_metadata?.provider)}))}</b><em>${esc(t('account.sync.'+syncStatus))}</em></span></div><button class="auth-button secondary" data-auth="sync" ${authBusy?'disabled':''}>${esc(t('account.syncRetry'))}</button><button class="auth-button secondary" data-auth="signout" ${authBusy?'disabled':''}>${esc(t('account.signout'))}</button><button class="auth-button secondary" data-set="account-export" ${authBusy?'disabled':''}>${lang==='ko'?'내 계정 데이터 다운로드':'Download my account data'}</button><button class="auth-button secondary" data-set="account-deletion-request" ${authBusy?'disabled':''}>${lang==='ko'?'회원 탈퇴 요청':'Request account deletion'}</button><p class="set-hint">${lang==='ko'?'탈퇴는 현재 운영자 확인 후 처리됩니다. 요청만으로 즉시 삭제되지는 않습니다.':'Account deletion currently requires operator review. Requesting does not delete your account immediately.'}</p>`:`${region==='kr'?`<button class="auth-button auth-kakao" data-auth="kakao" ${authBusy?'disabled':''}>${icon.kakao}${esc(t('account.kakao'))}</button><button class="auth-button auth-naver" data-auth="naver" ${authBusy?'disabled':''}>${icon.naver}${esc(t('account.naver'))}</button>`:''}<button class="auth-button" data-auth="google" ${authBusy?'disabled':''}><span class="google-mark">G</span>${esc(t('account.google'))}</button><p class="set-hint">${esc(t('account.localDataHint'))}</p>`}</section>
 <section class="set-group"><h3>${esc(t('settings.service'))}</h3>
 <div class="set-row static"><span class="set-label">${esc(t('region.title'))}</span>${regionButton()}</div><div class="set-row static"><span class="set-ico">${icon.globe}</span><span class="set-label">${esc(t('settings.language'))}</span><span class="seg"><button data-lang="ko" class="${lang==='ko'?'on':''}">한국어</button><button data-lang="en" class="${lang==='en'?'on':''}">English</button></span></div><p class="set-hint">${esc(t('settings.languageHint'))}</p></section>
 <section class="set-group"><h3>${esc(t('settings.data'))}</h3>${row(icon.lock,t('profile.title'),'data-profile-open')}${row(icon.lock,t('profile.doNotSell'),'data-set="do-not-sell"')}${row(icon.tray,t('settings.clearSaved'),'data-set="clear-saved"')}${row(icon.trash,t('settings.clearCache'),'data-set="clear-cache"')}</section>
 <section class="set-group"><h3>${esc(t('settings.support'))}</h3><button class="feedback-card" data-set="soon"><span class="set-ico">${icon.chat}</span><span><b>${esc(t('settings.feedback'))}</b><em>${esc(t('settings.feedbackSub'))}</em></span></button>${linkRow(icon.doc,t('settings.terms'),'/terms')}${linkRow(icon.lock,t('settings.privacy'),'/privacy')}<div class="set-row static"><span class="set-ico">${icon.info}</span><span class="set-label">${esc(t('settings.version',{v:'web 1.0'}))}</span></div></section>`;
 }
+// Download only the user's own locally held preferences; no auth credentials or tokens.
+function exportAccountData(){
+  if(!auth.user)throw Error(lang==='ko'?'로그인이 필요합니다.':'Sign in first.');
+  const permitted=['alimi-live-v1','seoulbeauty-catalog-saves-v1','seoulbeauty-interests-v1','seoulbeauty-profile-v1'];
+  const data={exported_at:new Date().toISOString(),account:{id:auth.user.id,email:auth.user.email??null,provider:auth.user.app_metadata?.provider??null},preferences:{}};
+  for(const key of permitted){const value=storage?.getItem(key);if(value!==null&&value!==undefined){try{data.preferences[key]=JSON.parse(value)}catch{data.preferences[key]=value}}}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='seoulbeauty-my-data.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function requestAccountDeletion(){
+  if(!auth.user)return;
+  const email=auth.user.email??'';
+  const heading=lang==='ko'?'회원 탈퇴 요청':'Account deletion request';
+  const body=lang==='ko'
+    ?'서울뷰티 회원 탈퇴 및 연결된 개인정보 삭제를 요청합니다. 본인 확인을 위한 안내를 보내 주세요.\\n\\n계정 이메일: '+email+'\\n※ 이메일만으로 탈퇴가 완료되지 않으며, 운영자의 안전한 본인 확인 후 처리됩니다.'
+    :'I request deletion of my Seoul Beauty account and associated personal data. Please send instructions for secure identity verification.\\n\\nAccount email: '+email+'\\nThis email does not immediately delete the account.';
+  location.href='mailto:support@seoulbeauty.me?subject='+encodeURIComponent(heading)+'&body='+encodeURIComponent(body);
+}
 async function settingsAction(a){
+  if(a==='account-export'){try{exportAccountData()}catch(e){toast(e.message)}return}
+  if(a==='account-deletion-request'){requestAccountDeletion();return}
   if(a==='soon'){toast(t('settings.soon'));return}
   if(a==='do-not-sell'){try{await optOutOfSale();toast(t('profile.doNotSellDone'))}catch{toast(t('profile.failed'))}return}
   if(a==='clear-saved'){if(!confirm(t('settings.clearSavedConfirm')))return;state={favorites:[],targets:{}};save();renderList();toast(t('settings.cleared'));return}
