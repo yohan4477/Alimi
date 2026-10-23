@@ -19,6 +19,9 @@ if (root) {
   }
   document.getElementById('metrics-region')?.addEventListener('change',()=>refreshMetrics(true));
   document.getElementById('metrics-refresh')?.addEventListener('click',()=>refreshMetrics(true));
+  document.querySelectorAll('.period-choice').forEach(button=>button.addEventListener('click',()=>{
+    document.querySelectorAll('.period-choice').forEach(item=>{item.classList.toggle('active',item===button);item.setAttribute('aria-pressed',String(item===button));});
+  }));
   const review = document.getElementById('sb-planning-review');
   const tabs = [...root.querySelectorAll('[role="tab"]')];
   function select(tab, focus = false) {
