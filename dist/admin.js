@@ -72,12 +72,12 @@ if (root) {
     try{
       const response=await fetch('/api/admin?view=metrics&region='+encodeURIComponent(document.getElementById('metrics-region')?.value??'all'),{credentials:'same-origin',cache:'no-store'});
       if(!response.ok)throw Error('access');const data=await response.json();
-      const labels={unconnected:'미연결',denied:'조회 권한 없음',unavailable:'조회 실패',partial:'집계 범위 초과 · 일부 데이터',no_data:'미수신',received:'수신 확인'};
-      const label=labels[data.state]??'조회 실패';
+      const labels={unconnected:'미연결',denied:'조회 권한 없음',unavailable:'불러오기 실패',partial:'집계 범위 초과 · 일부 데이터',no_data:'미수신',received:'수신 확인'};
+      const label=labels[data.state]??'불러오기 실패';
       cells.forEach(e=>{const value=data.metrics?.[e.dataset.metric];e.textContent=data.state==='received'&&Number.isFinite(value)?value.toLocaleString('ko-KR'):label;});
       status.textContent=label+' · 조회 '+new Date(data.generatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' KST'+(data.lastEventAt?' · 최근 수신 '+new Date(data.lastEventAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' KST':'');
       lastMetricsFetch=Date.now();
-    }catch{status.textContent='조회 실패 · 로그인과 연결 상태를 확인하세요.';cells.forEach(e=>e.textContent='조회 실패');}
+    }catch{status.textContent='불러오기 실패 · 로그인과 연결 상태를 확인하세요.';cells.forEach(e=>e.textContent='불러오기 실패');}
     finally{metricsBusy=false;}
   }
   document.getElementById('metrics-region')?.addEventListener('change',()=>refreshMetrics(true));
