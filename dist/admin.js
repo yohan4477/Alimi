@@ -253,7 +253,7 @@ if (root) {
 
   // Development tab reads a manual snapshot: filters never mutate GitHub/issues or telemetry.
   const devPanel = document.getElementById('sb-dev');
-  if (devPanel) {
+  if (devPanel?.querySelector('[data-dev-item]')) {
     const cards = [...devPanel.querySelectorAll('[data-dev-item]')];
     const buttons = [...devPanel.querySelectorAll('[data-dev-filter]')];
     const state = {priority:'all',platform:'all'};

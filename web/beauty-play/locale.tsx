@@ -16,7 +16,7 @@ export function translate(text:string,lang:Language){
 export function LanguageProvider({children}:{children:ReactNode}){
  const [lang,setLang]=useState<Language>('ko');
  useEffect(()=>{const query=new URL(location.href).searchParams.get('lang');let saved='';try{saved=localStorage.getItem('beauty-language')||'';}catch{}setLang(query==='en'||query==='ko'?query:saved==='en'?'en':'ko');},[]);
- useEffect(()=>{document.documentElement.lang=lang;const path=location.pathname;document.title=path==='/play'?(lang==='ko'?'뷰티뷰티 — 뷰티 놀이터':'Beauty Beauty — Beauty Playground'):path==='/community'?(lang==='ko'?'서울뷰티 연결 체험 — 뷰티뷰티':'Seoul Beauty Journey — Beauty Beauty'):path==='/plan'?'Beauty Beauty — CX & PRD':path==='/ops'?(lang==='ko'?'뷰티뷰티 — 운영 현황':'Beauty Beauty — Operations'):(lang==='ko'?'명화의 파우치 — 뷰티뷰티':'The Portrait Pouch — Beauty Beauty');},[lang]);
+ useEffect(()=>{document.documentElement.lang=lang;const path=location.pathname;document.title=path==='/play'?(lang==='ko'?'뷰티뷰티 — 뷰티 놀이터':'Beauty Beauty — Beauty Playground'):path==='/community'?(lang==='ko'?'서울뷰티 연결 체험 — 뷰티뷰티':'Seoul Beauty Journey — Beauty Beauty'):path==='/plan'?'Beauty Beauty — CX & PRD':path==='/ops'?(lang==='ko'?'뷰티뷰티 — 운영 현황':'Beauty Beauty — Operations'):(lang==='ko'?'언니가 골라줄게 · Seoul Beauty':'Let Me Pick · Seoul Beauty');},[lang]);
  function setLanguage(value:Language){setLang(value);try{localStorage.setItem('beauty-language',value);}catch{}const u=new URL(location.href);u.searchParams.set('lang',value);history.replaceState(null,'',u);}
  return <LanguageContext.Provider value={{lang,setLanguage}}>{children}</LanguageContext.Provider>;
 }
