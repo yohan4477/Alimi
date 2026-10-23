@@ -36,3 +36,12 @@ test('"new messages" only when the room changed after this device last looked', 
   assert.equal(hasNewSince({created_at: '2026-10-19T08:00'}, '2026-10-19T09:00'), false);
   assert.equal(hasNewSince({created_at: '2026-10-19T10:00'}, undefined), false, 'never seen: no claim');
 });
+
+test('sample room labels distinguish fictional participants and activity from real usage', async () => {
+  const {participationLabel,roomActivity,roomListCard}=await import('../dist/room-card.js');
+  const sample={id:'demo-cx-t01',demo:true,members:6,messages_24h:12,last_message_at:new Date().toISOString()};
+  assert.match(participationLabel(sample),/fictional|가상/);
+  assert.match(roomActivity(sample),/not actual usage|실제 이용 현황이 아니/);
+  assert.match(roomListCard(sample),/fictional|가상/);
+  assert.doesNotMatch(participationLabel({...sample,demo:false}),/fictional|가상/);
+});
