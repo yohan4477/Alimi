@@ -369,3 +369,40 @@
 .admin-timeline-card p{font-size:.9rem;margin:0 0 10px}
 .admin-timeline-date,.admin-timeline-footnote{font-size:.8rem;color:var(--muted-foreground)}
 @media(max-width:480px){.admin-timeline{padding-left:36px!important}.admin-timeline-node{left:-36px;width:28px;height:28px}.admin-timeline:before{left:13px}.admin-timeline-card{padding:13px}}
+
+/* Admin design directive: no cards. All dashboard content is flat, separated by rules. */
+#sb-management .admin-flat-section,
+#sb-management .admin-overview,
+#sb-management .admin-kpi,
+#sb-management .admin-empty-state,
+#sb-management .admin-ref-cards article,
+#sb-management .admin-ref-funnel,
+#sb-management .admin-timeline-card,
+#sb-management .sb-metric,
+#sb-management .sb-design-home-card,
+#sb-management .sb-flag {
+ background:transparent!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+}
+#sb-management .admin-flat-section,
+#sb-management .admin-overview,
+#sb-management .admin-empty-state{padding:18px 0!important;border-bottom:1px solid var(--border)!important}
+#sb-management .admin-ref-cards{gap:0!important}
+#sb-management .admin-ref-cards article{min-height:0!important;padding:14px 12px!important;border-bottom:1px solid var(--border)!important}
+#sb-management .admin-ref-cards article:nth-child(odd){border-right:1px solid var(--border)!important}
+#sb-management .admin-ref-funnel{padding:20px 0!important;border-bottom:1px solid var(--border)!important}
+#sb-management .admin-kpi-grid{gap:0!important}
+#sb-management .admin-kpi{padding:16px 10px!important;border-bottom:1px solid var(--border)!important}
+#sb-management .admin-timeline-card{padding:10px 0 20px!important;border-bottom:1px solid var(--border)!important}
+#sb-management .sb-metrics{gap:0!important}
+#sb-management .sb-metric{padding:14px 10px!important;border-bottom:1px solid var(--border)!important}
+#sb-management .sb-flag{padding:12px 0!important;border-bottom:1px solid var(--border)!important}
+#sb-management .admin-timeline-status{border-radius:0!important;background:none!important;padding:0!important}
+#sb-management .admin-ref-region select{border-radius:4px!important}
+#sb-management .admin-navigation .nav-link{border-radius:0!important}
+#sb-management .admin-navigation .nav-link[aria-selected="true"]{background:transparent!important;border-left:3px solid var(--primary)!important}
+#sb-management .admin-logo-symbol{border-radius:0!important}
+#sb-management .admin-table-scroll{border-radius:0!important}
+@media(max-width:700px){#sb-management #sb-product-chat-entry-plan h4+div>table tr{border-radius:0!important;background:transparent!important;border:0!important;border-bottom:1px solid var(--border)!important}}
