@@ -73,6 +73,8 @@ test('new unspecified option labels have English coverage without changing the l
 
 test('mobile catalog keeps a non-collapsing product strip when pagination is present',()=>{
  const css=readFileSync('web/beauty-play/game.css','utf8');
+ assert.ok(css.includes('.staged-workbench>*{flex-shrink:0}'));
+ assert.ok(css.includes('.brand-track{min-height:36px}'));
  assert.match(css,/\[data-stage="product"\] \.staged-products\{flex:0 0 180px;min-height:180px\}/);
  assert.match(css,/\[data-stage="product"\] \.staged-products \.product-image\{flex:0 0 90px;min-height:90px;height:90px!important\}/);
 });
