@@ -9,10 +9,25 @@ on:
       - 'tests/**'
       - 'scripts/**'
       - 'e2e/**'
+      - 'supabase/**'
+      - 'web/beauty-play/**'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/web.yml'
 permissions:
   contents: read
 jobs:
+  beauty_game_database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/beauty-game-*.test.js
+      - run: npm run test:beauty-game-db
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 10
