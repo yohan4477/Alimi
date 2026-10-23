@@ -11,9 +11,24 @@
     "api/admin.js": {
       "includeFiles": "server/admin-*.html",
       "maxDuration": 30
+    },
+    "api/beauty-play.js": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
+    {
+      "source": "/beauty-play/api/:route",
+      "destination": "/api/beauty-play?route=:route"
+    },
+    {
+      "source": "/beauty-play",
+      "destination": "/beauty-play/index.html"
+    },
+    {
+      "source": "/beauty-play/",
+      "destination": "/beauty-play/index.html"
+    },
     {
       "source": "/admin",
       "destination": "/api/admin"
