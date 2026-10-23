@@ -429,3 +429,22 @@
 #sb-dev .admin-status-table th:nth-child(1){width:24%}
 #sb-dev .admin-status-table th:nth-child(2){width:25%}
 #sb-dev .admin-status-table th:nth-child(3){width:51%}
+
+/* Admin quality management: four-tab UI, matching existing admin primitives. */
+#sb-quality .quality-tabs{display:flex;gap:4px;overflow-x:auto;margin:20px 0 24px;border-bottom:1px solid var(--border)}
+#sb-quality .quality-tab{background:transparent;border:0;border-bottom:3px solid transparent;color:var(--muted-foreground);font-size:.9rem;padding:11px 13px;white-space:nowrap;min-height:44px}
+#sb-quality .quality-tab.active{border-color:var(--primary);color:var(--foreground);font-weight:750}
+#sb-quality .quality-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 26px}
+#sb-quality .quality-metrics>div{background:var(--accent);padding:17px;border-radius:11px;display:grid;gap:4px}
+#sb-quality .quality-metrics strong{font-size:1.7rem;line-height:1.1}
+#sb-quality .quality-metrics span,#sb-quality .quality-record small{font-size:.78rem;color:var(--muted-foreground)}
+#sb-quality .quality-record,#sb-quality .quality-record-list>div{border:1px solid var(--border);border-radius:10px;padding:14px;margin:9px 0}
+#sb-quality .quality-record p{font-size:.87rem;color:var(--muted-foreground)}
+#sb-quality .quality-record-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+#sb-quality .quality-status,#sb-quality .quality-record-list span{font-size:.73rem;color:var(--muted-foreground);background:var(--accent);padding:3px 8px;border-radius:6px}
+#sb-quality .quality-record-list>div{display:flex;flex-direction:column;gap:4px}
+#sb-quality .quality-record-list strong{font-size:.92rem}
+#sb-quality .quality-record-list span{align-self:flex-start}
+#sb-quality .quality-process{padding-left:25px}
+#sb-quality .quality-process li{padding:10px 0;border-bottom:1px solid var(--border)}
+@media(max-width:480px){#sb-quality .quality-tab{padding:9px 10px;font-size:.82rem}}
