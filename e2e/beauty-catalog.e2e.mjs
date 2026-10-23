@@ -14,7 +14,7 @@ try{
   if(u.pathname.endsWith('/stats'))return route.fulfill({json:{votes:[],experienced:[]}});
   return route.fulfill({json:{accountLinkEnabled:false}});
  }return route.continue();});
- await page.goto(base+'/beauty-play/?character=mona&test=1');await page.locator('.advice-choices button').first().click();await page.locator('.staged-dock .primary').click();
+ await page.goto(base+'/beauty-play/?character=mona&test=1&lang=ko');await page.locator('.advice-choices button').first().click();await page.locator('.staged-dock .primary').click();
  const snapshot=shareSnapshot('mona'),seen=new Set();
  while(true){const cards=page.locator('.staged-products .product');assert(await cards.count()<=10);for(const name of await cards.locator('.product-copy strong').allTextContents())seen.add(name);const next=page.locator('.catalog-pages button').last();if(await next.isDisabled())break;await next.click();}
  assert.equal(seen.size,new Set(snapshot.products.map(p=>p.name)).size);
