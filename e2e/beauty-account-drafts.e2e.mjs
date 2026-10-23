@@ -33,7 +33,18 @@ async function device(owner){
  await page.goto(origin+'/us?lang=en&demo=0');
  return {context,page};
 }
+async function openAccountRecovery(page){
+ await page.locator('#tabbar [data-screen="saved"]').click();
+ await page.locator('#saved [data-screen="settings"]').click();
+ await page.locator('[data-auth="drafts"]').click();
+ await page.locator('#beauty-account-drafts[open]').waitFor();
+}
 try{
+ const guest=await device(null);
+ assert.equal(await guest.page.locator('[data-chat-action="beauty-account-list"]').count(),0,'no unconditional recovery CTA on home');
+ await guest.page.locator('#tabbar [data-screen="saved"]').click();
+ await guest.page.locator('#saved [data-screen="settings"]').click();
+ assert.equal(await guest.page.locator('[data-auth="drafts"]').count(),0,'guest account section has no recovery action');
  const first=await device('fixture-owner');
  await first.page.evaluate(({key,id})=>sessionStorage.setItem(key,JSON.stringify({id,region:'us',language:'en',body:'Private account draft',createdAt:Date.now()})),{key,id});
  await first.page.goto(origin+'/us?lang=en&demo=0&beautyDraft='+id);
@@ -44,8 +55,9 @@ try{
  assert.equal(writes.length,1);assert.equal(cloud.get('fixture-owner').body,'Private account draft');
  assert.ok(!JSON.stringify(writes).includes('p_secret'),'anonymous chat secrets never enter cloud drafts');
  const second=await device('fixture-owner');
+ assert.equal(await second.page.locator('[data-chat-action="beauty-account-list"]').count(),0,'signed-in home does not fetch or advertise unknown private drafts');
  assert.equal(await second.page.evaluate(key=>sessionStorage.getItem(key),key),null,'second device starts with no tab draft');
- await second.page.locator('[data-chat-action="beauty-account-list"]').click();
+ await openAccountRecovery(second.page);
  await second.page.locator('[data-account-draft-restore]').click();
  await second.page.locator('.beauty-draft-text').waitFor();
  assert.equal(await second.page.locator('.beauty-draft-text').innerText(),'Private account draft');
@@ -53,7 +65,7 @@ try{
  assert.equal(writes.length,1,'recovery never uploads again or publishes');
  assert.equal(await second.page.locator('#post-write[open]').count(),0);
  const other=await device('different-owner');
- await other.page.locator('[data-chat-action="beauty-account-list"]').click();
+ await openAccountRecovery(other.page);
  await other.page.locator('#beauty-account-drafts[open]').waitFor();
  assert.equal(await other.page.locator('[data-account-draft-restore]').count(),0);
  assert.ok(!(await other.page.locator('#beauty-account-drafts').innerText()).includes('Private account draft'));

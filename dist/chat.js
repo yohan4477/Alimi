@@ -1,3 +1,4 @@
+import {gameEntranceMarkup, mountGameEntranceCarousel} from './game-entrance-carousel.js';
 import {BeautyAccountDrafts} from './beauty-account-drafts.js';
 import {readHandoff,writeHandoff,updateHandoff,clearHandoff,handoffStorage} from './beauty-handoff.js';
 import {suggestDraftRooms} from './beauty-room-suggest.js';
@@ -64,7 +65,8 @@ export function relTime(iso, now = Date.now()) {
 }
 // ref = where the card was seen ("post-12", "comment-4", "chat-88"); passed on to the product sheet / Awin.
 const itemCard = (it, ref = '') => it.demo ? `<button class="chat-item" data-demo-product="${esc(it.label)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="${esc(it.name)}" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(it.brand)} · ${esc(t('rooms.demoProducts'))}</small><b>${esc(it.name)}</b></span></button>` : `<button class="chat-item" ${it.family_key ? `data-family="${esc(it.family_key)}" data-sku="${esc(it.sku)}" data-retailer="${esc(it.retailer)}" data-market="${esc(it.market)}"` : `data-chat-product="${esc(JSON.stringify(it))}"`} data-ref="${esc(ref)}">${it.image_url ? `<img src="${esc(it.image_url)}" alt="" loading="lazy">` : '<span class="no-photo"></span>'}<span><small>${esc(brandLabel({brand: it.brand, brandKo: it.brand_ko}))}</small><b>${esc(it.name)}</b><em>${esc(t('chat.sharedPrice', {v: usd(it.price_minor / 100)}))}</em></span></button>`;
-const shell = inner => { $('#chat').innerHTML = inner; };
+let stopGameEntrance = () => {};
+const shell = inner => { stopGameEntrance(); $('#chat').innerHTML = inner; const entrance = $('#chat [data-game-entrance]'); stopGameEntrance = entrance ? mountGameEntranceCarousel(entrance, {lang:locale().startsWith('ko') ? 'ko' : 'en'}) : () => {}; };
 const body = inner => { const b = $('#topic-body'); if (b) b.innerHTML = inner; };
 
 const communityModeKey = 'seoulbeauty-community-mode';
@@ -105,7 +107,7 @@ export async function openChat(opts = {}) {
 // Inside a room the composer gets the bottom of the screen: the tab bar hides (style.css).
 function inRoom(on) { if (on) document.documentElement.dataset.room = '1'; else delete document.documentElement.dataset.room; }
 // Called when the user switches to another tab: stop polling until the community screen is opened again.
-export function leaveChat() { rememberDraft(); communityOpenVersion++; finishStartup(); stopPolling(); chat.room = null; inRoom(false); }
+export function leaveChat() { stopGameEntrance(); rememberDraft(); communityOpenVersion++; finishStartup(); stopPolling(); chat.room = null; inRoom(false); }
 // Product sheet "대화에 첨부": only while a live room's composer is on screen.
 export const canAttachToChat = () => Boolean(chat.room && $('#chat-text'));
 export function attachToChat(it) {
@@ -170,6 +172,7 @@ export function refreshBeautyDraftAccount(){
   renderBeautyDraft();
 }
 const draftText=(ko,en)=>locale().startsWith('ko')?ko:en;
+export function openBeautyAccountDrafts(){return accountDraftAction('list');}
 async function accountDraftAction(action,id){
   try{
     if(!accountDrafts)throw Error('login_required');
@@ -205,7 +208,7 @@ export function openRoomListNext() {
 }
 function renderBeautyDraft() {
   const box = $('#beauty-draft-arrival'); if (!box) return;
-  if(!incomingBeautyId||beautyDraftDismissed){box.hidden=false;box.innerHTML=`<button data-chat-action="beauty-account-list">${esc(draftText('계정의 비공개 초안 복구','Recover private account drafts'))}</button>`;return;}
+  if(!incomingBeautyId||beautyDraftDismissed){box.hidden=true;box.innerHTML="";return;}
   beautyDraft = readHandoff(handoffStorage(),{id:incomingBeautyId,region});
   box.hidden = false;
   const ko = locale().startsWith('ko'), tr = (k,e) => ko?k:e;
@@ -287,10 +290,7 @@ async function renderHome() {
 const trendCard = r => `<button class="trend-card" data-chat-room="${esc(r.id)}" data-live="1"><span class="trend-img">${home.images.get(r.id) ? `<img src="${esc(home.images.get(r.id))}" alt="" loading="lazy">` : roomThumb(r)}</span><b>${esc(roomTitle(r))}</b><small>${esc(t('room.newToday', {n: r.messages_24h}))}</small></button>`;
 // Home list row (journey 1): picture, title, latest line, real members and last activity.
 const hotRow = (r, image, note) => `<button class="hot-row" data-chat-room="${esc(r.id)}"${!r.demo && r.messages_24h > 0 ? ' data-live="1"' : ''}>${roomThumb(r, image)}<span class="hot-text"><b>${esc(roomTitle(r))}</b>${note ? `<small>${esc(note)}</small>` : ''}<span class="hot-meta"><span>${icon.people}${esc(participationLabel(r))}</span>${r.last_message_at ? `<span>${icon.clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>`;
-const gameEntrance = () => {
-  const ko = locale().startsWith('ko');
-  return `<a class="home-game-entry" href="/beauty-play/?lang=${ko ? 'ko' : 'en'}"><img src="/beauty-play/assets/art-mona.webp" alt="" width="78" height="94"><span><small>${ko ? '언니가 골라줘' : 'Let Me Pick'}</small><strong>${ko ? '소개팅 10분 전인데, 뭐 바를까?' : 'Ten minutes until a date. Which lip?'}</strong></span><span class="home-game-arrow" aria-hidden="true">→</span></a>`;
-};
+const gameEntrance = () => gameEntranceMarkup(locale().startsWith('ko') ? 'ko' : 'en');
 const homeHero = () => `<section class="home-hero"><div class="home-hero-text"><h1>${esc(t('home.hero.title'))}</h1><p>${esc(t('home.hero.sub'))}</p><button class="hero-cta" data-home-tab="discover">${esc(t('home.hero.cta'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div><img src="assets/seoul-beauty-model.webp" alt="" width="1254" height="1254"></section>`;
 const bigHead = (title, sub, more = 'data-home-tab="rooms"') => `<div class="big-head-row"><div><h2 class="big-head">${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div><button class="text-link" ${more}>${esc(t('home.seeAll'))} ›</button></div>`;
 const sectionHead = (title, sub, more = '') => `<div class="section-head"><div><h2 class="chat-section">${esc(title)}</h2>${sub ? `<p class="home-note">${esc(sub)}</p>` : ''}</div>${more}</div>`;
