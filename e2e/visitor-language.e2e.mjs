@@ -22,7 +22,8 @@ try{
  for(const [path,lang] of [['/beauty-play/','en'],['/beauty-play/','ko'],['/kr','en'],['/us','ko']]){
   const f=await fixture({countryLanguage:lang,locale:lang==='en'?'ko-KR':'en-US'});
   // Community modules await locale resolution, so DOMContentLoaded must not gate releasing this response.
-  await f.page.goto(base+path,{waitUntil:'commit'});await f.started;
+  await f.page.goto(base+path,{waitUntil:'commit'});
+  let timeout;try{await Promise.race([f.started,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('Locale request did not start')),10000);})]);}finally{clearTimeout(timeout);}
   if(path.startsWith('/beauty-play'))assert.equal(await f.page.locator('#root').innerText(),'');
   else assert.equal(await f.page.locator('body').evaluate(el=>getComputedStyle(el).visibility),'hidden');
   f.release();await f.page.waitForFunction(value=>document.documentElement.lang===value,lang);
@@ -32,7 +33,7 @@ try{
  }
  // Explicit link doesn't replace a remembered manual choice; manual toggle does.
  const f=await fixture();f.release();await f.page.goto(base+'/beauty-play/');await f.page.locator('.language-switch').waitFor();
- await f.page.locator('.language-switch').click();assert.equal(await f.page.locator('html').getAttribute('lang'),'ko');
+ await f.page.locator('.language-switch').click();await f.page.waitForFunction(()=>document.documentElement.lang==='ko');assert.equal(await f.page.locator('html').getAttribute('lang'),'ko');
  const cookie=(await f.context.cookies()).find(c=>c.name==='seoulbeauty-language');assert.equal(cookie.value,'ko');assert.equal(cookie.path,'/');
  await f.page.goto(base+'/beauty-play/?lang=en');await f.page.locator('.pilot-entry').waitFor();assert.equal(await f.page.locator('html').getAttribute('lang'),'en');
  assert.equal((await f.context.cookies()).find(c=>c.name==='seoulbeauty-language').value,'ko');
@@ -42,7 +43,7 @@ try{
  for(const locale of ['en-US','ko-KR']){
   const g=await fixture({fail:true,privateMode:true,locale});g.release();await g.page.goto(base+'/beauty-play/');await g.page.locator('.pilot-entry').waitFor();
   assert.equal(await g.page.locator('html').getAttribute('lang'),locale.startsWith('ko')?'ko':'en');
-  await g.page.locator('.language-switch').click();assert.equal(await g.page.locator('html').getAttribute('lang'),locale.startsWith('ko')?'en':'ko');
+  await g.page.locator('.language-switch').click();await g.page.waitForFunction(value=>document.documentElement.lang===value,locale.startsWith('ko')?'en':'ko');assert.equal(await g.page.locator('html').getAttribute('lang'),locale.startsWith('ko')?'en':'ko');
   await g.context.close();
  }
  console.log('ok - delayed server first draw, country versus browser, explicit link, manual shared cookie, region isolation, failed API and blocked storage fixtures');

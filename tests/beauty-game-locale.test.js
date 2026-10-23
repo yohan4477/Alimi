@@ -31,5 +31,7 @@ test('all landing game entry paths preserve explicit test mode and locale only',
  }
  const landing=readFileSync(new URL('../web/beauty-play/landing.tsx',import.meta.url),'utf8');
  assert.match(landing,/location.href=gameEntryUrl\(id,lang,location.search\)/);
- assert.match(landing,/href=\{gameEntryUrl\(c.id,lang,globalThis.location\?\.search\|\|''\)\}/);
+ assert.doesNotMatch(landing,/className="pilot-cards"/);
+ assert.match(landing,/availableCharacterIds/);
+ assert.match(landing,/activeRun/);
 });

@@ -1,6 +1,6 @@
 import {createHash,randomBytes} from 'node:crypto';
 import {authRequest} from './admin-auth.js';
-import {validateCommand,aggregateAnswers,shareSnapshot} from './beauty-game-domain.mjs';
+import {validateCommand,aggregateAnswers,shareSnapshot,supportedCharacterIds} from './beauty-game-domain.mjs';
 import {legacyInvitationRedirect} from './beauty-game-legacy.mjs';
 
 const BASE='https://mqsnshnlfwsgabrsmqsz.supabase.co';
@@ -77,7 +77,7 @@ export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=cre
         if(!token)token=await newSession();
         else if((await rpc('session',createHash('sha256').update(token).digest('hex'),{})).rotate)token=await newSession();
         setCookie(res,token);
-        return send(200,{ok:true,accountLinkEnabled:env.BEAUTY_GAME_ACCOUNT_LINK_ENABLED==='true'});
+        return send(200,{ok:true,supportedCharacterIds,accountLinkEnabled:env.BEAUTY_GAME_ACCOUNT_LINK_ENABLED==='true'});
       }
       if(!token)throw error(401);
       const sessionHash=createHash('sha256').update(token).digest('hex');

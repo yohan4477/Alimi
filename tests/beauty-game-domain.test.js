@@ -49,7 +49,7 @@ test('experiences/share/reflection and authentication consent payloads are const
   invalid(()=>validateCommand('link-account',{consent:true,user_id:id}));
 });
 test('query scopes derive group members from shared taxonomy, query duplicates rejected',()=>{
-  assert.deepEqual(validateCommand('stats',new URLSearchParams('character=mona&scope=group&test=0')),{character:'mona',scope:'group',characters:['mona','madame'],test:false});
+  assert.deepEqual(validateCommand('stats',new URLSearchParams('character=mona&scope=group&test=0')),{character:'mona',scope:'group',characters:['mona','madame','school_photo_friend'],test:false});
   assert.deepEqual(validateCommand('invite',{id,play:id,reveal:'1'}),{id,play:id,reveal:true});
   invalid(()=>validateCommand('stats',new URLSearchParams('character=mona&character=venus')));
   invalid(()=>validateCommand('stats',{character:'mona',characters:['venus']}));

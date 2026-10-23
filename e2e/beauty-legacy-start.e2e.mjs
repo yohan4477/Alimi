@@ -15,7 +15,7 @@ let browser,currentPage;
 function latch(){let release;const promise=new Promise(resolve=>{release=resolve;});return {promise,release};}
 async function until(predicate,label){const deadline=Date.now()+5000;while(!predicate()&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,10));assert(predicate(),label);}
 async function disabled(page){
-  assert.equal(await page.locator('.story-switch').isDisabled(),true);
+  assert.equal(await page.locator('.story-switch').count(),0);
   assert.equal(await page.locator('.staged-dock .primary').isDisabled(),true);
   for(const control of await page.locator('.advice-choices button, .staged-products .product').all())assert.equal(await control.isDisabled(),true);
 }
@@ -66,7 +66,7 @@ try{
     try{
       await f.begin();f.invite.release();
       await until(()=>f.records.some(record=>record.name==='landing_view'),'normal invitation enables startup analytics');
-      assert.equal(await f.page.locator('.story-switch').isDisabled(),false);
+      assert.equal(await f.page.locator('.story-switch').count(),0);
       const choices=f.page.locator(productFirst?'.staged-products .product':'.advice-choices button');
       assert.equal(await choices.first().isDisabled(),false);
       assert.equal(f.records.filter(record=>record.name==='game_start').length,0);
