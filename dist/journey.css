@@ -483,3 +483,22 @@ body{color:var(--jr-ink)}
 }
 /* Keep iOS from zooming the composer when it receives focus. */
 @media(pointer:coarse){#chat-text{font-size:16px}}
+
+/* Align the existing portrait with the first headline line, not the hero bottom.
+   Keep body copy left of the portrait's face; preserve the Korean sentence break. */
+.home-hero{--hero-copy-top:26px}
+.home-hero-text{padding-top:var(--hero-copy-top)}
+.home-hero img{top:var(--hero-copy-top);bottom:auto;height:auto;object-position:right top}
+.home-hero p{width:46vw;max-width:230px;text-indent:0;white-space:normal}
+html:lang(ko) .home-hero p{white-space:pre-line}
+@media(max-width:480px){.home-hero{--hero-copy-top:24px}}
+@media(max-width:360px){.home-hero{--hero-copy-top:22px}.home-hero img{right:-10px}}
+/* Shared header hitboxes align; the bell's drawing sits lower within its 24px viewBox. */
+.sb-head .sb-head-actions .icon-btn{flex:0 0 44px;min-width:44px;min-height:44px;padding:0;line-height:1}
+.sb-head .sb-head-actions .icon-btn svg{display:block;flex:none;margin:0}
+.sb-head .home-alerts svg{position:relative;top:-1.375px}
+.service-context{height:auto;min-height:48px}
+.service-context .service-region-button,.service-context .demo-toggle{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+#tabbar button{flex:1;min-width:0;min-height:44px;padding:4px 8px 0;gap:3px}
+#tabbar button svg{display:block;flex:none}
+#tabbar button i{display:block;line-height:14px;white-space:nowrap}
