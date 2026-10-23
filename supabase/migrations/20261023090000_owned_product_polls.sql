@@ -3,6 +3,7 @@ create table if not exists public.owned_product_votes (
  id uuid primary key default gen_random_uuid(),
  product_id text not null check (length(product_id) between 1 and 80),
  voter_id uuid not null,
+ private_note text check (char_length(private_note) <= 160),
  choice text not null check (choice in ('owned','want','disliked','unknown')),
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now(),
