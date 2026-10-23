@@ -2,7 +2,7 @@ import data from './product-data.json';
 import additions from './scenario-products.json';
 import scenarios from './scenarios.json';
 export const VERSION='muse-v4';
-export const products=[...data.products.map(p=>({...p,category:'lip',optionKind:p.id==='14621'?'scent':'shade',rankStatus:'verified'})),...additions];
+export const products=[...data.products.map(p=>({...p,category:p.category||'lip',optionKind:p.optionKind||(p.id==='14621'?'scent':'shade'),rankStatus:p.rankStatus||'family-only'})),...additions];
 const legacyReasons=['지금 상황에 맞아서','표현이 마음에 들어서','보송하게 표현하고 싶어서','얇게 덧바르고 싶어서','색이 어울려서','촉촉함이 중요해서','오래 유지될 것 같아서','직접 써봐서','그냥 끌려서'];
 export const experiences=['지금 쓰고 있어','예전에 써봤어','써본 적 없어'];
 const originalCharacters=[

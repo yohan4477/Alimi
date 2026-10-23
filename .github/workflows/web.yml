@@ -3,16 +3,32 @@ on:
   pull_request:
     paths:
       - 'dist/**'
+      - 'web/beauty-play/**'
       - 'api/**'
       - 'server/**'
       - 'vercel.json'
       - 'tests/**'
       - 'scripts/**'
       - 'e2e/**'
+      - 'supabase/**'
+      - 'web/beauty-play/**'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/web.yml'
 permissions:
   contents: read
 jobs:
+  beauty_game_database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/beauty-game-*.test.js
+      - run: npm run test:beauty-game-db
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -21,11 +37,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: npm run build:beauty-play
       - run: npm test
+      - run: node --experimental-strip-types --test tests/beauty-random.test.mjs
       - name: Admin access and mobile flow (mocked auth)
         run: |
           npm install --no-save playwright-core@1.49.1
           CHROME_PATH="$(command -v google-chrome)" node e2e/admin.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-first-choice.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-catalog.e2e.mjs
       - name: Browser smoke test against the live public API
         run: |
           set -euo pipefail

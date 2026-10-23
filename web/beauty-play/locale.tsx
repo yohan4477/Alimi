@@ -11,7 +11,7 @@ export function translate(text:string,lang:Language){
   m=text.match(/^(\d+)명의 사용 경험 응답$/);if(m)return `${m[1]} responses from people who tried it`;
  }
  const rows=entries[lang];let result='',i=0;while(i<text.length){const row=rows.find(([key])=>text.startsWith(key,i));if(row){result+=row[1];i+=row[0].length;}else{result+=text[i];i++;}}
- return lang==='en'?result.replace(/명/g,' people'):result;
+ return lang==='en'?result.replace(/(\d+)건/g,'$1 responses').replace(/명/g,' people'):result;
 }
 export function LanguageProvider({children}:{children:ReactNode}){
  const [lang,setLang]=useState<Language>('ko');

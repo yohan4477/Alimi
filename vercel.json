@@ -13,6 +13,7 @@
       "maxDuration": 30
     },
     "api/beauty-play.js": {
+      "includeFiles": "web/beauty-play/*.json",
       "maxDuration": 30
     }
   },
@@ -69,5 +70,6 @@
       "source": "/terms/",
       "destination": "/terms.html"
     }
-  ]
+  ],
+  "buildCommand": "npm run build:beauty-play"
 }

@@ -1,6 +1,41 @@
 // Presentation state only. Authorization is performed on every server request.
 const root = document.getElementById('sb-management');
 if (root) {
+  // Every admin tab has a navigable table of contents, without card containers.
+  for (const panel of root.querySelectorAll('.sb-panel')) {
+    const headings = [...panel.querySelectorAll('h2,h3')].filter(h => !h.closest('details') && !h.closest('[hidden]'));
+    const unique = headings.filter(h => h.textContent.trim().length > 0).slice(0, 25);
+    const nav = document.createElement('nav');
+    nav.className = 'admin-section-toc';
+    nav.setAttribute('aria-label', '이 화면의 목차');
+    const label = document.createElement('strong');
+    label.textContent = '목차';
+    nav.append(label);
+    const list = document.createElement('ol');
+    if (unique.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = '개요';
+      list.append(li);
+    } else {
+      unique.forEach((heading,index)=>{
+        if (!heading.id) heading.id = panel.id + '-heading-' + (index+1);
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '#' + heading.id;
+        a.textContent = heading.textContent.trim();
+        a.addEventListener('click', event=>{
+          event.preventDefault();
+          heading.scrollIntoView({behavior:'smooth',block:'start'});
+          heading.focus({preventScroll:true});
+        });
+        heading.tabIndex = -1;
+        li.append(a);
+        list.append(li);
+      });
+    }
+    nav.append(list);
+    panel.prepend(nav);
+  }
   let metricsBusy=false,lastMetricsFetch=0;
   async function refreshMetrics(force=false){
     const status=document.getElementById('metrics-status');if(!status||metricsBusy||(!force&&Date.now()-lastMetricsFetch<60000))return;
@@ -19,6 +54,9 @@ if (root) {
   }
   document.getElementById('metrics-region')?.addEventListener('change',()=>refreshMetrics(true));
   document.getElementById('metrics-refresh')?.addEventListener('click',()=>refreshMetrics(true));
+  document.querySelectorAll('.period-choice').forEach(button=>button.addEventListener('click',()=>{
+    document.querySelectorAll('.period-choice').forEach(item=>{item.classList.toggle('active',item===button);item.setAttribute('aria-pressed',String(item===button));});
+  }));
   const review = document.getElementById('sb-planning-review');
   const tabs = [...root.querySelectorAll('[role="tab"]')];
   function select(tab, focus = false) {
@@ -32,6 +70,7 @@ if (root) {
     if (tab.id === 'sb-plan-tab') loadReview();
     if (tab.id === 'sb-ui-library-tab') loadLibrary();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
+    if (tab.id.startsWith('sb-')) { try { history.replaceState(null, '', '#' + tab.id.slice(0,-4)); } catch {} }
     if (focus) tab.focus();
     try { sessionStorage.setItem('sb-admin-tab', tab.id); } catch {}
   }
@@ -244,8 +283,9 @@ if (root) {
 
   document.querySelector('#sb-ui-library [data-dev-jump]')?.addEventListener('click', event => { event.preventDefault(); select(document.getElementById('sb-plan-tab')); });
   let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
-  const deepLink = {'#sb-plan':'sb-plan-tab','#sb-dev':'sb-dev-tab','#sb-ui-library':'sb-ui-library-tab'}[location.hash];
-  select(tabs.find(t => t.id === (deepLink || saved)) || tabs[0]);
+  const deepLink = tabs.find(t => '#' + t.id.slice(0,-4) === location.hash)?.id;
+  select(tabs.find(t => t.id === (deepLink || saved)) || document.getElementById('sb-dashboard-tab'));
+  if (!deepLink && !saved) history.replaceState(null, '', '#sb-dashboard');
   document.getElementById('admin-logout').addEventListener('submit', () => { root.hidden = true; try { sessionStorage.removeItem('sb-admin-tab'); } catch {} });
   // Do not show a protected snapshot from the browser back/forward cache after logout.
   addEventListener('pagehide', () => { root.hidden = true; });
