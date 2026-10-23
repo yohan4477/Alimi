@@ -1,6 +1,7 @@
 'use client';
 import {createContext,useContext,useEffect,useState,Children,isValidElement,cloneElement,type ReactNode,type ReactElement} from 'react';
 import dictionaries from './translations.json';
+import {initialLanguage,resolveVisitorLanguage,rememberLanguage} from '../../dist/language-preference.js';
 export type Language='ko'|'en';
 const LanguageContext=createContext<{lang:Language;setLanguage:(lang:Language)=>void}>({lang:'ko',setLanguage:()=>{}});
 const entries={ko:Object.entries(dictionaries.ko).sort((a,b)=>b[0].length-a[0].length),en:Object.entries(dictionaries.en).sort((a,b)=>b[0].length-a[0].length)};
@@ -14,10 +15,12 @@ export function translate(text:string,lang:Language){
  return lang==='en'?result.replace(/(\d+)건/g,'$1 responses').replace(/명/g,' people'):result;
 }
 export function LanguageProvider({children}:{children:ReactNode}){
- const [lang,setLang]=useState<Language>('ko');
- useEffect(()=>{const query=new URL(location.href).searchParams.get('lang');let saved='';try{saved=localStorage.getItem('beauty-language')||'';}catch{}setLang(query==='en'||query==='ko'?query:saved==='en'?'en':'ko');},[]);
+ const [lang,setLang]=useState<Language>(()=>(initialLanguage()||'en') as Language);
+ const [ready,setReady]=useState(false);
+ useEffect(()=>{let active=true;resolveVisitorLanguage().then(value=>{if(active){setLang(value as Language);setReady(true);}});return()=>{active=false;};},[]);
  useEffect(()=>{document.documentElement.lang=lang;const path=location.pathname;document.title=path==='/play'?(lang==='ko'?'뷰티뷰티 — 뷰티 놀이터':'Beauty Beauty — Beauty Playground'):path==='/community'?(lang==='ko'?'서울뷰티 연결 체험 — 뷰티뷰티':'Seoul Beauty Journey — Beauty Beauty'):path==='/plan'?'Beauty Beauty — CX & PRD':path==='/ops'?(lang==='ko'?'뷰티뷰티 — 운영 현황':'Beauty Beauty — Operations'):(lang==='ko'?'언니가 골라줄게 · Seoul Beauty':'Let Me Pick · Seoul Beauty');},[lang]);
- function setLanguage(value:Language){setLang(value);try{localStorage.setItem('beauty-language',value);}catch{}const u=new URL(location.href);u.searchParams.set('lang',value);history.replaceState(null,'',u);}
+ function setLanguage(value:Language){setLang(value);rememberLanguage(value);const u=new URL(location.href);u.searchParams.set('lang',value);history.replaceState(null,'',u);}
+ if(!ready)return null;
  return <LanguageContext.Provider value={{lang,setLanguage}}>{children}</LanguageContext.Provider>;
 }
 export const useLanguage=()=>useContext(LanguageContext);

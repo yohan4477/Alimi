@@ -1,19 +1,8 @@
-// UI text lookup shared with iOS (strings.json). Korean when the browser language is Korean, English
-// otherwise. `?lang=ko|en` overrides and is remembered, so the Korean operator can check either language.
+// UI text lookup shared with iOS (strings.json). Explicit link language overrides
+// saved manual preference, then trusted country/browser fallback. Links are not saved.
 import strings from './strings.json' with {type: 'json'};
-import {defaultLanguage} from './region.js';
-
-function detect() {
-  try {
-    const q = new URLSearchParams(globalThis.location?.search ?? '').get('lang');
-    if (q === 'ko' || q === 'en') { globalThis.localStorage?.setItem('alimi-lang', q); return q; }
-    const saved = globalThis.localStorage?.getItem('alimi-lang');
-    if (saved === 'ko' || saved === 'en') return saved;
-  } catch {}
-  return globalThis.location?.pathname?.match(/^\/(kr|us)(\/|$)/) ? defaultLanguage : (String(globalThis.navigator?.language ?? 'en').toLowerCase().startsWith('ko') ? 'ko' : 'en');
-}
-
-export let lang = detect();
+import {initialLanguage,resolveVisitorLanguage,browserLanguage,currentVisitorContext,rememberLanguage} from './language-preference.js';
+export let lang = initialLanguage() || currentVisitorContext()?.language || (typeof window !== 'undefined' && typeof document !== 'undefined' ? await resolveVisitorLanguage() : browserLanguage(globalThis.navigator?.language));
 export const setLang = l => { lang = l === 'ko' ? 'ko' : 'en'; };
 export const locale = () => (lang === 'ko' ? 'ko-KR' : 'en-US');
 

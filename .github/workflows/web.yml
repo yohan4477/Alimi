@@ -48,20 +48,21 @@ jobs:
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-first-choice.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-progress.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/game-entrance-carousel.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/visitor-market.e2e.mjs
       - name: Browser smoke test against the live public API
         run: |
           set -euo pipefail
           node scripts/dev-server.mjs >/dev/null 2>&1 &
           sleep 1
-          CHROME_PATH="$(command -v google-chrome)" node e2e/no-tracking.e2e.mjs http://localhost:3000/
-          CHROME_PATH="$(command -v google-chrome)" node e2e/community.e2e.mjs http://localhost:3000/
-          CHROME_PATH="$(command -v google-chrome)" node e2e/brands.e2e.mjs http://localhost:3000/
-          CHROME_PATH="$(command -v google-chrome)" node e2e/handoff.e2e.mjs http://localhost:3000/
-          CHROME_PATH="$(command -v google-chrome)" node e2e/offline.e2e.mjs http://localhost:3000/
-          CHROME_PATH="$(command -v google-chrome)" node e2e/web.e2e.mjs http://localhost:3000/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/no-tracking.e2e.mjs http://localhost:3000/us/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/community.e2e.mjs http://localhost:3000/us/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/brands.e2e.mjs http://localhost:3000/us/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/handoff.e2e.mjs http://localhost:3000/us/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/offline.e2e.mjs http://localhost:3000/us/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/web.e2e.mjs http://localhost:3000/us/
           CHROME_PATH="$(command -v google-chrome)" node e2e/service-regions.e2e.mjs
-          CHROME_PATH="$(command -v google-chrome)" node e2e/onboarding.e2e.mjs http://localhost:3000/
-          CHROME_PATH="$(command -v google-chrome)" node e2e/journey.e2e.mjs http://localhost:3000/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/onboarding.e2e.mjs http://localhost:3000/us/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/journey.e2e.mjs http://localhost:3000/us/
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
