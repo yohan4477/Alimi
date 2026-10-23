@@ -21,13 +21,13 @@ try{
      return route.fulfill({json:{ok:true,id:'11111111-1111-4111-8111-111111111111'}});
     }
     if(url.pathname.endsWith('/stats'))return route.fulfill({json:{votes:[{product:answer.product,n:3}],experienced:[],choices:[{character:answer.character,product:answer.product,shade:answer.shade,advice:answer.advice,n:3,usedN:0,reasons:[{reason:answer.reasons[0]||'촉촉함이 중요해서',n:2}]}]}});
-    return route.fulfill({json:{ok:true,accountLinkEnabled:false,kakaoKey:null}});
+    return route.fulfill({json:{ok:true,accountLinkEnabled:false,kakaoKey:null,supportedCharacterIds:['mona']}});
    }
    if(!['GET','HEAD'].includes(req.method()))return route.abort('blockedbyclient');
    return route.continue();
   });
   await page.goto(base+'/beauty-play/?lang='+lang+'&test=1');
-  await page.locator('.pilot-cards a').first().click();
+  await page.locator('.pilot-entry>.primary').click();
   assert.equal(new URL(page.url()).searchParams.get('test'),'1');
   assert.equal(new URL(page.url()).searchParams.get('lang'),lang);
   await page.locator('.testflag').waitFor({state:'attached'});

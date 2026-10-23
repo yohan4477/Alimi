@@ -113,7 +113,7 @@ try {
   await page.locator(`.staged-atelier[data-stage="${path==='advice-first'?'advice':'product'}"]`).waitFor();
   await noHorizontalOverflow(page,label+' initial');
   assertStarts(events,0,label+' before any choice');
-  await reachable(page.locator('.story-switch'),label+' scenario selector');
+  assert.equal(await page.locator('.story-switch').count(),0);
   if(path==='advice-first'){
    if(lang==='en')assert.match(await page.locator('.game-reward-hint').textContent(),/Make a choice/);
    for(const control of await page.locator('.advice-choices button').all())await reachable(control,label+' advice control');
@@ -138,17 +138,8 @@ try {
   assertStarts(events,1,label+' repeated product choices');
   assert.equal(starts(events)[0].source,path==='product-first'?'friend':'preview',label+' source preserved');
   await noHorizontalOverflow(page,label+' after choices');
-  // Switching scenarios starts a fresh play, but viewing it does not count as starting it.
-  await reachable(page.locator('.story-switch'),label+' scenario switch');
-  await page.locator('.story-switch').selectOption('3');
-  await page.locator('.staged-atelier[data-stage="advice"]').waitFor();
-  assertStarts(events,1,label+' new scenario impression');
-  await clickEvent(page.locator('.advice-choices button').first(),events,'advice_select',label+' new scenario choice');
-  await waitForEvent(events,'game_start',2);
-  await clickEvent(page.locator('.advice-choices button').last(),events,'advice_select',label+' new scenario changed choice');
-  assertStarts(events,2,label+' scenario deduplication');
-  assert.deepEqual(starts(events).map(e=>e.character),['mona','madame']);
-  await reachable(page.locator('.staged-dock .primary'),label+' new scenario continue');
+  assert.equal(await page.locator('.story-switch,.other-muses,.result-muse-track').count(),0);
+  assertStarts(events,1,label+' no scenario bypass');
   await noHorizontalOverflow(page,label+' final');
   assert.equal(await page.locator('.account-link').count(),0);
   assert.deepEqual(unexpectedWrites,[],label+' must not write answers/shares/reflections');

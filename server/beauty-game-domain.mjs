@@ -7,6 +7,7 @@ const adviceData = json('advice-data');
 const products = [...json('product-data').products.map(p => ({...p, category:p.category || 'lip', optionKind:p.optionKind || (p.id === '14621' ? 'scent' : 'shade'), rankStatus:p.rankStatus || 'family-only'})), ...json('scenario-products')];
 // Only the fields not overridden by scenarios.json are mirrored from game.ts.
 const portraits = {
+  school_photo_friend:['푸른 소년','#ded8c5'],school_last_minute_friend:['피리 부는 소년','#e8dfd3'],
   mona:['모나리자','#e8e8ce','좋아. 오늘은 미소 말고 립으로 기억되겠어.'],
   pearl:['진주 소녀','#dce7ef'], venus:['비너스','#f2dece'], madame:['마담 X','#e6ddd5'],
   camille:['양산을 쓴 여인','#dfe9d9'], ophelia:['오필리아','#e6e2d6'],
@@ -27,6 +28,7 @@ function allow(input, fields) { for (const key of Object.keys(input)) if (!field
 function list(value, choices, field) { if (!Array.isArray(value) || value.length > choices.length || value.some(v => !choices.includes(v))) invalid(field); return [...new Set(value)]; }
 function characterId(id) { return one(id, characters.map(c => c.id), 'character'); }
 function eligibleFor(_character) { return products; }
+export const supportedCharacterIds=characters.map(c=>c.id);
 export function shareSnapshot(id) {
   characterId(id);
   const character = characters.find(c => c.id === id), advice = adviceData[id] || [];

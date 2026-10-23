@@ -120,7 +120,7 @@ test('page gates all game records and early interactions until invitation resolu
   assert.equal((page.match(/if\(canWrite\.current\)recordFirstChoice/g)||[]).length,2);
   assert.match(page,/<button key=\{a.id\} disabled=\{!ready\}/);
   assert.match(page,/<button className=\{'product '\+\(pick===p.id\?'selected':''\)\}[^>]* disabled=\{!ready\}/);
-  assert.match(page,/<select className="story-switch"[^>]*disabled=\{!ready\}/);
+  assert.doesNotMatch(page,/<select className="story-switch"/);
   const startup=page.slice(page.indexOf('const start=await resolveGameStart'),page.indexOf("useEffect(()=>{if(!ready"));
   assert(startup.indexOf('if(!alive)return')<startup.indexOf('window.location.replace'));
   assert(startup.indexOf('window.location.replace')<startup.indexOf('canWrite.current=true'));
