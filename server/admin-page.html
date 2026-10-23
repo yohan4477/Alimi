@@ -2,15 +2,18 @@
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>관리자 페이지 · SeoulBeauty</title><link rel="stylesheet" href="/admin.css"><script src="/admin.js" defer></script></head><body><main class="admin-shell"><div id="sb-management">
   
   <div class="sb-header"><div><a class="wordmark" href="/">SeoulBeauty</a><h1>관리자 페이지</h1></div><form id="admin-logout" method="post" action="/api/admin?action=logout"><button class="btn" type="submit">로그아웃</button></form></div>
-  <div class="nav nav-pills" role="tablist" aria-label="SeoulBeauty 관리 영역">
-    <button class="nav-link active" id="sb-strategy-tab" type="button" role="tab" aria-controls="sb-strategy" aria-selected="true">전략</button>
-    <button class="nav-link" id="sb-plan-tab" type="button" role="tab" aria-controls="sb-plan" aria-selected="false">서비스 기획</button>
-    <button class="nav-link" id="sb-design-tab" type="button" role="tab" aria-controls="sb-design" aria-selected="false">디자인 리뷰</button>
-    <button class="nav-link" id="sb-ui-library-tab" type="button" role="tab" aria-controls="sb-ui-library" aria-selected="false">UI Library</button>
-    <button class="nav-link" id="sb-dev-tab" type="button" role="tab" aria-controls="sb-dev" aria-selected="false">개발</button>
-    <button class="nav-link" id="sb-roadmap-tab" type="button" role="tab" aria-controls="sb-roadmap" aria-selected="false">실행 로드맵</button>
-    <button class="nav-link" id="sb-dashboard-tab" type="button" role="tab" aria-controls="sb-dashboard" aria-selected="false">관리 대시보드</button>
-  </div>
+  <nav class="admin-navigation" aria-label="관리자 업무">
+    <p class="admin-nav-label">운영</p>
+    <div class="nav nav-pills" role="tablist" aria-label="SeoulBeauty 관리 영역">
+      <button class="nav-link active" id="sb-dashboard-tab" type="button" role="tab" aria-controls="sb-dashboard" aria-selected="true">운영 현황</button>
+      <button class="nav-link" id="sb-dev-tab" type="button" role="tab" aria-controls="sb-dev" aria-selected="false">개발 현황</button>
+      <button class="nav-link" id="sb-roadmap-tab" type="button" role="tab" aria-controls="sb-roadmap" aria-selected="false">실행 계획</button>
+      <button class="nav-link" id="sb-ui-library-tab" type="button" role="tab" aria-controls="sb-ui-library" aria-selected="false">UI 라이브러리</button>
+      <button class="nav-link" id="sb-strategy-tab" type="button" role="tab" aria-controls="sb-strategy" aria-selected="false">전략 자료</button>
+      <button class="nav-link" id="sb-plan-tab" type="button" role="tab" aria-controls="sb-plan" aria-selected="false">서비스 기획</button>
+      <button class="nav-link" id="sb-design-tab" type="button" role="tab" aria-controls="sb-design" aria-selected="false">디자인 리뷰</button>
+    </div>
+  </nav>
   <section class="sb-panel" id="sb-strategy" role="tabpanel" aria-labelledby="sb-strategy-tab"><div class="card"><span class="viz-badge">2026.10.20 · 사용자 확정 · 최신 기준</span><h3>하나의 Seoul Beauty · 한국/미국 서비스 · 언어는 별도</h3><p>미국 진출 확정. 한국의 접근성을 활용한 제품 개선과 미국 실제 수요 검증을 병행합니다. 국내 성과를 미국 진출의 선행 조건으로 두지 않습니다.</p><p><strong>/kr · 한국 / /us · 미국</strong> — 지역별 대화·판매처·가격을 구분하고 화면 언어는 독립 선택. 관심·고민 → 선택형 정보 → 제품별 대화찾기, 자동 방 입장 없음. 주제별 탐색·자유 방 생성 유지.</p><p>국가별 첫 발화·답변·상품/판매처 이동·D7·승인 수수료를 분리 측정합니다. 이벤트별 고유 기기 진단은 순차 퍼널이 아닙니다. 미국 진출은 확정 결정이며 조사 기반 대화 소재·효과는 검증 가설입니다.</p><p><strong>운영 한계:</strong> 운영 DB 권한 부족으로 지역 마이그레이션 미적용. 한국 대화·실판매처 연결 및 iPhone 실기기 검증은 완료가 아닙니다. 웹 /kr·/us 배포, 웹 150개 테스트 및 iOS 기본 23개·화면 10개 통과. iPhone 1.0 (28.1) App Store Connect 업로드 성공. <a href="https://github.com/yohan4477/Alimi/blob/main/docs/PRODUCT_STATUS.md">배포·Apple 처리 증거 ↗</a> (테스터 설치는 미검증).</p><a href="https://github.com/yohan4477/Alimi/blob/main/docs/SERVICE_REGIONS.md">지역·언어 상세 명세 ↗</a></div><details><summary>이전 시안·상태 기록 (현재 지시 아님)</summary>
     <div class="card"><span class="viz-badge">2026.10.19 · 확정 초기 전략</span><h3>K-뷰티에 관심 있고,<br>피부·메이크업 고민을 나누고 싶은 사람들부터</h3><span>SeoulBeauty는 비슷한 고민의 사람들과 경험을 나누고, 대화 속에서 실제 제품을 발견해 구매까지 연결하는 커뮤니티다.</span></div>
     <h3 class="sb-section">타깃 · 포지셔닝</h3>
@@ -497,7 +500,13 @@
     <div class="sb-step"><span class="sb-label">6</span><div><span class="sb-label">효용이 확인된 기능 확장</span><p>사진·피부 정보·번역·콘텐츠·추가 판매처를 하나씩 판단.</p><p class="text-small text-muted">핵심 수요·사용 조건·운영 부담을 보고 결정</p></div></div>
     <div class="sb-links"><a href="https://github.com/yohan4477/Alimi/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener noreferrer">실행 로드맵 원문 ↗</a></div>
   </details></section>
-  <section class="sb-panel" id="sb-dashboard" role="tabpanel" aria-labelledby="sb-dashboard-tab" hidden><div class="card"><span class="viz-badge">2026.10.20 · 사용자 확정 · 최신 기준</span><h3>하나의 Seoul Beauty · 한국/미국 서비스 · 언어는 별도</h3><p>미국 진출 확정. 한국의 접근성을 활용한 제품 개선과 미국 실제 수요 검증을 병행합니다. 국내 성과를 미국 진출의 선행 조건으로 두지 않습니다.</p><p><strong>/kr · 한국 / /us · 미국</strong> — 지역별 대화·판매처·가격을 구분하고 화면 언어는 독립 선택. 관심·고민 → 선택형 정보 → 제품별 대화찾기, 자동 방 입장 없음. 주제별 탐색·자유 방 생성 유지.</p><p>국가별 첫 발화·답변·상품/판매처 이동·D7·승인 수수료를 분리 측정합니다. 이벤트별 고유 기기 진단은 순차 퍼널이 아닙니다. 미국 진출은 확정 결정이며 조사 기반 대화 소재·효과는 검증 가설입니다.</p><p><strong>운영 한계:</strong> 운영 DB 권한 부족으로 지역 마이그레이션 미적용. 한국 대화·실판매처 연결 및 iPhone 실기기 검증은 완료가 아닙니다. 웹 /kr·/us 배포, 웹 150개 테스트 및 iOS 기본 23개·화면 10개 통과. iPhone 1.0 (28.1) App Store Connect 업로드 성공. <a href="https://github.com/yohan4477/Alimi/blob/main/docs/PRODUCT_STATUS.md">배포·Apple 처리 증거 ↗</a> (테스터 설치는 미검증).</p><a href="https://github.com/yohan4477/Alimi/blob/main/docs/SERVICE_REGIONS.md">지역·언어 상세 명세 ↗</a></div>    <section aria-labelledby="metrics-title">
+  <section class="sb-panel" id="sb-dashboard" role="tabpanel" aria-labelledby="sb-dashboard-tab" hidden>
+  <header class="admin-overview">
+    <p class="admin-eyebrow">SEOUL BEAUTY / OPERATIONS</p>
+    <h2>운영 현황</h2>
+    <p>실제 수신한 데이터와 아직 연결하지 못한 지표를 분리해 표시합니다. 아래 수치는 최근 7일의 <strong>고유 기기</strong>이며 회원 수나 매출이 아닙니다.</p>
+    <div class="admin-overview-links"><a href="#metrics-title">행동 지표 ↓</a><a href="https://github.com/yohan4477/Alimi" target="_blank" rel="noopener noreferrer">소스 코드 ↗</a></div>
+  </header><section aria-labelledby="metrics-title">
       <h3 class="sb-section" id="metrics-title">행동 데이터 · 최근 7일</h3>
       <p class="text-small text-muted">이벤트별 고유 기기 수입니다. 사람 수·순차 구매 퍼널·확인 주문과 구분합니다.</p>
       <label for="metrics-region">서비스 지역</label><select id="metrics-region"><option value="all">전체 (이전 미분류 포함)</option><option value="kr">한국</option><option value="us">미국</option></select><p>지역 선택값이 없는 이전 이벤트는 한국/미국 수치에 배정하지 않습니다. 단계별 고유 기기 진단이며 순차 퍼널이 아닙니다.</p><p id="metrics-status" role="status">조회 전</p>
@@ -511,7 +520,7 @@
         <div class="sb-metric"><span>확인 주문 · 확정 수익</span><strong>미연결</strong></div>
       </div>
       <p class="text-small text-muted">실제 저장 이벤트만 집계합니다. 노출 CTR·D7·상호 대화·주문 귀속은 아직 미측정입니다. 조회가 잘리거나 실패하면 0으로 표시하지 않습니다.</p>
-    </section><details><summary>이전 시안·상태 기록 (현재 지시 아님)</summary>
+    </section><details class="admin-context"><summary>지역 전략·이전 개발 검증 기록 (참고 자료)</summary><div class="card"><span class="viz-badge">2026.10.20 · 사용자 확정 · 최신 기준</span><h3>하나의 Seoul Beauty · 한국/미국 서비스 · 언어는 별도</h3><p>미국 진출 확정. 한국의 접근성을 활용한 제품 개선과 미국 실제 수요 검증을 병행합니다. 국내 성과를 미국 진출의 선행 조건으로 두지 않습니다.</p><p><strong>/kr · 한국 / /us · 미국</strong> — 지역별 대화·판매처·가격을 구분하고 화면 언어는 독립 선택. 관심·고민 → 선택형 정보 → 제품별 대화찾기, 자동 방 입장 없음. 주제별 탐색·자유 방 생성 유지.</p><p>국가별 첫 발화·답변·상품/판매처 이동·D7·승인 수수료를 분리 측정합니다. 이벤트별 고유 기기 진단은 순차 퍼널이 아닙니다. 미국 진출은 확정 결정이며 조사 기반 대화 소재·효과는 검증 가설입니다.</p><p><strong>운영 한계:</strong> 운영 DB 권한 부족으로 지역 마이그레이션 미적용. 한국 대화·실판매처 연결 및 iPhone 실기기 검증은 완료가 아닙니다. 웹 /kr·/us 배포, 웹 150개 테스트 및 iOS 기본 23개·화면 10개 통과. iPhone 1.0 (28.1) App Store Connect 업로드 성공. <a href="https://github.com/yohan4477/Alimi/blob/main/docs/PRODUCT_STATUS.md">배포·Apple 처리 증거 ↗</a> (테스터 설치는 미검증).</p><a href="https://github.com/yohan4477/Alimi/blob/main/docs/SERVICE_REGIONS.md">지역·언어 상세 명세 ↗</a></div>    </details><details><summary>이전 시안·상태 기록 (현재 지시 아님)</summary>
     <div class="sb-header"><h3>지금 관리할 것</h3><span class="viz-badge">수동 현황 · 실시간 아님</span></div>
     <span class="text-small text-muted">2026.10.19 직전 확인 기록 기준 · 최신 운영 상태 자동 갱신 없음</span>
     <div class="sb-flag"><span class="viz-badge">P0</span><div><span class="sb-label">웹 배포 차단</span><div class="text-small text-muted sb-space">Vercel 빌드 한도 실패 확인. 해제 후 배포 커밋·운영 동작 확인 필요.</div></div></div>
