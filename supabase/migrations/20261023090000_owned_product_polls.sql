@@ -5,7 +5,7 @@ create table if not exists public.owned_product_votes (
  voter_id uuid not null,
  followup text check (followup is null or followup in ('daily','weekly','sometimes','rarely','rebuy_yes','rebuy_unsure','rebuy_no','looks','social','recommended','replacement','curious','not_sure')),
  private_note text check (char_length(private_note) <= 160),
- choice text not null check (choice in ('owned','want','disliked','unknown')),
+ choice text not null check (choice in ('owned','past','want','unknown')),
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now(),
  unique (product_id, voter_id)
