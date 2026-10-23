@@ -287,6 +287,15 @@ if (root) {
   }
 
   document.querySelector('#sb-ui-library [data-dev-jump]')?.addEventListener('click', event => { event.preventDefault(); select(document.getElementById('sb-plan-tab')); });
+  // Quality sub-tabs are presentation-only; the admin session remains server protected.
+  root.querySelectorAll('[data-quality-view]').forEach(button => button.addEventListener('click', () => {
+    const selected = button.dataset.qualityView;
+    root.querySelectorAll('[data-quality-view]').forEach(b => {
+      b.classList.toggle('active', b === button);
+      b.setAttribute('aria-pressed', String(b === button));
+    });
+    root.querySelectorAll('[data-quality-panel]').forEach(panel => { panel.hidden = panel.dataset.qualityPanel !== selected; });
+  }));
   let saved; try { saved = sessionStorage.getItem('sb-admin-tab'); } catch {}
   const deepLink = tabs.find(t => '#' + t.id.slice(0,-4) === location.hash)?.id;
   select(tabs.find(t => t.id === (deepLink || saved)) || document.getElementById('sb-dashboard-tab'));
