@@ -471,7 +471,18 @@
     "소규모 테스트의 방향 확인용이에요. 단계별 고유 브라우저 수이며 순서가 보장된 전환율은 아니에요.": "For a small pilot. Counts are unique browsers per stage, not an ordered conversion rate.",
     "저장하지 못했어. 다시 눌러줘.": "Could not save. Please try again.",
     "내 이야기와 다른 사람들의 선택 더 보기": "Your story and other people’s picks",
-    "관리 데이터는 소유자만 확인할 수 있어요.": "Only the owner can view administrative data."
+    "관리 데이터는 소유자만 확인할 수 있어요.": "Only the owner can view administrative data.",
+    "다른 사람들은 이렇게 골랐어": "Here is what others chose",
+    "명의 선택 · 추천 방향부터 함께 보기": " choices · Including their approach",
+    "이전 추천 방향은 기록되지 않았어": "Earlier approach not recorded",
+    "이 방향으로 고른 제품": "Product chosen for this approach",
+    "옵션 기록 없음": "Option not recorded",
+    "제품은 고르지 않았어": "No product chosen",
+    "이전 응답의 제품 집계예요. 추천 방향 집계는 준비 중이에요.": "Product totals from earlier answers. Approach totals are being prepared.",
+    "같은 가상 상황에서 고른 추천 방향·제품·옵션의 조합이에요. 실제 사용 경험과 제품 효능 순위는 달라요.": "Combinations of approach, product and option for this fictional situation, including your choice. These are separate from actual use and efficacy.",
+    "다음 명화는 누구로 할까?": "Which portrait is next?",
+    "다시 골라보기": "Pick again",
+    "내 이야기 나누기": "Share your own experience"
   },
   "ko": {
     "beauty beauty": "뷰티뷰티",
