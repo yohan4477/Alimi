@@ -9,7 +9,7 @@ const post={method:'POST',headers:{origin:'https://seoulbeauty.me','content-type
 test('new opaque cookie session does not trust legacy device ID or leak its hash',async()=>{
   let call;const h=createBeautyGameHandler({randomToken:()=>token,rpc:async(...args)=>(call=args,{ok:true,device_id:'private'})});
   const res=await run(h,'session',{headers:{cookie:'muse_device='+play}});
-  assert.deepEqual(call,['session',hash,{}]);assert.deepEqual(res.body,{ok:true,accountLinkEnabled:false});assert.match(res.headers['set-cookie'],/^__Host-beauty_game=/);assert.match(res.headers['set-cookie'],/Path=\/; HttpOnly; SameSite=Lax; Secure/);assert(!JSON.stringify(res.body).includes(token));
+  assert.deepEqual(call,['session',hash,{}]);assert.equal(res.body.ok,true);assert.equal(res.body.accountLinkEnabled,false);assert.equal(res.body.supportedCharacterIds.length,8);assert(res.body.supportedCharacterIds.includes("school_photo_friend"));assert.match(res.headers['set-cookie'],/^__Host-beauty_game=/);assert.match(res.headers['set-cookie'],/Path=\/; HttpOnly; SameSite=Lax; Secure/);assert(!JSON.stringify(res.body).includes(token));
 });
 test('method, origin, content type, oversized body and ambiguous cookie fail before RPC',async()=>{
   let calls=0;const h=createBeautyGameHandler({rpc:async()=>{calls++;return {ok:true};}});

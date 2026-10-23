@@ -3,17 +3,17 @@
   "profiles": [
     {
       "id": "school_photo_friend",
-      "status": "draft_artwork_unassigned",
-      "artworkId": null,
+      "status": "artwork_connected_backend_capability_required",
+      "artworkId": "blue-boy",
       "identity": {
-        "ko": "사진에 진심인 꾸미기파",
-        "en": "The photo-loving beauty friend"
+        "ko": "네컷사진에 진심인 전학생",
+        "en": "The photo-booth transfer girl"
       },
       "groupId": "important_plans",
       "scenarioId": "after_school_photos",
       "artworkFit": {
-        "ko": "의상·액세서리·자신감 있는 자세가 눈에 띄는 기존 남성 명화에 연결",
-        "en": "Bind to a saved male portrait with distinctive clothes, accessories or a confident pose"
+        "ko": "사용자가 저장한 남성 명화 인물의 드레스·치마 재해석 이미지를 재사용. 교복 이미지가 아닌 가상 학교생활 캐릭터다.",
+        "en": "Reuses the saved dress or skirt reinterpretation of a male painted subject. The school-life identity is fictional; the artwork is not a school uniform."
       },
       "title": {
         "ko": "오늘 네 컷 찍는데.\n얼굴에 어디부터 포인트 줄까?",
@@ -74,21 +74,34 @@
             "en": "Okay, these photos might be keepers."
           }
         }
-      ]
+      ],
+      "concept": "male_masterpiece_as_high_school_girl",
+      "presentation": "fictional_schoolgirl_parody",
+      "artworkRequirements": {
+        "originalMaleSubject": true,
+        "publicDomainVerifiedBeforePublishing": true,
+        "transformation": "existing user-saved dress/skirt reinterpretation; do not describe this asset as a school uniform",
+        "status": "saved_user_reinterpretation_reused"
+      },
+      "asset": "/beauty-play/assets/art-school_photo_friend.webp",
+      "name": {
+        "ko": "푸른 소년",
+        "en": "The Blue Boy"
+      }
     },
     {
       "id": "school_last_minute_friend",
-      "status": "draft_artwork_unassigned",
-      "artworkId": null,
+      "status": "artwork_connected_backend_capability_required",
+      "artworkId": "fifer",
       "identity": {
-        "ko": "등교 준비가 늘 막판인 실속파",
-        "en": "The practical, last-minute school friend"
+        "ko": "지각 직전에도 꾸미는 반장",
+        "en": "The always-late class president"
       },
       "groupId": "in_a_hurry",
       "scenarioId": "five_minutes_to_school",
       "artworkFit": {
-        "ko": "급히 이동하거나 머리·복장이 흐트러진 특징과 연결 가능한 기존 남성 명화",
-        "en": "Bind to a saved male portrait whose pose, hair or outfit fits a hurried moment"
+        "ko": "사용자가 저장한 남성 명화 인물의 드레스·치마 재해석 이미지를 재사용. 교복 이미지가 아닌 가상 학교생활 캐릭터다.",
+        "en": "Reuses the saved dress or skirt reinterpretation of a male painted subject. The school-life identity is fictional; the artwork is not a school uniform."
       },
       "title": {
         "ko": "등교까지 5분.\n뭐 하나만 챙겨서 뛸까?",
@@ -148,7 +161,20 @@
             "en": "One quick pat, then out the door. Really."
           }
         }
-      ]
+      ],
+      "concept": "male_masterpiece_as_high_school_girl",
+      "presentation": "fictional_schoolgirl_parody",
+      "artworkRequirements": {
+        "originalMaleSubject": true,
+        "publicDomainVerifiedBeforePublishing": true,
+        "transformation": "existing user-saved dress/skirt reinterpretation; do not describe this asset as a school uniform",
+        "status": "saved_user_reinterpretation_reused"
+      },
+      "asset": "/beauty-play/assets/art-school_last_minute_friend.webp",
+      "name": {
+        "ko": "피리 부는 소년",
+        "en": "The Fifer"
+      }
     }
   ]
 }

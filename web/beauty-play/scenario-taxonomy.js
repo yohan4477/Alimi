@@ -81,7 +81,9 @@ export const scenarioMetadata = {
     "artCueEn": "Water, flowers and a natural setting",
     "storyLinkEn": "A fictional after-outing care story, separate from the original narrative",
     "fictionalCondition": true
-  }
+  },
+  school_photo_friend:{groupId:"important_plans",scenarioId:"after_school_photos",artCueKo:"푸른 새틴 드레스와 소년의 초상",storyLinkKo:"방과 후 사진을 찍기 전의 가상 준비 상황",artCueEn:"A boy in a blue satin dress",storyLinkEn:"A fictional touch-up before after-school photos",fictionalCondition:true},
+  school_last_minute_friend:{groupId:"in_a_hurry",scenarioId:"five_minutes_to_school",artCueKo:"피리와 붉은 주름치마",storyLinkKo:"등교까지 시간이 부족한 가상의 아침",artCueEn:"A fife and a red pleated skirt",storyLinkEn:"A fictional rushed morning before school",fictionalCondition:true}
 };
 export function scenarioFor(character) { return scenarioMetadata[character] ?? null; }
 export function scenarioMembers(groupId) { return Object.keys(scenarioMetadata).filter(id => scenarioMetadata[id].groupId === groupId); }
