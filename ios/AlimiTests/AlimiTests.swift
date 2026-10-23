@@ -90,7 +90,7 @@ final class AlimiTests: XCTestCase {
         // Same SHA-256 prefix the post_chat RPC stores, so "mine" and Block line up with the server.
         XCTAssertEqual(ChatAPI.tag("11111111-1111-4111-8111-111111111111"), "bd7662a5eeb41614e720d477")
         XCTAssertEqual(ChatAPI.errorKey("chat:slow"), "chat.err.slow")
-        XCTAssertEqual(ChatAPI.errorKey("chat:secret"), "chat.err.other")
+        XCTAssertEqual(ChatAPI.errorKey("chat:secret"), "chat.err.secret")
         XCTAssertEqual(ChatAPI.errorKey("HTTP"), "chat.err.other")
         let q = URLComponents(url: ChatAPI.messagesURL(room: "acne", after: 42), resolvingAgainstBaseURL: true)!.queryItems!
         XCTAssertEqual(q.first { $0.name == "id" }?.value, "gt.42")
@@ -105,8 +105,13 @@ final class AlimiTests: XCTestCase {
         let q = URLComponents(url: ProductFamily.pageURL(category: "전체", offset: 0, brand: "COSRX"), resolvingAgainstBaseURL: true)!.queryItems!
         XCTAssertEqual(q.first { $0.name == "brand" }?.value, "eq.COSRX")
     }
+    func testNativeContentRequiresNativePermission() {
+        XCTAssertFalse(ContentPermission.permits("Awin feed; app reuse terms not reviewed", retailer: "Stylevana US"))
+        let webOnly = #"{"status":"verified","retailer":"Stylevana US","market":"US","platforms":["web"],"uses":["product_description"],"evidenceUrl":"https://example.org/terms","checkedAt":"2026-10-21T00:00:00Z"}"#
+        XCTAssertFalse(ContentPermission.permits(webOnly, retailer: "Stylevana US"))
+    }
     func testCatalogCopyNeedsPermissionAndSafeSource() {
-        let row = CatalogCopyRow(url: "https://www.stylevana.com/a.html", description: "Snail mucin essence for hydration.", descriptionPermission: "Awin feed 111294")
+        let row = CatalogCopyRow(url: "https://www.stylevana.com/a.html", description: "Snail mucin essence for hydration.", descriptionPermission: #"{"status":"verified","retailer":"Stylevana US","market":"US","platforms":["native"],"uses":["product_description"],"evidenceUrl":"https://example.org/terms","checkedAt":"2026-10-21T00:00:00Z"}"#)
         XCTAssertEqual(row.copy(retailer: "Stylevana US", sku: "10759")?.description, "Snail mucin essence for hydration.")
         XCTAssertNil(CatalogCopyRow(url: row.url, description: row.description, descriptionPermission: " ").copy(retailer: "Stylevana US", sku: "10759"))
         XCTAssertNil(CatalogCopyRow(url: row.url, description: nil, descriptionPermission: "x").copy(retailer: "Stylevana US", sku: "10759"))
@@ -253,3 +258,4 @@ final class AlimiTests: XCTestCase {
         XCTAssertEqual(ChatAPI.errorKey("Failure(message: \"chat:duplicate\")"), "chat.err.duplicate")
     }
 }
+

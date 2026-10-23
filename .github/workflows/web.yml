@@ -8,6 +8,8 @@ on:
       - 'server/**'
       - 'vercel.json'
       - 'tests/**'
+      - 'supabase/migrations/**'
+      - 'package*.json'
       - 'scripts/**'
       - 'e2e/**'
       - 'supabase/**'
@@ -29,6 +31,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: node --test tests/beauty-game-*.test.js
       - run: npm run test:beauty-game-db
+      - run: node supabase/tests/run-feed-check-outcomes.mjs
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -37,6 +40,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm ci
       - run: npm test
       - name: Admin access and mobile flow (mocked auth)
         run: |
@@ -48,11 +52,15 @@ jobs:
           set -euo pipefail
           node scripts/dev-server.mjs >/dev/null 2>&1 &
           sleep 1
+          CHROME_PATH="$(command -v google-chrome)" node e2e/product-experience.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-post-retry-guard.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/room-lifecycle.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/no-tracking.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/community.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/brands.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/handoff.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/offline.e2e.mjs http://localhost:3000/
+          CHROME_PATH="$(command -v google-chrome)" node e2e/room-experiences.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/web.e2e.mjs http://localhost:3000/
           CHROME_PATH="$(command -v google-chrome)" node e2e/service-regions.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/onboarding.e2e.mjs http://localhost:3000/

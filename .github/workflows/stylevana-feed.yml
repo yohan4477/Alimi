@@ -24,6 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm ci --ignore-scripts
       - name: Check whether Awin imported a new feed
         id: status
         env:
@@ -44,13 +45,17 @@ jobs:
             git restore --source=FETCH_HEAD -- data/stylevana-us.json dist/stylevana-data.js ios/Alimi/stylevana-us.json
           fi
       - name: Import official US feed
+        id: import
         if: steps.status.outputs.changed == 'true'
         env:
           AWIN_FEED_URL: ${{ secrets.AWIN_STYLEVANA_US_FEED_URL }}
         run: node scripts/stylevana-feed.mjs
-      - run: npm test
+      - name: Validate imported snapshot
+        id: tests
+        run: npm test
         if: steps.status.outputs.changed == 'true'
       - name: Preserve collected snapshots
+        id: snapshot
         if: steps.status.outputs.changed == 'true'
         shell: bash
         run: |
@@ -65,14 +70,30 @@ jobs:
           echo "Official feed collected, validated and saved to [data/stylevana-us](https://github.com/yohan4477/Alimi/tree/data/stylevana-us)." >> "$GITHUB_STEP_SUMMARY"
           echo "Review [the snapshot comparison](https://github.com/yohan4477/Alimi/compare/main...data/stylevana-us) before updating the bundled app data. No automatic deployment." >> "$GITHUB_STEP_SUMMARY"
       - name: Record observation in Supabase
+        id: observation
         if: steps.status.outputs.changed == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/supabase-sink.mjs data/stylevana-us.json
-      - name: Record ten-product catalog in Supabase
+      - name: Record catalog in Supabase
+        id: catalog
         if: steps.status.outputs.changed == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/stylevana-catalog.mjs .private/stylevana.csv.gz
+      - name: Record actual import outcome
+        if: always() && steps.status.outputs.changed == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FEED_CHECK_ID: ${{ steps.status.outputs.check_id }}
+          FEED_IMPORT_SUCCEEDED: ${{ steps.import.outcome == 'success' && steps.tests.outcome == 'success' && steps.snapshot.outcome == 'success' && steps.observation.outcome == 'success' && steps.catalog.outcome == 'success' }}
+        run: node scripts/awin-feed-status.mjs --complete
+      - name: Report check, import and upstream health separately
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/feed-freshness.mjs

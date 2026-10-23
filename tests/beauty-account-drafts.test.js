@@ -114,3 +114,20 @@ for(const operation of ['list','save','remove']){
     assert.equal(client.revisions.get(id),99,'stale continuation must not overwrite or delete another account revision');
   });
 }
+
+test('save binds the starting owner before the first restore and never transmits A text as B',async()=>{
+  const a=authWithEpoch();let restores=0,requests=0;
+  a.restore=async()=>{if(++restores===1){a.user={id:'owner-b'};a.session={access_token:'access-b',refresh_token:'refresh-b'};}};
+  const client=new BeautyAccountDrafts(a,{fetchImpl:async()=>{requests++;throw Error('must not transmit');}});
+  await assert.rejects(client.save(draft),/account_changed/);
+  assert.equal(requests,0);assert.equal(client.revisions.size,0);
+});
+test('save permits legitimate same-owner credential refresh at the first restore',async()=>{
+  const a=authWithEpoch();let restores=0,requests=0;
+  a.restore=async()=>{if(++restores===1)a.session={access_token:'fresh-first-access',refresh_token:'fresh-first-refresh'};};
+  const client=new BeautyAccountDrafts(a,{fetchImpl:async(_url,options)=>{
+    requests++;assert.equal(options.headers.Authorization,'Bearer fresh-first-access');
+    return {ok:true,status:200,json:async()=>[{...draft,revision:1}]};
+  }});
+  assert.equal((await client.save(draft)).revision,1);assert.equal(requests,1);
+});

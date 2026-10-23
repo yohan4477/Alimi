@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "purpose": "research-validation-only",
+  "existingProductId": "2",
+  "existingLedger": "data/price-observations.json",
+  "reviewedOn": "2026-10-17",
+  "reviewTimezone": "Asia/Seoul",
+  "note": "Retrieval date is not source price update time. No new history point or checkout quote. Field-compatible with PR #34 compareOffers, deliberately failing missing-evidence gates.",
+  "offers": [
+    {
+      "productId": "2",
+      "retailer": "Stylevana US",
+      "offerId": "stylevana-100ml",
+      "sourceUrl": "https://www.stylevana.com/en_US/cosrx-advanced-snail-96-mucin-power-essence-100ml10777.html",
+      "product": {
+        "productKey": "cosrx-advanced-snail-96-mucin-power-essence",
+        "formulation": null,
+        "variant": "single-bottle",
+        "unit": "ml",
+        "size": 100,
+        "quantity": 1
+      },
+      "identityReview": {
+        "status": "pending",
+        "evidence": "100ml; essence/serum; full ingredient list not obtained; no GTIN/lot match."
+      },
+      "price": 17.5,
+      "currency": "USD",
+      "market": "US",
+      "availability": "unknown",
+      "postalCode": null,
+      "shipsToDestination": null,
+      "purchaseType": "one_time",
+      "discountType": "none",
+      "costScope": "requested_item_only",
+      "shipping": null,
+      "tax": null,
+      "duties": null,
+      "costsVerified": false,
+      "observedAt": null,
+      "sourceUpdatedAt": null,
+      "reviewedOn": "2026-10-17",
+      "reviewTimezone": "Asia/Seoul",
+      "method": "public_web_review",
+      "cachePossible": true,
+      "publicPolicy": {
+        "standard": 5.79,
+        "freeThresholdConflict": "Product footer over $48; shipping policy premium express $35 threshold; boundary wording also differs.",
+        "url": "https://www.stylevana.com/en_US/shippings"
+      },
+      "rights": {
+        "automatedCollection": "not_confirmed",
+        "historyStorage": "not_confirmed",
+        "productionDisplay": "not_confirmed"
+      },
+      "productionEligible": false
+    },
+    {
+      "productId": "2",
+      "retailer": "Ulta",
+      "offerId": "2504912",
+      "sourceUrl": "https://www.ulta.com/p/advanced-snail-96-mucin-power-essence-xlsImpprod15641052?sku=2504912",
+      "product": {
+        "productKey": "cosrx-advanced-snail-96-mucin-power-essence",
+        "formulation": null,
+        "variant": "single-bottle",
+        "unit": "ml",
+        "size": 100,
+        "quantity": 1
+      },
+      "identityReview": {
+        "status": "pending",
+        "evidence": "3.38 oz corresponds to official 3.38 fl oz / 100ml label; 96 essence. Ingredient order differs and Aqua/Water absent versus official page; no GTIN/lot match."
+      },
+      "price": 20.9,
+      "currency": "USD",
+      "market": "US",
+      "availability": "in_stock",
+      "postalCode": null,
+      "shipsToDestination": null,
+      "purchaseType": "one_time",
+      "discountType": "none",
+      "costScope": "requested_item_only",
+      "shipping": null,
+      "tax": null,
+      "duties": null,
+      "costsVerified": false,
+      "observedAt": null,
+      "sourceUpdatedAt": null,
+      "reviewedOn": "2026-10-17",
+      "reviewTimezone": "Asia/Seoul",
+      "method": "public_web_review",
+      "cachePossible": true,
+      "publicPolicy": {
+        "standard": 6.95,
+        "freeThreshold": "over $35 on product page; geographic exclusions apply",
+        "subscriptionPrice": 19.85,
+        "subscription": "5% and free shipping; excluded from one-time comparison",
+        "coupon": "Most Ulta coupons excluded",
+        "url": "https://www.ulta.com/guestservices/all?openLinerExtension=true"
+      },
+      "rights": {
+        "automatedCollection": "not_confirmed",
+        "historyStorage": "not_confirmed",
+        "productionDisplay": "not_confirmed"
+      },
+      "productionEligible": false
+    },
+    {
+      "productId": "2",
+      "retailer": "COSRX Official",
+      "offerId": "official-100ml",
+      "sourceUrl": "https://www.cosrx.com/products/advanced-snail-96-mucin-power-essence",
+      "product": {
+        "productKey": "cosrx-advanced-snail-96-mucin-power-essence",
+        "formulation": null,
+        "variant": "single-bottle",
+        "unit": "ml",
+        "size": 100,
+        "quantity": 1
+      },
+      "identityReview": {
+        "status": "pending",
+        "evidence": "Selected text names 3.38 fl oz / 100ml; 96 essence; official INCI includes Aqua/Water; no matched retailer GTIN/lot."
+      },
+      "price": 25,
+      "currency": "USD",
+      "market": "US",
+      "availability": "backorder",
+      "postalCode": null,
+      "shipsToDestination": null,
+      "purchaseType": "one_time",
+      "discountType": "none",
+      "costScope": "requested_item_only",
+      "shipping": null,
+      "tax": null,
+      "duties": null,
+      "costsVerified": false,
+      "observedAt": null,
+      "sourceUpdatedAt": null,
+      "reviewedOn": "2026-10-17",
+      "reviewTimezone": "Asia/Seoul",
+      "method": "public_web_review",
+      "cachePossible": true,
+      "publicPolicy": {
+        "standard": null,
+        "freeThreshold": 50,
+        "url": "https://www.cosrx.com/policies/shipping-policy",
+        "discount": "Routine bundle 20% is not single-item discount"
+      },
+      "rights": {
+        "automatedCollection": "not_confirmed",
+        "historyStorage": "not_confirmed",
+        "productionDisplay": "not_confirmed"
+      },
+      "productionEligible": false
+    },
+    {
+      "productId": "2",
+      "retailer": "StyleKorean",
+      "offerId": "cosS02-Essence",
+      "sourceUrl": "https://www.stylekorean.com/product/advanced-snail-96-mucin-power-essence-100ml/1450854424",
+      "product": {
+        "productKey": "cosrx-advanced-snail-96-mucin-power-essence",
+        "formulation": null,
+        "variant": "single-bottle",
+        "unit": "ml",
+        "size": 100,
+        "quantity": 1
+      },
+      "identityReview": {
+        "status": "pending",
+        "evidence": "100ml essence; product code is not a coupon. US destination not established. Retrieved page crawled last week; description sections labeled AI-generated."
+      },
+      "price": 22.5,
+      "currency": "USD",
+      "market": null,
+      "availability": "unknown",
+      "postalCode": null,
+      "shipsToDestination": null,
+      "purchaseType": "one_time",
+      "discountType": "none",
+      "costScope": "requested_item_only",
+      "shipping": null,
+      "tax": null,
+      "duties": null,
+      "costsVerified": false,
+      "observedAt": null,
+      "sourceUpdatedAt": null,
+      "reviewedOn": "2026-10-17",
+      "reviewTimezone": "Asia/Seoul",
+      "method": "public_web_review",
+      "cachePossible": true,
+      "publicPolicy": {
+        "standard": null,
+        "displayedReferencePrice": 25,
+        "displayedMarkdown": "10%; not independently verified price history"
+      },
+      "rights": {
+        "automatedCollection": "not_confirmed",
+        "historyStorage": "not_confirmed",
+        "productionDisplay": "not_confirmed"
+      },
+      "productionEligible": false
+    },
+    {
+      "productId": "2",
+      "retailer": "YesStyle",
+      "offerId": "1052684695",
+      "sourceUrl": "https://www.yesstyle.com/en/cosrx-advanced-snail/info.html/pid.1052684695",
+      "product": {
+        "productKey": "cosrx-advanced-snail-96-mucin-power-essence",
+        "formulation": null,
+        "variant": "single-bottle",
+        "unit": "ml",
+        "size": 100,
+        "quantity": 1
+      },
+      "identityReview": {
+        "status": "pending",
+        "evidence": "100ml essence; shipping to Japan and JPY returned. Do not FX-convert into a US offer."
+      },
+      "price": 2417,
+      "currency": "JPY",
+      "market": "JP",
+      "availability": "in_stock",
+      "postalCode": null,
+      "shipsToDestination": null,
+      "purchaseType": "one_time",
+      "discountType": "none",
+      "costScope": "requested_item_only",
+      "shipping": null,
+      "tax": null,
+      "duties": null,
+      "costsVerified": false,
+      "observedAt": null,
+      "sourceUpdatedAt": null,
+      "reviewedOn": "2026-10-17",
+      "reviewTimezone": "Asia/Seoul",
+      "method": "public_web_review",
+      "cachePossible": true,
+      "publicPolicy": {
+        "standard": null,
+        "freeThresholdJPY": 8300,
+        "discount": "COOL26 is basket-conditional; not applied"
+      },
+      "rights": {
+        "automatedCollection": "not_confirmed",
+        "historyStorage": "not_confirmed",
+        "productionDisplay": "not_confirmed"
+      },
+      "productionEligible": false
+    }
+  ]
+}

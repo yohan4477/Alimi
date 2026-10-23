@@ -5,11 +5,12 @@ import {demoRooms,demoMessages,demoProducts,createDemoProductRoom} from '../dist
 
 test('the demo lists 12 explicit products and two rooms per product with separate conversations',()=>{
  assert.equal(demoProducts.length,12);
- assert.equal(demoRooms.length,60);
- const groups=productRoomGroups(demoRooms);
+ const coreRooms=demoRooms.filter(r=>!r.id.startsWith('demo-experience-'));
+ assert.equal(coreRooms.length,60);
+ const groups=productRoomGroups(coreRooms);
  assert.equal(groups.length,12);
  assert.ok(groups.every(g=>g.rooms.length===2));
- assert.equal(Object.values(demoMessages).reduce((n,rows)=>n+rows.length,0),1800); // 60 rooms × (24 lines + 6 same-person follow-ups)
+ assert.equal(coreRooms.reduce((n,r)=>n+demoMessages[r.id].length,0),1800); // 60 rooms × (24 lines + 6 same-person follow-ups)
  assert.ok(groups.every(g=>g.rooms.every(r=>demoMessages[r.id].some(m=>m.body.includes(r.topic_product.name)))));
 });
 

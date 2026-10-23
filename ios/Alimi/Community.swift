@@ -144,6 +144,10 @@ struct CommunityTopic: View {
     var member = false
     var picture: URL? = nil
     @State private var showBoard = false
+    @State private var actions: ChatAPI.RoomActions?
+    @State private var manageError: String?
+    @State private var pendingAction: String?
+    @State private var managing = false
     var body: some View {
         VStack(spacing: 0) {
             topBar
@@ -160,6 +164,14 @@ struct CommunityTopic: View {
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showBoard) { CommunityBoard(room: room).environmentObject(store) }
+        .task { await loadActions() }
+        .onReceive(NotificationCenter.default.publisher(for: .roomMembershipChanged)) { _ in Task { await loadActions() } }
+        .confirmationDialog(L(pendingAction == "delete" ? "room.deleteConfirm" : "room.leaveConfirm"), isPresented: Binding(get: { pendingAction != nil }, set: { if !$0 { pendingAction = nil } }), titleVisibility: .visible) {
+            if let action = pendingAction {
+                Button(L(action == "delete" ? "room.delete" : "room.leave"), role: .destructive) { Task { await manage(action) } }
+            }
+        }
+        .alert(manageError ?? "", isPresented: Binding(get: { manageError != nil }, set: { if !$0 { manageError = nil } })) { Button("OK") {} }
     }
     private var topBar: some View {
         VStack(alignment: .trailing, spacing: 8) {
@@ -176,12 +188,33 @@ struct CommunityTopic: View {
             Menu {
                 ShareLink(item: ShareLinks.room(room.id), subject: Text(room.title)) { Label(L("share.room"), systemImage: "square.and.arrow.up") }
                 Button { showBoard = true } label: { Label(L("community.posts"), systemImage: "list.bullet.rectangle") }
+                if RoomFeatureRelease.lifecycle {
+                if let actions {
+                    if actions.joined { Button(L("room.leave"), role: .destructive) { pendingAction = "leave" }.disabled(managing) }
+                    if actions.can_delete { Button(L("room.delete"), role: .destructive) { pendingAction = "delete" }.disabled(managing) }
+                } else {
+                    Button(L("room.manage")) { Task { await loadActions(showError: true) } }
+                }
+                }
             } label: {
                 Image(systemName: "ellipsis").rotationEffect(.degrees(90)).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.sbNavy).frame(width: 44, height: 48)
             }.accessibilityLabel(L("chat.more")).accessibilityIdentifier("room-more")
           }
-
         }.padding(.horizontal, 16).padding(.top, 6).padding(.bottom, 8)
+    }
+    private func loadActions(showError: Bool = false) async {
+        guard RoomFeatureRelease.lifecycle else { return }
+        do { actions = try await ChatAPI.actions(room: room.id) }
+        catch { if showError { manageError = L(ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? "")) } }
+    }
+    private func manage(_ action: String) async {
+        guard RoomFeatureRelease.lifecycle && !managing else { return }; managing = true
+        defer { managing = false }
+        do {
+            if action == "delete" { try await ChatAPI.deleteRoom(room.id) } else { try await ChatAPI.leave(room: room.id) }
+            NotificationCenter.default.post(name: .roomMembershipChanged, object: nil)
+            dismiss()
+        } catch { manageError = L(ChatAPI.errorKey((error as? ChatAPI.Failure)?.message ?? "")); await loadActions() }
     }
 }
 
@@ -485,3 +518,4 @@ struct SavedCommunityPosts: View {
         } catch { failed = true }
     }
 }
+

@@ -1,3 +1,4 @@
+import {contentGrant} from '../dist/content-rights.js';
 import {readFile} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
@@ -55,7 +56,8 @@ const describe = (permission, raw) => {
 // EAN identifies a product, not a retailer offer: keep distinct SKUs even when they share an EAN.
 export function buildCatalogItems(rows, catalog, seenAt, brandInfo = () => ({origin: 'KR', brandKo: null})) {
   // Descriptions are published only when catalog.json records the permission basis for them.
-  const permission = catalog.descriptionPermission?.trim() || null;
+  const grant = contentGrant(catalog.descriptionPermission, {retailer: catalog.retailer, market: catalog.market});
+  const permission = grant ? JSON.stringify(grant) : null;
   const valid = [];
   for (const r of rows) {
     if (r.data_feed_id !== catalog.feedId || r.merchant_id !== catalog.merchantId || r.currency !== catalog.currency) continue;
