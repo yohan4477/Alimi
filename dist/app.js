@@ -1,3 +1,4 @@
+import {rememberLanguage} from './language-preference.js';
 import {readSavedMessages,toggleSavedMessage} from './saved-messages.js';
 import {region, inMarket, languageURL, amount} from './region.js';
 import {regionButton,installRegionPicker} from './region-picker.js';
@@ -375,6 +376,7 @@ function closeDetail(){detailOpen=false;show(detailReturn)}
 function openDetail(id){if(!product(id)){toast(t('empty.products'));return;}detailChat=screen==='chat';selected=id;track('product_view',id);detailOpen=true;detailReturn=screen;renderDetail();show('detail')}
 
 localizePage();
+document.documentElement.removeAttribute('data-locale-pending');
 // A shared link opens its room or product on arrival.
 const arrival=sharedTarget();if(arrival){const appLink=document.createElement('a');appLink.className='text-link';appLink.textContent=t('share.openApp');appLink.href='seoulbeauty://open?'+new URLSearchParams({...arrival,region});document.body.prepend(appLink);}if(arrival?.room)openRoomNext(arrival.room);
 
@@ -444,7 +446,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.auth){authAction(b.dataset.auth);return}
   if(b.dataset.screen){show(b.dataset.screen);return}
   if(b.dataset.set){settingsAction(b.dataset.set);return}
-  if(b.dataset.lang){try{localStorage.setItem('alimi-lang',b.dataset.lang)}catch{}location.href=languageURL(b.dataset.lang).href;return}
+  if(b.dataset.lang){rememberLanguage(b.dataset.lang);location.href=languageURL(b.dataset.lang).href;return}
   if(b.dataset.product)openDetail(b.dataset.product);
   if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);track(state.favorites.includes(b.dataset.favorite)?'wishlist_add':'wishlist_remove',b.dataset.favorite);save();renderList();if(screen==='search')renderSearch();if(screen==='saved')renderSaved();if(screen==='detail'&&detailOpen)renderDetail()}
   if(b.dataset.category){category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.classList.toggle('active',x.dataset.category===category));renderList()}});

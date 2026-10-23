@@ -250,7 +250,7 @@ test('status-only markup initializes deep links, view switching and logout witho
   const js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');
   const element=(id='',attributes={})=>({
     id,hidden:false,dataset:{},attributes:{...attributes},listeners:{},
-    classList:{toggle(){}},querySelectorAll:()=>[],append(){},prepend(){},
+    classList:{toggle(){}},querySelector:()=>null,querySelectorAll:()=>[],append(){},prepend(){},
     setAttribute(name,value){this.attributes[name]=value},getAttribute(name){return this.attributes[name]??null},
     addEventListener(type,listener){this.listeners[type]=listener},
   });
@@ -309,4 +309,11 @@ test('UI library is authenticated and keeps executable preview confined to hashe
   assert.match(r.headers['content-security-policy'],/frame-ancestors 'self'/);
   assert.match(r.headers['cache-control'],/no-store/);
   for(const [,script] of r.body.matchAll(/<script>([\s\S]*?)<\/script>/g))assert.doesNotThrow(()=>new Function(script));
+});
+
+test('Korean admin shell uses Korean console and library labels',async()=>{
+ const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');
+ assert.match(html,/<html lang="ko">/);
+ assert.match(html,/관리자 콘솔/);assert.match(html,/UI 라이브러리/);
+ assert.doesNotMatch(html,/ADMIN CONSOLE|UI Library/);
 });

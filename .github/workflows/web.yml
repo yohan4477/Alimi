@@ -60,6 +60,8 @@ jobs:
           CHROME_PATH="$(command -v google-chrome)" node e2e/admin.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-first-choice.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-legacy-start.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-locale.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/visitor-language.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-catalog.e2e.mjs
       - name: Browser smoke test against the live public API
         run: |

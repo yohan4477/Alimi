@@ -499,7 +499,13 @@
     "제휴 상품·옵션 미확인": "Affiliate product and options unconfirmed",
     "색상·용량 미확인": "Shade and size unconfirmed",
     "실제 판매 옵션은 판매처에서 확인해 주세요.": "Check available options at the retailer.",
-    "네 추천은 먼저 보여줘 · 다른 제품도 고를 수 있어": "Your recommendations come first. You can choose any other product."
+    "네 추천은 먼저 보여줘 · 다른 제품도 고를 수 있어": "Your recommendations come first. You can choose any other product.",
+    "언니가 골라줄게": "Let Me Pick",
+    "내 선택": "My pick",
+    "친구는 뭘 고를까?": "What would your friend pick?",
+    "서울뷰티": "Seoul Beauty",
+    "선택을 저장하지 못했어요. 다시 시도해 주세요.": "Could not save your choice. Please try again.",
+    "연결을 확인해 주세요.": "Please check your connection."
   },
   "ko": {
     "beauty beauty": "뷰티뷰티",
