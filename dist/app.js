@@ -256,9 +256,9 @@ function renderSaved(){
   const identityHint=auth.user?(lang==='ko'?'로그인됨 · 계정 설정 동기화':'Signed in · account preferences sync'):(lang==='ko'?'비회원 · 이 기기의 활동':'Guest · activity on this device');
   const quick=(title,sub,attr)=>`<button class="interest-row" ${attr}><span><b>${esc(title)}</b><small>${esc(sub)}</small></span><span aria-hidden="true">›</span></button>`;
   const myHub=`<section class="activity-section" aria-label="${esc(myLabel)}"><h1 style="font-size:24px;margin:8px 0">${esc(myLabel)}</h1><p class="home-note">${esc(userName?userName+' · '+identityHint:identityHint)}</p><div class="activity-section">
-    ${quick(lang==='ko'?'저장한 제품':'Saved products',lang==='ko'?`${n}개 저장됨`:`${n} saved`,'data-activity-tab="saved"')}
-    ${quick(lang==='ko'?'내 대화와 참여':'My conversations',lang==='ko'?'이 기기의 대화 참여 내역':'Conversations on this device','data-activity-tab="rooms"')}
-    ${quick(lang==='ko'?'저장한 글·메시지':'Saved posts & messages',lang==='ko'?'이 기기에 저장된 항목':'Items saved on this device','data-activity-tab="talk"')}
+    ${quick(lang==='ko'?'저장한 제품':'Saved products',lang==='ko'?`${n}개 저장됨`:`${n} saved`,'data-hub-tab="saved"')}
+    ${quick(lang==='ko'?'내 대화와 참여':'My conversations',lang==='ko'?'이 기기의 대화 참여 내역':'Conversations on this device','data-hub-tab="rooms"')}
+    ${quick(lang==='ko'?'저장한 글·메시지':'Saved posts & messages',lang==='ko'?'이 기기에 저장된 항목':'Items saved on this device','data-hub-tab="talk"')}
     ${quick(lang==='ko'?'뷰티 프로필':'Beauty profile',lang==='ko'?'선택한 피부·관심사 수정':'Edit optional skin and interests','data-activity-profile')}
     ${quick(lang==='ko'?'계정·개인정보 관리':'Account & privacy',lang==='ko'?'로그인·설정 내보내기·탈퇴 요청':'Sign in, export preferences, deletion request','data-screen="settings"')}
   </div><p class="set-hint">${esc(lang==='ko'?'투표·작성글 전체는 아직 계정별로 통합되지 않았습니다.':'Votes and authored posts are not yet fully linked to your account.')}</p></section>`;
@@ -461,6 +461,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.shareCopy!==undefined){const url=$('#share-sheet').dataset.url;navigator.clipboard.writeText(url).then(()=>toast(t('share.copied')),()=>toast(`${t('share.failed')} ${url}`));return}
   if(b.dataset.shareMore!==undefined){const d=$('#share-sheet');share({title:d.dataset.title,url:d.dataset.url},toast);return}
   if('familyAttach' in b.dataset){$('#family-dialog').close();if(brandChat)show('chat');if(attachToChat(familyCurrent()??familyHead))toast(t('family.attached'));return}
+  if(b.dataset.hubTab){activityTab=b.dataset.hubTab;renderSaved();return}
   if(b.dataset.activityTab){activityTab=b.dataset.activityTab;renderSaved();$(`#activity-tab-${activityTab}`)?.focus();return}
   if('activityProfile' in b.dataset){openActivityProfile();return}
   if('activitySkin' in b.dataset){$('#activity-profile-dialog').close();openProfile();return}
