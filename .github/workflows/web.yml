@@ -39,7 +39,11 @@ jobs:
           node-version: '22'
       - run: npm ci --ignore-scripts
       - name: Install Korean fonts for visual checks
-        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+        timeout-minutes: 3
+        run: |
+          sudo apt-get -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2 update
+          sudo apt-get -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2 install -y fonts-nanum
+          test -n "$(fc-list :lang=ko family)"
       - run: npm run build:beauty-play
       - run: npm test
       - run: node --experimental-strip-types --test tests/beauty-random.test.mjs
