@@ -130,5 +130,21 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 /* Minimal discoverability control; original horizontal product cards remain unchanged. */
 .game-product-search{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}.game-product-search input{flex:1;min-width:170px;max-width:340px;min-height:40px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);padding:9px 12px;font:inherit;font-size:13px}.game-product-search small{color:var(--muted);font-size:11px}
 
-/* Advice step fits one phone screen: the painting gives up height, the choice box never scrolls. */
-@media(max-width:650px){.selection-main .staged-atelier[data-stage="advice"] .story-art{flex:1 1 0;height:auto;min-height:0;max-height:none}.selection-main .staged-atelier[data-stage="advice"] .staged-workbench{flex:0 0 auto;overflow:hidden;overscroll-behavior:none;touch-action:none}}
+/* Every selection step fits one phone screen: the painting gives up height, the choice box never scrolls. */
+@media(max-width:650px){
+ .selection-main .staged-atelier .story-art{flex:1 1 0;height:auto;min-height:64px;max-height:none}
+ .selection-main .staged-atelier .staged-workbench{flex:0 0 auto;overflow:hidden;overscroll-behavior:none}
+ .selection-main .staged-atelier[data-stage="product"] .game-product-search{margin:0;gap:8px;flex-wrap:nowrap}
+ .selection-main .staged-atelier[data-stage="product"] .game-product-search input{min-width:0;min-height:34px;padding:6px 10px}
+ .selection-main .staged-atelier[data-stage="product"] .game-product-search small{font-size:10px;white-space:nowrap}
+ .selection-main .staged-atelier[data-stage="product"] .catalog-pages{margin:0}
+ .selection-main .staged-atelier[data-stage="product"] .catalog-pages button{padding:4px 8px;font-size:11px}
+ .selection-main .staged-atelier:not([data-stage="advice"]) .story-overlay>p{display:none}
+}
+@media(max-width:650px) and (max-height:760px){
+ .selection-main .staged-atelier:not([data-stage="advice"]) .story-overlay>span{display:none}
+ .selection-main .staged-atelier:not([data-stage="advice"]) .story-overlay h1{font-size:18px;line-height:1.25}
+ .selection-main .staged-atelier[data-stage="product"] .staged-products{flex:0 0 150px;min-height:150px}
+ .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:0 0 70px;min-height:70px;height:70px!important}
+ .selection-main .staged-atelier:not([data-stage="advice"]) .stage-note{display:none}
+}
