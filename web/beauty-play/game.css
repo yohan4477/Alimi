@@ -167,3 +167,8 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 .painting-list h2{font-size:19px}.painting-list small{font-size:13px}.painting-list strong{font-size:16px;line-height:1.4}.painting-list em{font-style:normal;font-size:13px;font-weight:700;color:#2857d2;margin-top:4px}.painting-list button.done{border-color:#b9c8f0;background:#f5f8ff}
 .pilot-entry>p{font-size:16px}.pilot-entry>small,.pilot-entry .pilot-note{font-size:13px}
 @media(max-width:360px){.painting-list strong{font-size:15px}}
+/* Phones: one painting per row so the copy can be large. */
+@media(max-width:650px){.painting-list h2{font-size:22px;margin-bottom:14px}.painting-list ul{grid-template-columns:1fr;gap:12px}.painting-list button{flex-direction:row;align-items:stretch}.painting-list img{width:118px;flex:0 0 118px;aspect-ratio:auto;height:auto;min-height:118px}.painting-list button>span{justify-content:center;gap:5px;padding:14px 16px}.painting-list small{font-size:15px}.painting-list strong{font-size:19px;line-height:1.4}.painting-list em{font-size:15px}.pilot-entry>p{font-size:17px}}
+@media(max-width:360px){.painting-list img{width:100px;flex-basis:100px}.painting-list strong{font-size:18px}}
+/* Painting thumbnails fill the row height instead of setting it. */
+@media(max-width:650px){.painting-list button{min-height:136px}.painting-list img{contain:size;align-self:stretch;min-height:136px;object-fit:cover}}
