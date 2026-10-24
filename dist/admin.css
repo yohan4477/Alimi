@@ -483,3 +483,10 @@
 #sb-revenue .affiliate-logo-frame [hidden]{display:none}
 #sb-revenue .affiliate-logo-missing{flex-direction:column;gap:3px;background:var(--muted);color:var(--foreground)}
 #sb-revenue .affiliate-logo-missing>span,#sb-revenue .affiliate-logo-fallback{font-size:.68rem;text-align:center;overflow-wrap:anywhere}
+
+/* Keep the original white brand marks visible on a dark logo canvas. */
+#sb-revenue [data-brand-name="삐아"] .affiliate-logo-frame,#sb-revenue [data-brand-name="메디힐"] .affiliate-logo-frame,#sb-revenue [data-brand-name="바비브라운"] .affiliate-logo-frame,#sb-revenue [data-brand-name="뮤드"] .affiliate-logo-frame{background:#202020}
+
+#sb-revenue .affiliate-logo-frame{overflow:hidden}
+#sb-revenue [data-brand-name="헤라"] .affiliate-logo-frame img,#sb-revenue [data-brand-name="에스쁘아"] .affiliate-logo-frame img{height:100px;max-width:none;width:162px}
+#sb-revenue [data-brand-name="롬앤"] .affiliate-logo-frame{background:#303030}

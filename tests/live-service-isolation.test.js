@@ -124,19 +124,14 @@ test('shares use /live with explicit market, selected language and only new deep
   assert.equal(new URL(shareUrl({room: 'kr-room'}, 'https://seoulbeauty.me/kr?region=us')).searchParams.get('region'), 'kr', 'legacy path retains original market');
 });
 
-test('visitor market choice enters /live without losing authentication, draft or shared context', async () => {
+test('non-KR visitor enters the US market directly, keeping authentication, draft and shared context', async () => {
   const document = documentFixture(), storage = memory({});
   const href = 'https://seoulbeauty.me/live?room=real-room&code=fixture-code&beautyDraft=fixture-draft&lang=ko#fixture-auth';
-  let assigned;
-  await startVisitorEntry({document, storage, location: {...new URL(href), pathname: '/live', search: new URL(href).search, href, assign: value => { assigned = value; }}, fetchImpl: countryResponse('US'), loadApp: () => assert.fail('market unresolved')});
-  const choice = document.body.children[0].children.find(child => child.dataset.marketChoice === 'us');
-  choice.listeners.click();
-  const target = new URL(assigned);
-  assert.equal(target.pathname, '/live');
-  assert.equal(target.searchParams.get('region'), 'us');
-  for (const key of ['room', 'code', 'beautyDraft', 'lang']) assert.equal(target.searchParams.get(key), new URL(href).searchParams.get(key));
-  assert.equal(target.hash, '#fixture-auth');
-  assert.equal(storage.getItem(MANUAL_MARKET_KEY), 'us');
+  let loaded = 0;
+  await startVisitorEntry({document, storage, location: {...new URL(href), pathname: '/live', search: new URL(href).search, href, assign: () => assert.fail('no market redirect')}, fetchImpl: countryResponse('US'), loadApp: async () => { loaded++; }});
+  assert.equal(loaded, 1);
+  assert.equal(document.body.children.length, 0);
+  assert.equal(storage.getItem(MANUAL_MARKET_KEY), null);
 });
 
 test('actual visitor entry preserves trusted KR suggestion and independent explicit language/market', async () => {

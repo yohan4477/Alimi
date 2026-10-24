@@ -7,7 +7,7 @@ test('explicit service path wins over storage, and interface language never impl
  const storage={getItem:()=> 'us'};
  assert.equal(resolveRegion({pathname:'/kr',search:'?lang=en&region=us',storage}),'kr');
  assert.equal(resolveRegion({pathname:'/us/',search:'?lang=ko'}),'us');
- assert.equal(resolveRegion({search:'?lang=ko'}),null);
+ assert.equal(resolveRegion({search:'?lang=ko'}),'us');
  assert.equal(resolveRegion({search:'?region=kr'}),'kr');
 });
 test('legacy US content cannot appear in Korea; foreign-currency prices are excluded',()=>{

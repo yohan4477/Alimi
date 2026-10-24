@@ -53,13 +53,17 @@ test('affiliate tabs isolate approved coverage from unverified entries without c
  assert.match(js,/img\.addEventListener\('error', failed\)/);
  assert.match(js,/img\.complete && img\.naturalWidth === 0/);
 });
-test('logos use verified official raster bytes with local paths and truthful accessible fallbacks',async()=>{
+test('logos use verified official image bytes with local paths and truthful accessible fallbacks',async()=>{
  const {createHash}=await import('node:crypto');
  const sources=JSON.parse(readFileSync(new URL('./admin-brand-logo-sources.json',import.meta.url),'utf8'));
- assert.ok(sources.length>=2);
+ assert.equal(sources.length,39);
+ assert.equal([...coverage.matchAll(/<img data-brand-logo /g)].length,78);
  for(const source of sources){
   const bytes=readFileSync(new URL('../'+source.path,import.meta.url));
-  assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+  assert.ok(bytes.length>50);
+  if(source.path.endsWith('.svg')){
+   const svg=bytes.toString();assert.match(svg,/<svg\b/);assert.doesNotMatch(svg,/<script|<foreignObject|\bonload=/i);
+  }else assert.ok(['89504e47','47494638','ffd8ff','52494646'].some(prefix=>bytes.toString('hex').startsWith(prefix)),source.path);
   assert.equal(createHash('sha256').update(bytes).digest('hex'),source.sha256);
   assert.equal(new URL(source.sourceUrl).protocol,'https:');
   assert.ok(coverage.includes('src="/'+source.path.replace(/^dist\//,'')+'"'));
@@ -69,6 +73,6 @@ test('logos use verified official raster bytes with local paths and truthful acc
   assert.match(image[1],/src="\/brand-logos\/admin\//);
   assert.match(image[1],/alt="[^"]+ 로고"/);
  }
- assert.match(coverage,/공식 로고 미확보/);assert.match(coverage,/로고 표시 불가/);
+ assert.doesNotMatch(coverage,/affiliate-logo-missing|공식 로고 미확보/);assert.match(coverage,/로고 표시 불가/);
  assert.doesNotMatch(coverage,/<img[^>]+src="https?:/);
 });
