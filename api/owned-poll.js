@@ -1,5 +1,7 @@
 // Staged product poll API. Disabled by default even on preview deployments.
 import {createHmac,randomUUID,timingSafeEqual} from 'node:crypto';
+import {readFileSync} from 'node:fs';
+const CATALOG=new Set(JSON.parse(readFileSync(new URL('../server/owned-poll-catalog.json',import.meta.url),'utf8')).map(p=>p.id));
 const CHOICES=new Set(['owned','past','want','unknown']);
 const FOLLOWUPS={owned:['daily','weekly','sometimes','rarely'],past:['rebuy_yes','rebuy_unsure','rebuy_no'],want:['looks','social','recommended','replacement'],unknown:['curious','not_sure']};
 const ALLOWED=new Set(['https://seoulbeauty.me','https://www.seoulbeauty.me','https://alimi-omega.vercel.app']);
@@ -15,7 +17,7 @@ if(req.method==='POST'&&!ALLOWED.has(req.headers.origin))return send(403,{error:
 const key=env.SUPABASE_SECRET_KEY,secret=env.OWNED_POLL_COOKIE_SECRET,url=env.SUPABASE_URL||'https://mqsnshnlfwsgabrsmqsz.supabase.co';
 if(!key||!secret||secret.length<32)return send(503,{error:'Feature not configured'});
 const u=new URL(req.url,'https://seoulbeauty.me'),product=u.searchParams.get('product');
-if(!product||!/^[a-zA-Z0-9_-]{1,80}$/.test(product))return send(400,{error:'Invalid product'});
+if(!product||!CATALOG.has(product))return send(400,{error:'Invalid product'});
 const id=identity(req,res,secret);
 const headers={apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'};
 const endpoint=url+'/rest/v1/owned_product_votes';
