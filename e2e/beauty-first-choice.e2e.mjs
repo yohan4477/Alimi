@@ -79,7 +79,7 @@ try {
    await reachable(header.locator('a').first(),label+' brand link');
    await reachable(header.locator('.language-switch'),label+' language switch');
    await noHorizontalOverflow(page,label);
-   if(entry.header==='.top')assert.equal(await header.locator('.brand span').textContent(),'Beauty is personal. Let’s talk.');
+   if(entry.header==='.top')assert.equal(await header.locator('.brand span').textContent(),lang==='ko'?'뷰티는 사람마다 다르니까, 서로 이야기해요.':'Beauty is personal. Let’s talk.');
   }
   await context.close();
  }
