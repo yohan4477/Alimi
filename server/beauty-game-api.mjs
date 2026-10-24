@@ -76,7 +76,7 @@ export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=cre
         if(!token)token=await newSession();
         else if((await rpc('session',createHash('sha256').update(token).digest('hex'),{})).rotate)token=await newSession();
         setCookie(res,token);
-        return send(200,{ok:true,supportedCharacterIds,accountLinkEnabled:env.BEAUTY_GAME_ACCOUNT_LINK_ENABLED==='true'});
+        return send(200,{ok:true,supportedCharacterIds,ownedPollEnabled:env.OWNED_POLL_ENABLED==='true',accountLinkEnabled:env.BEAUTY_GAME_ACCOUNT_LINK_ENABLED==='true'});
       }
       if(!token)throw error(401);
       const sessionHash=createHash('sha256').update(token).digest('hex');
