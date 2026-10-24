@@ -1,3 +1,5 @@
+> CURRENT STATUS — 2026-10-24: The user confirmed D1 is no longer used. Current main is Supabase-only; do not restore D1. [Canonical current policy](BEAUTY_BACKEND_POLICY.md). The text below records earlier implementation and migration evidence; D1-current/default/proxy claims are historical and superseded. Historical data reconciliation is not established by this correction.
+
 # Seoul Beauty game database consolidation: gated implementation plan
 
 **Current coordination rule: new backend development uses existing SeoulBeauty Supabase; preserve the currently live D1 backend. D1 deletion is on hold.** Read [the canonical policy](BEAUTY_BACKEND_POLICY.md) and root `AGENTS.md` before continuing concurrent work. Do not confuse this development direction with an approved or completed production cutover.

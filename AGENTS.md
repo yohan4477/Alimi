@@ -1,12 +1,12 @@
 # SeoulBeauty development rules
 
-## Database direction: Supabase for new development
+## Database direction: Supabase only (confirmed 2026-10-24)
 
-- SeoulBeauty's **new backend development targets the existing Supabase project** `mqsnshnlfwsgabrsmqsz` (SeoulBeauty / Alimi). Do not introduce another game database, new D1 tables/migrations, or new D1-dependent features.
-- **D1 is still the legacy production game store today.** It has NOT been consolidated, retired, or deleted. Preserve its data and existing game/share behavior while migration validation is unfinished.
-- Do not remove the D1 proxy, change the production writer, set release environment flags, or delete/purge D1 merely because replacement code or a PR exists. A verified migration and explicit release authorization are required. D1 deletion is currently on hold.
-- Make migration/compatibility fixes only as needed to preserve existing users; build new domain/data access in the Supabase replacement. Do not extend the legacy backend as the long-term architecture.
-- Read [the canonical backend policy](docs/BEAUTY_BACKEND_POLICY.md), [migration status/runbook](docs/beauty-game-database-migration.md), and [the existing game domain](docs/beauty-play-domain.md) before changing game persistence, account linkage, sharing, metrics, or deployment.
+- The sole SeoulBeauty runtime database is the existing Supabase project `mqsnshnlfwsgabrsmqsz` (SeoulBeauty / Alimi).
+- The user confirmed D1 is no longer used. Do not restore a D1 proxy, fallback, writer, or new D1 storage. `api/beauty-play.js` already selects Supabase only.
+- Preserve existing Supabase data and invitation contracts. Never infer historical migration success or delete any retained data merely from runtime routing.
+- New feature flags remain disabled until their schema, configuration and release checks pass. Do not enable ownership polls or account linkage merely because code is merged.
+- Read [the canonical backend policy](docs/BEAUTY_BACKEND_POLICY.md) before persistence/account/sharing changes. Older D1 inventory/runbook sections are historical evidence, not current runtime instructions.
 
 ## Data and identity boundaries
 

@@ -28,3 +28,9 @@ Integrated latest main 4447331 with existing PRs #226, #227 and #189. Supersedes
 
 ## Five-person observation
 Observe unaided start/completion, first result action, attempted actual sharing, friend completion, ownership participation, voluntary second-product exploration and where interest drops. Treat this as qualitative exploration. Do not send invitations or contact anyone automatically.
+
+## Follow-up release evidence
+- User confirmed D1 is no longer used; canonical policy and AGENTS.md now match Supabase-only main. No D1 operation performed.
+- Remote integrated code commit `6e2efea2c3f1348e123347fc3101ea4049d74050`: Web checks run 40050694519 and launch workflow 40050694466 both completed successfully. CI browser fixtures are not real-device or live-backend evidence.
+- Connected Supabase account project lists omit SeoulBeauty; remote DB schema checks remain unavailable. Vercel alimi project access succeeds.
+- Release scope: existing game result/discovery improvements with ownership/account flags unchanged. Ownership remains unreleased.
