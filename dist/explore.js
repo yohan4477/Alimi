@@ -27,7 +27,7 @@ const busiest = rooms => [...rooms].sort((a, b) => (b.messages_24h ?? 0) - (a.me
 const bookmark = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
 // 6-1: rows that open a room carry a bookmark to save it on this device.
 export const exploreRow = (r, image, attr = 'data-open-room') => (attr === 'data-open-room' ? `<div class="explore-item">` : '') + `<button class="explore-row" ${attr}="${esc(r.id)}">${roomThumb(r, image)}<span class="explore-text"><span class="explore-title"><b>${esc(roomTitle(r))}</b>${!r.demo && r.messages_24h > 0 ? `<span class="explore-badge" aria-label="${esc(t('room.newToday', {n: r.messages_24h}))}">${r.messages_24h}</span>` : ''}</span>${roomIntro(r) ? `<small>${esc(roomIntro(r))}</small>` : ''}<span class="explore-meta"><span>${people}${esc(participationLabel(r))}</span>${r.last_message_at ? `<span>${clock}${esc(relTime(r.last_message_at))}</span>` : ''}</span></span></button>` + (attr === 'data-open-room' ? `<button class="room-save${isSavedRoom(r.id) ? ' on' : ''}" data-save-room="${esc(r.id)}" aria-pressed="${isSavedRoom(r.id)}" aria-label="${esc(t('room.save'))}">${bookmark}</button></div>` : '');
-const rows = (list, images) => list.length ? list.map(r => exploreRow(r, images.get(r.id))).join('') : `<p class="empty">${esc(t('explore.empty'))}</p>`;
+const rows = (list, images) => list.length ? list.map(r => exploreRow(r, images.get(r.id))).join('') : `<div class="explore-empty"><p class="empty">${esc(t('explore.empty'))}</p><button class="empty-action" data-chat-action="create-room">${esc(t('explore.emptyCta'))}</button></div>`;
 const head = key => `<h2 class="explore-head-title">${esc(t(key))}</h2>`;
 
 function tabsMarkup() {

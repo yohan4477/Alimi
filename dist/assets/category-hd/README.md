@@ -21,3 +21,5 @@ Shared prompt (replace SUBJECT with the corresponding subject below):
 | toner | a clear pale blue toner bottle, white pump cap, subtle water blue contents | j2-c1.png |
 
 WebP encoding keeps the generated pixel dimensions with quality 95. Display dimensions are unchanged.
+
+Web copies are downscaled to 256px (they display at 48–80px); regenerate from the prompts above if a larger size is ever needed.

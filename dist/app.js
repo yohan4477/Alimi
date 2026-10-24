@@ -432,7 +432,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   if(b.dataset.auth){authAction(b.dataset.auth);return}
   if(b.dataset.screen){show(b.dataset.screen);return}
   if(b.dataset.set){settingsAction(b.dataset.set);return}
-  if(b.dataset.lang){rememberLanguage(b.dataset.lang);location.href=languageURL(b.dataset.lang).href;return}
+  if(b.dataset.lang){rememberLanguage(b.dataset.lang);globalThis.document?.documentElement.setAttribute('data-locale-pending','');location.href=languageURL(b.dataset.lang).href;return}
   if(b.dataset.product)openDetail(b.dataset.product);
   if(b.dataset.favorite){toggleFavorite(state,b.dataset.favorite);track(state.favorites.includes(b.dataset.favorite)?'wishlist_add':'wishlist_remove',b.dataset.favorite);save();renderList();if(screen==='search')renderSearch();if(screen==='saved')renderSaved();if(screen==='detail'&&detailOpen)renderDetail()}
   if(b.dataset.category){category=b.dataset.category;document.querySelectorAll('[data-category]').forEach(x=>x.classList.toggle('active',x.dataset.category===category));renderList()}});

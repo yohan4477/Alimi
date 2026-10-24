@@ -2296,6 +2296,10 @@
     "ko": "이 분류의 대화방이 아직 없어요.",
     "en": "No rooms in this category yet."
   },
+  "explore.emptyCta": {
+    "ko": "첫 대화방 만들기",
+    "en": "Start the first room"
+  },
   "explore.searchPh": {
     "ko": "제품명, 브랜드를 검색해보세요.",
     "en": "Search products or brands."

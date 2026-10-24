@@ -14,8 +14,12 @@ export function installRegionPicker() {
     if(r){
       // Picking a market shows what its visitors see: US in English, Korea in Korean. Language can still be switched after.
       const l2=r==='kr'?'ko':'en';rememberMarket(r);rememberLanguage(l2);
-      if(r!==region||l2!==lang){const u=regionURL(r);u.searchParams.set('lang',l2);location.href=u.href;}
+      if(r!==region||l2!==lang){const u=regionURL(r);u.searchParams.set('lang',l2);document.documentElement.setAttribute('data-locale-pending','');location.href=u.href;}
     }
-    if(l){rememberLanguage(l);location.href=languageURL(l).href;}
+    if(l){rememberLanguage(l);
+      // Hide the old-language screen while the new one loads.
+      document.documentElement.setAttribute('data-locale-pending','');location.href=languageURL(l).href;}
   });
 }
+// A page restored from the back/forward cache must not stay hidden by a language switch.
+globalThis.addEventListener?.('pageshow',e=>{if(e.persisted)document.documentElement.removeAttribute('data-locale-pending');});
