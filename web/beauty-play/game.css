@@ -195,10 +195,10 @@ img[src*="/art-school_"]{object-position:50% 3%!important}
  .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:0 0 auto!important;height:auto!important;min-height:0!important;aspect-ratio:1;padding:6px}
  .selection-main .staged-atelier[data-stage="product"] .staged-products .product-copy strong{font-size:14px}
  .selection-main .staged-options .shade-option>span{font-size:15px;min-height:30px;font-weight:600}
- .selection-main .staged-reasons button{min-height:46px!important;font-size:15px!important;padding:8px 10px!important;display:flex;align-items:center}
+ .selection-main .staged-reasons button{min-height:38px!important;height:auto!important;font-size:15px!important;line-height:1.25;padding:6px 12px!important;display:flex;align-items:center}
  .selection-main .advice-note{font-size:14px;gap:6px}
  .selection-main .advice-note small{font-size:12px}
- .selection-main .advice-note input{height:46px!important;padding:8px 12px!important;font-size:16px}
+ .selection-main .advice-note input{height:40px!important;padding:6px 12px!important;font-size:16px}
  .selection-main .chosen-summary img{width:40px;height:40px}
  .selection-main .staged-atelier[data-stage="product"] .game-product-search input{min-height:42px!important;font-size:16px;padding:8px 12px!important}
  .selection-main .staged-atelier[data-stage="product"] .game-product-search small{font-size:11px!important}
