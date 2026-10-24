@@ -10,8 +10,9 @@ export function marketDecision({pathname='',search='',storage,suggestedRegion=nu
  let manual;try{manual=validMarket(storage?.getItem(MANUAL_MARKET_KEY));}catch{}
  if(path||query||manual)return {region:path||query||manual,needsChoice:false,recommended:null};
  // Legacy storage also contained an automatic US default. Without a verified
- // manual marker, use the trusted Korean country suggestion without an extra prompt.
- return suggestedRegion==='kr'?{region:'kr',needsChoice:false,recommended:null}:{region:null,needsChoice:true,recommended:null};
+ // manual marker, enter directly: Korea for a trusted KR suggestion, US otherwise.
+ // Visitors switch markets later from the region picker.
+ return {region:suggestedRegion==='kr'?'kr':'us',needsChoice:false,recommended:null};
 }
 export function rememberMarket(value,storage=globalThis.localStorage) {
  const market=validMarket(value);if(!market)return false;

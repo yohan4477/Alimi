@@ -8,9 +8,9 @@ import {startVisitorEntry} from '../dist/visitor-entry.js';
 const storage=values=>({getItem:key=>values[key]??null,setItem:(key,value)=>{values[key]=value;}});
 function documentFixture(){const element=()=>({children:[],dataset:{},listeners:{},append(child){this.children.push(child);},setAttribute(){},addEventListener(name,callback){this.listeners[name]=callback;}});const body=element();body.prepend=child=>body.children.unshift(child);return {cookie:'',body,createElement:element,documentElement:{lang:'',attributes:{},setAttribute(key,value){this.attributes[key]=value;},removeAttribute(key){delete this.attributes[key];}}};}
 const server=country=>async()=>({ok:true,json:async()=>({language:country==='KR'?'ko':'en',suggestedRegion:country==='KR'?'kr':null})});
-test('trusted country chooses only Korean first-visit market; language never implies market',()=>{
+test('trusted KR country enters Korea, everyone else enters US; language never implies market',()=>{
  assert.deepEqual(marketDecision({suggestedRegion:'kr'}),{region:'kr',needsChoice:false,recommended:null});
- for(const suggestedRegion of [null,'us','jp','ko'])assert.equal(marketDecision({suggestedRegion,search:'?lang=ko'}).region,null);
+ for(const suggestedRegion of [null,'us','jp','ko'])assert.deepEqual(marketDecision({suggestedRegion,search:'?lang=ko'}),{region:'us',needsChoice:false,recommended:null});
  for(const country of ['US','JP','GB'])assert.equal(requestLanguage({country,acceptLanguage:'ko-KR'}),'en');
  assert.equal(requestLanguage({country:'XX',acceptLanguage:'ko-KR'}),'ko');
  assert.equal(requestLanguage({country:'',acceptLanguage:'fr'}),'en');
@@ -38,19 +38,17 @@ test('KR fresh entry loads community only after resolving Korean market/language
  await startVisitorEntry({document,location:{pathname:'/',search:'',href:'https://seoulbeauty.me/'},storage:storage(values),fetchImpl:server('KR'),loadApp:async()=>{loaded++;assert.equal(document.documentElement.lang,'ko');}});
  assert.equal(loaded,1);assert.equal(document.body.children.length,0);assert.deepEqual(values,{});
 });
-test('non-KR and unknown legacy entry require market choice; shared query survives',async()=>{
+test('non-KR and unknown legacy entry open the US market in English without a choice gate',async()=>{
  for(const [country,values] of [['JP',{}],['XX',{'seoulbeauty-region':'us'}]]){
-  const document=documentFixture();let target;
-  await startVisitorEntry({document,location:{pathname:'/',search:'?room=synthetic&code=oauth-fixture&lang=en',href:'https://seoulbeauty.me/?room=synthetic&code=oauth-fixture&lang=en',assign:value=>{target=value;}},storage:storage(values),fetchImpl:server(country),loadApp:()=>assert.fail('unresolved market loaded application')});
-  assert.equal(document.documentElement.lang,'en');const buttons=document.body.children[0].children.filter(child=>child.dataset.marketChoice);
-  assert.equal(buttons.length,2);buttons[0].listeners.click();const url=new URL(target);
-  assert.equal(url.pathname,'/live');assert.equal(url.searchParams.get('region'),'kr');assert.equal(url.searchParams.get('lang'),'en');assert.equal(url.searchParams.get('room'),'synthetic');assert.equal(url.searchParams.get('code'),'oauth-fixture');assert.equal(values[MANUAL_MARKET_KEY],'kr');
+  const document=documentFixture();let loaded=0;
+  await startVisitorEntry({document,location:{pathname:'/',search:'?room=synthetic&lang=en',href:'https://seoulbeauty.me/?room=synthetic&lang=en'},storage:storage(values),fetchImpl:server(country),loadApp:async()=>{loaded++;}});
+  assert.equal(loaded,1);assert.equal(document.documentElement.lang,'en');assert.equal(document.body.children.length,0);assert.equal(values[MANUAL_MARKET_KEY],undefined);
  }
 });
-test('unknown country falls back to browser language but still requires market choice',async()=>{
- const document=documentFixture();
- await startVisitorEntry({document,location:{pathname:'/',search:'',href:'https://seoulbeauty.me/'},storage:storage({}),fetchImpl:async()=>{throw Error('offline');},loadApp:()=>assert.fail('unknown market loaded application')});
- assert.equal(document.body.children.length,1);
+test('unknown country falls back to browser language and still enters the app',async()=>{
+ const document=documentFixture();let loaded=0;
+ await startVisitorEntry({document,location:{pathname:'/',search:'',href:'https://seoulbeauty.me/'},storage:storage({}),fetchImpl:async()=>{throw Error('offline');},loadApp:async()=>{loaded++;}});
+ assert.equal(loaded,1);assert.equal(document.body.children.length,0);
 });
 test('explicit shared language/manual language override country without changing market',async()=>{
  const values={'seoulbeauty-language':'ko'};
