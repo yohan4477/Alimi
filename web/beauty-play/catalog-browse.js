@@ -1,5 +1,10 @@
 // Preserve the existing card carousel; recommendations only change the initial order.
 export const PAGE_SIZE = 10;
+// A lip answer browses every lip product, never base or hair; with no answer yet the whole catalog stays open.
+export function matchingProducts(pool, suggested = []) {
+ const categories=new Set(pool.filter(p=>suggested.includes(p.id)).map(p=>p.category));
+ return categories.size?pool.filter(p=>categories.has(p.category)):pool;
+}
 export function browseCatalog(pool, suggested = [], brand = 'all', page = 0, query = '') {
  const rank=new Map(suggested.map((id,i)=>[id,i]));
  const ordered=[...pool].sort((a,b)=>{
