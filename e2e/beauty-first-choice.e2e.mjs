@@ -53,7 +53,7 @@ function assertStarts(events,count,label) {
 }
 try {
  browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{channel:'chrome'});
- // Brand regression: landing, regular game and pilot game retain their destinations.
+ // Brand regression: both character entry variants retain the existing pilot-mode home destination.
  for(const width of [320,390])for(const lang of ['ko','en']){
   const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
   const page=await context.newPage();currentPage=page;
@@ -64,7 +64,7 @@ try {
    if(!['GET','HEAD'].includes(request.method()))return route.abort('blockedbyclient');
    return route.continue();
   });
-  for(const entry of [{query:'',header:'.play-top',destination:'/beauty-play/'},{query:'&character=mona',header:'.top',destination:'/'},{query:'&character=mona&pilot=1',header:'.pilot-top',destination:'/beauty-play/'}]){
+  for(const entry of [{query:'',header:'.play-top',destination:'/beauty-play/'},{query:'&character=mona',header:'.top',destination:'/beauty-play/'},{query:'&character=mona&pilot=1',header:'.pilot-top',destination:'/beauty-play/'}]){
    const label=`brand ${width}px ${lang} ${entry.header}`;
    await page.goto(base+'/beauty-play/?test=1&lang='+lang+entry.query);
    const header=page.locator(entry.header),logo=header.getByRole('img',{name:'Seoul Beauty',exact:true});
