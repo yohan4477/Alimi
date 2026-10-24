@@ -24,3 +24,13 @@ test('invalid follow-up rejected without database write',async()=>{
  const r=await invoke(h,{method:'POST',body:{choice:'want',followup:'daily'}});
  assert.equal(r.status,400);assert.equal(requests,0);
 });
+
+test('full game catalog is reachable with unique product identifiers',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const frontend=JSON.parse(await readFile(new URL('../dist/owned-poll/catalog.json',import.meta.url),'utf8'));
+ const backend=JSON.parse(await readFile(new URL('../server/owned-poll-catalog.json',import.meta.url),'utf8'));
+ assert.deepEqual(frontend,backend);
+ assert.equal(frontend.length,40);
+ assert.equal(new Set(frontend.map(p=>p.id)).size,frontend.length);
+ assert(frontend.every(p=>p.image&&p.brand&&p.name));
+});
