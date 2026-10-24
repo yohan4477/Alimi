@@ -4,7 +4,7 @@ import {resolveGameStart} from './game-start.js';
 import {adviceFor} from './advice';
 import {recordFirstChoice} from './first-choice.js';
 import {scenarioFor,scenarioGroups} from './scenario-taxonomy.js';
-import {activeRun,advanceRun,markRunShared,persistRun,availableCharacterIds,LEGACY_CHARACTER_IDS} from './play-progress.js';
+import {activeRun,advanceRun,markRunShared,persistRun,availableCharacterIds,LEGACY_CHARACTER_IDS,answerFor,rememberAnswer} from './play-progress.js';
 import FriendShare from './friend-share';type PickSnapshot={catalogPolicy?:string;character:typeof characters[number];products:typeof products;advice:ReturnType<typeof adviceFor>};
 import Reflection from './reflection';
 import AccountLink from './account-link';
@@ -60,6 +60,9 @@ useEffect(()=>{
       runScope.current=isTest.current?'test':'live';
       const run=activeRun(ids,u.searchParams.get('character'),runScope.current);
       runState.current=run;play.current=run.play;setWho(characters.findIndex(x=>x.id===run.character));setShareUnlocked(run.shared);initialCharacter=run.character;
+      // Already answered in this play: reopen its result; "choose again" overwrites the same vote.
+      const done=answerFor(run.character,runScope.current);
+      if(done&&done.play===run.play){setAdviceId(done.advice||'');setPick(done.product);setShade(done.shade||'');setReason(Array.isArray(done.reasons)?done.reasons:[]);setStage('reason');setScreen(5);}
     }
     // Invitation lookups and restored plays resolve before any records.
     canWrite.current=true;setReady(true);
@@ -76,8 +79,10 @@ function selectCharacter(i:number){if(!shareUnlocked||screen!==5||!runState.curr
 function browseProduct(index:number){const track=carousel.current;if(!track)return;const card=track.children[index] as HTMLElement|undefined;if(!card)return;track.scrollTo({left:card.offsetLeft-(track.firstElementChild as HTMLElement).offsetLeft,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
 function syncProduct(){const track=carousel.current;if(!track||!track.children.length)return;const cards=Array.from(track.children) as HTMLElement[];const index=cards.reduce((best,card,i)=>Math.abs(card.offsetLeft-(track.firstElementChild as HTMLElement).offsetLeft-track.scrollLeft)<Math.abs(cards[best].offsetLeft-cards[0].offsetLeft-track.scrollLeft)?i:best,0);setActiveProduct(index);setProductEnd(track.scrollLeft+track.clientWidth>=track.scrollWidth-4);}
 function next(n:number){setError('');setScreen(n);}
+// A reopened result loads its tallies once the play is ready.
+useEffect(()=>{if(screen===5&&ready&&!stats&&!statsBusy)loadStats();},[screen,ready,who]);
 function back(){setStage(pick ? 'reason' : adviceId ? 'product' : 'advice');event('back',String(screen));next(2);}
-async function save(r:string[]){if(busy)return;setBusy(true);setError('');try{await post({kind:'answer',play:play.current,character:c.id,product:pick,reasons:r,shade:shade||null,advice:adviceId||undefined,note,test:isTest.current});setReason(r);setShareUnlocked(false);if(runState.current)markRunShared(runState.current,false,runScope.current);event('answer_saved','answer');if(pilot)event('pilot_complete','result');next(5);event('result_view','result');await loadStats();if(invite){const resp=await fetch('/api/invite?id='+encodeURIComponent(invite)+'&reveal=1&play='+play.current);if(resp.ok){setFriend(await resp.json() as Friend);event('comparison_view','result');}}await flush();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+async function save(r:string[]){if(busy)return;setBusy(true);setError('');try{await post({kind:'answer',play:play.current,character:c.id,product:pick,reasons:r,shade:shade||null,advice:adviceId||undefined,note,test:isTest.current});setReason(r);setShareUnlocked(false);if(runState.current)markRunShared(runState.current,false,runScope.current);rememberAnswer(c.id,{play:play.current,product:pick,advice:adviceId||'',shade:shade||'',reasons:r,shared:false},runScope.current);event('answer_saved','answer');if(pilot)event('pilot_complete','result');next(5);event('result_view','result');await loadStats();if(invite){const resp=await fetch('/api/invite?id='+encodeURIComponent(invite)+'&reveal=1&play='+play.current);if(resp.ok){setFriend(await resp.json() as Friend);event('comparison_view','result');}}await flush();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
 async function loadStats(scope:'character'|'group'=statsScope){const request=++statsRequest.current;setStatsBusy(true);try{const r=await fetch('/api/stats?character='+c.id+'&scope='+scope+'&test='+(isTest.current?'1':'0'));if(!r.ok)throw Error();const v=await r.json();if(request===statsRequest.current)setStats(v as Stats);}catch{if(request===statsRequest.current)setStats(null);}finally{if(request===statsRequest.current)setStatsBusy(false);}}
 async function used(value:string){setError('');try{await post({kind:'experience',play:play.current,character:c.id,experience:value,test:isTest.current});setExperience(value);event('experience_saved','result');await loadStats();}catch{setError('경험을 저장하지 못했어요. 다시 눌러 주세요.');}}
 async function createLink(channel:string){const v=await post({kind:'share',channel,play:play.current,character:c.id,test:isTest.current});event('share_link_created','result');if(runState.current)markRunShared(runState.current,true,runScope.current);setShareUnlocked(true);const u=new URL('/beauty-play/',location.origin);u.searchParams.set('invite',v.id);if(pilot)u.searchParams.set('pilot','1');u.searchParams.set('lang',lang);if(test)u.searchParams.set('test','1');return u.href;}

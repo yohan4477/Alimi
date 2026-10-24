@@ -159,3 +159,11 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 .friend-share-buttons>button:last-child:nth-child(odd){grid-column:1/-1}
 /* Desktop: breathing room under the logo tagline and the test-mode banner. */
 @media(min-width:651px){.top>.brand span{margin-top:4px}.testflag{margin-bottom:12px}}
+
+/* Landing painting list: every available scenario, tap to start it. */
+.painting-list{margin:28px 0 22px}.painting-list h2{font-size:15px;margin:0 0 12px;color:#273a5d}.painting-list ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}.painting-list button{width:100%;height:100%;display:flex;flex-direction:column;text-align:left;padding:0;border:1px solid #e2e7f0;border-radius:12px;background:#fff;overflow:hidden;cursor:pointer;color:inherit;font:inherit}.painting-list button:hover:not(:disabled){border-color:#2857d2}.painting-list img{width:100%;aspect-ratio:4/3;object-fit:cover;object-position:50% 25%;display:block;background:#efe7dc}.painting-list button>span{display:flex;flex-direction:column;gap:3px;padding:9px 10px 11px}.painting-list small{font-size:10px;color:#7d8aa0}.painting-list strong{font-size:13px;line-height:1.4;font-weight:600;color:#273a5d}
+@media(min-width:651px){.painting-list ul{grid-template-columns:repeat(4,1fr)}}
+/* Landing list type sizes: readable on phones. */
+.painting-list h2{font-size:19px}.painting-list small{font-size:13px}.painting-list strong{font-size:16px;line-height:1.4}.painting-list em{font-style:normal;font-size:13px;font-weight:700;color:#2857d2;margin-top:4px}.painting-list button.done{border-color:#b9c8f0;background:#f5f8ff}
+.pilot-entry>p{font-size:16px}.pilot-entry>small,.pilot-entry .pilot-note{font-size:13px}
+@media(max-width:360px){.painting-list strong{font-size:15px}}

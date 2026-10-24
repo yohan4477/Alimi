@@ -20,8 +20,17 @@ export function activeRun(ids,preferred,scope='live',storage=browserStorage()){
 export function markRunShared(run,shared,scope='live',storage=browserStorage()){
  const saved=read(storage,scope);
  if(!saved||saved.play!==run.play||saved.character!==run.character)return false;
- write(storage,scope,{...saved,shared:shared===true});return true;
+ write(storage,scope,{...saved,shared:shared===true});
+ const done=answerFor(saved.character,scope,storage);if(done&&done.play===run.play)rememberAnswer(saved.character,{shared:shared===true},scope,storage);
+ return true;
 }
+// Last saved answer per painting on this device, so a finished painting reopens its result
+// in the same play (answering again overwrites it instead of adding a second vote).
+const answersKey=scope=>'beauty-play-answers-v1:'+scope;
+function readAnswers(storage,scope){try{const all=JSON.parse(storage.getItem(answersKey(scope))||'{}');return all&&typeof all==='object'?all:{}}catch{return {}}}
+export function answerFor(character,scope='live',storage=browserStorage()){const a=readAnswers(storage,scope)[character];return a&&uuid.test(a.play)&&typeof a.product==='string'?a:null}
+export function rememberAnswer(character,answer,scope='live',storage=browserStorage()){const all=readAnswers(storage,scope);all[character]={...all[character],...answer};try{storage.setItem(answersKey(scope),JSON.stringify(all))}catch{}return all[character]}
+export function startCharacter(character,scope='live',storage=browserStorage()){const done=answerFor(character,scope,storage);return write(storage,scope,done?{character,play:done.play,shared:done.shared===true}:{character,play:crypto.randomUUID(),shared:false})}
 export function advanceRun(run,ids,scope='live',storage=browserStorage()){
  const saved=read(storage,scope);
  if(!saved||saved.play!==run.play||!saved.shared)throw Error('Share this scenario first');
