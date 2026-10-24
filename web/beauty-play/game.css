@@ -174,3 +174,7 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 @media(max-width:650px){.painting-list button{min-height:136px}.painting-list img{contain:size;align-self:stretch;min-height:136px;object-fit:cover}}
 /* Full-length school portraits keep the face: crop from the top everywhere. */
 img[src*="/art-school_"]{object-position:50% 3%!important}
+/* Landing share: send the game itself to a friend. */
+.game-share{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:1px solid #2857d2;border-radius:999px;background:#fff;color:#2857d2;font:inherit;font-size:16px;font-weight:700;cursor:pointer}.game-share-note{font-size:14px;color:#2857d2;margin:10px 0 0}
+.painting-count{font-style:normal;font-size:14px;color:#61728c;margin-top:2px}
+@media(min-width:651px){.painting-count{font-size:12px}}
