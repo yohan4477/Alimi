@@ -178,3 +178,6 @@ img[src*="/art-school_"]{object-position:50% 3%!important}
 .game-share{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:1px solid #2857d2;border-radius:999px;background:#fff;color:#2857d2;font:inherit;font-size:16px;font-weight:700;cursor:pointer}.game-share-note{font-size:14px;color:#2857d2;margin:10px 0 0}
 .painting-count{font-style:normal;font-size:14px;color:#61728c;margin-top:2px}
 @media(min-width:651px){.painting-count{font-size:12px}}
+/* Share sits at the right end of the title row. */
+.pilot-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.pilot-title-row h1{margin:14px 0;min-width:0}.pilot-title-row .game-share{flex:none;min-height:44px;padding:0 18px;font-size:15px}
+@media(max-width:360px){.pilot-title-row h1{font-size:24px;white-space:nowrap}.pilot-title-row .game-share{padding:0 14px;font-size:14px}}
