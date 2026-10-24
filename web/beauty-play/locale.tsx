@@ -5,6 +5,8 @@ import {initialLanguage,resolveVisitorLanguage,rememberLanguage} from '../../dis
 export type Language='ko'|'en';
 const LanguageContext=createContext<{lang:Language;setLanguage:(lang:Language)=>void}>({lang:'ko',setLanguage:()=>{}});
 const entries={ko:Object.entries(dictionaries.ko).sort((a,b)=>b[0].length-a[0].length),en:Object.entries(dictionaries.en).sort((a,b)=>b[0].length-a[0].length)};
+// Exact-match names that arrive with data loaded at runtime (catalog brands); never used for partial replacement.
+export function addTranslations(lang:Language,names:Record<string,string>){Object.assign(dictionaries[lang] as Record<string,string>,names);}
 export function translate(text:string,lang:Language){
  const direct=(dictionaries[lang] as Record<string,string>)[text];if(direct)return direct;
  if(lang==='en'){

@@ -50,8 +50,8 @@ test('new catalog images match the existing reviewed source exactly',()=>{
  assert.equal(Object.keys(assetHashes).length,25);
  for(const [path,digest] of Object.entries(assetHashes))assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'),digest,path);
 });
-test('all eight characters retain complete sanitized snapshots and every catalog choice validates',()=>{
- assert.deepEqual(new Set(supportedCharacterIds),new Set(['mona','pearl','venus','madame','camille','ophelia','school_photo_friend','school_last_minute_friend']));
+test('all ten characters retain complete sanitized snapshots and every catalog choice validates',()=>{
+ assert.deepEqual(new Set(supportedCharacterIds),new Set(['mona','pearl','venus','madame','camille','ophelia','school_photo_friend','school_last_minute_friend','gogh','david']));
  for(const character of supportedCharacterIds){
   const snapshot=shareSnapshot(character);assert.equal(snapshot.catalogPolicy,'all-products-v1');assert.equal(snapshot.products.length,40);
   for(const p of snapshot.products){

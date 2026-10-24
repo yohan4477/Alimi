@@ -13,7 +13,9 @@ const originalCharacters=[
 {id:'camille',name:'양산을 쓴 여인',tag:'바람 부는 오후의 피크닉',title:'양산은 챙겼는데.\n파우치가 비었어.',short:'피크닉 갈 때 립 하나만?',context:'바람 부는 날 친구들과 피크닉을 가기로 했어. 입술이 당겨서, 가볍게 덧바를 수 있는 제품 하나를 챙기고 싶대.',condition:'바람을 쐬면 입술이 당겨요',want:'가벼운 사용감 · 손쉬운 덧바름',quote:'양산, 도시락, 그리고 네가 골라준 립.',bg:'#dfe9d9'},
 {id:'ophelia',name:'오필리아',tag:'꽃보다 눈에 띄고 싶은 날',title:'꽃은 준비됐어.\n내 립도 골라줄래?',short:'꽃밭에서 찍을 오늘의 사진',context:'꽃밭에서 친구와 사진을 찍기로 했어. 입술 각질은 신경 쓰이고, 꽃과 어울리는 부드러운 색을 고르고 싶대.',condition:'입술 각질이 신경 쓰여요',want:'부드러운 색감 · 촉촉한 표현',quote:'꽃도 예쁘지만, 오늘 네 선택도 마음에 들어.',bg:'#e6e2d6'},
 {id:'school_photo_friend',name:'푸른 소년',tag:'네컷사진에 진심인 전학생',title:'',short:'',context:'',condition:'',want:'',quote:'',bg:'#ded8c5'},
-{id:'school_last_minute_friend',name:'피리 부는 소년',tag:'지각 직전에도 꾸미는 반장',title:'',short:'',context:'',condition:'',want:'',quote:'',bg:'#e8dfd3'}] as const;
+{id:'school_last_minute_friend',name:'피리 부는 소년',tag:'지각 직전에도 꾸미는 반장',title:'',short:'',context:'',condition:'',want:'',quote:'',bg:'#e8dfd3'},
+{id:'gogh',name:'반 고흐',tag:'',title:'',short:'',context:'',condition:'',want:'',quote:'',bg:'#dfe4dc'},
+{id:'david',name:'다비드',tag:'',title:'',short:'',context:'',condition:'',want:'',quote:'',bg:'#e7e3dc'}] as const;
 export const characters=originalCharacters.map(c=>({...c,...scenarios[c.id],quote:c.id==='mona'?c.quote:'네가 골라준 아이템, 오늘 파우치에 넣었어.'}));
 export const reasons=[...new Set([...legacyReasons,...Object.values(scenarios).flatMap(s=>s.reasonOptions)])];
 export function eligibleFor(_character:string){return products;}
@@ -33,5 +35,7 @@ export const artworkSources=[
 {id:'venus',title:'비너스의 탄생',artist:'산드로 보티첼리',position:'53% 30%',url:'https://commons.wikimedia.org/wiki/File:El_nacimiento_de_Venus,_por_Sandro_Botticelli.jpg'},
 {id:'madame',title:'마담 X',artist:'존 싱어 사전트',position:'50% 24%',url:'https://www.metmuseum.org/art/collection/search/12127'},
 {id:'camille',title:'양산을 쓴 여인',artist:'클로드 모네',position:'57% 30%',url:'https://www.nga.gov/artworks/61379-woman-parasol-madame-monet-and-her-son'},
-{id:'ophelia',title:'오필리아',artist:'존 에버렛 밀레이',position:'23% 55%',url:'https://commons.wikimedia.org/wiki/File:Millais_-_Ophelia.jpg'}
+{id:'ophelia',title:'오필리아',artist:'존 에버렛 밀레이',position:'23% 55%',url:'https://commons.wikimedia.org/wiki/File:Millais_-_Ophelia.jpg'},
+{id:'gogh',title:'반 고흐 자화상',artist:'빈센트 반 고흐',position:'45% 35%',url:'https://commons.wikimedia.org/wiki/File:Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_(454045).jpg'},
+{id:'david',title:'다비드',artist:'미켈란젤로 · 사진 Livioandronico2013, CC BY-SA 4.0',position:'50% 25%',url:'https://commons.wikimedia.org/wiki/File:Michelangelo%27s_David_2015.jpg'}
 ];

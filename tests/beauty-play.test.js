@@ -7,7 +7,7 @@ test('unset and explicit Supabase backends use only Supabase and preserve suppor
  for(const backend of [undefined,'supabase']){
   const calls=[];const h=configuredBeautyPlayHandler({BEAUTY_GAME_BACKEND:backend,SUPABASE_SECRET_KEY:'synthetic-fixture'}, {fetchImpl:async(url,init)=>{calls.push({url,init});return Response.json({ok:true});}});
   const r=await run(h,{headers:{cookie:'muse_device=10000000-1000-4000-8000-100000000001; sb-auth=private',authorization:'Bearer private'}});
-  assert.equal(r.statusCode,200);assert.equal(JSON.parse(r.body).supportedCharacterIds.length,8);
+  assert.equal(r.statusCode,200);assert.equal(JSON.parse(r.body).supportedCharacterIds.length,10);
   assert.equal(calls.length,1);assert.equal(calls[0].url,'https://mqsnshnlfwsgabrsmqsz.supabase.co/rest/v1/rpc/beauty_game_command');
   assert.equal(calls[0].init.headers.Cookie,undefined);assert(!JSON.stringify(calls).includes('private'));
   assert.match(r.headers['set-cookie'],/^__Host-beauty_game=.*Path=\/; HttpOnly; SameSite=Lax; Secure/);

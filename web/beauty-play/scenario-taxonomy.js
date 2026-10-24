@@ -83,7 +83,9 @@ export const scenarioMetadata = {
     "fictionalCondition": true
   },
   school_photo_friend:{groupId:"important_plans",scenarioId:"after_school_photos",artCueKo:"푸른 새틴 드레스와 소년의 초상",storyLinkKo:"방과 후 사진을 찍기 전의 가상 준비 상황",artCueEn:"A boy in a blue satin dress",storyLinkEn:"A fictional touch-up before after-school photos",fictionalCondition:true},
-  school_last_minute_friend:{groupId:"in_a_hurry",scenarioId:"five_minutes_to_school",artCueKo:"피리와 붉은 주름치마",storyLinkKo:"등교까지 시간이 부족한 가상의 아침",artCueEn:"A fife and a red pleated skirt",storyLinkEn:"A fictional rushed morning before school",fictionalCondition:true}
+  school_last_minute_friend:{groupId:"in_a_hurry",scenarioId:"five_minutes_to_school",artCueKo:"피리와 붉은 주름치마",storyLinkKo:"등교까지 시간이 부족한 가상의 아침",artCueEn:"A fife and a red pleated skirt",storyLinkEn:"A fictional rushed morning before school",fictionalCondition:true},
+  gogh:{groupId:"long_outing",scenarioId:"art_club_show",artCueKo:"붉은 수염과 점묘 배경",storyLinkKo:"미술부 친구의 전시회 준비",artCueEn:"A red beard and a dotted background",storyLinkEn:"An art club friend getting ready for the show",fictionalCondition:true},
+  david:{groupId:"touch_up",scenarioId:"yearbook_photo",artCueKo:"곱슬머리와 대리석 피부",storyLinkKo:"곱슬머리 친구의 졸업앨범 촬영",artCueEn:"Curly hair and marble skin",storyLinkEn:"A curly-haired friend's yearbook photo",fictionalCondition:true}
 };
 export function scenarioFor(character) { return scenarioMetadata[character] ?? null; }
 export function scenarioMembers(groupId) { return Object.keys(scenarioMetadata).filter(id => scenarioMetadata[id].groupId === groupId); }
