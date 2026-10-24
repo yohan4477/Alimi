@@ -12,6 +12,7 @@
       "includeFiles": "server/admin-*.html",
       "maxDuration": 30
     },
+    "api/owned-poll.js": {"includeFiles":"server/owned-poll-catalog.json","maxDuration":30},
     "api/beauty-play.js": {
       "maxDuration": 30
     }
