@@ -1,7 +1,6 @@
 // Staged product poll API. Disabled by default even on preview deployments.
 import {createHmac,randomUUID,timingSafeEqual} from 'node:crypto';
-import {readFileSync} from 'node:fs';
-const CATALOG=new Set(JSON.parse(readFileSync(new URL('../server/owned-poll-catalog.json',import.meta.url),'utf8')).map(p=>p.id));
+import {browsePollCatalog,resolvePollProduct} from '../server/owned-poll-catalog.mjs';
 const CHOICES=new Set(['owned','past','want','unknown']);
 const FOLLOWUPS={owned:['daily','weekly','sometimes','rarely'],past:['rebuy_yes','rebuy_unsure','rebuy_no'],want:['looks','social','recommended','replacement'],unknown:['curious','not_sure']};
 const ALLOWED=new Set(['https://seoulbeauty.me','https://www.seoulbeauty.me','https://alimi-omega.vercel.app']);
@@ -17,17 +16,27 @@ if(req.method==='POST'&&!ALLOWED.has(req.headers.origin))return send(403,{error:
 const key=env.SUPABASE_SECRET_KEY,secret=env.OWNED_POLL_COOKIE_SECRET,url='https://mqsnshnlfwsgabrsmqsz.supabase.co';
 if(!key||!secret||secret.length<32)return send(503,{error:'Feature not configured'});
 const u=new URL(req.url,'https://seoulbeauty.me'),product=u.searchParams.get('product');
-if(!product||!CATALOG.has(product))return send(400,{error:'Invalid product'});
+
 const test=u.searchParams.get('test')==='1';
-const id=identity(req,res,secret);
+
 const headers={apikey:key,'Content-Type':'application/json'};if(!key.startsWith('sb_secret_'))headers.Authorization='Bearer '+key;
 const endpoint=url+'/rest/v1/owned_product_votes';
 try{
+ if(req.method==='GET'&&u.searchParams.get('catalog')==='1')return send(200,await browsePollCatalog(u.searchParams,{headers,fetcher}));
+ const productInfo=await resolvePollProduct(product,{headers,fetcher});if(!productInfo)return send(400,{error:'Invalid product'});
+ const id=identity(req,res,secret);
  if(req.method==='POST'){
   let body=req.body;
   if(body===undefined){const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>2048)return send(413,{error:'Too large'});chunks.push(chunk);}body=Buffer.concat(chunks).toString();}
-  if(typeof body==='string'){if(Buffer.byteLength(body)>2048)return send(413,{error:'Too large'});body=JSON.parse(body);}
+  if(typeof body==='string'){if(Buffer.byteLength(body)>2048)return send(413,{error:'Too large'});try{body=JSON.parse(body);}catch{return send(400,{error:'Invalid JSON'});}}
+  if(body?.event!==undefined){
+   const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+   if(!['view','explore','skip_followup'].includes(body.event)||!uuid.test(body.id)||!uuid.test(body.run)||Buffer.byteLength(JSON.stringify(body))>2048)return send(400,{error:'Invalid event'});
+   const r=await fetcher(url+'/rest/v1/rpc/record_owned_poll_event',{method:'POST',headers,body:JSON.stringify({p_id:body.id,p_voter:id,p_run:body.run,p_product:product,p_name:body.event,p_test:test}),redirect:'error',signal:AbortSignal.timeout(8000)});
+   return send(r.ok?200:503,r.ok?{ok:true}:{error:'Event unavailable'});
+  }
   if(!body||typeof body!=='object'||Array.isArray(body)||Buffer.byteLength(JSON.stringify(body))>2048||!CHOICES.has(body.choice))return send(400,{error:'Invalid choice'});
+  if(body.option!=null&&(typeof body.option!=='string'||body.option.length>80||(productInfo.options&&!productInfo.options.some(o=>o.id===body.option))))return send(400,{error:'Invalid option'});
   if(body.followup!==undefined&&body.followup!==null&&!(FOLLOWUPS[body.choice]||[]).includes(body.followup))return send(400,{error:'Invalid follow-up'});
   if(body.note!==undefined&&(typeof body.note!=='string'||body.note.length>160||/[\u0000-\u001f]/.test(body.note)))return send(400,{error:'Invalid note'});
   const response=await fetcher(endpoint+'?on_conflict=product_id,voter_id,test',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({product_id:product,voter_id:id,test,option_id:typeof body.option==='string'?body.option.slice(0,80):null,choice:body.choice,followup:body.followup??null,...(body.note!==undefined?{private_note:body.note.trim()}:{}),updated_at:new Date().toISOString()}),redirect:'error',signal:AbortSignal.timeout(8000)});
@@ -43,7 +52,7 @@ try{
  }
  const counts=Object.fromEntries([...CHOICES].map(c=>[c,0]));let mine=null,mineFollowup=null;const followupCounts=Object.fromEntries(Object.entries(FOLLOWUPS).map(([k,v])=>[k,Object.fromEntries(v.map(x=>[x,0]))]));
  for(const row of rows){if(Object.hasOwn(counts,row.choice))counts[row.choice]++;if(row.followup&&followupCounts[row.choice]&&Object.hasOwn(followupCounts[row.choice],row.followup))followupCounts[row.choice][row.followup]++;if(row.voter_id===id){mine=row.choice;mineFollowup=row.followup||null;}}
- return send(200,{product,counts,total:rows.length,mine,mineFollowup,followupCounts});
+ return send(200,{product,productInfo,counts,total:rows.length,mine,mineFollowup,followupCounts});
 }catch{return send(503,{error:'Please try again'});}
 };}
 export default createOwnedPollHandler();

@@ -4,10 +4,10 @@ import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../server/admin-page.html',import.meta.url),'utf8');
 const js=readFileSync(new URL('../dist/admin.js',import.meta.url),'utf8');
 test('static admin KPIs describe pending aggregation, not a service outage or fabricated zeros',()=>{
- assert.equal((html.match(/<strong>집계 준비 중<\/strong>/g)||[]).length,26);
+ assert.equal((html.match(/<strong>집계 준비 중<\/strong>/g)||[]).length,22);
  assert.equal((html.match(/<strong>미연결<\/strong>/g)||[]).length,0);
- assert.equal((html.match(/실제 서비스·판매처의 연결 장애를 뜻하지 않습니다/g)||[]).length,6);
- for(const id of ['users','community','products','game','revenue','system']){
+ assert.equal((html.match(/실제 서비스·판매처의 연결 장애를 뜻하지 않습니다/g)||[]).length,5);
+ for(const id of ['users','community','products','revenue','system']){
   const section=html.split('id="sb-'+id+'"')[1].split('</section>')[0];
   assert.equal((section.match(/<strong>집계 준비 중<\/strong>/g)||[]).length,4);
   assert.doesNotMatch(section,/<strong>0<\/strong>/);

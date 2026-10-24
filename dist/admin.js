@@ -64,6 +64,20 @@ if (root) {
     root.querySelectorAll('[data-state-view]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button));});
     root.querySelectorAll('[data-state-panel]').forEach(section=>section.hidden=section.dataset.statePanel!==selected);
   }));
+  let gameMetricsVersion=0;
+  async function refreshGameMetrics(){
+    const status=document.getElementById('game-metrics-status');if(!status)return;
+    const version=++gameMetricsVersion,test=document.getElementById('game-metrics-mode').value;
+    const cells=[...document.querySelectorAll('[data-game-metric]')];cells.forEach(el=>el.textContent='조회 중');status.textContent='불러오는 중…';
+    try{const r=await fetch('/api/admin?view=game-metrics&test='+test,{credentials:'same-origin',cache:'no-store'});if(!r.ok)throw Error('access');const data=await r.json();if(version!==gameMetricsVersion)return;
+      const labels={unconnected:'미연결',denied:'조회 권한 없음',unavailable:'불러오기 실패',migration_required:'DB 집계 마이그레이션 확인 필요',no_data:'미수신',received:'수신 확인'},label=labels[data.state]||'불러오기 실패';
+      document.getElementById('ownership-release-status').textContent=data.flags?.ownership?'활성':'비활성';document.getElementById('account-release-status').textContent=data.flags?.accountLink?'활성':'비활성';
+      for(const cell of cells){const [section,key]=cell.dataset.gameMetric.split('.'),value=data[section]?.[key];cell.textContent=data.state==='received'&&Number.isFinite(value)?(section==='rates'?(value*100).toFixed(1)+'%':value.toLocaleString('ko-KR')):(data.state==='received'&&section==='rates'?'분모 없음':label);}
+      status.textContent=(data.test?'테스트':'실사용')+' · '+label+' · 최근 7일 · '+new Date(data.generatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' KST';
+    }catch{if(version!==gameMetricsVersion)return;status.textContent='불러오기 실패 · 로그인과 연결 상태를 확인하세요.';cells.forEach(el=>el.textContent='불러오기 실패');}
+  }
+  document.getElementById('game-metrics-mode')?.addEventListener('change',refreshGameMetrics);
+  document.getElementById('game-metrics-refresh')?.addEventListener('click',refreshGameMetrics);
   let metricsBusy=false,lastMetricsFetch=0;
   async function refreshMetrics(force=false){
     const status=document.getElementById('metrics-status');if(!status||metricsBusy||(!force&&Date.now()-lastMetricsFetch<60000))return;
@@ -98,6 +112,7 @@ if (root) {
     if (tab.id === 'sb-plan-tab') loadReview();
     if (tab.id === 'sb-ui-library-tab') loadLibrary();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
+    if(tab.id==='sb-game-tab')refreshGameMetrics();
     const hash = '#' + tab.id.slice(0,-4);
     if (location.hash !== hash) { try { history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', hash); } catch {} }
     if (focus) tab.focus();

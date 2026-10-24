@@ -54,6 +54,7 @@ jobs:
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-first-choice.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-progress.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-catalog.e2e.mjs
+          CHROME_PATH="$(command -v google-chrome)" node e2e/ownership.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/beauty-legacy-start.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/game-entrance-carousel.e2e.mjs
           CHROME_PATH="$(command -v google-chrome)" node e2e/visitor-market.e2e.mjs
