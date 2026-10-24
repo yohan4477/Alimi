@@ -276,7 +276,7 @@ function drawHome() {
   const box = $('#community-home'); if (!box || !home) return;
   box.setAttribute('aria-labelledby', 'home-tab-' + homeTab);
   const {hot, topics, recent, previews, partial, joined, images, products} = home;
-  if(region==='kr' && !chat.rooms.length) { box.innerHTML=`<p class="empty">${esc(t('region.krPending'))}</p><button data-service-region>${esc(t('region.open'))}</button>`; return; }
+  if(region==='kr' && !chat.rooms.length) { box.innerHTML=`<p class="empty">${esc(t('region.krPending'))}</p><button class="empty-action" data-service-region>${esc(t('region.open'))}</button>`; return; }
   if (homeTab === 'rec') {
     const interests = readInterests();
     const picks = interests?.done && (interests.skincare || interests.makeup) ? recommendRooms(chat.rooms, interests, 4).map(x => x.room) : (topics.some(r => !r.demo) ? topics.filter(r => !r.demo) : hot.length ? hot : topics).slice(0, 4);
