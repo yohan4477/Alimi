@@ -45,6 +45,7 @@ test('demo conversations expose all twelve attached products within the recent s
  const {mentionedProducts}=await import('../dist/community-home.js');
  assert.equal(demoRooms.length,60);
  assert.equal(Object.values(demoMessages).flat().length,24); // Only one question/answer pair per product; no repeated filler
+ assert.ok(Object.values(demoMessages).flat().every(message=>message.reply_to===null), 'immediate product question/answer turns are ordinary chat');
  const products=mentionedProducts(demoEntries());
  assert.equal(products.length,12);
  assert.ok(products.every(g=>g.rooms.size===1 && g.entries.length>0 && g.item.demo && /^https:\/\//.test(g.item.image_url)));

@@ -42,3 +42,16 @@ test('sample first paint is withheld until locale resolution and no actual boots
  assert.ok(source.indexOf('await resolveVisitorContext()')<source.indexOf("removeAttribute('data-locale-pending')"));
  assert.match(source,/const liked=new Set\(\),saved=new Set\(\)/);
 });
+
+test('both locales render regular turns without quotes and keep delayed reply navigation',()=>{
+ for(const language of ['ko','en'])for(const room of sampleRooms(language)){
+  const messages=sampleMessages(room.id,language);
+  for(const message of messages){
+   const html=messageMarkup(message,messages,language);
+   if(message.reply_to){
+    assert.ok(html.includes(`data-sample-jump="${message.reply_to}"`));
+    assert.match(message.body,language==='ko'?/처음|아까/:/original question|earlier question|at the start/);
+   }else assert.doesNotMatch(html,/chat-quote|data-sample-jump/);
+  }
+ }
+});

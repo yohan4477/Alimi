@@ -24,3 +24,26 @@ test('curated sample conversations have no QA artifacts, missing-photo claims or
   assert.equal(room.members,new Set(rows.map(m=>m.author_tag)).size);
  }
 });
+
+test('sample chat turns are chronological; quotes only recall a topic after intervening discussion',async()=>{
+ const data=JSON.parse(await readFile(new URL('../dist/cx-demo-fixtures.json',import.meta.url),'utf8'));
+ // These deliberately return to older topics after the conversation has moved on:
+ // coverage after application/sensitivity, one-product packing after texture,
+ // eye stinging after makeup/reapplication, powder wear after liquid application.
+ const delayed=new Map([[980056,980048],[980067,980060],[980074,980070],[980087,980080]]);
+ const actual=[];
+ for(const room of data.rooms){
+  const rows=data.messages[room.id];
+  for(const [index,message] of rows.entries()){
+   if(index)assert.ok(Date.parse(message.created_at)>=Date.parse(rows[index-1].created_at),`${message.id}: chronological order`);
+   assert.equal(message.reply_to,delayed.get(message.id)??null,`${message.id}: ordinary conversation is not a comment thread`);
+   if(message.reply_to){
+    const parentIndex=rows.findIndex(row=>row.id===message.reply_to);
+    assert.ok(parentIndex>=0&&index-parentIndex>=4,`${message.id}: older same-room target with intervening discussion`);
+    assert.match(message.body,/처음|아까/);
+    actual.push([message.id,message.reply_to]);
+   }
+  }
+ }
+ assert.deepEqual(actual,[...delayed], 'preserve meaningful delayed replies, not blanket flattening');
+});
