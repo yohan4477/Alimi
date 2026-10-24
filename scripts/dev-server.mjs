@@ -1,4 +1,5 @@
 import {staticEntryPath} from '../dist/public-routes.js';
+import ownedPollHandler from '../api/owned-poll.js';
 import languageHandler from '../api/language.js';
 import {configuredBeautyPlayHandler} from '../api/beauty-play.js';
 import http from 'node:http';
@@ -16,13 +17,14 @@ export function createLocalServer({adminHandler = createAdminHandler({env: {...p
     const url = new URL(req.url, 'http://localhost');
     if(url.pathname.startsWith('/beauty-play/api/')){req.url='/api/beauty-play?'+new URLSearchParams({...Object.fromEntries(url.searchParams),route:url.pathname.slice('/beauty-play/api/'.length)});return beautyPlayHandler(req,res);}
     if (['/admin','/admin/','/api/admin'].includes(url.pathname)) return adminHandler(req, res);
+    if (url.pathname === '/api/owned-poll') return ownedPollHandler(req,res);
     if (url.pathname === '/api/language') return languageHandler(req,res);
     if (url.pathname === '/api/coupang') return coupangHandler(req, res);
     if (url.pathname === '/api/oliveyoung') return oliveYoungHandler(req, res);
     if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405); return res.end(); }
     let name;
     try { name = decodeURIComponent(url.pathname); } catch { res.writeHead(400); return res.end(); }
-    const file = path.resolve(root, '.' + (['/beauty-play','/beauty-play/'].includes(name)?'/beauty-play/index.html':staticEntryPath(name)));
+    const file = path.resolve(root, '.' + (['/beauty-play','/beauty-play/'].includes(name)?'/beauty-play/index.html':['/owned-poll','/owned-poll/'].includes(name)?'/owned-poll/index.html':staticEntryPath(name)));
     if (!file.startsWith(root) || name.split('/').some(p => p.startsWith('.'))) { res.writeHead(404); return res.end(); }
     try {
       const bytes = await readFile(file); res.writeHead(200, {'Content-Type':mime[path.extname(file)] || 'application/octet-stream','X-Content-Type-Options':'nosniff'});
