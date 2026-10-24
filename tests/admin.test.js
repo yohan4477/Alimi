@@ -108,7 +108,7 @@ test('admin navigation preserves operations and planning panels with reciprocal 
 
 test('no dashboard content resides in public assets; routing includes server-only HTML',async()=>{
   const conf=JSON.parse(await readFile(new URL('../vercel.json',import.meta.url),'utf8'));
-  assert.equal(conf.outputDirectory,'dist');assert.ok(conf.rewrites.some(x=>x.source==='/admin'&&x.destination==='/api/admin'));assert.equal(conf.functions['api/admin.js'].includeFiles,'server/admin-*.html');
+  assert.equal(conf.outputDirectory,'dist');assert.ok(conf.rewrites.some(x=>x.source==='/admin'&&x.destination==='/api/admin'));assert.ok(conf.functions['api/admin.js'].includeFiles.includes('server/admin-*.html'));
   const css=await readFile(new URL('../dist/admin.css',import.meta.url),'utf8'),js=await readFile(new URL('../dist/admin.js',import.meta.url),'utf8');assert.doesNotMatch(css+js,/한국 뷰티에 대해 이야기하고|초기 고객|미국의 K뷰티/);
   const html=await readFile(new URL('../server/admin-page.html',import.meta.url),'utf8');assert.match(html,/미측정/);
   assert.match(html,/K-뷰티에 관심 있고/);assert.match(html,/미국 18~24세/);

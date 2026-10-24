@@ -34,6 +34,15 @@ function list(value, choices, field) { if (!Array.isArray(value) || value.length
 function characterId(id) { return one(id, characters.map(c => c.id), 'character'); }
 function eligibleFor(_character) { return products; }
 export const supportedCharacterIds=characters.map(c=>c.id);
+const kindLabels = {lip:'립',base:'베이스',powder:'파우더',cream:'크림·케어',sun:'선케어',hair:'헤어'};
+/** Names for admin insight rows: ids from aggregates in, display labels out. */
+export function insightLabels({character, advice, product} = {}) {
+  const item = product && (products.find(p => p.id === product) || fullCatalogById.get(product));
+  const choice = advice && (adviceData[character] || []).find(a => a.id === advice);
+  return {characterName:portraits[character]?.[0] || character || null, adviceLabel:choice?.label || advice || null,
+    brand:item?.brand || null, productName:item?.name || (product === 'unsure' ? '아직 모르겠어' : product || null),
+    category:item ? kindLabels[item.category || 'lip'] || item.category : null};
+}
 export function shareSnapshot(id) {
   characterId(id);
   const character = characters.find(c => c.id === id), advice = adviceData[id] || [];
@@ -65,7 +74,7 @@ export function validateCommand(route, input, context = {}) {
   }
   if (route !== 'record') invalid('route');
   const kind = one(input.kind,['event','answer','experience','share'],'kind');
-  const extra = {event:['id','name','step','source'],answer:['product','reasons','shade','advice','note'],experience:['experience'],share:['channel']}[kind];
+  const extra = {event:['id','name','step','source','entry','lang'],answer:['product','reasons','shade','advice','note'],experience:['experience'],share:['channel']}[kind];
   allow(input,['kind','play','character','test','invite',...extra]);
   const result = {kind,play:uuid(input.play,'play'),character:characterId(input.character),test:bool(input.test,'test'),invite:input.invite == null ? null : uuid(input.invite,'invite')};
   const snapshot = context.snapshot || shareSnapshot(result.character);
@@ -74,7 +83,10 @@ export function validateCommand(route, input, context = {}) {
   if (kind === 'event') {
     const name = one(input.name,eventNames,'name');
     const allowedSteps = name === 'advice_select' ? adviceOptions.map(a => a.id) : name === 'brand_select' ? ['all',...snapshot.products.map(p => p.brand),...(snapshot.catalogPolicy === 'all-products-v1' ? fullCatalogBrands : [])] : steps;
-    return {...result,id:uuid(input.id,'id'),name,step:one(input.step,allowedSteps,'step'),source:one(input.source,['direct','friend','preview'],'source')};
+    // entry: where the visit came from (utm_source/ref/referrer host), a short slug only.
+    const entry = input.entry == null ? {} : typeof input.entry === 'string' && /^[a-z0-9._-]{1,40}$/.test(input.entry) ? {entry:input.entry} : invalid('entry');
+    const lang = input.lang == null ? {} : {lang:one(input.lang,['ko','en'],'lang')};
+    return {...result,id:uuid(input.id,'id'),name,step:one(input.step,allowedSteps,'step'),source:one(input.source,['direct','friend','preview'],'source'),...entry,...lang};
   }
   if (kind === 'experience') return {...result,experience:one(input.experience,experiences,'experience')};
   if (kind === 'share') return {...result,channel:one(input.channel,['native','copy','kakao'],'channel')};

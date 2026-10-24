@@ -1,5 +1,5 @@
 import {passwordMatches, passwordSession, validPasswordSession} from '../server/admin-password.js';
-import {readGameMetrics} from '../server/admin-game-metrics.js';
+import {readGameMetrics, readGameInsights} from '../server/admin-game-metrics.js';
 import {readMetrics} from '../server/admin-metrics.js';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
@@ -104,6 +104,11 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
       if (url.searchParams.get('view') === 'game-metrics') {
         res.setHeader('Content-Type','application/json; charset=utf-8');
         return send(200,JSON.stringify(await readGameMetrics({env,fetchImpl,test:url.searchParams.get('test')==='1'})));
+      }
+      if (url.searchParams.get('view') === 'game-insights') {
+        res.setHeader('Content-Type','application/json; charset=utf-8');
+        const days = [1, 7, 30].includes(Number(url.searchParams.get('days'))) ? Number(url.searchParams.get('days')) : 7;
+        return send(200,JSON.stringify(await readGameInsights({env,fetchImpl,test:url.searchParams.get('test')==='1',days})));
       }
       if (url.searchParams.get('view') === 'metrics') {
         res.setHeader('Content-Type', 'application/json; charset=utf-8');

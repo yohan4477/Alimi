@@ -9,7 +9,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/admin.js": {
-      "includeFiles": "server/admin-*.html",
+      "includeFiles": "{server/admin-*.html,web/beauty-play/*.json,web/beauty-play/scenario-taxonomy.js}",
       "maxDuration": 30
     },
     "api/owned-poll.js": {

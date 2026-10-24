@@ -121,6 +121,9 @@ export function createBeautyGameHandler({env=process.env,fetchImpl=fetch,rpc=cre
       const {kind,...payload}=normalized;
       const action=route==='record'?kind:'reflection';
       payload.version='muse-v4';
+      // Country comes from the platform's IP lookup (two letters only), never from the client.
+      const country=String(req.headers?.['x-vercel-ip-country']||'');
+      if(action==='event'&&/^[A-Z]{2}$/.test(country))payload.country=country;
       if(action==='share')payload.snapshot=context?.snapshot||shareSnapshot(payload.character);
       const result=await rpc(action,sessionHash,payload);
       if(action==='share') {

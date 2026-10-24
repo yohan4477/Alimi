@@ -1,6 +1,7 @@
 'use client';
 import {browseCatalog,matchingProducts} from './catalog-browse.js';
 import {brandLogo} from './brand-logos.js';
+import {entrySource} from './entry-source.js';
 import fullCatalogUrl from './catalog-full.json?url';
 import {resolveGameStart} from './game-start.js';
 import {adviceFor} from './advice';
@@ -20,6 +21,8 @@ type Vote={product:string;n:number};type Stats={scope?:string;taxonomyVersion?:s
 type Friend={character:string;product:string;reason:string;shade:string;advice?:string;adviceLabel?:string};
 // A wordmark replaces the brand name; a square mark sits beside it; no logo (or a broken one) keeps the name.
 function BrandMark({brand}:{brand:string}){const {lang}=useLanguage();const logo=brandLogo(brand);const [broken,setBroken]=useState(false);if(!logo||broken)return <>{brand}</>;return <span className={logo.wordmark?'brand-mark wordmark':'brand-mark'}><img src={logo.src} alt={logo.wordmark?translate(brand,lang):''} loading="lazy" onError={()=>setBroken(true)}/>{!logo.wordmark&&brand}</span>}
+let visitStorage:Storage|undefined;try{visitStorage=sessionStorage;}catch{}
+const visitEntry=entrySource({search:location.search,referrer:document.referrer,host:location.hostname,storage:visitStorage});
 // Catalog photos often sit small in a white square; a measured zoom (scripts/beauty-game-image-fit.py) centres and enlarges them.
 const imageFits=new Map<string,number[]>();
 function rememberFits(list:{image:string;fit?:number[];options?:{image:string;fit?:number[]}[]}[]){for(const p of list)for(const e of [p,...(p.options||[])])if(e.fit)imageFits.set(e.image,e.fit);}
@@ -42,7 +45,7 @@ const [snapshot,setSnapshot]=useState<PickSnapshot|null>(null);const [fullCatalo
 const c=snapshot?.character||characters[who],product=eligibleProducts.find(p=>p.id===pick),option=product?.options.find(o=>o.id===shade);const source=invite?'friend':test?'preview':'direct';
 const scenario=scenarioFor(c.id),scenarioGroup=scenarioGroups.find(g=>g.id===scenario?.groupId),groupLabel=scenarioGroup?.[lang==='ko'?'ko':'en']||'';
 async function post(body:any){if(!canWrite.current)throw Error('연결을 확인해 주세요.');const r=await fetch('/api/record',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,invite:inviteRef.current||undefined})});const v=await r.json() as {error?:string;id:string;character:string;test:number};if(!r.ok)throw Error(v.error||'저장 실패');return v;}
-function event(name:string,step:string,character:string=characters[who].id){if(!play.current||!canWrite.current)return;const b={kind:'event',id:randomId(),play:play.current,character,name,step,source:inviteRef.current?'friend':isTest.current?'preview':'direct',test:isTest.current};post(b).catch(()=>{pending.current.push(b);});}
+function event(name:string,step:string,character:string=characters[who].id){if(!play.current||!canWrite.current)return;const b={kind:'event',id:randomId(),play:play.current,character,name,step,source:inviteRef.current?'friend':isTest.current?'preview':'direct',test:isTest.current,entry:visitEntry,lang};post(b).catch(()=>{pending.current.push(b);});}
 async function flush(){const q=[...pending.current];pending.current=[];for(const b of q){try{await post(b);}catch{pending.current.push(b);}}}
 useEffect(()=>{
   let alive=true;const controller=new AbortController();canWrite.current=false;play.current=randomId();

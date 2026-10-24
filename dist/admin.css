@@ -490,3 +490,4 @@
 #sb-revenue .affiliate-logo-frame{overflow:hidden}
 #sb-revenue [data-brand-name="헤라"] .affiliate-logo-frame img,#sb-revenue [data-brand-name="에스쁘아"] .affiliate-logo-frame img{height:100px;max-width:none;width:162px}
 #sb-revenue [data-brand-name="롬앤"] .affiliate-logo-frame{background:#303030}
+.game-insights table{margin:10px 0 18px}.game-insights caption{text-align:left;font-weight:700;padding:6px 0}.game-insights td:not(:first-child),.game-insights th:not(:first-child){text-align:right;white-space:nowrap}

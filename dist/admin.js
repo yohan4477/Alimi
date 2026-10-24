@@ -76,6 +76,38 @@ if (root) {
       status.textContent=(data.test?'테스트':'실사용')+' · '+label+' · 최근 7일 · '+new Date(data.generatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' KST';
     }catch{if(version!==gameMetricsVersion)return;status.textContent='불러오기 실패 · 로그인과 연결 상태를 확인하세요.';cells.forEach(el=>el.textContent='불러오기 실패');}
   }
+  // Funnel, sources and choices. Every value is written with textContent; nothing from the response becomes HTML.
+  let gameInsightsVersion=0;
+  const insightSteps={landing_view:'첫 화면 방문',character_view:'그림(상황) 보기',advice_select:'답 고르기',product_select:'제품 고르기',answer:'선택 완료',result_view:'결과 화면',share:'초대 링크 만들기',invite_open:'친구 초대 열기',comparison_view:'둘의 선택 비교'};
+  const insightDims={entry:'유입 경로',country:'국가',lang:'언어'};
+  const pct=(n,d)=>d?Math.round(n/d*100)+'%':'—';
+  function insightTable(caption,head,rows){
+    const table=document.createElement('table'),cap=document.createElement('caption'),thead=document.createElement('thead'),tr=document.createElement('tr'),tbody=document.createElement('tbody');
+    cap.textContent=caption;table.append(cap);for(const h of head){const th=document.createElement('th');th.textContent=h;tr.append(th);}thead.append(tr);table.append(thead);
+    for(const row of rows){const r=document.createElement('tr');for(const cell of row){const td=document.createElement('td');td.textContent=String(cell);r.append(td);}tbody.append(r);}
+    if(!rows.length){const r=document.createElement('tr'),td=document.createElement('td');td.colSpan=head.length;td.textContent='기록 없음';r.append(td);tbody.append(r);}
+    table.append(tbody);return table;
+  }
+  async function refreshGameInsights(){
+    const root=document.getElementById('game-insights'),status=document.getElementById('game-insights-status');if(!root||!status)return;
+    const version=++gameInsightsVersion,test=document.getElementById('game-metrics-mode')?.value||'0',days=document.getElementById('game-insights-days')?.value||'7';
+    status.textContent='불러오는 중…';
+    try{const r=await fetch('/api/admin?view=game-insights&test='+test+'&days='+days,{credentials:'same-origin',cache:'no-store'});if(!r.ok)throw Error('access');const d=await r.json();if(version!==gameInsightsVersion)return;
+      const labels={unconnected:'미연결',denied:'조회 권한 없음',unavailable:'불러오기 실패',migration_required:'DB 집계 함수 적용 필요',no_data:'기록 없음',received:'수신 확인'};
+      status.textContent=(d.test?'테스트':'실사용')+' · '+(labels[d.state]||'불러오기 실패')+' · 최근 '+d.days+'일 · 사람 '+(d.people??0)+'명 · '+new Date(d.generatedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' KST';
+      root.replaceChildren();if(d.state!=='received')return;
+      const first=d.funnel[0]?.people||0,side=new Set(['invite_open','comparison_view']);
+      root.append(insightTable('단계별 진행 (어디서 그만두나)',['단계','사람','이전 단계 대비','첫 화면 대비','플레이'],d.funnel.map((f,i)=>[insightSteps[f.step]||f.step,f.people,i&&!side.has(f.step)?pct(f.people,d.funnel[i-1].people):'—',side.has(f.step)?'—':pct(f.people,first),f.plays])));
+      for(const [dim,label] of Object.entries(insightDims))root.append(insightTable(label+'별',[label,'사람','답 고르기 시작','선택 완료','완료율','초대 링크'],d.segments.filter(s=>s.dimension===dim).map(s=>[s.value,s.people,s.started,s.completed,pct(s.completed,s.people),s.shared])));
+      const ranked=(caption,col,list,limit=15)=>{const t=list.reduce((a,x)=>a+x.n,0);root.append(insightTable(caption,[col,'선택 수','비율'],list.slice(0,limit).map(x=>[x.label,x.n,pct(x.n,t)])));};
+      ranked('상황별로 고른 답','상황 · 답',d.situations,30);ranked('고른 제품 종류','종류',d.categories);ranked('고른 제품 브랜드','브랜드',d.answerBrands);ranked('고른 이유','이유',d.reasons);
+      root.append(insightTable('브랜드 칩을 누른 사람',['브랜드','사람'],d.brandTaps.slice(0,15).map(x=>[x.label,x.n])));
+      ranked('고른 제품 (참고용 · 표가 흩어짐)','제품',d.products,30);
+    }catch{if(version!==gameInsightsVersion)return;status.textContent='불러오기 실패 · 로그인과 연결 상태를 확인하세요.';root.replaceChildren();}
+  }
+  document.getElementById('game-insights-days')?.addEventListener('change',refreshGameInsights);
+  document.getElementById('game-metrics-mode')?.addEventListener('change',refreshGameInsights);
+  document.getElementById('game-metrics-refresh')?.addEventListener('click',refreshGameInsights);
   document.getElementById('game-metrics-mode')?.addEventListener('change',refreshGameMetrics);
   document.getElementById('game-metrics-refresh')?.addEventListener('click',refreshGameMetrics);
   let metricsBusy=false,lastMetricsFetch=0;
@@ -112,7 +144,7 @@ if (root) {
     if (tab.id === 'sb-plan-tab') loadReview();
     if (tab.id === 'sb-ui-library-tab') loadLibrary();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
-    if(tab.id==='sb-game-tab')refreshGameMetrics();
+    if(tab.id==='sb-game-tab'){refreshGameMetrics();refreshGameInsights();}
     const hash = '#' + tab.id.slice(0,-4);
     if (location.hash !== hash) { try { history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', hash); } catch {} }
     if (focus) tab.focus();
