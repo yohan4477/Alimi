@@ -14,7 +14,7 @@ try{browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:proces
   await page.goto(base+'/owned-poll/?lang='+lang+'&test=1&product=64960&option=pink');await page.getByRole('button',{name:t.labels.owned,exact:true}).waitFor();await page.waitForFunction(()=>!document.querySelector('[data-choice="owned"]').disabled);
   assert((await page.locator('#option').innerText()).includes('Pink'));assert.equal(await page.locator('#results').isVisible(),false);
   for(const [choice,followup]of [['owned','daily'],['past',null],['want','looks'],['unknown','curious']]){
-   await page.getByRole('button',{name:t.labels[choice],exact:true}).click();await page.locator('#followup').waitFor();
+   await page.getByRole('button',{name:t.labels[choice],exact:true}).click();await page.locator('#followup').waitFor();assert(await page.locator('#skip-follow').evaluate(el=>el.getBoundingClientRect().height)>=44);
    assert(writes.some(w=>w.choice===choice),'first answer must save before follow-up');
    if(followup)await page.getByRole('button',{name:t.followups[choice].options[followup],exact:true}).click();else await page.getByRole('button',{name:t.skip,exact:true}).click();
    await page.locator('#results').waitFor();assert.equal(votes.get('64960').mine,choice);
