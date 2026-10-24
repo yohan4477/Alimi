@@ -28,5 +28,10 @@ try{browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:proces
   await page.screenshot({path:`e2e-artifacts/ownership-${lang}-${width}.png`,fullPage:true});await context.close();
  }
  const context=await browser.newContext({viewport:{width:375,height:844}}),page=await context.newPage();await context.route('**/api/owned-poll?**',r=>r.fulfill({status:404,json:{error:'Feature not available'}}));await page.goto(base+'/owned-poll/?lang=en');await page.getByText(copy.en.unavailable,{exact:true}).waitFor();assert.equal(await page.locator('[data-choice="owned"]').isEnabled(),false);await context.close();
+ const failedContext=await browser.newContext(),failedPage=await failedContext.newPage();
+ await failedContext.route('**/api/owned-poll?**',route=>{const u=new URL(route.request().url());return u.searchParams.has('catalog')?route.fulfill({json:{products:[products[0]],brands:['Example'],hasMore:false}}):route.fulfill({status:503,json:{error:'Unavailable'}});});
+ await failedPage.goto(base+'/owned-poll/?lang=en');await failedPage.getByText(copy.en.loadFailed,{exact:true}).waitFor();
+ await failedPage.locator('#catalog-brand').selectOption('Example');await failedPage.waitForTimeout(250);
+ assert.equal(await failedPage.locator('[data-choice="owned"]').isEnabled(),false,'successful catalog must not override failed product load');await failedContext.close();
  console.log('ownership browser: 375/390/430 ko/en, four branches, first answer persistence, skip, note, revisit, catalog identity, fallback image, search and disabled release passed');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}
