@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {browsePollCatalog,resolvePollProduct} from '../server/owned-poll-catalog.mjs';
 import {readGameMetrics} from '../server/admin-game-metrics.js';
-import {copy,resultRows} from '../dist/owned-poll/model.js';
+import {copy,resultRows,randomId} from '../dist/owned-poll/model.js';
 import {createOwnedPollHandler} from '../api/owned-poll.js';
 test('catalog preserves game identity and exposes all forty through ten-item pages',async()=>{
  const ids=[];for(let page=0;page<4;page++){const data=await browsePollCatalog(new URLSearchParams({page:String(page)}));ids.push(...data.products.map(x=>x.id));assert.equal(data.products.length,10);assert.equal(data.hasMore,page<3);}
@@ -29,3 +29,5 @@ test('ownership event RPC derives voter only from signed server identity and rej
  await h({method:'POST',url:'/api/owned-poll?product=64960&test=1',headers:{origin:'https://seoulbeauty.me'},body:{event:'view',id:'11111111-1111-4111-8111-111111111111',run:'22222222-2222-4222-8222-222222222222'}},res);
  assert.equal(res.statusCode,200);assert.equal(payload.p_test,true);assert.equal(payload.p_product,'64960');assert.match(payload.p_voter,/^[0-9a-f-]{36}$/);
 });
+
+test('preview creates valid event UUIDs when randomUUID is absent',()=>{const id=randomId({getRandomValues:array=>array.fill(0)});assert.match(id,/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);});

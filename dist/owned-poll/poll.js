@@ -1,18 +1,18 @@
-import {copy,locale,resultRows} from './model.js';
+import {copy,locale,resultRows,randomId} from './model.js';
 const params=new URLSearchParams(location.search),lang=locale(params.get('lang')),t=copy[lang],$=id=>document.getElementById(id);
 document.documentElement.lang=lang;document.title=t.title+' · Seoul Beauty';document.querySelectorAll('[data-copy]').forEach(el=>el.textContent=t[el.dataset.copy]);$('catalog-search').placeholder=t.search;$('catalog-search').setAttribute('aria-label',t.search);$('catalog-source').setAttribute('aria-label',t.find);$('catalog-brand').setAttribute('aria-label',t.brand);
 $('catalog-market').options[0].textContent=lang==='ko'?'한국':'Korea';$('catalog-market').options[1].textContent=lang==='ko'?'미국':'United States';
 const other=new URL(location.href);other.searchParams.set('lang',lang==='ko'?'en':'ko');$('language').href=other.pathname+other.search;$('language').textContent=lang==='ko'?'English':'한국어';
 if(params.get('test')==='1')$('testflag').textContent=t.test;
 $('catalog-market').value=lang==='ko'?'KR':'US';
-const run=crypto.randomUUID(),viewed=new Set();
+const run=randomId(),viewed=new Set();
 let page=0,hasMore=false,busy=false,loading=false,available=false,selected=null,current=null,skip=false,readVersion=0,catalogVersion=0,retryAction=null,searchTimer;
 function notify(text,retry=null){$('notice').textContent=text;retryAction=retry;$('retry').classList.toggle('hide',!retry);}
 $('retry').onclick=()=>retryAction?.();
 function controls(){document.querySelectorAll('button,input,select,textarea').forEach(el=>{el.disabled=busy;});$('catalog-prev').disabled=busy||page===0;$('catalog-next').disabled=busy||!hasMore;$('save-note').disabled=busy||!current?.mine;document.querySelectorAll('[data-choice]').forEach(el=>el.disabled=busy||loading||!available||!selected);}
 function resetResults(){for(const id of ['followup','results','note-box'])$(id).classList.add('hide');$('note').value='';current=null;skip=false;document.querySelectorAll('[data-choice]').forEach(el=>el.setAttribute('aria-pressed','false'));}
 async function request(product,body){const q=new URLSearchParams({product,...(params.get('test')==='1'?{test:'1'}:{})});const r=await fetch('/api/owned-poll?'+q,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'});if(!r.ok)throw Object.assign(Error('Request failed'),{status:r.status});return r.json();}
-function telemetry(event,product=selected?.id){if(!product)return;request(product,{event,id:crypto.randomUUID(),run}).catch(()=>{});}
+function telemetry(event,product=selected?.id){if(!product)return;request(product,{event,id:randomId(),run}).catch(()=>{});}
 function image(element,url,fallback){element.hidden=false;fallback?.classList.add('hide');element.onerror=()=>{element.hidden=true;fallback?.classList.remove('hide');};if(url&&(/^(https:\/\/|\/beauty-play\/assets\/)/).test(url))element.src=url;else{element.hidden=true;fallback?.classList.remove('hide');}}
 async function selectProduct(p){if(busy)return;const version=++readVersion;selected=p;resetResults();loading=true;controls();$('product').classList.remove('hide');$('brand').textContent=p.brand;$('name').textContent=p.name;$('image').alt=p.name;image($('image'),p.image,$('image-fallback'));
  $('option').textContent='';

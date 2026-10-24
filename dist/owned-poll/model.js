@@ -4,3 +4,5 @@ export const copy={
 };
 export function locale(value){return value==='en'?'en':'ko';}
 export function resultRows(labels,counts={}){const total=Object.values(counts).reduce((s,n)=>s+(Number(n)||0),0);return Object.entries(labels).map(([id,label])=>({id,label,count:Number(counts[id])||0,percent:total?Math.round(100*(Number(counts[id])||0)/total):0}));}
+// getRandomValues also works on non-secure local preview origins.
+export function randomId(cryptoImpl=globalThis.crypto){return cryptoImpl.randomUUID?.()||'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(Number(c)^cryptoImpl.getRandomValues(new Uint8Array(1))[0]&15>>Number(c)/4).toString(16));}
