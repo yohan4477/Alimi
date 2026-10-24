@@ -124,3 +124,6 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 .top>.brand{min-width:0;margin-right:8px}
 .game-brand-logo{display:block;width:144px;max-width:100%;height:auto}
 @media(max-width:650px){.game-brand-logo{width:112px}}
+
+/* Minimal discoverability control; original horizontal product cards remain unchanged. */
+.game-product-search{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}.game-product-search input{flex:1;min-width:170px;max-width:340px;min-height:40px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);padding:9px 12px;font:inherit;font-size:13px}.game-product-search small{color:var(--muted);font-size:11px}
