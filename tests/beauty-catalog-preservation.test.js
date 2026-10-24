@@ -67,7 +67,9 @@ test('new unspecified option labels have English coverage without changing the l
  const translations=JSON.parse(readFileSync('web/beauty-play/translations.json'));
  assert.equal(translations.en['색상·용량 미확인'],'Shade and size unconfirmed');
  const page=readFileSync('web/beauty-play/page.tsx','utf8');
- for(const label of ['Previous products','Next products','Product pages',' products','Product/option match unverified'])assert.ok(page.includes(label),label);
+ for(const label of ['Previous products','Next products','Product pages',' products'])assert.ok(page.includes(label),label);
+ // Unconfirmed matches stay for old answers but are never offered or labelled in the picker.
+ assert.ok(!page.includes('Product/option match unverified'));assert.match(page,/filter\(p=>p\.matchStatus!=='unconfirmed'\)/);
  assert.match(page,/snapshot\.catalogPolicy!=='all-products-v1'&&advice\?pool\.filter/);
 });
 
