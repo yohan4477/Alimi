@@ -25,5 +25,329 @@
     "retrieved": "2026-10-23",
     "sha256": "f1e6855e7b9b562026dd7b711a5dfe877f370f9e7065e70660e38f86884f2eb8",
     "usage": "Official-site logo used solely for identification; no endorsement or logo license claimed. Original bytes, CSS contain sizing only."
+  },
+  {
+    "path": "dist/brand-logos/admin/dasique.png",
+    "officialPage": "https://dasique.co.kr/",
+    "sourceUrl": "https://dasique.co.kr/web/upload/ga09/%EC%9E%90%EC%82%AC%EB%AA%B0_%EB%A1%9C%EA%B3%A0.png",
+    "retrieved": "2026-10-24",
+    "sha256": "8527d1abda389102b2e577ff1999b307cb4e33f4032bc1f4b1af25af3e5af520",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "데이지크"
+  },
+  {
+    "path": "dist/brand-logos/admin/wakemake.png",
+    "officialPage": "https://corp.oliveyoung.com/ko/business/brand/wakemake",
+    "sourceUrl": "https://corp.oliveyoung.com/img/business/brand_detail_logo_wakemake-9484851a062a37afae1754a742aa5cdb.png",
+    "retrieved": "2026-10-24",
+    "sha256": "61bce233714450c10b6c4eca7b0cf94fbd5e662e5d393eee1e714f37ab2c3759",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "웨이크메이크"
+  },
+  {
+    "path": "dist/brand-logos/admin/hince.svg",
+    "officialPage": "https://hince.co.kr/",
+    "sourceUrl": "https://hince.co.kr/images/musign/main/logo_hince.svg",
+    "retrieved": "2026-10-24",
+    "sha256": "d31007a936fb4295fb87407fb7526c60ff24a6fd7997fedbe6c1349f69c8256f",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "힌스"
+  },
+  {
+    "path": "dist/brand-logos/admin/fwee.png",
+    "officialPage": "https://fwee.kr/",
+    "sourceUrl": "https://fwee.kr/_images/ft_logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "65697a31f5b9c335512df87c7961c9f672767c087b2596171b9043fc95406802",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "퓌"
+  },
+  {
+    "path": "dist/brand-logos/admin/laka.svg",
+    "officialPage": "https://laka.co.kr/",
+    "sourceUrl": "https://laka.co.kr/web/upload/kdesign/logo.svg",
+    "retrieved": "2026-10-24",
+    "sha256": "d05e62801f976ff8db7d7ca06daf26858b91cc7028fbb8eb3c2d41f725cec4ff",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "라카"
+  },
+  {
+    "path": "dist/brand-logos/admin/colorgram.png",
+    "officialPage": "https://corp.oliveyoung.com/ko/business/brand/colorgram",
+    "sourceUrl": "https://corp.oliveyoung.com/img/business/brand_detail_logo_colorgram-790c81d4c838e0d6d29af6f25e99556c.png",
+    "retrieved": "2026-10-24",
+    "sha256": "411e40ffeb611de1d734f79f8f27406777a81a733b38eef60ae5f131d2ce548e",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "컬러그램"
+  },
+  {
+    "path": "dist/brand-logos/admin/2an.png",
+    "officialPage": "https://2an.co.kr/",
+    "sourceUrl": "https://2an.co.kr/web/season2_skin/skin1/images/logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "706b3f811d48bba138215e555f6195dd74e7399b3dd4b6e3cef49db8bd758182",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "투에이엔"
+  },
+  {
+    "path": "dist/brand-logos/admin/3ce.svg",
+    "officialPage": "https://www.3cecosmetics.co.kr/",
+    "sourceUrl": "https://www.3cecosmetics.co.kr/ui/images/tce-header-logo.svg",
+    "retrieved": "2026-10-24",
+    "sha256": "00a0feae71ea138281feae94eca484ad466d699fe761c68f98593c6b61fb4b36",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "3CE"
+  },
+  {
+    "path": "dist/brand-logos/admin/jung-saem-mool.png",
+    "officialPage": "https://www.jsmbeauty.com/",
+    "sourceUrl": "https://www.jsmbeauty.com/design/jsmbeauty/img/logo_bk.png",
+    "retrieved": "2026-10-24",
+    "sha256": "f3efc27cd51761d5ebcc1125abb7bef94e8c568808b3808366fcabef86bc18ec",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "정샘물"
+  },
+  {
+    "path": "dist/brand-logos/admin/banila-co.png",
+    "officialPage": "https://banilausa.com/",
+    "sourceUrl": "https://banilausa.com/cdn/shop/files/BANILA_CO_Logotype_RGB_Black.png?v=1779099624",
+    "retrieved": "2026-10-24",
+    "sha256": "20abbca8eb2fd733ca1d739e14c8c04482567729396c3c9f0787d9f57ae5c965",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "바닐라코"
+  },
+  {
+    "path": "dist/brand-logos/admin/mac.png",
+    "officialPage": "https://www.maccosmetics.com/",
+    "sourceUrl": "https://www.maccosmetics.com/cdn/shop/files/MAC_logo_1_8458b9aa-0ac8-4631-b3e1-9d96cad96df5.png?format=webp&v=1786964565&width=600",
+    "retrieved": "2026-10-24",
+    "sha256": "1cf0027273d18a02c15164dc8939606b4b113b2f979b6475601c9b26a56b19d2",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "맥(MAC)"
+  },
+  {
+    "path": "dist/brand-logos/admin/anua.png",
+    "officialPage": "https://anua.com/",
+    "sourceUrl": "https://anua.com/cdn/shop/files/PNG_RGB_Primary_logo_ver2_2_255e833c-0e91-42df-96ca-0b7377ba7a8a.png?v=1779429699&width=247",
+    "retrieved": "2026-10-24",
+    "sha256": "c985e113552dadf3276b740692e65e58b67724a2d6b3741aa1bae2fb8240ad9a",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "아누아"
+  },
+  {
+    "path": "dist/brand-logos/admin/aestura.png",
+    "officialPage": "https://www.aestura.com/web/main.do",
+    "sourceUrl": "https://image.aestura.com/resources/web/images/common/logo_on.png?ver=20240710_1",
+    "retrieved": "2026-10-24",
+    "sha256": "26812f08c4f9bcee60fcb230143d5e399ee869b2341e4f6d0ec105f0a16c8a2f",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "에스트라"
+  },
+  {
+    "path": "dist/brand-logos/admin/mediheal.png",
+    "officialPage": "https://mediheal.com/",
+    "sourceUrl": "https://mediheal.com/cdn/shop/files/Mediheal-logo.png?v=1748184769&width=600",
+    "retrieved": "2026-10-24",
+    "sha256": "daac197478ef70ff780b42427a49dd56cc1fdbf8111b5a937c218e2ae7e43c1f",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "메디힐"
+  },
+  {
+    "path": "dist/brand-logos/admin/dinto.png",
+    "officialPage": "https://dinto.co.kr/",
+    "sourceUrl": "https://ecimg.cafe24img.com/pg2024b15540924022/dinto7/web/img/logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "92033d62464f0aa830f3e2f541bea55cda8737cad0cdc61bf9fe475c88cb23c3",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "딘토"
+  },
+  {
+    "path": "dist/brand-logos/admin/mude.svg",
+    "officialPage": "https://mude.co.kr/",
+    "sourceUrl": "https://mude.co.kr/artfinger/img/footlogo.svg",
+    "retrieved": "2026-10-24",
+    "sha256": "d2296522825bb11ba0fe15d4bf674cd778d9b0d6329e10d13bc33b9b41f672ab",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "뮤드"
+  },
+  {
+    "path": "dist/brand-logos/admin/benefit.svg",
+    "officialPage": "https://www.benefitcosmetics.com/en-us",
+    "sourceUrl": "https://www.benefitcosmetics.com/on/demandware.static/Sites-benco-us-Site/-/default/dwe7207fe8/images/logo.svg",
+    "retrieved": "2026-10-24",
+    "sha256": "39b0cedf3ddf31c7e5c0ba8cbe124ea172e131079f6e58e3164f5f8d5f0147c7",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "베네피트"
+  },
+  {
+    "path": "dist/brand-logos/admin/bbia.png",
+    "officialPage": "https://bbia.co.kr/",
+    "sourceUrl": "https://cdn-pro-web-250-115.cdn-nhncommerce.com/sky007com_godomall_com/data/skin/front/mo_designart/img/banner/fd6ff8ba37ab50efdbb5e3a04c6fce14_95065.png",
+    "retrieved": "2026-10-24",
+    "sha256": "7bdf0c0dbaa15bbb5c02f5ae783245ebd59d52ff4d697e1b5d8b4ca6850c1309",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "삐아"
+  },
+  {
+    "path": "dist/brand-logos/admin/torriden.png",
+    "officialPage": "https://www.torriden.com/",
+    "sourceUrl": "https://torriden2.cdn-nhncommerce.com/data/skin/front/mo_designart/img/banner/03b0b50ebf12bb71f624b6ee36ab73a9_44226.png",
+    "retrieved": "2026-10-24",
+    "sha256": "8db2db7ca824382be8084dc0ea888b14c0590b7bff33d576ef06336d464eb4ef",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "토리든"
+  },
+  {
+    "path": "dist/brand-logos/admin/tirtir.png",
+    "officialPage": "https://tirtir.global/",
+    "sourceUrl": "https://tirtir.global/cdn/shop/files/black.png?crop=center&height=37&v=1763012769&width=200",
+    "retrieved": "2026-10-24",
+    "sha256": "078c786227bed290336e189b6dc6f24d60f952f72fc7a08baee44b2b7e965c5f",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "티르티르"
+  },
+  {
+    "path": "dist/brand-logos/admin/bobbi-brown.png",
+    "officialPage": "https://www.bobbibrowncosmetics.com/",
+    "sourceUrl": "https://www.bobbibrowncosmetics.com/media/export/cms/logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "1764b905a67c44ea1b093384639ed9df263f8c13a1cb82ec1dcd4e28ef91f72f",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "바비브라운"
+  },
+  {
+    "path": "dist/brand-logos/admin/hourglass.svg",
+    "officialPage": "https://www.hourglasscosmetics.com/",
+    "sourceUrl": "https://www.hourglasscosmetics.com/",
+    "retrieved": "2026-10-24",
+    "sha256": "ceabad1cc5c0cd18bf4cab91b78d4eb863e4510eab7777c4bab5dcc6512ba608",
+    "usage": "Brand SVG extracted from official page; original paths, CSS sizing only; no endorsement or license claimed.",
+    "brand": "아워글래스"
+  },
+  {
+    "path": "dist/brand-logos/admin/laura-mercier.svg",
+    "officialPage": "https://www.lauramercier.com/",
+    "sourceUrl": "https://www.lauramercier.com/",
+    "retrieved": "2026-10-24",
+    "sha256": "b0beaf6a596596a611b8739c61513942d85f113f0457e3a7a5bea51e574fe5bc",
+    "usage": "Official SVG paths; site CSS color variable replaced with #222222 for standalone display. No endorsement or license claimed.",
+    "brand": "로라메르시에"
+  },
+  {
+    "path": "dist/brand-logos/admin/clio.png",
+    "officialPage": "https://cliocosmetic.com/main_en.html",
+    "sourceUrl": "https://cliocosmetic.com/public/images/logo/clio_main_logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "8133e0a12e83a5262d6d02e457ec9f2ce4ef7049370cb3ffacf151609313324f",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "클리오"
+  },
+  {
+    "path": "dist/brand-logos/admin/peripera.png",
+    "officialPage": "https://cliocosmetic.com/main_en.html",
+    "sourceUrl": "https://cliocosmetic.com/public/images/logo/peripera_main_logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "585b7ee4d9bd8a730f4e56c0564ea911ebea4f880b20ca1fe273086b77e1dd63",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "페리페라"
+  },
+  {
+    "path": "dist/brand-logos/admin/goodal.png",
+    "officialPage": "https://cliocosmetic.com/main_en.html",
+    "sourceUrl": "https://cliocosmetic.com/public/images/logo/goodal_main_logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "11b740f153752d39bb045fdaffbce1a9f54976a761653dc8d52946197b480d00",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "구달"
+  },
+  {
+    "path": "dist/brand-logos/admin/dermatory.png",
+    "officialPage": "https://cliocosmetic.com/main_en.html",
+    "sourceUrl": "https://cliocosmetic.com/public/images/logo/dermatory_main_logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "0c22e2d3b6fdf3d011f4823cf55038f0c7f0dc2a9872f11cfaca2c2ee6f9d033",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "더마토리"
+  },
+  {
+    "path": "dist/brand-logos/admin/romand.png",
+    "officialPage": "https://romandbeauty.com/",
+    "sourceUrl": "https://romandbeauty.com/cdn/shop/files/Asset_1.png?v=1775191756&width=176",
+    "retrieved": "2026-10-24",
+    "sha256": "b22b08abd992d5d4592d915748cc8ab8fa18db0b8ecb45f49cf2b54c8c953d19",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "롬앤"
+  },
+  {
+    "path": "dist/brand-logos/admin/heart-percent.png",
+    "officialPage": "https://en.heartpercent.co.kr/",
+    "sourceUrl": "https://en.heartpercent.co.kr/web/img/logo_g.png",
+    "retrieved": "2026-10-24",
+    "sha256": "1f913ad450bef14cb22b94b0d0387303a5161828f2c69445afefa63e02e36651",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "하트퍼센트"
+  },
+  {
+    "path": "dist/brand-logos/admin/amuse.png",
+    "officialPage": "https://amusemakeup.com/",
+    "sourceUrl": "https://amusemakeup.com/_d1/img/logo.png",
+    "retrieved": "2026-10-24",
+    "sha256": "69a81521043d75384649bf1b4b8048d5b7c2fc0f413d0fb67449cf5945ae93ec",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "어뮤즈"
+  },
+  {
+    "path": "dist/brand-logos/admin/dr-g.png",
+    "officialPage": "https://dr-g.com/",
+    "sourceUrl": "https://www.dr-g.com/cdn/shop/files/3801b937541112e838c2a1bf2ef1af71_240x.png?v=1771999118",
+    "retrieved": "2026-10-24",
+    "sha256": "8377ea8767cef0fa8e88b36fd605c6b82c06ddc8e1d0ff36026bd5073d94a914",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "닥터지"
+  },
+  {
+    "path": "dist/brand-logos/admin/hera.png",
+    "officialPage": "https://www.apgroup.com/int/en/brands/brands.html",
+    "sourceUrl": "https://www.apgroup.com/int/en/brands/__icsFiles/afieldfile/2020/02/19/bi_hera.png",
+    "retrieved": "2026-10-24",
+    "sha256": "99944ee2fa631c37fa696d8d41a1b4aebb043db3538a31b7fbc807c03bc9425c",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "헤라"
+  },
+  {
+    "path": "dist/brand-logos/admin/espoir.png",
+    "officialPage": "https://www.apgroup.com/int/en/brands/brands.html",
+    "sourceUrl": "https://www.apgroup.com/int/en/brands/__icsFiles/afieldfile/2019/09/09/bi_espoir_new2.png",
+    "retrieved": "2026-10-24",
+    "sha256": "5af8b36d5139a378f1e7142af71af4af7eaa1d1f764640e22d29a2c41d1d9305",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "에스쁘아"
+  },
+  {
+    "path": "dist/brand-logos/admin/lilybyred.png",
+    "officialPage": "https://lilybyred.co.kr/",
+    "sourceUrl": "https://lilybyred.co.kr/web/upload/NNEditor/20220616/dce45e83e8b4ee5d6260ff502db4bc68.png",
+    "retrieved": "2026-10-24",
+    "sha256": "c37306d6d76ae1e4e12350cfe83a58549647e818f556916de7df6ca60506f631",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "릴리바이레드"
+  },
+  {
+    "path": "dist/brand-logos/admin/too-cool-for-school.png",
+    "officialPage": "https://toocoolforschool.com/",
+    "sourceUrl": "https://toocoolforschool.com/web/upload/appfiles/ZaReJam3QiELznoZeGGkMG/3643a35b6a2fbe017d7bc955e4fee45c.png",
+    "retrieved": "2026-10-24",
+    "sha256": "bc824091946838a178337049c43dbb8bd4c88c56d7c20d8216c7eefbe624dd6e",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "투쿨포스쿨"
+  },
+  {
+    "path": "dist/brand-logos/admin/luna.jpg",
+    "officialPage": "https://www.aekyung.co.kr/brand_list?main_brand_idx=1",
+    "sourceUrl": "https://www.aekyung.co.kr/files/brand/2023/12/a74b0bb9-63d5-4853-8b66-48503c1fc591.jpg",
+    "retrieved": "2026-10-24",
+    "sha256": "39d203176f4401b705f6d4720b1f0c5f0209502a60641ceae258de2f83e33d3c",
+    "usage": "Official-site logo for brand identification; no endorsement or license claimed. Original bytes; CSS contain sizing only.",
+    "brand": "루나"
   }
 ]

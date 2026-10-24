@@ -125,6 +125,20 @@ try {
   assert.equal(await affiliates.getByRole('tab',{name:'미제휴',exact:true}).getAttribute('aria-selected'),'true');
   assert.equal(await affiliates.locator('.affiliate-brand-tile:visible').count(),43);
   await affiliates.getByRole('tab',{name:'미제휴',exact:true}).press('Home');
+  assert.equal(await affiliates.locator('[data-brand-logo]').count(),78);
+  const brokenLogos=await affiliates.locator('[data-brand-logo]').evaluateAll(async images=>{
+    return (await Promise.all(images.map(async img=>{
+      img.loading='eager';
+      try{await img.decode();return img.naturalWidth>0?null:img.alt;}catch{return img.alt;}
+    }))).filter(Boolean);
+  });
+  assert.deepEqual(brokenLogos,[],'Every regional brand logo must decode from the local assets');
+  for(const name of ['제휴','미제휴']){
+    await affiliates.getByRole('tab',{name,exact:true}).click();
+    await affiliates.scrollIntoViewIfNeeded();
+    await page.screenshot({path:`e2e-artifacts/admin-brand-logos-${name==='제휴'?'verified':'unverified'}.png`});
+  }
+  await affiliates.getByRole('tab',{name:'제휴',exact:true}).click();
   const logo=affiliates.locator('[data-brand-logo]').first();
   await logo.evaluate(img=>img.dispatchEvent(new Event('error')));
   assert.ok(await logo.isHidden());
