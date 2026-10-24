@@ -172,3 +172,5 @@ body:has(.selection-main){height:100svh;overflow:hidden}.top:has(+.selection-mai
 @media(max-width:360px){.painting-list img{width:100px;flex-basis:100px}.painting-list strong{font-size:18px}}
 /* Painting thumbnails fill the row height instead of setting it. */
 @media(max-width:650px){.painting-list button{min-height:136px}.painting-list img{contain:size;align-self:stretch;min-height:136px;object-fit:cover}}
+/* Full-length school portraits keep the face: crop from the top everywhere. */
+img[src*="/art-school_"]{object-position:50% 3%!important}

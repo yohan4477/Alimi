@@ -26,8 +26,8 @@ export function readSelection(raw:string):{reasons:string[];shade:string|null;ad
 }
 
 export const artworkSources=[
-{id:'school_photo_friend',title:'푸른 소년 패러디',artist:'사용자 저장 재해석',position:'50% 22%',url:''},
-{id:'school_last_minute_friend',title:'피리 부는 소년 패러디',artist:'사용자 저장 재해석',position:'50% 24%',url:''},
+{id:'school_photo_friend',title:'푸른 소년 패러디',artist:'사용자 저장 재해석',position:'50% 3%',url:''},
+{id:'school_last_minute_friend',title:'피리 부는 소년 패러디',artist:'사용자 저장 재해석',position:'50% 3%',url:''},
 {id:'mona',title:'모나리자',artist:'레오나르도 다 빈치',position:'50% 30%',url:'https://commons.wikimedia.org/wiki/File:Mona_Lisa.jpg'},
 {id:'pearl',title:'진주 귀걸이를 한 소녀',artist:'요하네스 베르메르',position:'50% 30%',url:'https://commons.wikimedia.org/wiki/File:1665_Girl_with_a_Pearl_Earring.jpg'},
 {id:'venus',title:'비너스의 탄생',artist:'산드로 보티첼리',position:'53% 30%',url:'https://commons.wikimedia.org/wiki/File:El_nacimiento_de_Venus,_por_Sandro_Botticelli.jpg'},

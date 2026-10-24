@@ -514,3 +514,5 @@ html:lang(en) .home-hero h1{max-width:86%;font-size:clamp(18px,5.4vw,22px)}
 #alerts{min-height:100svh}
 #alerts .page-bar{background:#f7f9fc;margin:0 calc(-1*var(--ui-gutter,16px));padding:0 var(--ui-gutter,16px)}
 #alerts .page-bar .icon-btn{width:44px;height:44px;margin-left:-10px;font-size:30px;line-height:1;display:grid;place-items:center}
+/* Full-length school portraits keep the face in the game entrance thumbnail. */
+.home-game-entry>img[src*="/art-school_"]{object-position:center 4%}
