@@ -203,3 +203,9 @@ img[src*="/art-school_"]{object-position:50% 3%!important}
  .selection-main .staged-atelier[data-stage="product"] .game-product-search input{min-height:42px!important;font-size:16px;padding:8px 12px!important}
  .selection-main .staged-atelier[data-stage="product"] .game-product-search small{font-size:11px!important}
 }
+/* Brand chips show the brand's logo; a selected logo chip keeps its white ground so a dark wordmark stays visible. */
+.brand-track button:has(.brand-mark){display:inline-flex;align-items:center;padding-top:4px;padding-bottom:4px}
+.brand-mark{display:inline-flex;align-items:center;gap:6px}
+.brand-mark img{display:block;width:auto;height:24px;max-width:40px;object-fit:contain}
+.brand-mark.wordmark img{height:20px;max-width:104px}
+.brand-track button.selected:has(.brand-mark){background:#fff;color:#2857d2;border-color:#2857d2;box-shadow:inset 0 0 0 1px #2857d2}

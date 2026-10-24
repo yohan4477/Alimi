@@ -14,3 +14,14 @@ test('exact matches are backed by the same source goods code; special editions a
  for(const a of data.audit){for(const m of a.exactOptions){assert.match(m.ean,/^\d{13}$/);assert(m.oliveYoungOption);assert(m.feedName);assert(m.size||a.position===8);count++;}if(!a.exactOptions.length)assert.equal(a.optionMatchStatus,'unconfirmed');}
  assert.equal(count,82);assert.equal(data.audit[12].exactOptions.length,0);assert.equal(data.audit[28].exactOptions.length,0);
 });
+test('brand chips merge spellings of one brand and filter by every spelling',()=>{
+ const pool=[{id:'1',brand:'fwee',name:'A'},{id:'2',brand:'Fwee',name:'B'},{id:'3',brand:'rom&nd',name:'C'},{id:'4',brand:'Romand',name:'D'}];
+ const all=browseCatalog(pool);assert.deepEqual(all.brands,['fwee','rom&nd']);
+ assert.deepEqual(browseCatalog(pool,[],'fwee').items.map(p=>p.id),['1','2']);
+ assert.deepEqual(browseCatalog(pool,[],'rom&nd').items.map(p=>p.id),['3','4']);
+});
+test('brand chips use shipped logo files, wordmarks alone and square marks with the name',async()=>{
+ const {brandLogo}=await import('../web/beauty-play/brand-logos.js');const {existsSync}=await import('node:fs');
+ for(const brand of ['CLIO','COSRX','rom&nd','LANEIGE','3CE','BBIA']){const logo=brandLogo(brand);assert.ok(logo,brand);assert.ok(existsSync('dist'+logo.src),logo.src);}
+ assert.equal(brandLogo('CLIO').wordmark,true);assert.equal(brandLogo('LANEIGE').wordmark,false);assert.equal(brandLogo('innisfree'),null);
+});
