@@ -25,3 +25,8 @@ test('brand chips use shipped logo files, wordmarks alone and square marks with 
  for(const brand of ['CLIO','COSRX','rom&nd','LANEIGE','3CE','BBIA']){const logo=brandLogo(brand);assert.ok(logo,brand);assert.ok(existsSync('dist'+logo.src),logo.src);}
  assert.equal(brandLogo('CLIO').wordmark,true);assert.equal(brandLogo('LANEIGE').wordmark,false);assert.equal(brandLogo('innisfree'),null);
 });
+test('the All chip clears a typed search so every product in the kind comes back',async()=>{
+ const {readFileSync}=await import('node:fs');const page=readFileSync('web/beauty-play/page.tsx','utf8');
+ assert.match(page,/setBrand\(b\);setCatalogPage\(0\);if\(b==='all'\)setCatalogQuery\(''\);/);
+ assert.match(page,/더 불러오는 중/);
+});
