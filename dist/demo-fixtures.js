@@ -34,7 +34,7 @@ for (const [i, product] of demoProducts.entries()) {
     const room={id,title_ko:`${product.label_ko} · ${j?'조합·비교':'사용 후기'}`,title_en:`${product.label_en} · ${j?'Combos & comparisons':'Reviews'}`,intro_ko:`${product.label_ko} 사용 경험을 나눠요.`,intro_en:`Share experiences with ${product.label_en}.`,kind:'topic',tag:[5,6,7,11].includes(i)?'makeup':'skin',concerns:[[5,7,11].includes(i)?'lip':i===6?'cushion':'dry'],members:8+(i*3+j)%25,messages_24h:4+(i+j)%13,sort:36+i*2+j,last_message_at:new Date(Date.UTC(2026,9,20,7)-i*60000-j*30000).toISOString(),demo:true,topic_product:product};
     demoRooms.push(room);
     // One question and one answer only in the review example; comparison starts empty.
-    demoMessages[id]=j ? [] : [product.question,product.answer].map((body,k)=>({id:950000+i*100+k,room_id:id,nickname:names[(i+k)%names.length],author_tag:`demo-author-${(i+k)%12}`,body,likes:0,item:k===0?{demo:true,family_key:product.id,image_url:product.image_url,brand:product.brand,name:product.name,label:product.label}:null,reply_to:k===1?950000+i*100:null,created_at:new Date(demoNow-(2-k)*3600000).toISOString(),demo:true}));
+    demoMessages[id]=j ? [] : [product.question,product.answer].map((body,k)=>({id:950000+i*100+k,room_id:id,nickname:names[(i+k)%names.length],author_tag:`demo-author-${(i+k)%12}`,body,likes:0,item:k===0?{demo:true,family_key:product.id,image_url:product.image_url,brand:product.brand,name:product.name,label:product.label}:null,reply_to:null,created_at:new Date(demoNow-(2-k)*3600000).toISOString(),demo:true}));
     room.members=demoMessages[id].length; room.messages_24h=demoMessages[id].length;
     room.last_message_at=demoMessages[id].at(-1)?.created_at ?? null;
   }

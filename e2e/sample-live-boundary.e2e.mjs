@@ -1,4 +1,4 @@
-// CI-only browser coverage, authored without executing a local browser.
+// Isolated browser coverage for CI and local Chromium.
 // Every request is fulfilled from dist or an in-memory fixture. There is no
 // HTTP server, route.continue(), real account, production read, or remote write.
 import {chromium} from 'playwright-core';
@@ -167,6 +167,21 @@ try {
           const row = f.page.locator(`[data-sample-message="${message.id}"]`);
           assert.equal(await row.locator('.msg-body').innerText(), language === 'en' ? english.messages[message.id].body : message.body);
           assert.equal(await row.locator('.chat-nick').innerText(), language === 'en' ? english.messages[message.id].nickname : message.nickname);
+          const quote = row.locator('[data-sample-jump]');
+          assert.equal(await quote.count(), message.reply_to ? 1 : 0, `${message.id}: only delayed references render a quote`);
+          if (message.reply_to) {
+            assert.equal(await quote.getAttribute('data-sample-jump'), String(message.reply_to));
+            await f.page.evaluate(() => {
+              window.sampleJumpTarget = null;
+              const original = Element.prototype.scrollIntoView;
+              Element.prototype.scrollIntoView = function (...args) {
+                window.sampleJumpTarget = this.dataset.sampleMessage;
+                return original.apply(this, args);
+              };
+            });
+            await quote.click();
+            assert.equal(await f.page.evaluate(() => window.sampleJumpTarget), String(message.reply_to), 'delayed quote scrolls to the original message');
+          }
         }
         if(room.id===source.rooms[0].id)await f.page.screenshot({path:`e2e-artifacts/sample-room-${language}-${width}.png`,fullPage:true});
         messages += expected.length;
