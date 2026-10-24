@@ -11,7 +11,11 @@ export function installRegionPicker() {
     if(e.target.closest('[data-service-region]')) dialog.showModal();
     const r=e.target.closest('[data-select-region]')?.dataset.selectRegion;
     const l=e.target.closest('[data-select-language]')?.dataset.selectLanguage;
-    if(r){rememberMarket(r);if(r!==region)location.href=regionURL(r).href;}
+    if(r){
+      // Picking a market shows what its visitors see: US in English, Korea in Korean. Language can still be switched after.
+      const l2=r==='kr'?'ko':'en';rememberMarket(r);rememberLanguage(l2);
+      if(r!==region||l2!==lang){const u=regionURL(r);u.searchParams.set('lang',l2);location.href=u.href;}
+    }
     if(l){rememberLanguage(l);location.href=languageURL(l).href;}
   });
 }
