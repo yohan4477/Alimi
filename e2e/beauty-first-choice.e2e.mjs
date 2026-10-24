@@ -53,6 +53,37 @@ function assertStarts(events,count,label) {
 }
 try {
  browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH}:{channel:'chrome'});
+ // Brand regression: both character entry variants retain the existing pilot-mode home destination.
+ for(const width of [320,390])for(const lang of ['ko','en']){
+  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
+  const page=await context.newPage();currentPage=page;
+  await context.route('**/*',async route=>{
+   const request=route.request(),url=new URL(request.url());
+   if(url.origin!==base)return route.abort('blockedbyclient');
+   if(url.pathname.startsWith('/beauty-play/api/')||url.pathname.startsWith('/api/'))return route.fulfill({json:{ok:true,accountLinkEnabled:false}});
+   if(!['GET','HEAD'].includes(request.method()))return route.abort('blockedbyclient');
+   return route.continue();
+  });
+  for(const entry of [{query:'',header:'.play-top',destination:'/beauty-play/'},{query:'&character=mona',header:'.top',destination:'/beauty-play/'},{query:'&character=mona&pilot=1',header:'.pilot-top',destination:'/beauty-play/'}]){
+   const label=`brand ${width}px ${lang} ${entry.header}`;
+   await page.goto(base+'/beauty-play/?test=1&lang='+lang+entry.query);
+   const header=page.locator(entry.header),logo=header.getByRole('img',{name:'Seoul Beauty',exact:true});
+   await logo.waitFor({state:'visible'});
+   await page.waitForFunction(()=>{const img=document.querySelector('header .game-brand-logo');return img?.complete&&img.naturalWidth>0;});
+   assert.equal(await logo.getAttribute('src'),'/assets/seoul-beauty-logo.webp');
+   assert.equal(await header.locator('a').first().evaluate(a=>new URL(a.href).pathname),entry.destination);
+   assert.ok(!(await header.locator('a').first().innerText()).includes('서울뷰티'),label+' uses the logo, not the old text');
+   const geometry=await logo.evaluate(img=>{const r=img.getBoundingClientRect(),h=img.closest('header').getBoundingClientRect();return {ratio:r.width/r.height,naturalRatio:img.naturalWidth/img.naturalHeight,inside:r.left>=h.left&&r.right<=h.right&&r.top>=h.top&&r.bottom<=h.bottom};});
+   assert.ok(geometry.inside,label+' logo stays inside header');
+   assert.ok(Math.abs(geometry.ratio-geometry.naturalRatio)<0.01,label+' preserves logo proportions');
+   await reachable(header.locator('a').first(),label+' brand link');
+   await reachable(header.locator('.language-switch'),label+' language switch');
+   await noHorizontalOverflow(page,label);
+   if(entry.header==='.top')assert.equal(await header.locator('.brand span').textContent(),lang==='ko'?'뷰티는 사람마다 다르니까, 서로 이야기해요.':'Beauty is personal. Let’s talk.');
+  }
+  await context.close();
+ }
+ console.log('Brand matrix passed: landing and both game headers × Korean/English × 320/390px.');
  for(const viewport of viewports)for(const lang of ['ko','en'])for(const path of ['advice-first','product-first']){
   const label=`${viewport.name} ${viewport.width}x${viewport.height} ${lang} ${path}`;
   const context=await browser.newContext({viewport:{width:viewport.width,height:viewport.height},isMobile:true,hasTouch:true});
