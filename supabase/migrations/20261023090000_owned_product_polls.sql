@@ -1,0 +1,18 @@
+-- Staged feature: owned-product poll. No public table access.
+create table if not exists public.owned_product_votes (
+ id uuid primary key default gen_random_uuid(),
+ product_id text not null check (length(product_id) between 1 and 80),
+ voter_id uuid not null,
+ test boolean not null default false,
+ option_id text check (char_length(option_id) <= 80),
+ followup text check (followup is null or followup in ('daily','weekly','sometimes','rarely','rebuy_yes','rebuy_unsure','rebuy_no','looks','social','recommended','replacement','curious','not_sure')),
+ private_note text check (char_length(private_note) <= 160),
+ choice text not null check (choice in ('owned','past','want','unknown')),
+ created_at timestamptz not null default now(),
+ updated_at timestamptz not null default now(),
+ unique (product_id, voter_id, test)
+);
+create index if not exists owned_product_votes_product_idx on public.owned_product_votes(product_id);
+alter table public.owned_product_votes enable row level security;
+revoke all on public.owned_product_votes from anon, authenticated;
+-- Reads and writes only through server-side service key, never direct clients.

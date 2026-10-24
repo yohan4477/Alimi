@@ -29,12 +29,12 @@ try {
  await page.locator('.staged-dock .primary').click();
  if(await page.locator('.staged-options').count()){await page.locator('.shade-option').first().click();await page.locator('.staged-dock .primary').click();}
  await page.locator('.staged-reasons').waitFor();await page.locator('.staged-dock .primary').click();
- const next=page.locator('.result-next .primary');await next.waitFor();assert(await next.isDisabled());
+ const next=page.locator('.result-three-choices .result-choice').nth(2);await next.waitFor();assert(await next.isDisabled());
  await page.locator('.friend-share-buttons .outline').first().click();
  await page.waitForFunction(()=>document.querySelector('.friend-share-panel [role=status]'));
  assert(await next.isDisabled(),'failed share must not unlock');
  failShare=false;await page.locator('.friend-share-buttons .outline').first().click();
- await page.waitForFunction(()=>!document.querySelector('.result-next .primary').disabled);
+ await page.waitForFunction(()=>!document.querySelectorAll('.result-three-choices .result-choice')[2].disabled);
  const answer=records.find(r=>r.kind==='answer');assert.equal(answer.character,character);
  await next.click();await page.locator('.advice-choices').waitFor();
  await page.locator('.advice-choices button').first().click();
