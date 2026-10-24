@@ -36,3 +36,9 @@ test('display names drop leading retailer tags and brand-only base names',async(
  assert.equal(displayName({brand:'CENTELLIAN 24',base_name:'[[Deal] CENTELLIAN 24',name:'[Deal] CENTELLIAN 24 Madeca Cream - 50ml'}),'CENTELLIAN 24 Madeca Cream - 50ml');
  assert.equal(displayName({brand:'Unleashia',base_name:'[a by Unleashia] Hey Dew Blue Cushion',name:'x'}),'Hey Dew Blue Cushion');
 });
+test('catalog photos carry a measured zoom so small products fill their card',async()=>{
+ const {readFileSync}=await import('node:fs');const list=JSON.parse(readFileSync('web/beauty-play/catalog-full.json','utf8'));
+ const fits=list.filter(p=>p.fit);assert.ok(fits.length>list.length/2);
+ for(const [x,y,s] of fits.map(p=>p.fit)){assert.ok(x>=0&&x<=100&&y>=0&&y<=100);assert.ok(s>1&&s<=3.6);}
+ assert.match(readFileSync('web/beauty-play/page.tsx','utf8'),/clipPath:`inset\(/);
+});

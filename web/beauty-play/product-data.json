@@ -3933,7 +3933,12 @@
           "oyOption": "B06 Scotch 70%",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260137046",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+          "fit": [
+            50,
+            50,
+            1.21
+          ]
         },
         {
           "id": "64955",
@@ -3948,7 +3953,12 @@
           "oyOption": "A06 Scotch 30%",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260137046",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+          "fit": [
+            50,
+            50,
+            1.21
+          ]
         },
         {
           "id": "64958",
@@ -3963,7 +3973,12 @@
           "oyOption": "B04 Aengdu 70%",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260137046",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+          "fit": [
+            50,
+            50,
+            1.21
+          ]
         },
         {
           "id": "64960",
@@ -3978,7 +3993,12 @@
           "oyOption": "B03 Candy 70%",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260137046",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+          "fit": [
+            50,
+            50,
+            1.22
+          ]
         },
         {
           "id": "64961",
@@ -3993,7 +4013,12 @@
           "oyOption": "A03 Candy 30%",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260137046",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+          "fit": [
+            50,
+            50,
+            1.21
+          ]
         },
         {
           "id": "90541",
@@ -4008,7 +4033,12 @@
           "oyOption": "B09 Lychee 70%",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260137046",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+          "fit": [
+            50,
+            50,
+            1.32
+          ]
         },
         {
           "id": "90542",
@@ -4023,14 +4053,24 @@
           "oyOption": "B08 Rosy 70%",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260137046",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-3d-voluming-gloss-5-3g.html",
+          "fit": [
+            50,
+            51,
+            1.42
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "[NEW Earl Grey Edition] fwee 3D Voluming Gloss Set (Set/Single) (28 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        50,
+        50,
+        1.22
+      ]
     },
     {
       "id": "oy-GA251235982",
@@ -4085,7 +4125,12 @@
           "oyOption": "[Matte] MC03 Dusty Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            49,
+            49,
+            1.38
+          ]
         },
         {
           "id": "100967",
@@ -4100,7 +4145,12 @@
           "oyOption": "[Matte] MC02 STH Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            49,
+            48,
+            1.37
+          ]
         },
         {
           "id": "100968",
@@ -4115,7 +4165,12 @@
           "oyOption": "[Matte] MC01 Petal Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            50,
+            48,
+            1.31
+          ]
         },
         {
           "id": "100969",
@@ -4130,7 +4185,12 @@
           "oyOption": "[Matte] MN03 Dried Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            50,
+            49,
+            1.43
+          ]
         },
         {
           "id": "100970",
@@ -4145,7 +4205,12 @@
           "oyOption": "[Matte] MN02 Peach Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            51,
+            49,
+            1.36
+          ]
         },
         {
           "id": "100971",
@@ -4160,7 +4225,12 @@
           "oyOption": "[Matte] MN01 Blushed Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            50,
+            49,
+            1.26
+          ]
         },
         {
           "id": "100972",
@@ -4175,7 +4245,12 @@
           "oyOption": "[Matte] MW03 Cinnamon Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            49,
+            49,
+            1.3
+          ]
         },
         {
           "id": "100973",
@@ -4190,7 +4265,12 @@
           "oyOption": "[Matte] MW02 Burnt Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            52,
+            50,
+            1.37
+          ]
         },
         {
           "id": "100974",
@@ -4205,7 +4285,12 @@
           "oyOption": "[Matte] MW01 Baked Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            48,
+            49,
+            1.37
+          ]
         },
         {
           "id": "100975",
@@ -4220,7 +4305,12 @@
           "oyOption": "[Glow] GC03 Plum Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            51,
+            49,
+            1.43
+          ]
         },
         {
           "id": "100976",
@@ -4235,7 +4325,12 @@
           "oyOption": "[Glow] GC02 Fresh Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            50,
+            48,
+            1.45
+          ]
         },
         {
           "id": "100978",
@@ -4250,7 +4345,12 @@
           "oyOption": "[Glow] GN03 Apple Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            49,
+            49,
+            1.36
+          ]
         },
         {
           "id": "100982",
@@ -4265,7 +4365,12 @@
           "oyOption": "[Glow] GW02 Spring Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            52,
+            49,
+            1.36
+          ]
         },
         {
           "id": "100983",
@@ -4280,14 +4385,24 @@
           "oyOption": "[Glow] GW01 Honey Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260237886",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/fwee-rose-obsession-stay-fit-lip-tint-3-5g.html",
+          "fit": [
+            47,
+            49,
+            1.48
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "[NEW Earl Grey Edition] fwee Rose Obsession Stay-fit Lip Tint (Set/Single) (31 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        52,
+        49,
+        1.36
+      ]
     },
     {
       "id": "oy-GA231121243",
@@ -4429,7 +4544,12 @@
           "oyOption": "906 Salty Fig",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260540079",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html",
+          "fit": [
+            51,
+            50,
+            1.08
+          ]
         },
         {
           "id": "111432",
@@ -4444,7 +4564,12 @@
           "oyOption": "907 Gentle Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260540079",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html",
+          "fit": [
+            51,
+            50,
+            1.08
+          ]
         },
         {
           "id": "111433",
@@ -4459,7 +4584,12 @@
           "oyOption": "905 Rosy High",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260540079",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html",
+          "fit": [
+            51,
+            50,
+            1.08
+          ]
         },
         {
           "id": "111434",
@@ -4474,7 +4604,12 @@
           "oyOption": "903 Nude Odd",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260540079",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html",
+          "fit": [
+            51,
+            50,
+            1.08
+          ]
         },
         {
           "id": "111435",
@@ -4489,14 +4624,24 @@
           "oyOption": "902 Busy Coral",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA260540079",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laka-perfect-twin-lip.html",
+          "fit": [
+            51,
+            50,
+            1.08
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "Laka Perfect Twin Lip 4.7g+4.2g (12 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        51,
+        50,
+        1.08
+      ]
     },
     {
       "id": "109909",
@@ -4522,7 +4667,12 @@
           "oyOption": "07 Cozy Mauve",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251034118",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html",
+          "fit": [
+            56,
+            50,
+            1.28
+          ]
         },
         {
           "id": "109907",
@@ -4537,7 +4687,12 @@
           "oyOption": "05 Peach Melon",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251034118",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html",
+          "fit": [
+            53,
+            50,
+            1.28
+          ]
         },
         {
           "id": "109908",
@@ -4552,7 +4707,12 @@
           "oyOption": "04 Veil Red",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251034118",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html",
+          "fit": [
+            52,
+            50,
+            1.28
+          ]
         },
         {
           "id": "109909",
@@ -4567,7 +4727,12 @@
           "oyOption": "03 Nudy Beige",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251034118",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html",
+          "fit": [
+            50,
+            50,
+            1.28
+          ]
         },
         {
           "id": "109910",
@@ -4582,7 +4747,12 @@
           "oyOption": "02 Mauve Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251034118",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html",
+          "fit": [
+            56,
+            50,
+            1.25
+          ]
         },
         {
           "id": "109911",
@@ -4597,14 +4767,24 @@
           "oyOption": "01 Plum Jam",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251034118",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/etude-ginger-sugar-lip-serum-13g.html",
+          "fit": [
+            54,
+            50,
+            1.28
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "ETUDE Ginger Sugar Lip Serum (Set/Single) (11 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        50,
+        50,
+        1.28
+      ]
     },
     {
       "id": "oy-GA260742199",
@@ -4659,7 +4839,12 @@
           "oyOption": "Mint Choco",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA210811541",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-ex-20g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-ex-20g.html",
+          "fit": [
+            62,
+            51,
+            1.73
+          ]
         },
         {
           "id": "14619",
@@ -4669,7 +4854,12 @@
           "url": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-ex-20g.html",
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-ex-20g-apple-lime-367.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
-          "matchStatus": "unconfirmed"
+          "matchStatus": "unconfirmed",
+          "fit": [
+            63,
+            50,
+            1.66
+          ]
         },
         {
           "id": "14620",
@@ -4679,7 +4869,12 @@
           "url": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-ex-20g.html",
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-ex-20g-grapefruit-104.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
-          "matchStatus": "unconfirmed"
+          "matchStatus": "unconfirmed",
+          "fit": [
+            61,
+            52,
+            1.79
+          ]
         },
         {
           "id": "14621",
@@ -4689,7 +4884,12 @@
           "url": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-ex-20g.html",
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-ex-20g-berry-549.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
-          "matchStatus": "unconfirmed"
+          "matchStatus": "unconfirmed",
+          "fit": [
+            59,
+            51,
+            1.77
+          ]
         },
         {
           "id": "14600",
@@ -4704,7 +4904,12 @@
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-20g-gummy-bear-633.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html",
+          "fit": [
+            50,
+            50,
+            2.97
+          ]
         },
         {
           "id": "14599",
@@ -4719,7 +4924,12 @@
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-20g-vanilla-266.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html",
+          "fit": [
+            50,
+            50,
+            2.84
+          ]
         },
         {
           "id": "14601",
@@ -4734,7 +4944,12 @@
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-20g-sweet-candy-111.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html",
+          "fit": [
+            50,
+            50,
+            2.8
+          ]
         },
         {
           "id": "14598",
@@ -4749,14 +4964,24 @@
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/l/a/laneige-lip-sleeping-mask-20g-peach-iced-tea-225.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/laneige-lip-sleeping-mask-20g.html",
+          "fit": [
+            49,
+            50,
+            2.77
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "LANEIGE Lip Sleeping Mask EX 20g (11 Shades)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        59,
+        51,
+        1.77
+      ]
     },
     {
       "id": "66606",
@@ -4782,7 +5007,12 @@
           "oyOption": "[SINGLE] 34 Chai Apricot",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            49,
+            1.27
+          ]
         },
         {
           "id": "110949",
@@ -4797,7 +5027,12 @@
           "oyOption": "[SINGLE] 35 Earl Gray Lychee",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            1.26
+          ]
         },
         {
           "id": "110950",
@@ -4812,7 +5047,12 @@
           "oyOption": "[SINGLE] 33 Aloha Juicy",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            1.27
+          ]
         },
         {
           "id": "110951",
@@ -4827,7 +5067,12 @@
           "oyOption": "[SINGLE] 32 Tanny Guava",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            1.26
+          ]
         },
         {
           "id": "110952",
@@ -4842,7 +5087,12 @@
           "oyOption": "[SINGLE] 31 Tanned Coco",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            1.26
+          ]
         },
         {
           "id": "66592",
@@ -4857,7 +5107,12 @@
           "oyOption": "[SINGLE] 21 Grape Balm",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.21
+          ]
         },
         {
           "id": "66594",
@@ -4872,7 +5127,12 @@
           "oyOption": "[SINGLE] 22 Dotori Balm",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.21
+          ]
         },
         {
           "id": "66595",
@@ -4887,7 +5147,12 @@
           "oyOption": "[SINGLE] 17 Dark Coconut",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.2
+          ]
         },
         {
           "id": "66596",
@@ -4902,7 +5167,12 @@
           "oyOption": "[SINGLE] 14 Almond Rose",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.22
+          ]
         },
         {
           "id": "66598",
@@ -4917,7 +5187,12 @@
           "oyOption": "[SINGLE] 13 Eat Dotori",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.2
+          ]
         },
         {
           "id": "66599",
@@ -4927,7 +5202,12 @@
           "url": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
           "sourceImage": "https://sv9-cdn.stylevana.com/media/catalog/product/r/o/romand-the-juicy-lasting-tint-3-5g-12-apple-brown-178.jpg",
           "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
-          "matchStatus": "unconfirmed"
+          "matchStatus": "unconfirmed",
+          "fit": [
+            50,
+            50,
+            2.2
+          ]
         },
         {
           "id": "66600",
@@ -4942,7 +5222,12 @@
           "oyOption": "[SINGLE] 23 Peach Peach Me",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.2
+          ]
         },
         {
           "id": "66601",
@@ -4957,7 +5242,12 @@
           "oyOption": "[SINGLE] 11 Papaya Jam",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.21
+          ]
         },
         {
           "id": "66603",
@@ -4972,7 +5262,12 @@
           "oyOption": "[SINGLE] 08 Pink Pumpkin",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.21
+          ]
         },
         {
           "id": "66604",
@@ -4987,7 +5282,12 @@
           "oyOption": "[SINGLE] 16 Plum Coke",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.2
+          ]
         },
         {
           "id": "66605",
@@ -5002,7 +5302,12 @@
           "oyOption": "[SINGLE] 15 Bare Fig",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.22
+          ]
         },
         {
           "id": "66606",
@@ -5017,7 +5322,12 @@
           "oyOption": "[SINGLE] 07 Cherry Bomb",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.21
+          ]
         },
         {
           "id": "66607",
@@ -5032,7 +5342,12 @@
           "oyOption": "[SINGLE] 04 Fig Fig",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.21
+          ]
         },
         {
           "id": "66608",
@@ -5047,7 +5362,12 @@
           "oyOption": "[SINGLE] 20 Juju Fig",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.2
+          ]
         },
         {
           "id": "66609",
@@ -5062,7 +5382,12 @@
           "oyOption": "[SINGLE] 06 Peeling Angdoo",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.21
+          ]
         },
         {
           "id": "66610",
@@ -5077,7 +5402,12 @@
           "oyOption": "[SINGLE] 05 Jujube",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            51,
+            2.21
+          ]
         },
         {
           "id": "66611",
@@ -5092,7 +5422,12 @@
           "oyOption": "[SINGLE] 03 Bare Grape",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.22
+          ]
         },
         {
           "id": "66612",
@@ -5107,7 +5442,12 @@
           "oyOption": "[SINGLE] 09 Muled Peach",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.21
+          ]
         },
         {
           "id": "66613",
@@ -5122,7 +5462,12 @@
           "oyOption": "[SINGLE] 02 Nucadamia",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.22
+          ]
         },
         {
           "id": "66614",
@@ -5137,7 +5482,12 @@
           "oyOption": "[SINGLE] 01 Pomelo Skin",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            50,
+            50,
+            2.22
+          ]
         },
         {
           "id": "89167",
@@ -5152,7 +5502,12 @@
           "oyOption": "[SINGLE] 30 Bare Marron",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            56,
+            50,
+            1.2
+          ]
         },
         {
           "id": "89168",
@@ -5167,7 +5522,12 @@
           "oyOption": "[SINGLE] 27 Honeydew Melon",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            56,
+            50,
+            1.2
+          ]
         },
         {
           "id": "89169",
@@ -5182,7 +5542,12 @@
           "oyOption": "[SINGLE] 29 Joseon Fig",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            56,
+            50,
+            1.2
+          ]
         },
         {
           "id": "89170",
@@ -5197,7 +5562,12 @@
           "oyOption": "[SINGLE] 28 Snow Strawberry",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            56,
+            50,
+            1.2
+          ]
         },
         {
           "id": "89171",
@@ -5212,14 +5582,24 @@
           "oyOption": "[SINGLE] 26 Mystic Peach",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251235991",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-the-juicy-lasting-tint-3-5g.html",
+          "fit": [
+            56,
+            50,
+            1.2
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "[Sanrio EDITION] rom&nd The Juicy Lasting Tint (Set/Single) (38 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        50,
+        50,
+        2.21
+      ]
     },
     {
       "id": "oy-GA220213584",
@@ -5477,14 +5857,24 @@
           "oyOption": "06 Mocha Bun",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825273",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/dasique-souffle-color-pot-6-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/dasique-souffle-color-pot-6-5g.html",
+          "fit": [
+            50,
+            51,
+            1.54
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "dasique Souffle Color Pot (23 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        50,
+        51,
+        1.54
+      ]
     },
     {
       "id": "oy-GA241227575",
@@ -5539,7 +5929,12 @@
           "oyOption": "462 Speechless",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825130",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html",
+          "fit": [
+            50,
+            50,
+            1.24
+          ]
         },
         {
           "id": "106471",
@@ -5554,7 +5949,12 @@
           "oyOption": "18 Innocent",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825130",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html",
+          "fit": [
+            48,
+            50,
+            1.24
+          ]
         },
         {
           "id": "106472",
@@ -5569,7 +5969,12 @@
           "oyOption": "380 Cherish",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825130",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html",
+          "fit": [
+            50,
+            50,
+            1.24
+          ]
         },
         {
           "id": "106473",
@@ -5584,7 +5989,12 @@
           "oyOption": "102 Flirty",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825130",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html",
+          "fit": [
+            50,
+            50,
+            1.24
+          ]
         },
         {
           "id": "106474",
@@ -5599,7 +6009,12 @@
           "oyOption": "401 Nudist",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825130",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html",
+          "fit": [
+            50,
+            50,
+            1.24
+          ]
         },
         {
           "id": "106475",
@@ -5614,14 +6029,24 @@
           "oyOption": "422 Lingerie",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825130",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/hera-sensual-nude-gloss-5g.html",
+          "fit": [
+            50,
+            50,
+            1.24
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "HERA Sensual Nude Gloss (Set/Single) (18 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        50,
+        50,
+        1.24
+      ]
     },
     {
       "id": "oy-GA231121103",
@@ -5763,7 +6188,12 @@
           "oyOption": "[SINGLE] 12 Cream Shell",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA231221443",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-glasting-color-gloss-4g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-glasting-color-gloss-4g.html",
+          "fit": [
+            50,
+            50,
+            1.53
+          ]
         },
         {
           "id": "111030",
@@ -5868,7 +6298,12 @@
           "oyOption": "[SINGLE] 05 Dim Mauve",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA231221443",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-glasting-color-gloss-4g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-glasting-color-gloss-4g.html",
+          "fit": [
+            51,
+            52,
+            1.36
+          ]
         },
         {
           "id": "66570",
@@ -5883,14 +6318,24 @@
           "oyOption": "[SINGLE] 04 Grapy Way",
           "oyUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA231221443",
           "availability": "in_stock",
-          "retailerUrl": "https://www.stylevana.com/en_US/romand-glasting-color-gloss-4g.html"
+          "retailerUrl": "https://www.stylevana.com/en_US/romand-glasting-color-gloss-4g.html",
+          "fit": [
+            49,
+            47,
+            1.36
+          ]
         }
       ],
       "rankStatus": "option-verified",
       "matchStatus": "partial-exact-options",
       "oyName": "[Sanrio EDITION] rom&nd Glasting Color Gloss (Set/Single) (18 Colors)",
       "oyObservedAt": "2026-10-23",
-      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00"
+      "catalogSeenAt": "2026-10-23T05:15:54.019+00:00",
+      "fit": [
+        50,
+        50,
+        1.53
+      ]
     },
     {
       "id": "oy-GA260943773",

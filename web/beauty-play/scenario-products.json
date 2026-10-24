@@ -15,34 +15,59 @@
         "label": "19 N-Light",
         "detail": "Essential Skin Nuder Cushion SPF50+ PA+++ - 14g - 19 N-Light",
         "image": "/beauty-play/assets/p-69092.jpg",
-        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html"
+        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html",
+        "fit": [
+          49,
+          55,
+          1.19
+        ]
       },
       {
         "id": "69093",
         "label": "21 Medium",
         "detail": "Essential Skin Nuder Cushion SPF50+ PA+++ - 14g - 21 Medium",
         "image": "/beauty-play/assets/p-69093.jpg",
-        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html"
+        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html",
+        "fit": [
+          49,
+          54,
+          1.24
+        ]
       },
       {
         "id": "69094",
         "label": "19 Light",
         "detail": "Essential Skin Nuder Cushion SPF50+ PA+++ - 14g - 19 Light",
         "image": "/beauty-play/assets/p-69094.jpg",
-        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html"
+        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html",
+        "fit": [
+          49,
+          54,
+          1.22
+        ]
       },
       {
         "id": "69095",
         "label": "17 Fair Light",
         "detail": "Essential Skin Nuder Cushion SPF50+ PA+++ - 14g - 17 Fair Light",
         "image": "/beauty-play/assets/p-69095.jpg",
-        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html"
+        "url": "https://www.stylevana.com/en_US/jung-saem-mool-essential-skin-nuder-cushion-spf50-pa-14g.html",
+        "fit": [
+          49,
+          54,
+          1.24
+        ]
       }
     ],
     "category": "base",
     "optionKind": "shade",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      49,
+      55,
+      1.19
+    ]
   },
   {
     "id": "62366",
@@ -60,34 +85,59 @@
         "label": "23N1 Beige",
         "detail": "Black Cushion Foundation SPF34 PA++ - 15g x 2 - 23N1 Beige",
         "image": "/beauty-play/assets/p-62366.jpg",
-        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html"
+        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html",
+        "fit": [
+          52,
+          61,
+          1.14
+        ]
       },
       {
         "id": "62368",
         "label": "21N1 Vanilla",
         "detail": "Black Cushion Foundation SPF34 PA++ - 15g x 2 - 21N1 Vanilla",
         "image": "/beauty-play/assets/p-62368.jpg",
-        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html"
+        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html",
+        "fit": [
+          53,
+          61,
+          1.13
+        ]
       },
       {
         "id": "62369",
         "label": "21C1 Rose Vanilla",
         "detail": "Black Cushion Foundation SPF34 PA++ - 15g x 2 - 21C1 Rose Vanilla",
         "image": "/beauty-play/assets/p-62369.jpg",
-        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html"
+        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html",
+        "fit": [
+          53,
+          61,
+          1.12
+        ]
       },
       {
         "id": "62371",
         "label": "17C1 Petal Ivory",
         "detail": "Black Cushion Foundation SPF34 PA++ - 15g x 2 - 17C1 Petal Ivory",
         "image": "/beauty-play/assets/p-62371.jpg",
-        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html"
+        "url": "https://www.stylevana.com/en_US/hera-black-cushion-foundation-spf34-pa-15g-x-2.html",
+        "fit": [
+          53,
+          61,
+          1.13
+        ]
       }
     ],
     "category": "base",
     "optionKind": "shade",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      52,
+      61,
+      1.14
+    ]
   },
   {
     "id": "39547",
@@ -105,13 +155,23 @@
         "label": "기본 구성",
         "detail": "Damage Care Perfect Serum Original (New) - 80ml - 2022 Version",
         "image": "/beauty-play/assets/p-39547.jpg",
-        "url": "https://www.stylevana.com/en_US/deal-miseenscene-damage-care-perfect-serum-original-new-80ml-2022-version.html"
+        "url": "https://www.stylevana.com/en_US/deal-miseenscene-damage-care-perfect-serum-original-new-80ml-2022-version.html",
+        "fit": [
+          49,
+          49,
+          1.12
+        ]
       }
     ],
     "category": "hair",
     "optionKind": "none",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      49,
+      49,
+      1.12
+    ]
   },
   {
     "id": "68025",
@@ -129,27 +189,47 @@
         "label": "Osmanthus",
         "detail": "Perfumed Hair Oil - 30ml - Osmanthus",
         "image": "/beauty-play/assets/p-68025.jpg",
-        "url": "https://www.stylevana.com/en_US/lador-perfumed-hair-oil-30ml.html"
+        "url": "https://www.stylevana.com/en_US/lador-perfumed-hair-oil-30ml.html",
+        "fit": [
+          50,
+          56,
+          1.6
+        ]
       },
       {
         "id": "68021",
         "label": "La Pitta",
         "detail": "Perfumed Hair Oil - 30ml - La Pitta",
         "image": "/beauty-play/assets/p-68021.jpg",
-        "url": "https://www.stylevana.com/en_US/lador-perfumed-hair-oil-30ml.html"
+        "url": "https://www.stylevana.com/en_US/lador-perfumed-hair-oil-30ml.html",
+        "fit": [
+          49,
+          48,
+          1.56
+        ]
       },
       {
         "id": "68026",
         "label": "Hinoki",
         "detail": "Perfumed Hair Oil - 30ml - Hinoki",
         "image": "/beauty-play/assets/p-68026.jpg",
-        "url": "https://www.stylevana.com/en_US/lador-perfumed-hair-oil-30ml.html"
+        "url": "https://www.stylevana.com/en_US/lador-perfumed-hair-oil-30ml.html",
+        "fit": [
+          49,
+          53,
+          1.55
+        ]
       }
     ],
     "category": "hair",
     "optionKind": "scent",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      50,
+      56,
+      1.6
+    ]
   },
   {
     "id": "67330",
@@ -167,13 +247,23 @@
         "label": "기본 구성",
         "detail": "Neo Essential Blurring Finish Powder - 7g",
         "image": "/beauty-play/assets/p-67330.jpg",
-        "url": "https://www.stylevana.com/en_US/laneige-neo-essential-blurring-finish-powder-7g67348.html"
+        "url": "https://www.stylevana.com/en_US/laneige-neo-essential-blurring-finish-powder-7g67348.html",
+        "fit": [
+          50,
+          51,
+          2.97
+        ]
       }
     ],
     "category": "powder",
     "optionKind": "none",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      50,
+      51,
+      2.97
+    ]
   },
   {
     "id": "101230",
@@ -191,20 +281,35 @@
         "label": "AP002 Beige",
         "detail": "Second Skin Airy Powder - 12g - AP002 Beige",
         "image": "/beauty-play/assets/p-101230.jpg",
-        "url": "https://www.stylevana.com/en_US/hince-second-skin-airy-powder-12g.html"
+        "url": "https://www.stylevana.com/en_US/hince-second-skin-airy-powder-12g.html",
+        "fit": [
+          47,
+          54,
+          1.53
+        ]
       },
       {
         "id": "101231",
         "label": "AP001 Lavender",
         "detail": "Second Skin Airy Powder - 12g - AP001 Lavender",
         "image": "/beauty-play/assets/p-101231.jpg",
-        "url": "https://www.stylevana.com/en_US/hince-second-skin-airy-powder-12g.html"
+        "url": "https://www.stylevana.com/en_US/hince-second-skin-airy-powder-12g.html",
+        "fit": [
+          47,
+          54,
+          1.54
+        ]
       }
     ],
     "category": "powder",
     "optionKind": "shade",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      47,
+      54,
+      1.53
+    ]
   },
   {
     "id": "28697",
@@ -270,13 +375,23 @@
         "label": "기본 구성",
         "detail": "Atobarrier365 Cream - 80ml",
         "image": "/beauty-play/assets/p-43287.jpg",
-        "url": "https://www.stylevana.com/en_US/deal-aestura-atobarrier-365-cream-80ml.html"
+        "url": "https://www.stylevana.com/en_US/deal-aestura-atobarrier-365-cream-80ml.html",
+        "fit": [
+          51,
+          50,
+          1.1
+        ]
       }
     ],
     "category": "cream",
     "optionKind": "none",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      51,
+      50,
+      1.1
+    ]
   },
   {
     "id": "5319",
@@ -294,12 +409,22 @@
         "label": "기본 구성",
         "detail": "345 Relief Cream - 50ml",
         "image": "/beauty-play/assets/p-5319.jpg",
-        "url": "https://www.stylevana.com/en_US/dr-althea-345-relief-cream-50ml5339.html"
+        "url": "https://www.stylevana.com/en_US/dr-althea-345-relief-cream-50ml5339.html",
+        "fit": [
+          49,
+          51,
+          1.15
+        ]
       }
     ],
     "category": "cream",
     "optionKind": "none",
     "rankStatus": "pending",
-    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00"
+    "catalogSeenAt": "2026-10-22T12:18:20.678+00:00",
+    "fit": [
+      49,
+      51,
+      1.15
+    ]
   }
 ]
