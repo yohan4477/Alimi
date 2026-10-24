@@ -188,20 +188,18 @@ img[src*="/art-school_"]{object-position:50% 3%!important}
 .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image img{width:100%;height:100%;max-width:none;max-height:none;object-fit:contain}
 .selection-main .staged-atelier[data-stage="product"] .staged-products .product-copy small{font-size:12px}
 .selection-main .staged-atelier[data-stage="product"] .staged-products .product-copy strong{font-size:15px}
+/* Phones: product cards match the option cards (45% wide, square picture); bigger option, reason and note text. */
 @media(max-width:650px){
- .selection-main .staged-atelier[data-stage="product"] .staged-products{flex:0 0 262px;min-height:262px}
- .selection-main .staged-atelier[data-stage="product"] .staged-products .carousel-slide{flex:0 0 184px}
- .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:0 0 164px;min-height:164px;height:164px!important}
+ .selection-main .staged-atelier[data-stage="product"] .staged-products{flex:0 0 auto!important;min-height:0!important}
+ .selection-main .staged-atelier[data-stage="product"] .staged-products .carousel-slide{flex:0 0 45%!important}
+ .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:0 0 auto!important;height:auto!important;min-height:0!important;aspect-ratio:1;padding:6px}
  .selection-main .staged-atelier[data-stage="product"] .staged-products .product-copy strong{font-size:14px}
-}
-@media(max-width:650px) and (max-height:760px){
- .selection-main .staged-atelier[data-stage="product"] .staged-products{flex:0 0 196px;min-height:196px}
- .selection-main .staged-atelier[data-stage="product"] .staged-products .carousel-slide{flex:0 0 146px}
- .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:0 0 108px;min-height:108px;height:108px!important}
- .selection-main .staged-atelier[data-stage="product"] .staged-products .product-copy strong{font-size:13px}
-}
-@media(max-width:650px) and (max-height:600px){
- .selection-main .staged-atelier[data-stage="product"] .staged-products{flex:0 0 176px;min-height:176px}
- .selection-main .staged-atelier[data-stage="product"] .staged-products .carousel-slide{flex:0 0 132px}
- .selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:0 0 88px;min-height:88px;height:88px!important}
+ .selection-main .staged-options .shade-option>span{font-size:15px;min-height:30px;font-weight:600}
+ .selection-main .staged-reasons button{min-height:46px!important;font-size:15px!important;padding:8px 10px!important;display:flex;align-items:center}
+ .selection-main .advice-note{font-size:14px;gap:6px}
+ .selection-main .advice-note small{font-size:12px}
+ .selection-main .advice-note input{height:46px!important;padding:8px 12px!important;font-size:16px}
+ .selection-main .chosen-summary img{width:40px;height:40px}
+ .selection-main .staged-atelier[data-stage="product"] .game-product-search input{min-height:42px!important;font-size:16px;padding:8px 12px!important}
+ .selection-main .staged-atelier[data-stage="product"] .game-product-search small{font-size:11px!important}
 }
