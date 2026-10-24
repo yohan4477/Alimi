@@ -27,7 +27,7 @@ try{
   if(!body||!CHOICES.has(body.choice))return send(400,{error:'Invalid choice'});
   if(body.followup!==undefined&&body.followup!==null&&!(FOLLOWUPS[body.choice]||[]).includes(body.followup))return send(400,{error:'Invalid follow-up'});
   if(body.note!==undefined&&(typeof body.note!=='string'||body.note.length>160||/[\\u0000-\\u001f]/.test(body.note)))return send(400,{error:'Invalid note'});
-  const response=await fetcher(endpoint+'?on_conflict=product_id,voter_id',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({product_id:product,voter_id:id,choice:body.choice,{followup:body.followup??null},...(body.note!==undefined?{private_note:body.note.trim()}:{}),updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(8000)});
+  const response=await fetcher(endpoint+'?on_conflict=product_id,voter_id',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({product_id:product,voter_id:id,choice:body.choice,followup:body.followup??null,...(body.note!==undefined?{private_note:body.note.trim()}:{}),updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(8000)});
   if(!response.ok)return send(503,{error:'Vote could not be saved'});
  }
  const query=new URLSearchParams({select:'choice,followup,voter_id',product_id:'eq.'+product,limit:'10001'});
