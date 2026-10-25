@@ -1,3 +1,4 @@
+import './fixtures/en-locale.js';
 import './fixtures/us-market.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';

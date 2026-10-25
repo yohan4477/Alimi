@@ -1,3 +1,4 @@
+import './fixtures/en-locale.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {productRoomGroups,findProductRooms} from '../dist/room-search.js';

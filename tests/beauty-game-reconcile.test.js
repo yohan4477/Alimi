@@ -34,7 +34,8 @@ test('CLI writes a private non-overwriting manifest and returns distinct compari
     await writeFile(target,JSON.stringify(b),{mode:0o600});
     const cli=(...args)=>spawnSync(process.execPath,['scripts/beauty-game-reconcile.mjs',...args],{encoding:'utf8'});
     assert.equal(cli('manifest',source,out).status,0);
-    assert.equal((await stat(out)).mode&0o777,0o600);
+    // Windows has no POSIX permission bits (files report 0o666), so only check them elsewhere.
+    if (process.platform !== 'win32') assert.equal((await stat(out)).mode&0o777,0o600);
     const original=await readFile(out,'utf8');
     assert.equal(cli('manifest',source,out).status,1);
     assert.equal(await readFile(out,'utf8'),original);

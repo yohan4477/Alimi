@@ -1,0 +1,2 @@
+# Logos are checked against the original bytes; keep SVGs LF on every OS.
+*.svg text eol=lf

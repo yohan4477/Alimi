@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/*.test.js tests/*.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.js tests/*.test.mjs",
     "test:beauty-game-db": "node supabase/tests/run-beauty-game-pglite.mjs && node supabase/tests/run-beauty-game-http.mjs && node supabase/tests/run-owned-poll-pglite.mjs && node supabase/tests/run-beauty-game-insights-pglite.mjs",
     "dev": "node scripts/dev-server.mjs",
     "build:beauty-play": "vite build --config web/beauty-play/vite.config.mjs"
