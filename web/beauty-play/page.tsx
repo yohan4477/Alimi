@@ -1,8 +1,9 @@
 'use client';
 import {browseCatalog,matchingProducts} from './catalog-browse.js';
-import {brandLogo} from './brand-logos.js';
+import {brandLogo,wordmarkSize} from './brand-logos.js';
 import {entrySource} from './entry-source.js';
 import fullCatalogUrl from './catalog-full.json?url';
+import namesKoUrl from './catalog-names-ko.json?url';
 import {resolveGameStart} from './game-start.js';
 import {adviceFor} from './advice';
 import {recordFirstChoice} from './first-choice.js';
@@ -21,7 +22,7 @@ function randomId(){if(crypto.randomUUID)return crypto.randomUUID();return '1000
 type Vote={product:string;n:number};type Stats={scope?:string;taxonomyVersion?:string;categoryChoices?:{category:string;n:number;usedN:number}[];choices?:{character?:string;scenarioId?:string;advice:string|null;product:string;shade:string|null;n:number;usedN:number;reasons:{reason:string;n:number}[]}[];votes:Vote[];reasons:{product:string;reason:string;n:number}[];experienced:Vote[];shades:{product:string;shade:string;n:number}[]};
 type Friend={character:string;product:string;reason:string;shade:string;advice?:string;adviceLabel?:string};
 // A wordmark replaces the brand name; a square mark sits beside it; no logo (or a broken one) keeps the name.
-function BrandMark({brand}:{brand:string}){const {lang}=useLanguage();const logo=brandLogo(brand);const [broken,setBroken]=useState(false);if(!logo||broken)return <>{brand}</>;return <span className={logo.wordmark?'brand-mark wordmark':'brand-mark'}><img src={logo.src} alt={logo.wordmark?translate(brand,lang):''} loading="lazy" onError={()=>setBroken(true)}/>{!logo.wordmark&&brand}</span>}
+function BrandMark({brand}:{brand:string}){const {lang}=useLanguage();const logo=brandLogo(brand);const [broken,setBroken]=useState(false);if(!logo||broken)return <>{brand}</>;return <span className={logo.wordmark?'brand-mark wordmark':'brand-mark'}><img src={logo.src} alt={logo.wordmark?translate(brand,lang):''} loading="lazy" style={logo.wordmark?wordmarkSize(logo.ratio):undefined} onError={()=>setBroken(true)}/>{!logo.wordmark&&brand}</span>}
 let visitStorage:Storage|undefined;try{visitStorage=sessionStorage;}catch{}
 const visitEntry=entrySource({search:location.search,referrer:document.referrer,host:location.hostname,storage:visitStorage});
 // Catalog photos often sit small in a white square; a measured zoom (scripts/beauty-game-image-fit.py) centres and enlarges them.
@@ -35,7 +36,7 @@ export default function Home(){
 const {lang}=useLanguage();
 const runState=useRef<any>(null),runScope=useRef('live');const [activeIds,setActiveIds]=useState<string[]>(LEGACY_CHARACTER_IDS);
 const [statsBusy,setStatsBusy]=useState(false);
-const [ownedPollEnabled,setOwnedPollEnabled]=useState(false);
+const [ownedPollEnabled,setOwnedPollEnabled]=useState(false);const [,setNamesLoaded]=useState(false);
 const [accountLinkEnabled,setAccountLinkEnabled]=useState(false);const [shareUnlocked,setShareUnlocked]=useState(false);
 const [statsScope,setStatsScope]=useState<'character'|'group'>('character');const statsRequest=useRef(0);
 const [catalogPage,setCatalogPage]=useState(0);const [catalogQuery,setCatalogQuery]=useState('');
@@ -44,7 +45,7 @@ const [screen,setScreen]=useState(2),[who,setWho]=useState(0),[pick,setPick]=use
 const play=useRef(''),canWrite=useRef(false),isTest=useRef(false),inviteRef=useRef(''),pending=useRef<any[]>([]),sentViews=useRef(new Set<string>()),heading=useRef<HTMLHeadingElement>(null),carousel=useRef<HTMLDivElement>(null);
 const [snapshot,setSnapshot]=useState<PickSnapshot|null>(null);const [fullCatalog,setFullCatalog]=useState<typeof products>([]);const allProducts=useMemo(()=>[...products,...fullCatalog],[fullCatalog]);const adviceOptions=snapshot?(snapshot.advice||[]):adviceFor(characters[who].id),advice=adviceOptions.find(a=>a.id===adviceId);const pool=useMemo(()=>[...(snapshot?.products||products).filter(p=>p.matchStatus!=='unconfirmed'),...(snapshot&&snapshot.catalogPolicy!=='all-products-v1'?[]:fullCatalog)],[snapshot,fullCatalog]);const eligibleProducts=snapshot&&snapshot.catalogPolicy!=='all-products-v1'&&advice?pool.filter(p=>advice.productIds.includes(p.id)):matchingProducts(pool,advice?.productIds||[]);// Directions that share a product kind lead with their own name-matched picks, so each choice shows a different list.
 const fitIds=advice?((adviceFit as Record<string,Record<string,string[]>>)[(snapshot?.character||characters[who]).id]?.[advice.id]||[]):[];const suggested=[...new Set([...fitIds,...(advice?.productIds||[])])],suggestedSet=new Set(suggested);
-const catalog=browseCatalog(eligibleProducts,suggested,brand,catalogPage,catalogQuery,true);const brands=catalog.brands,availableProducts=catalog.items;
+const catalog=browseCatalog(eligibleProducts,suggested,brand,catalogPage,catalogQuery,true,p=>lang==='ko'?translate(p.brand,'ko')+' '+translate(p.name,'ko'):'');const brands=catalog.brands,availableProducts=catalog.items;
 const c=snapshot?.character||characters[who],product=eligibleProducts.find(p=>p.id===pick),option=product?.options.find(o=>o.id===shade);const source=invite?'friend':test?'preview':'direct';
 const scenario=scenarioFor(c.id),scenarioGroup=scenarioGroups.find(g=>g.id===scenario?.groupId),groupLabel=scenarioGroup?.[lang==='ko'?'ko':'en']||'';
 async function post(body:any){if(!canWrite.current)throw Error('연결을 확인해 주세요.');const r=await fetch('/api/record',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,invite:inviteRef.current||undefined})});const v=await r.json() as {error?:string;id:string;character:string;test:number};if(!r.ok)throw Error(v.error||'저장 실패');return v;}
@@ -92,6 +93,8 @@ useEffect(()=>{
 useEffect(()=>{if(!ready||screen!==0)return;const observer=new IntersectionObserver(es=>es.forEach(e=>{const id=(e.target as HTMLElement).dataset.character;if(e.isIntersecting&&id&&!sentViews.current.has(id)){sentViews.current.add(id);event('character_view','gallery',id);}}),{threshold:.5});document.querySelectorAll('[data-character]').forEach(el=>observer.observe(el));return()=>observer.disconnect();},[screen,ready]);
 useEffect(()=>{if(ready&&screen>0){event('step_view',String(screen));heading.current?.focus();window.scrollTo({top:0,behavior:'smooth'});}},[screen,ready]);
 useEffect(()=>{if(screen===2)browseProduct(activeProduct);},[screen]);
+// The catalog comes from a US retailer in English; Korean screens show the Korean product names.
+useEffect(()=>{let live=true;fetch(namesKoUrl).then(r=>r.ok?r.json():{}).then(names=>{if(live&&names&&typeof names==='object'){addTranslations('ko',names);setNamesLoaded(true);}}).catch(()=>{});return()=>{live=false;};},[]);
 useEffect(()=>{let live=true;fetch(fullCatalogUrl).then(r=>r.ok?r.json():[]).then(list=>{if(!live||!Array.isArray(list))return;addTranslations('ko',Object.fromEntries(list.filter(p=>p.brandKo).map(p=>[p.brand,p.brandKo])));rememberFits(list);setFullCatalog(list);}).catch(()=>{});return()=>{live=false;};},[]);
 useEffect(()=>{if(!carousel.current)return;carousel.current.scrollLeft=0;setActiveProduct(0);setProductEnd(carousel.current.scrollWidth<=carousel.current.clientWidth+4);},[brand,who,catalogQuery,adviceId,stage]);
 // Opens a run in place: an answered painting shows its result, any other starts at the advice step.

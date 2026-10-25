@@ -55,5 +55,12 @@ const LOGOS = {
 // A wide wordmark stands in for the name; a square mark (a monogram or emblem) needs the name beside it.
 export function brandLogo(brand) {
   const logo = LOGOS[brandKey(brand)];
-  return logo ? {src: '/beauty-play/assets/brands/' + logo[0], wordmark: logo[1] >= 1.8} : null;
+  return logo ? {src: '/beauty-play/assets/brands/' + logo[0], wordmark: logo[1] >= 1.8, ratio: logo[1]} : null;
+}
+// Same visual weight for every wordmark, close to the chip text size: a fixed area, at most 16px tall and 80px wide.
+// A fixed height made short, bold marks (2aN, BBIA) look far bigger than long ones (espoir).
+export function wordmarkSize(ratio, area = 800) {
+  let height = Math.min(16, Math.sqrt(area / ratio)), width = height * ratio;
+  if (width > 80) { width = 80; height = width / ratio; }
+  return {width: Math.round(width), height: Math.round(height)};
 }

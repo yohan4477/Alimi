@@ -37,3 +37,16 @@ test('grow mode keeps every earlier item so the carousel extends instead of flip
  assert.equal(browseCatalog(pool,[],'all',2,'',true).items.length,25);
  assert.equal(browseCatalog(pool,[],'all',1).items.length,10);
 });
+test('search also matches the alias text, such as a Korean name',()=>{
+ const pool=[{id:'1',brand:'BBIA',name:'Last Powder Lipstick',category:'lip'},{id:'2',brand:'fwee',name:'Dewy Tint',category:'lip'}];
+ assert.deepEqual(browseCatalog(pool,[],'all',0,'립스틱',true,p=>p.id==='1'?'삐아 라스트 파우더 립스틱':'').items.map(p=>p.id),['1']);
+ assert.equal(browseCatalog(pool,[],'all',0,'립스틱').total,0);
+});
+test('wordmarks get a similar visual area instead of one fixed height',async()=>{
+ const {wordmarkSize}=await import('../web/beauty-play/brand-logos.js');
+ const short=wordmarkSize(1.9),long=wordmarkSize(6);
+ assert.ok(short.height<=16&&long.width<=80);
+ // Long wordmarks are no longer squeezed smaller than short, bold ones.
+ assert.ok(long.width*long.height>=short.width*short.height);
+ assert.ok(long.height<short.height);
+});
