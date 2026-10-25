@@ -2,7 +2,7 @@ import {copy,locale,resultRows,randomId} from './model.js';
 const params=new URLSearchParams(location.search),lang=locale(params.get('lang')),t=copy[lang],$=id=>document.getElementById(id);
 document.documentElement.lang=lang;const nameOf=p=>lang==='en'&&p.nameEn||p.name,optionOf=label=>lang==='en'&&label==='기본 구성'?'Standard size':label;document.title=t.title+' · Seoul Beauty';document.querySelectorAll('[data-copy]').forEach(el=>el.textContent=t[el.dataset.copy]);$('catalog-search').placeholder=t.search;$('catalog-search').setAttribute('aria-label',t.search);$('catalog-source').setAttribute('aria-label',t.find);$('catalog-brand').setAttribute('aria-label',t.brand);
 $('catalog-market').options[0].textContent=lang==='ko'?'한국':'Korea';$('catalog-market').options[1].textContent=lang==='ko'?'미국':'United States';
-function languageLink(){const other=new URL(location.href);other.searchParams.set('lang',lang==='ko'?'en':'ko');$('language').href=other.pathname+other.search;}languageLink();$('language').textContent=lang==='ko'?'English':'한국어';
+function languageLink(){const other=new URL(location.href);other.searchParams.set('lang',lang==='ko'?'en':'ko');$('language').href=other.pathname+other.search;}languageLink();$('language').replaceChildren(...['ko','en'].map(l=>{const s=document.createElement('span');s.textContent=l.toUpperCase();if(l===lang)s.className='on';return s;}));$('language').setAttribute('aria-label',lang==='ko'?'지금 한국어 · English로 바꾸기':'Now English · switch to 한국어');
 if(params.get('test')==='1')$('testflag').textContent=t.test;
 $('catalog-market').value=lang==='ko'?'KR':'US';
 const run=randomId(),viewed=new Set();

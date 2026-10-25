@@ -215,3 +215,8 @@ img[src*="/art-school_"]{object-position:50% 3%!important}
 .story-art .painting-nav.prev{left:10px}
 .story-art .painting-nav.next{right:10px}
 .story-art .painting-nav:focus-visible{outline:3px solid #fff;outline-offset:2px}
+
+/* Language toggle: KO | EN, current language filled. */
+div.language-switch{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:20px;background:#fff}
+div.language-switch button{border:0;background:transparent;border-radius:16px;padding:5px 10px;font-size:11px;font-weight:700;letter-spacing:.04em;color:inherit;opacity:.5;cursor:pointer}
+div.language-switch button.active{background:#1d1c16;color:#fff;opacity:1}
