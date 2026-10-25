@@ -33,6 +33,8 @@ test('full game catalog is reachable with unique product identifiers',async()=>{
  assert.equal(frontend.length,40);
  assert.equal(new Set(frontend.map(p=>p.id)).size,frontend.length);
  assert(frontend.every(p=>p.image&&p.brand&&p.name));
+ // The English poll shows nameEn; a Korean-only name would leak into the English page.
+ assert(frontend.every(p=>!/[가-힣]/.test(p.name)||(p.nameEn&&!/[가-힣]/.test(p.nameEn))));
 });
 
 test('accepts ordinary optional notes and rejects control characters',async()=>{
