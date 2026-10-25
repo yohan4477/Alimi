@@ -30,3 +30,10 @@ test('the All chip clears a typed search so every product in the kind comes back
  assert.match(page,/setBrand\(b\);setCatalogPage\(0\);if\(b==='all'\)setCatalogQuery\(''\);/);
  assert.match(page,/더 불러오는 중/);
 });
+test('grow mode keeps every earlier item so the carousel extends instead of flipping pages',()=>{
+ const pool=Array.from({length:25},(_,i)=>({id:String(i),brand:'b',name:'p'+String(i).padStart(2,'0'),category:'lip'}));
+ assert.equal(browseCatalog(pool,[],'all',1,'',true).items.length,20);
+ assert.deepEqual(browseCatalog(pool,[],'all',2,'',true).items.map(p=>p.id),browseCatalog(pool,[],'all',2,'',true).items.map(p=>p.id));
+ assert.equal(browseCatalog(pool,[],'all',2,'',true).items.length,25);
+ assert.equal(browseCatalog(pool,[],'all',1).items.length,10);
+});

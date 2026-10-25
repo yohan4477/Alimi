@@ -11,7 +11,8 @@ export function matchingProducts(pool, suggested = []) {
  const categories=new Set(pool.filter(p=>suggested.includes(p.id)).map(p=>p.category));
  return categories.size?pool.filter(p=>categories.has(p.category)):pool;
 }
-export function browseCatalog(pool, suggested = [], brand = 'all', page = 0, query = '') {
+// grow=true returns every item up to the page, so the carousel keeps extending instead of flipping pages.
+export function browseCatalog(pool, suggested = [], brand = 'all', page = 0, query = '', grow = false) {
  const rank=new Map(suggested.map((id,i)=>[id,i]));
  const ordered=[...pool].sort((a,b)=>{
   const ai=rank.get(a.id),bi=rank.get(b.id);
@@ -26,5 +27,5 @@ export function browseCatalog(pool, suggested = [], brand = 'all', page = 0, que
  const filtered=ordered.filter(p=>(brand==='all'||brandKey(p.brand)===chosen)&&(!normalized||(p.brand+' '+p.name).toLocaleLowerCase().includes(normalized)));
  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
  const current=Math.min(Math.max(0,page),pages-1);
- return {brands,total:filtered.length,pages,current,items:filtered.slice(current*PAGE_SIZE,(current+1)*PAGE_SIZE),suggestedCount:filtered.filter(p=>rank.has(p.id)).length};
+ return {brands,total:filtered.length,pages,current,items:filtered.slice(grow?0:current*PAGE_SIZE,(current+1)*PAGE_SIZE),suggestedCount:filtered.filter(p=>rank.has(p.id)).length};
 }
