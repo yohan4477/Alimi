@@ -239,3 +239,10 @@ div.language-switch button.active{background:#1d1c16;color:#fff;opacity:1}
 /* Every brand chip is the same height, logo or text. */
 .brand-track button{min-height:34px;box-sizing:border-box}
 .heard-from{margin:18px 0 0;padding:14px 16px;border:1px dashed var(--line,#ddd);border-radius:14px}.heard-from h2{font-size:15px;margin:0 0 10px}.heard-options{display:flex;flex-wrap:wrap;gap:8px}.heard-options button{min-height:36px;padding:0 14px;border:1px solid var(--line,#ddd);border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:14px;cursor:pointer}.heard-thanks{text-align:center;font-size:14px;border-style:solid}
+/* Options scroll up and down in a grid, not sideways: a product can have dozens of shades. */
+.selection-main .atelier .staged-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none;overscroll-behavior:contain;padding:2px 2px 8px}
+.selection-main .atelier .staged-options .shade-option{flex:none;min-width:0;width:auto;min-height:0;scroll-snap-align:none}
+.selection-main .atelier .staged-options .shade-option img{flex:none;height:96px;min-height:0}
+@media(min-width:651px){.selection-main .atelier .staged-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.selection-main .staged-atelier[data-stage="option"] .staged-workbench{flex:0 1 auto;min-height:0}
+.selection-main .atelier .staged-options{max-height:min(46vh,460px)}
