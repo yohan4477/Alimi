@@ -233,3 +233,6 @@ div.language-switch button.active{background:#1d1c16;color:#fff;opacity:1}
 /* Short phones: a smaller painting so the choices and the button stay on screen. */
 /* Ophelia lies low in the painting; lift her face above the story text (the bottom edge falls under the dark text gradient). */
 @media(max-width:650px){.selection-main .story-art[data-character="ophelia"] .portrait img{transform-origin:18% 0;transform:translateY(-50%) scale(1.4)}}
+/* Picks for the chosen direction come first and carry a small badge. */
+.fit-badge{display:inline-block;margin-top:3px;padding:1px 6px;border-radius:8px;background:#eef1fb;color:#3550a8;font-size:10px;font-style:normal;font-weight:700}
+.catalog-count strong{color:#3550a8}

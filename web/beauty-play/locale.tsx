@@ -4,7 +4,8 @@ import dictionaries from './translations.json';
 import {initialLanguage,resolveVisitorLanguage,rememberLanguage} from '../../dist/language-preference.js';
 export type Language='ko'|'en';
 const LanguageContext=createContext<{lang:Language;setLanguage:(lang:Language)=>void}>({lang:'ko',setLanguage:()=>{}});
-const entries={ko:Object.entries(dictionaries.ko).sort((a,b)=>b[0].length-a[0].length),en:Object.entries(dictionaries.en).sort((a,b)=>b[0].length-a[0].length)};
+// Partial replacement into Korean skips short words (Lip, SKU, EP.) so English product names never turn into "Last Powder 립stick".
+const entries={ko:Object.entries(dictionaries.ko).filter(([key])=>key.length>3).sort((a,b)=>b[0].length-a[0].length),en:Object.entries(dictionaries.en).sort((a,b)=>b[0].length-a[0].length)};
 // Exact-match names that arrive with data loaded at runtime (catalog brands); never used for partial replacement.
 export function addTranslations(lang:Language,names:Record<string,string>){Object.assign(dictionaries[lang] as Record<string,string>,names);}
 export function translate(text:string,lang:Language){
@@ -13,7 +14,7 @@ export function translate(text:string,lang:Language){
   let m=text.match(/^(\d+)명 중 (\d+)명이 너와 같은 선택!$/);if(m)return `${m[2]} of ${m[1]} people picked your product!`;
   m=text.match(/^(\d+)명의 사용 경험 응답$/);if(m)return `${m[1]} responses from people who tried it`;
  }
- const rows=entries[lang];let result='',i=0;while(i<text.length){const row=rows.find(([key])=>text.startsWith(key,i));if(row){result+=row[1];i+=row[0].length;}else{result+=text[i];i++;}}
+ const rows=entries[lang],letter=/[A-Za-z]/;let result='',i=0;while(i<text.length){const row=rows.find(([key])=>text.startsWith(key,i)&&(lang!=='ko'||!(letter.test(text[i-1]||'')&&letter.test(key[0])||letter.test(text[i+key.length]||'')&&letter.test(key[key.length-1]))));if(row){result+=row[1];i+=row[0].length;}else{result+=text[i];i++;}}
  return lang==='en'?result.replace(/(\d+)건/g,'$1 responses').replace(/명/g,' people'):result;
 }
 export function LanguageProvider({children}:{children:ReactNode}){
