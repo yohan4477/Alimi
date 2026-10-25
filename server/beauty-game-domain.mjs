@@ -21,7 +21,7 @@ const characters = Object.entries(portraits).map(([id,[name,bg,quote]]) => ({id,
 const legacyReasons = ['지금 상황에 맞아서','표현이 마음에 들어서','보송하게 표현하고 싶어서','얇게 덧바르고 싶어서','색이 어울려서','촉촉함이 중요해서','오래 유지될 것 같아서','직접 써봐서','그냥 끌려서'];
 const allReasons = new Set([...legacyReasons,...Object.values(scenarios).flatMap(s => s.reasonOptions)]);
 export const experiences = ['지금 쓰고 있어','예전에 써봤어','써본 적 없어'];
-export const eventNames = ['pilot_view','pilot_complete','pilot_feedback_more','pilot_feedback_once','pilot_feedback_confusing','advice_select','landing_view','character_view','game_start','step_view','product_select','brand_select','shade_select','back','skip','answer_saved','result_view','experience_saved','share_click','share_link_created','invite_open','comparison_view','next_game','product_open','reflection_start','reflection_saved','community_open','card_download','ownership_open'];
+export const eventNames = ['pilot_view','pilot_complete','pilot_feedback_more','pilot_feedback_once','pilot_feedback_confusing','advice_select','landing_view','character_view','game_start','step_view','product_select','brand_select','shade_select','back','skip','answer_saved','result_view','experience_saved','share_click','share_link_created','invite_open','comparison_view','next_game','product_open','reflection_start','reflection_saved','community_open','card_download','ownership_open','painting_swipe'];
 const steps = ['0','1','2','3','4','5','pilot','selection','context','gallery','products','product','option','reason','shades','answer','result','reflection','advice'];
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function invalid(field) { throw Object.assign(new Error(`Invalid ${field}`), {status:400}); }

@@ -19,7 +19,7 @@ const originalCharacters=[
 export const characters=originalCharacters.map(c=>({...c,...scenarios[c.id],quote:c.id==='mona'?c.quote:'네가 골라준 아이템, 오늘 파우치에 넣었어.'}));
 export const reasons=[...new Set([...legacyReasons,...Object.values(scenarios).flatMap(s=>s.reasonOptions)])];
 export function eligibleFor(_character:string){return products;}
-export const eventNames=['pilot_view','pilot_complete','pilot_feedback_more','pilot_feedback_once','pilot_feedback_confusing','advice_select','landing_view','character_view','game_start','step_view','product_select','brand_select','shade_select','back','skip','answer_saved','result_view','experience_saved','share_click','share_link_created','invite_open','comparison_view','next_game','product_open','reflection_start','reflection_saved','community_open','card_download','ownership_open'] as const;
+export const eventNames=['pilot_view','pilot_complete','pilot_feedback_more','pilot_feedback_once','pilot_feedback_confusing','advice_select','landing_view','character_view','game_start','step_view','product_select','brand_select','shade_select','back','skip','answer_saved','result_view','experience_saved','share_click','share_link_created','invite_open','comparison_view','next_game','product_open','reflection_start','reflection_saved','community_open','card_download','ownership_open','painting_swipe'] as const;
 
 // Keep historical single-reason answers and share snapshots readable.
 export function readSelection(raw:string):{reasons:string[];shade:string|null;advice:string|null;note:string}{

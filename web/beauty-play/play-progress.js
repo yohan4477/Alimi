@@ -27,12 +27,20 @@ export function markRunShared(run,shared,scope='live',storage=browserStorage()){
 // Last saved answer per painting on this device, so a finished painting reopens its result
 // in the same play (answering again overwrites it instead of adding a second vote).
 const answersKey=scope=>'beauty-play-answers-v1:'+scope;
-function readAnswers(storage,scope){try{const all=JSON.parse(storage.getItem(answersKey(scope))||'{}');return all&&typeof all==='object'?all:{}}catch{return {}}}
+function readAnswers(storage,scope){try{const raw=storage.getItem(answersKey(scope));if(raw){const all=JSON.parse(raw);if(all&&typeof all==='object')return all}}catch{}return volatile.get(answersKey(scope))||{}}
 export function answerFor(character,scope='live',storage=browserStorage()){const a=readAnswers(storage,scope)[character];return a&&uuid.test(a.play)&&typeof a.product==='string'?a:null}
-export function rememberAnswer(character,answer,scope='live',storage=browserStorage()){const all=readAnswers(storage,scope);all[character]={...all[character],...answer};try{storage.setItem(answersKey(scope),JSON.stringify(all))}catch{}return all[character]}
+export function rememberAnswer(character,answer,scope='live',storage=browserStorage()){const all=readAnswers(storage,scope);all[character]={...all[character],...answer};volatile.set(answersKey(scope),all);try{storage.setItem(answersKey(scope),JSON.stringify(all))}catch{}return all[character]}
 export function startCharacter(character,scope='live',storage=browserStorage()){const done=answerFor(character,scope,storage);return write(storage,scope,done?{character,play:done.play,shared:done.shared===true}:{character,play:crypto.randomUUID(),shared:false})}
+// After answering, the next painting opens without sharing; paintings not yet answered come first.
 export function advanceRun(run,ids,scope='live',storage=browserStorage()){
- const saved=read(storage,scope);
- if(!saved||saved.play!==run.play||!saved.shared)throw Error('Share this scenario first');
- return write(storage,scope,{character:randomNextCharacter(ids,run.character),play:crypto.randomUUID(),shared:false});
+ const saved=read(storage,scope),done=saved&&answerFor(saved.character,scope,storage);
+ if(!saved||saved.play!==run.play||!done||done.play!==run.play)throw Error('Answer this scenario first');
+ const unplayed=ids.filter(id=>!answerFor(id,scope,storage));
+ return write(storage,scope,{character:randomNextCharacter(unplayed.length?unplayed:ids,run.character),play:crypto.randomUUID(),shared:false});
 }
+// Before choosing, swiping moves through the paintings in order; an answered one reopens its own play.
+export function switchRun(run,ids,step,scope='live',storage=browserStorage()){
+ const i=Math.max(0,ids.indexOf(run.character)),n=ids.length;
+ return startCharacter(ids[(i+step+n)%n],scope,storage);
+}
+
