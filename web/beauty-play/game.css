@@ -246,3 +246,13 @@ div.language-switch button.active{background:#1d1c16;color:#fff;opacity:1}
 @media(min-width:651px){.selection-main .atelier .staged-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .selection-main .staged-atelier[data-stage="option"] .staged-workbench{flex:0 1 auto;min-height:0}
 .selection-main .atelier .staged-options{max-height:min(46vh,460px)}
+/* Products scroll up and down in the same grid as the options; the brand row above stays sideways. */
+.selection-main .staged-atelier[data-stage="product"] .staged-workbench{flex:0 1 auto;min-height:0}
+.selection-main .staged-atelier[data-stage="product"] .staged-products{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;gap:9px;flex:0 1 auto!important;min-height:0!important;max-height:min(46vh,460px);overflow-x:hidden!important;overflow-y:auto!important;scroll-snap-type:none!important;overscroll-behavior:contain;padding:2px 2px 8px}
+.selection-main .staged-atelier[data-stage="product"] .staged-products .carousel-slide{flex:none!important;min-width:0;width:auto;scroll-snap-align:none}
+.selection-main .staged-atelier[data-stage="product"] .staged-products .product{height:auto}
+.selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{flex:none!important;height:120px!important;min-height:0!important;aspect-ratio:auto}
+@media(min-width:651px){.selection-main .staged-atelier[data-stage="product"] .staged-products{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.selection-main .staged-atelier[data-stage="product"] .staged-products{max-height:min(40vh,340px)}
+.selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{height:104px!important}
+@media(min-width:651px){.selection-main .staged-atelier[data-stage="product"] .staged-products .product-image{height:88px!important}}
