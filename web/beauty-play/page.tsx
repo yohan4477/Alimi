@@ -14,6 +14,7 @@ import FriendShare from './friend-share';type PickSnapshot={catalogPolicy?:strin
 import Reflection from './reflection';
 import AccountLink from './account-link';
 import BridgeCTA from './bridge-cta';
+import HeardFrom from './heard-from';
 import {LocaleView,LanguageSwitch,useLanguage,translate,addTranslations} from './locale';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,Check,Share2,Copy,Heart,Sparkles,ExternalLink,BarChart3} from 'lucide-react';
@@ -126,6 +127,7 @@ return <LocaleView><header className={pilot?"top pilot-top":"top"}><a className=
 </div></section>}
 {screen===5&&<section className="result-screen"><h1 ref={heading} tabIndex={-1} className="sr-only">내 선택</h1><div className="result-poster" style={{background:c.bg}}><Portrait id={c.id}/><div className="quote"><span>{c.name}</span>{advice&&<p className="advice-result-label">네 추천 · {advice.label}</p>}{product&&<div className="mini-product"><img src={option?.image||product.image} alt="" style={fitStyle(option?.image||product.image)}/><div><small>네가 골라준 아이템</small><strong>{product.brand} {product.name}</strong><span className="chosen-shade">{option?.label||'옵션 선택 생략'}</span>{reason.length>0&&<span className="chosen-shade">{reason.join(' · ')}</span>}</div></div>}</div></div>
 {friend&&<div className="friend-result"><div className="eyebrow">둘의 선택, 이제 공개!</div>{(friend.adviceLabel||advice)&&<p className="advice-compare"><span>친구의 추천 · {friend.adviceLabel||'선택 없음'}</span><span>내 추천 · {advice?.label||'선택 없음'}</span></p>}<h2>{friend.product===pick?(friend.shade===shade?'같은 제품, 같은 옵션을 골랐네!':'제품은 같고, 옵션 취향은 다르네!'):'다른 픽이라 더 궁금한데?'}</h2><div className="compare-grid">{[{label:'친구의 선택',p:friend.product,r:friend.reason,s:friend.shade},{label:'나의 선택',p:pick,r:reason.join(' · '),s:shade}].map(x=>{const p=allProducts.find(p=>p.id===x.p),o=p?.options.find(o=>o.id===x.s);return <div key={x.label}><span>{x.label}</span>{p?<><img src={o?.image||p.image} alt={p.name} style={fitStyle(o?.image||p.image)}/><strong>{p.brand} {p.name}</strong><span>{o?.label||'옵션 선택 생략'}</span></>:<strong>잘 모르겠어</strong>}<small>{!x.r||x.r==='skip'?'이유는 생략했어':x.r}</small></div>})}</div></div>}
+<HeardFrom lang={lang} onPick={value=>event('heard_from',value)}/>
 <section className="result-three-choices" aria-label={lang==='ko'?'게임 완료 후 선택':'After the game'}>
 <h2>{lang==='ko'?'이제 뭐 할래?':'What next?'}</h2>
 <a className="result-choice" href="#friend-comparison-share"><strong>👥 {lang==='ko'?'친구는 뭘 골랐을까?':'What would your friend pick?'}</strong><span>{lang==='ko'?'같은 상황에서 친구의 선택과 비교해 봐':'Compare choices with a friend'}</span></a>

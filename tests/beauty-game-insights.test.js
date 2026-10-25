@@ -10,6 +10,8 @@ test('game events accept a visit source slug and language, nothing else',()=>{
  assert.throws(()=>validateCommand('record',{...base,entry:'https://x.com/a?b'}));
  assert.throws(()=>validateCommand('record',{...base,lang:'fr'}));
  assert.throws(()=>validateCommand('record',{...base,country:'US'}));
+ assert.equal(validateCommand('record',{...base,name:'heard_from',step:'instagram'}).step,'instagram');
+ assert.throws(()=>validateCommand('record',{...base,name:'heard_from',step:'myspace'}));
 });
 test('the visit source comes from utm_source, ref or another site, and stays for the tab',()=>{
  const store=new Map(),storage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)};

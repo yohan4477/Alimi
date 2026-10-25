@@ -238,3 +238,4 @@ div.language-switch button.active{background:#1d1c16;color:#fff;opacity:1}
 .catalog-count strong{color:#3550a8}
 /* Every brand chip is the same height, logo or text. */
 .brand-track button{min-height:34px;box-sizing:border-box}
+.heard-from{margin:18px 0 0;padding:14px 16px;border:1px dashed var(--line,#ddd);border-radius:14px}.heard-from h2{font-size:15px;margin:0 0 10px}.heard-options{display:flex;flex-wrap:wrap;gap:8px}.heard-options button{min-height:36px;padding:0 14px;border:1px solid var(--line,#ddd);border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:14px;cursor:pointer}.heard-thanks{text-align:center;font-size:14px;border-style:solid}

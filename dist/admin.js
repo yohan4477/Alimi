@@ -79,7 +79,7 @@ if (root) {
   // Funnel, sources and choices. Every value is written with textContent; nothing from the response becomes HTML.
   let gameInsightsVersion=0;
   const insightSteps={landing_view:'첫 화면 방문',character_view:'그림(상황) 보기',advice_select:'답 고르기',product_select:'제품 고르기',answer:'선택 완료',result_view:'결과 화면',share:'초대 링크 만들기',invite_open:'친구 초대 열기',comparison_view:'둘의 선택 비교'};
-  const insightDims={entry:'유입 경로',country:'국가',lang:'언어'};
+  const insightDims={heard:'알게 된 곳(본인 답)',entry:'유입 경로',country:'국가',lang:'언어'};
   const pct=(n,d)=>d?Math.round(n/d*100)+'%':'—';
   function insightTable(caption,head,rows){
     const table=document.createElement('table'),cap=document.createElement('caption'),thead=document.createElement('thead'),tr=document.createElement('tr'),tbody=document.createElement('tbody');
