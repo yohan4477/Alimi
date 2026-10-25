@@ -11,11 +11,17 @@ const fullCatalogById = new Map(fullCatalog.map(p => [p.id, p]));
 const fullCatalogBrands = [...new Set(fullCatalog.map(p => p.brand))];
 // Only the fields not overridden by scenarios.json are mirrored from game.ts.
 const portraits = {
-  school_photo_friend:['푸른 소년','#ded8c5'],school_last_minute_friend:['피리 부는 소년','#e8dfd3'],
+  // Men and women alternate so browsing and the landing list mix them.
   mona:['모나리자','#e8e8ce','좋아. 오늘은 미소 말고 립으로 기억되겠어.'],
-  pearl:['진주 소녀','#dce7ef'], venus:['비너스','#f2dece'], madame:['마담 X','#e6ddd5'],
-  camille:['양산을 쓴 여인','#dfe9d9'], ophelia:['오필리아','#e6e2d6'],
-  gogh:['반 고흐','#dfe4dc'], david:['다비드','#e7e3dc'],
+  school_photo_friend:['푸른 소년','#ded8c5'],
+  pearl:['진주 소녀','#dce7ef'],
+  gogh:['반 고흐','#dfe4dc'],
+  venus:['비너스','#f2dece'],
+  school_last_minute_friend:['피리 부는 소년','#e8dfd3'],
+  madame:['마담 X','#e6ddd5'],
+  david:['다비드','#e7e3dc'],
+  camille:['양산을 쓴 여인','#dfe9d9'],
+  ophelia:['오필리아','#e6e2d6'],
 };
 const characters = Object.entries(portraits).map(([id,[name,bg,quote]]) => ({id,name,bg,...scenarios[id],quote:quote || '네가 골라준 아이템, 오늘 파우치에 넣었어.'}));
 const legacyReasons = ['지금 상황에 맞아서','표현이 마음에 들어서','보송하게 표현하고 싶어서','얇게 덧바르고 싶어서','색이 어울려서','촉촉함이 중요해서','오래 유지될 것 같아서','직접 써봐서','그냥 끌려서'];

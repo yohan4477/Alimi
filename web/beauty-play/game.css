@@ -231,3 +231,5 @@ div.language-switch button.active{background:#1d1c16;color:#fff;opacity:1}
 /* Product count above the growing carousel. */
 .catalog-count{margin:0;font-size:11px;color:#6b6a63;text-align:center}
 /* Short phones: a smaller painting so the choices and the button stay on screen. */
+/* Ophelia lies low in the painting; lift her face above the story text (the bottom edge falls under the dark text gradient). */
+@media(max-width:650px){.selection-main .story-art[data-character="ophelia"] .portrait img{transform-origin:18% 0;transform:translateY(-50%) scale(1.4)}}
