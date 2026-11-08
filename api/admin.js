@@ -9,7 +9,14 @@ const pageFile = new URL('../server/admin-page.html', import.meta.url);
 const beautyPickFile = new URL('../server/admin-beauty-pick.html', import.meta.url);
 const libraryFile = new URL('../server/admin-ui-library.html', import.meta.url);
 const reviewFile = new URL('../server/admin-planning-review.html', import.meta.url);
-const adminTabIds = new Set(['sb-dashboard', 'sb-users', 'sb-community', 'sb-products', 'sb-game', 'sb-revenue', 'sb-system', 'sb-ui-library', 'sb-quality', 'sb-dev', 'sb-roadmap', 'sb-strategy', 'sb-plan', 'sb-design']);
+const refGalleryFile = new URL('../server/reference-gallery.html', import.meta.url);
+const refMuskFile = new URL('../server/reference-musk.html', import.meta.url);
+const refManifestFile = new URL('../server/reference-manifest.json', import.meta.url);
+const supabaseUrl = 'https://mqsnshnlfwsgabrsmqsz.supabase.co';
+// Reference videos live in the private Supabase Storage bucket `reference-media`. Only names listed in the manifest
+// (and matching this pattern) get a short-lived signed URL; the browser then downloads the file from Storage directly.
+const refMediaName = /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,150}\.mp4$/;
+const adminTabIds = new Set(['sb-dashboard', 'sb-users', 'sb-community', 'sb-products', 'sb-game', 'sb-revenue', 'sb-system', 'sb-ui-library', 'sb-quality', 'sb-dev', 'sb-roadmap', 'sb-strategy', 'sb-plan', 'sb-design', 'sb-reference']);
 const headers = {
   'Content-Type': 'text/html; charset=utf-8',
   'Cache-Control': 'private, no-store, max-age=0',
@@ -45,7 +52,7 @@ async function credentials(req, passwordOnly = false) {
   const email = body.email.trim(), password = body.password;
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length > 0 && password.length <= 1024 ? {email, password} : null;
 }
-export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), readLibrary = () => readFile(libraryFile, 'utf8'), readBeautyPick = () => readFile(beautyPickFile, 'utf8'), env = process.env} = {}) {
+export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), readLibrary = () => readFile(libraryFile, 'utf8'), readBeautyPick = () => readFile(beautyPickFile, 'utf8'), readRefGallery = () => readFile(refGalleryFile, 'utf8'), readRefMusk = () => readFile(refMuskFile, 'utf8'), readRefManifest = async () => JSON.parse(await readFile(refManifestFile, 'utf8')), env = process.env} = {}) {
   const passwordOnly = Boolean(env.ADMIN_SHARED_PASSWORD);
   const loginPage = message => renderLoginPage(message, passwordOnly);
   return async function admin(req, res) {
@@ -114,15 +121,35 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         return send(200, JSON.stringify(await readMetrics({env, fetchImpl, serviceRegion:url.searchParams.get('region') ?? 'all'})));
       }
-      if (['planning-review', 'ui-library', 'beauty-pick'].includes(url.searchParams.get('view'))) {
+      if (url.searchParams.get('view') === 'ref-media') {
+        const name = url.searchParams.get('f') ?? '';
+        const manifest = await readRefManifest();
+        if (!refMediaName.test(name) || !Object.hasOwn(manifest, name)) return send(404, 'Not found');
+        const key = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        if (!key) return send(503, JSON.stringify({error: 'storage_unconfigured'}));
+        const auth = {apikey: key, 'Content-Type': 'application/json'};
+        if (!key.startsWith('sb_secret_')) auth.Authorization = 'Bearer ' + key;
+        const signed = await fetchImpl(`${supabaseUrl}/storage/v1/object/sign/reference-media/${manifest[name].path.split('/').map(encodeURIComponent).join('/')}`, {
+          method: 'POST', headers: auth, body: JSON.stringify({expiresIn: 600}), cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(8000)
+        });
+        const body = signed.ok ? await signed.json() : null;
+        if (typeof body?.signedURL !== 'string' || !body.signedURL.startsWith('/object/sign/reference-media/')) return send(signed.status === 404 ? 404 : 502, JSON.stringify({error: 'storage_unavailable'}));
+        return send(200, JSON.stringify({url: supabaseUrl + '/storage/v1' + body.signedURL, expiresIn: 600}));
+      }
+      if (['planning-review', 'ui-library', 'beauty-pick', 'reference-gallery', 'reference-musk'].includes(url.searchParams.get('view'))) {
         const view = url.searchParams.get('view');
-        const review = view === 'beauty-pick' ? await readBeautyPick() : view === 'ui-library' ? await readLibrary() : await readReview();
+        const review = view === 'beauty-pick' ? await readBeautyPick() : view === 'ui-library' ? await readLibrary() : view === 'reference-gallery' ? await readRefGallery() : view === 'reference-musk' ? await readRefMusk() : await readReview();
+        const reference = view.startsWith('reference-');
         const scriptHashes = [...review.matchAll(/<script>([\s\S]*?)<\/script>/g)]
           // Browsers hash script text after normalizing CRLF/CR to LF (e.g. Windows checkouts).
           .map(([, script]) => "'sha256-" + createHash('sha256').update(script.replace(/\r\n?/g, '\n')).digest('base64') + "'").join(' ');
         // The unchanged review uses dynamic style attributes for screenshot crops.
         // Permit these only in the authenticated, isolated review document.
-        res.setHeader('Content-Security-Policy', `default-src 'none'; script-src ${scriptHashes}; style-src 'unsafe-inline'; img-src data:; frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
+        // Reference pages additionally play fetched videos as blob: URLs, call back only to the same origin and use Google Fonts.
+        const extra = reference ? ` media-src blob:; connect-src 'self' ${supabaseUrl}; font-src https://fonts.gstatic.com;` : '';
+        const styleSrc = reference ? "'unsafe-inline' https://fonts.googleapis.com" : "'unsafe-inline'";
+        res.setHeader('Content-Security-Policy', `default-src 'none'; script-src ${scriptHashes}; style-src ${styleSrc}; img-src data:;${extra} frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
         return send(200, review);
       }
       return send(200, await readPage());

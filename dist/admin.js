@@ -143,6 +143,7 @@ if (root) {
     }
     if (tab.id === 'sb-plan-tab') loadReview();
     if (tab.id === 'sb-ui-library-tab') loadLibrary();
+    if (tab.id === 'sb-reference-tab') loadReference();
     if(tab.id==='sb-dashboard-tab')refreshMetrics();
     if(tab.id==='sb-game-tab'){refreshGameMetrics();refreshGameInsights();}
     const hash = '#' + tab.id.slice(0,-4);
@@ -176,6 +177,24 @@ if (root) {
     frame.onerror = () => { status.textContent = 'UI Library를 불러오지 못했어요. 탭을 다시 눌러 주세요.'; frame.removeAttribute('src'); };
     frame.src = frame.dataset.src;
   }
+  // Reference sites: load the selected one into the iframe only after the tab is first opened.
+  function loadReference(view) {
+    const frame = document.getElementById('sb-reference-frame');
+    if (!frame) return;
+    const status = document.getElementById('sb-reference-status');
+    const picks = [...root.querySelectorAll('[data-ref-view]')];
+    const pick = picks.find(b => b.dataset.refView === view) || picks.find(b => b.getAttribute('aria-pressed') === 'true') || picks[0];
+    const src = '/api/admin?view=' + pick.dataset.refView;
+    for (const b of picks) b.setAttribute('aria-pressed', String(b === pick));
+    document.getElementById('sb-reference-open').href = src;
+    if (frame.getAttribute('src') === src) return;
+    status.textContent = '레퍼런스를 불러오는 중…';
+    frame.title = pick.dataset.refTitle;
+    frame.onload = () => { status.textContent = frame.contentDocument?.body?.querySelector('section[data-view], .wrap') ? '' : '로그인이 만료되었거나 화면을 불러오지 못했어요. 새로고침 후 다시 로그인해 주세요.'; };
+    frame.onerror = () => { status.textContent = '레퍼런스를 불러오지 못했어요. 다시 눌러 주세요.'; };
+    frame.src = src;
+  }
+  root.querySelectorAll('[data-ref-view]').forEach(b => b.addEventListener('click', () => loadReference(b.dataset.refView)));
   let reviewObserver, reviewTimer, reviewPending = false;
   let reviewStatus;
   function loadReview() {

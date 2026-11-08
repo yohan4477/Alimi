@@ -1,0 +1,446 @@
+{
+ "__blob_0ef4b982eb2a364f15cba70fe31dc176.mp4": {
+  "path": "gallery/__blob_0ef4b982eb2a364f15cba70fe31dc176.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_0ef4b982eb2a364f15cba70fe31dc176.mp4"
+ },
+ "__blob_2e3c174398dfcfb56a8738d7fdec1c43.mp4": {
+  "path": "gallery/__blob_2e3c174398dfcfb56a8738d7fdec1c43.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_2e3c174398dfcfb56a8738d7fdec1c43.mp4"
+ },
+ "__blob_5e1b278265299d84650f73ab399b2f6f.mp4": {
+  "path": "gallery/__blob_5e1b278265299d84650f73ab399b2f6f.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_5e1b278265299d84650f73ab399b2f6f.mp4"
+ },
+ "__blob_6b7e0557568973b527dcb350f9768df6.mp4": {
+  "path": "gallery/__blob_6b7e0557568973b527dcb350f9768df6.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_6b7e0557568973b527dcb350f9768df6.mp4"
+ },
+ "__blob_7651b306ede4156ebd8b375d2ede9c52.mp4": {
+  "path": "gallery/__blob_7651b306ede4156ebd8b375d2ede9c52.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_7651b306ede4156ebd8b375d2ede9c52.mp4"
+ },
+ "__blob_7c79346e1e43a2fa956c732f4d5b71ac.mp4": {
+  "path": "gallery/__blob_7c79346e1e43a2fa956c732f4d5b71ac.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_7c79346e1e43a2fa956c732f4d5b71ac.mp4"
+ },
+ "__blob_89fae687c9fa6b713cc61165336bf399.mp4": {
+  "path": "gallery/__blob_89fae687c9fa6b713cc61165336bf399.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_89fae687c9fa6b713cc61165336bf399.mp4"
+ },
+ "__blob_933f47671c20c2e348217e0072631ec6.mp4": {
+  "path": "gallery/__blob_933f47671c20c2e348217e0072631ec6.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_933f47671c20c2e348217e0072631ec6.mp4"
+ },
+ "__blob_a6cedf5c1e533e229ff0a735e823c215.mp4": {
+  "path": "gallery/__blob_a6cedf5c1e533e229ff0a735e823c215.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_a6cedf5c1e533e229ff0a735e823c215.mp4"
+ },
+ "__blob_ae4a642db44956fad3e155d6736d8331.mp4": {
+  "path": "gallery/__blob_ae4a642db44956fad3e155d6736d8331.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_ae4a642db44956fad3e155d6736d8331.mp4"
+ },
+ "__blob_c15ac25227ca7f811edcfb436e22180f.mp4": {
+  "path": "gallery/__blob_c15ac25227ca7f811edcfb436e22180f.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_c15ac25227ca7f811edcfb436e22180f.mp4"
+ },
+ "__blob_cb57051d835bc540df04f9e8e070c8df.mp4": {
+  "path": "gallery/__blob_cb57051d835bc540df04f9e8e070c8df.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_cb57051d835bc540df04f9e8e070c8df.mp4"
+ },
+ "__blob_edf1decc47af3bc3353888c08663f4a9.mp4": {
+  "path": "gallery/__blob_edf1decc47af3bc3353888c08663f4a9.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_edf1decc47af3bc3353888c08663f4a9.mp4"
+ },
+ "__blob_f8939522b90f814736cefe5343971544.mp4": {
+  "path": "gallery/__blob_f8939522b90f814736cefe5343971544.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/__blob_f8939522b90f814736cefe5343971544.mp4"
+ },
+ "clips_ab-badge-circle.mp4.mp4": {
+  "path": "gallery/clips_ab-badge-circle.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_ab-badge-circle.mp4.mp4"
+ },
+ "clips_ab-compare-cards-guess.mp4.mp4": {
+  "path": "gallery/clips_ab-compare-cards-guess.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_ab-compare-cards-guess.mp4.mp4"
+ },
+ "clips_ai-broll-generation.mp4.mp4": {
+  "path": "gallery/clips_ai-broll-generation.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_ai-broll-generation.mp4.mp4"
+ },
+ "clips_big-number-card-on-gradient.mp4.mp4": {
+  "path": "gallery/clips_big-number-card-on-gradient.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_big-number-card-on-gradient.mp4.mp4"
+ },
+ "clips_chat-bubble-contemplating.mp4.mp4": {
+  "path": "gallery/clips_chat-bubble-contemplating.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_chat-bubble-contemplating.mp4.mp4"
+ },
+ "clips_comparison-table-build.mp4.mp4": {
+  "path": "gallery/clips_comparison-table-build.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_comparison-table-build.mp4.mp4"
+ },
+ "clips_coral-serif-word-caption.mp4.mp4": {
+  "path": "gallery/clips_coral-serif-word-caption.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_coral-serif-word-caption.mp4.mp4"
+ },
+ "clips_dot-grid-stat.mp4.mp4": {
+  "path": "gallery/clips_dot-grid-stat.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_dot-grid-stat.mp4.mp4"
+ },
+ "clips_face-bubble-pip.mp4.mp4": {
+  "path": "gallery/clips_face-bubble-pip.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_face-bubble-pip.mp4.mp4"
+ },
+ "clips_face-name-card-cuts.mp4.mp4": {
+  "path": "gallery/clips_face-name-card-cuts.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_face-name-card-cuts.mp4.mp4"
+ },
+ "clips_frosted-glass-caption.mp4.mp4": {
+  "path": "gallery/clips_frosted-glass-caption.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_frosted-glass-caption.mp4.mp4"
+ },
+ "clips_glass-cards-faster-entry.mp4.mp4": {
+  "path": "gallery/clips_glass-cards-faster-entry.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_glass-cards-faster-entry.mp4.mp4"
+ },
+ "clips_grayscale-raw-card.mp4.mp4": {
+  "path": "gallery/clips_grayscale-raw-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_grayscale-raw-card.mp4.mp4"
+ },
+ "clips_landscape-rounded-card.mp4.mp4": {
+  "path": "gallery/clips_landscape-rounded-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_landscape-rounded-card.mp4.mp4"
+ },
+ "clips_mosaic-mystery-cards.mp4.mp4": {
+  "path": "gallery/clips_mosaic-mystery-cards.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_mosaic-mystery-cards.mp4.mp4"
+ },
+ "clips_motion-skill-file.mp4.mp4": {
+  "path": "gallery/clips_motion-skill-file.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_motion-skill-file.mp4.mp4"
+ },
+ "clips_orange-panel-highlight-list.mp4.mp4": {
+  "path": "gallery/clips_orange-panel-highlight-list.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_orange-panel-highlight-list.mp4.mp4"
+ },
+ "clips_peach-blob-cream-bg.mp4.mp4": {
+  "path": "gallery/clips_peach-blob-cream-bg.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_peach-blob-cream-bg.mp4.mp4"
+ },
+ "clips_perspective-grid-dark-card.mp4.mp4": {
+  "path": "gallery/clips_perspective-grid-dark-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_perspective-grid-dark-card.mp4.mp4"
+ },
+ "clips_phone-card-9x16-pair.mp4.mp4": {
+  "path": "gallery/clips_phone-card-9x16-pair.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_phone-card-9x16-pair.mp4.mp4"
+ },
+ "clips_pill-lower-third.mp4.mp4": {
+  "path": "gallery/clips_pill-lower-third.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_pill-lower-third.mp4.mp4"
+ },
+ "clips_polaroid-scatter.mp4.mp4": {
+  "path": "gallery/clips_polaroid-scatter.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_polaroid-scatter.mp4.mp4"
+ },
+ "clips_push-in-camera-on-voice.mp4.mp4": {
+  "path": "gallery/clips_push-in-camera-on-voice.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_push-in-camera-on-voice.mp4.mp4"
+ },
+ "clips_reference-style-feed.mp4.mp4": {
+  "path": "gallery/clips_reference-style-feed.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_reference-style-feed.mp4.mp4"
+ },
+ "clips_serif-slide-title.mp4.mp4": {
+  "path": "gallery/clips_serif-slide-title.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_serif-slide-title.mp4.mp4"
+ },
+ "clips_silence-cut-sync-to-script.mp4.mp4": {
+  "path": "gallery/clips_silence-cut-sync-to-script.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_silence-cut-sync-to-script.mp4.mp4"
+ },
+ "clips_slow-opening-fix.mp4.mp4": {
+  "path": "gallery/clips_slow-opening-fix.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_slow-opening-fix.mp4.mp4"
+ },
+ "clips_social-comment-cards-float.mp4.mp4": {
+  "path": "gallery/clips_social-comment-cards-float.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_social-comment-cards-float.mp4.mp4"
+ },
+ "clips_split-broll-over-face.mp4.mp4": {
+  "path": "gallery/clips_split-broll-over-face.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_split-broll-over-face.mp4.mp4"
+ },
+ "clips_step-pill-checklist.mp4.mp4": {
+  "path": "gallery/clips_step-pill-checklist.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_step-pill-checklist.mp4.mp4"
+ },
+ "clips_text-on-beat.mp4.mp4": {
+  "path": "gallery/clips_text-on-beat.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_text-on-beat.mp4.mp4"
+ },
+ "clips_title-label-above-card.mp4.mp4": {
+  "path": "gallery/clips_title-label-above-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_title-label-above-card.mp4.mp4"
+ },
+ "clips_tr-bar-open-wipe.mp4.mp4": {
+  "path": "gallery/clips_tr-bar-open-wipe.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-bar-open-wipe.mp4.mp4"
+ },
+ "clips_tr-card-swap.mp4.mp4": {
+  "path": "gallery/clips_tr-card-swap.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-card-swap.mp4.mp4"
+ },
+ "clips_tr-cream-cut-in.mp4.mp4": {
+  "path": "gallery/clips_tr-cream-cut-in.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-cream-cut-in.mp4.mp4"
+ },
+ "clips_tr-dip-cream-fade.mp4.mp4": {
+  "path": "gallery/clips_tr-dip-cream-fade.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-dip-cream-fade.mp4.mp4"
+ },
+ "clips_tr-footage-shrink-card.mp4.mp4": {
+  "path": "gallery/clips_tr-footage-shrink-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-footage-shrink-card.mp4.mp4"
+ },
+ "clips_tr-hard-cut.mp4.mp4": {
+  "path": "gallery/clips_tr-hard-cut.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-hard-cut.mp4.mp4"
+ },
+ "clips_tr-silhouette-flash.mp4.mp4": {
+  "path": "gallery/clips_tr-silhouette-flash.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-silhouette-flash.mp4.mp4"
+ },
+ "clips_tr-split-fill.mp4.mp4": {
+  "path": "gallery/clips_tr-split-fill.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_tr-split-fill.mp4.mp4"
+ },
+ "clips_typewriter-title-above-card.mp4.mp4": {
+  "path": "gallery/clips_typewriter-title-above-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_typewriter-title-above-card.mp4.mp4"
+ },
+ "clips_ui-recording-cursor-click.mp4.mp4": {
+  "path": "gallery/clips_ui-recording-cursor-click.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_ui-recording-cursor-click.mp4.mp4"
+ },
+ "clips_yellow-serif-word-caption.mp4.mp4": {
+  "path": "gallery/clips_yellow-serif-word-caption.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/clips_yellow-serif-word-caption.mp4.mp4"
+ },
+ "map_clips_ours_demo1.mp4.mp4": {
+  "path": "gallery/map_clips_ours_demo1.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_ours_demo1.mp4.mp4"
+ },
+ "map_clips_ours_demo2.mp4.mp4": {
+  "path": "gallery/map_clips_ours_demo2.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_ours_demo2.mp4.mp4"
+ },
+ "map_clips_rashi_2118367062405918990.mp4.mp4": {
+  "path": "gallery/map_clips_rashi_2118367062405918990.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_rashi_2118367062405918990.mp4.mp4"
+ },
+ "map_clips_rashi_2118585617667817510.mp4.mp4": {
+  "path": "gallery/map_clips_rashi_2118585617667817510.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_rashi_2118585617667817510.mp4.mp4"
+ },
+ "map_clips_rashi_2118662377822355846.mp4.mp4": {
+  "path": "gallery/map_clips_rashi_2118662377822355846.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_rashi_2118662377822355846.mp4.mp4"
+ },
+ "map_clips_rashi_2118741912056193276.mp4.mp4": {
+  "path": "gallery/map_clips_rashi_2118741912056193276.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_rashi_2118741912056193276.mp4.mp4"
+ },
+ "map_clips_rashi_2118835270610984975.mp4.mp4": {
+  "path": "gallery/map_clips_rashi_2118835270610984975.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_rashi_2118835270610984975.mp4.mp4"
+ },
+ "map_clips_whale_2103672142336602524.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2103672142336602524.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2103672142336602524.mp4.mp4"
+ },
+ "map_clips_whale_2106329437042303271.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2106329437042303271.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2106329437042303271.mp4.mp4"
+ },
+ "map_clips_whale_2106419643652902984.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2106419643652902984.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2106419643652902984.mp4.mp4"
+ },
+ "map_clips_whale_2113349112871485808.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2113349112871485808.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2113349112871485808.mp4.mp4"
+ },
+ "map_clips_whale_2113501096672919648.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2113501096672919648.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2113501096672919648.mp4.mp4"
+ },
+ "map_clips_whale_2116137918955663817.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2116137918955663817.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2116137918955663817.mp4.mp4"
+ },
+ "map_clips_whale_2117399503493898531.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2117399503493898531.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2117399503493898531.mp4.mp4"
+ },
+ "map_clips_whale_2117849035058938308.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2117849035058938308.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2117849035058938308.mp4.mp4"
+ },
+ "map_clips_whale_2118210284221321443.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118210284221321443.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118210284221321443.mp4.mp4"
+ },
+ "map_clips_whale_2118220854790140323.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118220854790140323.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118220854790140323.mp4.mp4"
+ },
+ "map_clips_whale_2118313238341329202.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118313238341329202.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118313238341329202.mp4.mp4"
+ },
+ "map_clips_whale_2118378899021209941.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118378899021209941.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118378899021209941.mp4.mp4"
+ },
+ "map_clips_whale_2118531011940147236.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118531011940147236.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118531011940147236.mp4.mp4"
+ },
+ "map_clips_whale_2118634946499658066.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118634946499658066.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118634946499658066.mp4.mp4"
+ },
+ "map_clips_whale_2118766489503141962.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118766489503141962.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118766489503141962.mp4.mp4"
+ },
+ "map_clips_whale_2118851874937847864.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118851874937847864.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118851874937847864.mp4.mp4"
+ },
+ "map_clips_whale_2118895921576477164.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118895921576477164.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118895921576477164.mp4.mp4"
+ },
+ "map_clips_whale_2118973429839700167.mp4.mp4": {
+  "path": "gallery/map_clips_whale_2118973429839700167.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_whale_2118973429839700167.mp4.mp4"
+ },
+ "musk-00_full.mp4": {
+  "path": "musk/musk-00_full.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/00_full.mp4"
+ },
+ "musk-01_title.mp4": {
+  "path": "musk/musk-01_title.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/01_title.mp4"
+ },
+ "musk-02_pill.mp4": {
+  "path": "musk/musk-02_pill.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/02_pill.mp4"
+ },
+ "musk-03_shrink.mp4": {
+  "path": "musk/musk-03_shrink.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/03_shrink.mp4"
+ },
+ "musk-04_number.mp4": {
+  "path": "musk/musk-04_number.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/04_number.mp4"
+ },
+ "musk-05_pip.mp4": {
+  "path": "musk/musk-05_pip.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/05_pip.mp4"
+ },
+ "musk-06_pushin.mp4": {
+  "path": "musk/musk-06_pushin.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/06_pushin.mp4"
+ },
+ "musk-07_caption.mp4": {
+  "path": "musk/musk-07_caption.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/07_caption.mp4"
+ },
+ "musk-08_beat.mp4": {
+  "path": "musk/musk-08_beat.mp4",
+  "source": "2026-11-08_ceo-interview-demo/site/clips/08_beat.mp4"
+ },
+ "reel_clips_caption-strike-correction.mp4.mp4": {
+  "path": "gallery/reel_clips_caption-strike-correction.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_caption-strike-correction.mp4.mp4"
+ },
+ "reel_clips_counter-serif-behind-head.mp4.mp4": {
+  "path": "gallery/reel_clips_counter-serif-behind-head.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_counter-serif-behind-head.mp4.mp4"
+ },
+ "reel_clips_cta-grow-serif-behind-head.mp4.mp4": {
+  "path": "gallery/reel_clips_cta-grow-serif-behind-head.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_cta-grow-serif-behind-head.mp4.mp4"
+ },
+ "reel_clips_frame-throw-offscreen.mp4.mp4": {
+  "path": "gallery/reel_clips_frame-throw-offscreen.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_frame-throw-offscreen.mp4.mp4"
+ },
+ "reel_clips_golden-hour-slider-reveal.mp4.mp4": {
+  "path": "gallery/reel_clips_golden-hour-slider-reveal.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_golden-hour-slider-reveal.mp4.mp4"
+ },
+ "reel_clips_grid-3x3-shrink.mp4.mp4": {
+  "path": "gallery/reel_clips_grid-3x3-shrink.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_grid-3x3-shrink.mp4.mp4"
+ },
+ "reel_clips_intro-green-card-serif-pip.mp4.mp4": {
+  "path": "gallery/reel_clips_intro-green-card-serif-pip.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_intro-green-card-serif-pip.mp4.mp4"
+ },
+ "reel_clips_price-strike-card.mp4.mp4": {
+  "path": "gallery/reel_clips_price-strike-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_price-strike-card.mp4.mp4"
+ },
+ "reel_clips_prompt-bar-code-reveal.mp4.mp4": {
+  "path": "gallery/reel_clips_prompt-bar-code-reveal.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_prompt-bar-code-reveal.mp4.mp4"
+ },
+ "reel_clips_prompt-bar-typing.mp4.mp4": {
+  "path": "gallery/reel_clips_prompt-bar-typing.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_prompt-bar-typing.mp4.mp4"
+ },
+ "reel_clips_recursive-zoom-nested-cards.mp4.mp4": {
+  "path": "gallery/reel_clips_recursive-zoom-nested-cards.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_recursive-zoom-nested-cards.mp4.mp4"
+ },
+ "reel_clips_reel-wall-3d-carousel.mp4.mp4": {
+  "path": "gallery/reel_clips_reel-wall-3d-carousel.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_reel-wall-3d-carousel.mp4.mp4"
+ },
+ "reel_clips_segmentation-checker-reveal.mp4.mp4": {
+  "path": "gallery/reel_clips_segmentation-checker-reveal.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_segmentation-checker-reveal.mp4.mp4"
+ },
+ "reel_clips_storyboard-table-card.mp4.mp4": {
+  "path": "gallery/reel_clips_storyboard-table-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_storyboard-table-card.mp4.mp4"
+ },
+ "reel_clips_text-behind-head-serif.mp4.mp4": {
+  "path": "gallery/reel_clips_text-behind-head-serif.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_text-behind-head-serif.mp4.mp4"
+ },
+ "reel_clips_title-behind-person-vic.mp4.mp4": {
+  "path": "gallery/reel_clips_title-behind-person-vic.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_title-behind-person-vic.mp4.mp4"
+ },
+ "reel_clips_tone-curve-panel.mp4.mp4": {
+  "path": "gallery/reel_clips_tone-curve-panel.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_tone-curve-panel.mp4.mp4"
+ },
+ "reel_clips_tool-pill-label.mp4.mp4": {
+  "path": "gallery/reel_clips_tool-pill-label.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_tool-pill-label.mp4.mp4"
+ },
+ "reel_clips_whisper-github-repo-card.mp4.mp4": {
+  "path": "gallery/reel_clips_whisper-github-repo-card.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_whisper-github-repo-card.mp4.mp4"
+ },
+ "reel_clips_word-caption-white-gold.mp4.mp4": {
+  "path": "gallery/reel_clips_word-caption-white-gold.mp4.mp4",
+  "source": "2026-11-08_claude-video-presentation/inline_sd/reel_clips_word-caption-white-gold.mp4.mp4"
+ }
+}
