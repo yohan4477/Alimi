@@ -11,11 +11,33 @@ const libraryFile = new URL('../server/admin-ui-library.html', import.meta.url);
 const reviewFile = new URL('../server/admin-planning-review.html', import.meta.url);
 const refGalleryFile = new URL('../server/reference-gallery.html', import.meta.url);
 const refMuskFile = new URL('../server/reference-musk.html', import.meta.url);
+const refDexFile = new URL('../server/reference-dex.html', import.meta.url);
 const refManifestFile = new URL('../server/reference-manifest.json', import.meta.url);
 const supabaseUrl = 'https://mqsnshnlfwsgabrsmqsz.supabase.co';
 // Reference videos live in the private Supabase Storage bucket `reference-media`. Only names listed in the manifest
 // (and matching this pattern) get a short-lived signed URL; the browser then downloads the file from Storage directly.
 const refMediaName = /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,150}\.mp4$/;
+// 효과 도감 체크(쓸 것/안 쓸 것/보류)는 같은 비공개 버킷의 JSON 한 파일에 둔다 (DB 테이블 없음).
+const refPicksPath = 'picks/dex-picks.json';
+const refPickValues = new Set(['use', 'skip', 'hold', 'clear']);
+const refPickId = /^[a-z0-9][a-z0-9-]{1,60}$/;
+function dexIds(page) {
+  const m = page.match(/<script type="application\/json" id="dex">([\s\S]*?)<\/script>/);
+  if (!m) return new Set();
+  try { return new Set((JSON.parse(m[1]).effects || []).map(e => e.id)); } catch { return new Set(); }
+}
+async function readJsonBody(req, limit = 2048) {
+  if (!String(req.headers['content-type'] || '').startsWith('application/json')) return null;
+  if (Number(req.headers['content-length']) > limit) return null;
+  let body = req.body;
+  if (body === undefined) {
+    const chunks = []; let size = 0;
+    for await (const chunk of req) { size += Buffer.byteLength(chunk); if (size > limit) return null; chunks.push(chunk); }
+    body = Buffer.concat(chunks.map(x => Buffer.from(x))).toString('utf8');
+  }
+  if (typeof body === 'string') { if (Buffer.byteLength(body) > limit) return null; try { body = JSON.parse(body); } catch { return null; } }
+  return body && typeof body === 'object' && !Array.isArray(body) ? body : null;
+}
 const adminTabIds = new Set(['sb-dashboard', 'sb-users', 'sb-community', 'sb-products', 'sb-game', 'sb-revenue', 'sb-system', 'sb-ui-library', 'sb-quality', 'sb-dev', 'sb-roadmap', 'sb-strategy', 'sb-plan', 'sb-design', 'sb-reference']);
 const headers = {
   'Content-Type': 'text/html; charset=utf-8',
@@ -52,7 +74,7 @@ async function credentials(req, passwordOnly = false) {
   const email = body.email.trim(), password = body.password;
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length > 0 && password.length <= 1024 ? {email, password} : null;
 }
-export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), readLibrary = () => readFile(libraryFile, 'utf8'), readBeautyPick = () => readFile(beautyPickFile, 'utf8'), readRefGallery = () => readFile(refGalleryFile, 'utf8'), readRefMusk = () => readFile(refMuskFile, 'utf8'), readRefManifest = async () => JSON.parse(await readFile(refManifestFile, 'utf8')), env = process.env} = {}) {
+export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile(pageFile, 'utf8'), readReview = () => readFile(reviewFile, 'utf8'), readLibrary = () => readFile(libraryFile, 'utf8'), readBeautyPick = () => readFile(beautyPickFile, 'utf8'), readRefGallery = () => readFile(refGalleryFile, 'utf8'), readRefMusk = () => readFile(refMuskFile, 'utf8'), readRefDex = () => readFile(refDexFile, 'utf8'), readRefManifest = async () => JSON.parse(await readFile(refManifestFile, 'utf8')), env = process.env} = {}) {
   const passwordOnly = Boolean(env.ADMIN_SHARED_PASSWORD);
   const loginPage = message => renderLoginPage(message, passwordOnly);
   return async function admin(req, res) {
@@ -68,7 +90,8 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
       const url = new URL(req.url, 'https://internal.invalid');
       const action = url.searchParams.get('action');
       if (action && !['login', 'logout'].includes(action)) return send(404, loginPage('페이지를 찾을 수 없습니다.'));
-      if (!['GET', 'POST'].includes(req.method) || (action && req.method !== 'POST') || (!action && req.method !== 'GET')) {
+      const picksPost = !action && req.method === 'POST' && url.searchParams.get('view') === 'ref-picks';
+      if (!['GET', 'POST'].includes(req.method) || (action && req.method !== 'POST') || (!action && req.method !== 'GET' && !picksPost)) {
         res.setHeader('Allow', action ? 'POST' : 'GET'); return send(405, loginPage('지원하지 않는 요청입니다.'));
       }
       if (req.method === 'POST' && !sameAdminOrigin(req, env)) return send(403, loginPage('요청 출처를 확인할 수 없습니다. 관리자 페이지에서 다시 시도하세요.'));
@@ -137,9 +160,44 @@ export function createAdminHandler({fetchImpl = fetch, readPage = () => readFile
         if (typeof body?.signedURL !== 'string' || !body.signedURL.startsWith('/object/sign/reference-media/')) return send(signed.status === 404 ? 404 : 502, JSON.stringify({error: 'storage_unavailable'}));
         return send(200, JSON.stringify({url: supabaseUrl + '/storage/v1' + body.signedURL, expiresIn: 600}));
       }
-      if (['planning-review', 'ui-library', 'beauty-pick', 'reference-gallery', 'reference-musk'].includes(url.searchParams.get('view'))) {
+      if (url.searchParams.get('view') === 'ref-picks') {
+        // GET: 전체 체크 읽기 · POST {id, value}: 한 효과 체크 저장(value 'clear'는 지움). 서비스 키로 비공개 버킷 JSON 을 읽고 쓴다.
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        let input = null;
+        if (req.method === 'POST') {
+          input = await readJsonBody(req);
+          if (!input || typeof input.id !== 'string' || typeof input.value !== 'string' || !refPickId.test(input.id) || !refPickValues.has(input.value)) return send(400, JSON.stringify({error: 'bad_request'}));
+          if (!dexIds(await readRefDex()).has(input.id)) return send(400, JSON.stringify({error: 'unknown_effect'}));
+        }
+        const key = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!key) return send(503, JSON.stringify({error: 'storage_unconfigured'}));
+        const auth = {apikey: key};
+        if (!key.startsWith('sb_secret_')) auth.Authorization = 'Bearer ' + key;
+        const objectUrl = `${supabaseUrl}/storage/v1/object/reference-media/${refPicksPath}`;
+        const got = await fetchImpl(objectUrl, {headers: auth, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(8000)});
+        let doc;
+        if (got.ok) {
+          try { doc = await got.json(); } catch { doc = null; }
+          if (!doc || typeof doc !== 'object' || typeof doc.picks !== 'object' || doc.picks === null || Array.isArray(doc.picks)) return send(502, JSON.stringify({error: 'storage_corrupt'}));
+        } else {
+          // Supabase Storage answers a missing object with 404 or 400 {"error":"not_found"}.
+          const text = await got.text().catch(() => '');
+          if (got.status === 404 || (got.status === 400 && /not_found|not found/i.test(text))) doc = {version: 1, rev: 0, picks: {}};
+          else return send(502, JSON.stringify({error: 'storage_unavailable'}));
+        }
+        if (req.method === 'GET') return send(200, JSON.stringify({rev: Number(doc.rev) || 0, picks: doc.picks}));
+        // 읽은 직후 한 효과만 바꿔 다시 쓴다(읽기-수정-쓰기). 동시에 두 사람이 다른 효과를 누르면 나중 쓰기가 앞의 변경을 덮을 수 있음 → 응답의 전체 picks 로 화면을 다시 그린다.
+        const picks = {...doc.picks};
+        if (input.value === 'clear') delete picks[input.id];
+        else picks[input.id] = {v: input.value, at: new Date().toISOString()};
+        const next = {version: 1, rev: (Number(doc.rev) || 0) + 1, updated_at: new Date().toISOString(), picks};
+        const put = await fetchImpl(objectUrl, {method: 'POST', headers: {...auth, 'Content-Type': 'application/json', 'x-upsert': 'true', 'Cache-Control': 'no-cache'}, body: JSON.stringify(next), redirect: 'error', signal: AbortSignal.timeout(8000)});
+        if (!put.ok) return send(502, JSON.stringify({error: 'storage_unavailable'}));
+        return send(200, JSON.stringify({rev: next.rev, picks}));
+      }
+      if (['planning-review', 'ui-library', 'beauty-pick', 'reference-gallery', 'reference-musk', 'reference-dex'].includes(url.searchParams.get('view'))) {
         const view = url.searchParams.get('view');
-        const review = view === 'beauty-pick' ? await readBeautyPick() : view === 'ui-library' ? await readLibrary() : view === 'reference-gallery' ? await readRefGallery() : view === 'reference-musk' ? await readRefMusk() : await readReview();
+        const review = view === 'beauty-pick' ? await readBeautyPick() : view === 'ui-library' ? await readLibrary() : view === 'reference-gallery' ? await readRefGallery() : view === 'reference-musk' ? await readRefMusk() : view === 'reference-dex' ? await readRefDex() : await readReview();
         const reference = view.startsWith('reference-');
         const scriptHashes = [...review.matchAll(/<script>([\s\S]*?)<\/script>/g)]
           // Browsers hash script text after normalizing CRLF/CR to LF (e.g. Windows checkouts).

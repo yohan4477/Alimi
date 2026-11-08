@@ -9,7 +9,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/admin.js": {
-      "includeFiles": "{server/admin-*.html,server/reference-gallery.html,server/reference-musk.html,server/reference-manifest.json,web/beauty-play/*.json,web/beauty-play/scenario-taxonomy.js}",
+      "includeFiles": "{server/admin-*.html,server/reference-gallery.html,server/reference-musk.html,server/reference-dex.html,server/reference-manifest.json,web/beauty-play/*.json,web/beauty-play/scenario-taxonomy.js}",
       "maxDuration": 30
     },
     "api/owned-poll.js": {

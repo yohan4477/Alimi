@@ -227,6 +227,330 @@
   "path": "gallery/clips_yellow-serif-word-caption.mp4.mp4",
   "source": "2026-11-08_claude-video-presentation/inline_sd/clips_yellow-serif-word-caption.mp4.mp4"
  },
+ "dex-ch-corner-ref-card.mp4": {
+  "path": "dex/dex-ch-corner-ref-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/ch-corner-ref-card.mp4"
+ },
+ "dex-ch-edit-cta.mp4": {
+  "path": "dex/dex-ch-edit-cta.mp4",
+  "source": "2026-11-09_effects-dex/clips/ch-edit-cta.mp4"
+ },
+ "dex-ch-magazine-cover.mp4": {
+  "path": "dex/dex-ch-magazine-cover.mp4",
+  "source": "2026-11-09_effects-dex/clips/ch-magazine-cover.mp4"
+ },
+ "dex-ch-storyboard.mp4": {
+  "path": "dex/dex-ch-storyboard.mp4",
+  "source": "2026-11-09_effects-dex/clips/ch-storyboard.mp4"
+ },
+ "dex-ch-tool-logo.mp4": {
+  "path": "dex/dex-ch-tool-logo.mp4",
+  "source": "2026-11-09_effects-dex/clips/ch-tool-logo.mp4"
+ },
+ "dex-ch-whip-pan.mp4": {
+  "path": "dex/dex-ch-whip-pan.mp4",
+  "source": "2026-11-09_effects-dex/clips/ch-whip-pan.mp4"
+ },
+ "dex-cs-card-fan.mp4": {
+  "path": "dex/dex-cs-card-fan.mp4",
+  "source": "2026-11-09_effects-dex/clips/cs-card-fan.mp4"
+ },
+ "dex-cs-freeze-frame.mp4": {
+  "path": "dex/dex-cs-freeze-frame.mp4",
+  "source": "2026-11-09_effects-dex/clips/cs-freeze-frame.mp4"
+ },
+ "dex-cs-glass-graph.mp4": {
+  "path": "dex/dex-cs-glass-graph.mp4",
+  "source": "2026-11-09_effects-dex/clips/cs-glass-graph.mp4"
+ },
+ "dex-cs-over-shoulder.mp4": {
+  "path": "dex/dex-cs-over-shoulder.mp4",
+  "source": "2026-11-09_effects-dex/clips/cs-over-shoulder.mp4"
+ },
+ "dex-cs-slash-prompt.mp4": {
+  "path": "dex/dex-cs-slash-prompt.mp4",
+  "source": "2026-11-09_effects-dex/clips/cs-slash-prompt.mp4"
+ },
+ "dex-cs-text-behind.mp4": {
+  "path": "dex/dex-cs-text-behind.mp4",
+  "source": "2026-11-09_effects-dex/clips/cs-text-behind.mp4"
+ },
+ "dex-cs-tier-list.mp4": {
+  "path": "dex/dex-cs-tier-list.mp4",
+  "source": "2026-11-09_effects-dex/clips/cs-tier-list.mp4"
+ },
+ "dex-jc-big-word-pill.mp4": {
+  "path": "dex/dex-jc-big-word-pill.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-big-word-pill.mp4"
+ },
+ "dex-jc-icon-tags.mp4": {
+  "path": "dex/dex-jc-icon-tags.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-icon-tags.mp4"
+ },
+ "dex-jc-lime-box.mp4": {
+  "path": "dex/dex-jc-lime-box.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-lime-box.mp4"
+ },
+ "dex-jc-percent-bar.mp4": {
+  "path": "dex/dex-jc-percent-bar.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-percent-bar.mp4"
+ },
+ "dex-jc-photo-title.mp4": {
+  "path": "dex/dex-jc-photo-title.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-photo-title.mp4"
+ },
+ "dex-jc-scramble.mp4": {
+  "path": "dex/dex-jc-scramble.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-scramble.mp4"
+ },
+ "dex-jc-shapes-grid.mp4": {
+  "path": "dex/dex-jc-shapes-grid.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-shapes-grid.mp4"
+ },
+ "dex-jc-strike-graph.mp4": {
+  "path": "dex/dex-jc-strike-graph.mp4",
+  "source": "2026-11-09_effects-dex/clips/jc-strike-graph.mp4"
+ },
+ "dex-jj-big-word.mp4": {
+  "path": "dex/dex-jj-big-word.mp4",
+  "source": "2026-11-09_effects-dex/clips/jj-big-word.mp4"
+ },
+ "dex-jj-hand-circle.mp4": {
+  "path": "dex/dex-jj-hand-circle.mp4",
+  "source": "2026-11-09_effects-dex/clips/jj-hand-circle.mp4"
+ },
+ "dex-jj-italic-serif-mix.mp4": {
+  "path": "dex/dex-jj-italic-serif-mix.mp4",
+  "source": "2026-11-09_effects-dex/clips/jj-italic-serif-mix.mp4"
+ },
+ "dex-jj-job-tags.mp4": {
+  "path": "dex/dex-jj-job-tags.mp4",
+  "source": "2026-11-09_effects-dex/clips/jj-job-tags.mp4"
+ },
+ "dex-jj-object-card.mp4": {
+  "path": "dex/dex-jj-object-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/jj-object-card.mp4"
+ },
+ "dex-jj-raw-edit.mp4": {
+  "path": "dex/dex-jj-raw-edit.mp4",
+  "source": "2026-11-09_effects-dex/clips/jj-raw-edit.mp4"
+ },
+ "dex-jj-state-flip.mp4": {
+  "path": "dex/dex-jj-state-flip.mp4",
+  "source": "2026-11-09_effects-dex/clips/jj-state-flip.mp4"
+ },
+ "dex-mc-chart-grow.mp4": {
+  "path": "dex/dex-mc-chart-grow.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-chart-grow.mp4"
+ },
+ "dex-mc-checklist.mp4": {
+  "path": "dex/dex-mc-checklist.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-checklist.mp4"
+ },
+ "dex-mc-comment-cta.mp4": {
+  "path": "dex/dex-mc-comment-cta.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-comment-cta.mp4"
+ },
+ "dex-mc-couch-wall.mp4": {
+  "path": "dex/dex-mc-couch-wall.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-couch-wall.mp4"
+ },
+ "dex-mc-cover-story.mp4": {
+  "path": "dex/dex-mc-cover-story.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-cover-story.mp4"
+ },
+ "dex-mc-digital-zoom.mp4": {
+  "path": "dex/dex-mc-digital-zoom.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-digital-zoom.mp4"
+ },
+ "dex-mc-doodle-boil.mp4": {
+  "path": "dex/dex-mc-doodle-boil.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-doodle-boil.mp4"
+ },
+ "dex-mc-frame-break.mp4": {
+  "path": "dex/dex-mc-frame-break.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-frame-break.mp4"
+ },
+ "dex-mc-glass-type.mp4": {
+  "path": "dex/dex-mc-glass-type.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-glass-type.mp4"
+ },
+ "dex-mc-green-screen.mp4": {
+  "path": "dex/dex-mc-green-screen.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-green-screen.mp4"
+ },
+ "dex-mc-headline-wall.mp4": {
+  "path": "dex/dex-mc-headline-wall.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-headline-wall.mp4"
+ },
+ "dex-mc-orbit.mp4": {
+  "path": "dex/dex-mc-orbit.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-orbit.mp4"
+ },
+ "dex-mc-paper-cut.mp4": {
+  "path": "dex/dex-mc-paper-cut.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-paper-cut.mp4"
+ },
+ "dex-mc-phone-mockup.mp4": {
+  "path": "dex/dex-mc-phone-mockup.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-phone-mockup.mp4"
+ },
+ "dex-mc-pull-back.mp4": {
+  "path": "dex/dex-mc-pull-back.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-pull-back.mp4"
+ },
+ "dex-mc-ui-world.mp4": {
+  "path": "dex/dex-mc-ui-world.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-ui-world.mp4"
+ },
+ "dex-mc-vertigo.mp4": {
+  "path": "dex/dex-mc-vertigo.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-vertigo.mp4"
+ },
+ "dex-mc-word-caption.mp4": {
+  "path": "dex/dex-mc-word-caption.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-word-caption.mp4"
+ },
+ "dex-mc-zoom-through.mp4": {
+  "path": "dex/dex-mc-zoom-through.mp4",
+  "source": "2026-11-09_effects-dex/clips/mc-zoom-through.mp4"
+ },
+ "dex-pb-blur-to-card.mp4": {
+  "path": "dex/dex-pb-blur-to-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/pb-blur-to-card.mp4"
+ },
+ "dex-pb-info-card.mp4": {
+  "path": "dex/dex-pb-info-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/pb-info-card.mp4"
+ },
+ "dex-pb-landing-pop.mp4": {
+  "path": "dex/dex-pb-landing-pop.mp4",
+  "source": "2026-11-09_effects-dex/clips/pb-landing-pop.mp4"
+ },
+ "dex-pb-swell-settle.mp4": {
+  "path": "dex/dex-pb-swell-settle.mp4",
+  "source": "2026-11-09_effects-dex/clips/pb-swell-settle.mp4"
+ },
+ "dex-pb-word-caption.mp4": {
+  "path": "dex/dex-pb-word-caption.mp4",
+  "source": "2026-11-09_effects-dex/clips/pb-word-caption.mp4"
+ },
+ "dex-pc-bill-shrink.mp4": {
+  "path": "dex/dex-pc-bill-shrink.mp4",
+  "source": "2026-11-09_effects-dex/clips/pc-bill-shrink.mp4"
+ },
+ "dex-pc-date-timeline.mp4": {
+  "path": "dex/dex-pc-date-timeline.mp4",
+  "source": "2026-11-09_effects-dex/clips/pc-date-timeline.mp4"
+ },
+ "dex-pc-hero-number.mp4": {
+  "path": "dex/dex-pc-hero-number.mp4",
+  "source": "2026-11-09_effects-dex/clips/pc-hero-number.mp4"
+ },
+ "dex-pc-version-select.mp4": {
+  "path": "dex/dex-pc-version-select.mp4",
+  "source": "2026-11-09_effects-dex/clips/pc-version-select.mp4"
+ },
+ "dex-pc-word-box.mp4": {
+  "path": "dex/dex-pc-word-box.mp4",
+  "source": "2026-11-09_effects-dex/clips/pc-word-box.mp4"
+ },
+ "dex-pv-blur-transition.mp4": {
+  "path": "dex/dex-pv-blur-transition.mp4",
+  "source": "2026-11-09_effects-dex/clips/pv-blur-transition.mp4"
+ },
+ "dex-pv-not-to-scale.mp4": {
+  "path": "dex/dex-pv-not-to-scale.mp4",
+  "source": "2026-11-09_effects-dex/clips/pv-not-to-scale.mp4"
+ },
+ "dex-pv-outro.mp4": {
+  "path": "dex/dex-pv-outro.mp4",
+  "source": "2026-11-09_effects-dex/clips/pv-outro.mp4"
+ },
+ "dex-pv-scale-timeline.mp4": {
+  "path": "dex/dex-pv-scale-timeline.mp4",
+  "source": "2026-11-09_effects-dex/clips/pv-scale-timeline.mp4"
+ },
+ "dex-pv-source-chip.mp4": {
+  "path": "dex/dex-pv-source-chip.mp4",
+  "source": "2026-11-09_effects-dex/clips/pv-source-chip.mp4"
+ },
+ "dex-px-growing-bar.mp4": {
+  "path": "dex/dex-px-growing-bar.mp4",
+  "source": "2026-11-09_effects-dex/clips/px-growing-bar.mp4"
+ },
+ "dex-px-icon-shuffle.mp4": {
+  "path": "dex/dex-px-icon-shuffle.mp4",
+  "source": "2026-11-09_effects-dex/clips/px-icon-shuffle.mp4"
+ },
+ "dex-px-trend-now.mp4": {
+  "path": "dex/dex-px-trend-now.mp4",
+  "source": "2026-11-09_effects-dex/clips/px-trend-now.mp4"
+ },
+ "dex-rhallin-icon-color-shift.mp4": {
+  "path": "dex/dex-rhallin-icon-color-shift.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhallin-icon-color-shift.mp4"
+ },
+ "dex-rhcleoball-lime-arrow.mp4": {
+  "path": "dex/dex-rhcleoball-lime-arrow.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhcleoball-lime-arrow.mp4"
+ },
+ "dex-rhcleoball-lime-labels.mp4": {
+  "path": "dex/dex-rhcleoball-lime-labels.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhcleoball-lime-labels.mp4"
+ },
+ "dex-rhcleoball-mosaic-teaser.mp4": {
+  "path": "dex/dex-rhcleoball-mosaic-teaser.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhcleoball-mosaic-teaser.mp4"
+ },
+ "dex-rhcleoball-shape-morph.mp4": {
+  "path": "dex/dex-rhcleoball-shape-morph.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhcleoball-shape-morph.mp4"
+ },
+ "dex-rhfire-base2-base10.mp4": {
+  "path": "dex/dex-rhfire-base2-base10.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhfire-base2-base10.mp4"
+ },
+ "dex-rhfire-keyword-cards.mp4": {
+  "path": "dex/dex-rhfire-keyword-cards.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhfire-keyword-cards.mp4"
+ },
+ "dex-rhharris-object-zoom.mp4": {
+  "path": "dex/dex-rhharris-object-zoom.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhharris-object-zoom.mp4"
+ },
+ "dex-rhharris-scale-compare.mp4": {
+  "path": "dex/dex-rhharris-scale-compare.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhharris-scale-compare.mp4"
+ },
+ "dex-rhveri-last-word.mp4": {
+  "path": "dex/dex-rhveri-last-word.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhveri-last-word.mp4"
+ },
+ "dex-rhveri-red-arrow.mp4": {
+  "path": "dex/dex-rhveri-red-arrow.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhveri-red-arrow.mp4"
+ },
+ "dex-rhveri-square-box.mp4": {
+  "path": "dex/dex-rhveri-square-box.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhveri-square-box.mp4"
+ },
+ "dex-rhwired-reddit-card.mp4": {
+  "path": "dex/dex-rhwired-reddit-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhwired-reddit-card.mp4"
+ },
+ "dex-rhwired-tweet-card.mp4": {
+  "path": "dex/dex-rhwired-tweet-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhwired-tweet-card.mp4"
+ },
+ "dex-rhzuck-logo-title.mp4": {
+  "path": "dex/dex-rhzuck-logo-title.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhzuck-logo-title.mp4"
+ },
+ "dex-rhzuck-montage.mp4": {
+  "path": "dex/dex-rhzuck-montage.mp4",
+  "source": "2026-11-09_effects-dex/clips/rhzuck-montage.mp4"
+ },
  "map_clips_ours_demo1.mp4.mp4": {
   "path": "gallery/map_clips_ours_demo1.mp4.mp4",
   "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_ours_demo1.mp4.mp4"

@@ -47,7 +47,7 @@ test('reference media requires an admin and only signs manifest files from the p
 });
 
 test('reference pages are authenticated, under the Vercel response limit and use only blob videos', async () => {
-  for (const view of ['reference-gallery', 'reference-musk']) {
+  for (const view of ['reference-gallery', 'reference-musk', 'reference-dex']) {
     assert.equal((await get('/api/admin?view=' + view)).statusCode, 401);
     const r = await get('/api/admin?view=' + view, {headers:cookie});
     assert.equal(r.statusCode, 200);
@@ -58,7 +58,8 @@ test('reference pages are authenticated, under the Vercel response limit and use
     assert.doesNotMatch(r.body, /\/_blob\/|atob\(/);
     for (const [,script] of r.body.matchAll(/<script>([\s\S]*?)<\/script>/g)) assert.doesNotThrow(() => new Function(script));
     // every referenced video exists in the whitelist directory
-    const refs = new Set([...r.body.matchAll(/view=ref-media&f=([A-Za-z0-9_.-]+\.mp4)/g)].map(m => m[1]));
+    // (the effects dex keeps its video names in the embedded JSON as "media")
+    const refs = new Set([...r.body.matchAll(view === 'reference-dex' ? /"media":"([A-Za-z0-9_.-]+\.mp4)"/g : /view=ref-media&f=([A-Za-z0-9_.-]+\.mp4)/g)].map(m => m[1]));
     assert.ok(refs.size >= 8, view);
     for (const f of refs) assert.ok(mediaNames.includes(f), f);
   }

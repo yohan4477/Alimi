@@ -1,7 +1,7 @@
-"""Export the two youtube reference sites for the /admin 「레퍼런스」 tab.
+"""Export the youtube reference sites for the /admin 「레퍼런스」 tab.
 
 Reads (never writes) the youtube research folders and writes
-  server/reference-gallery.html, server/reference-musk.html, server/reference-media/*.mp4
+  server/reference-gallery.html, server/reference-musk.html, server/reference-dex.html (효과 도감)
 and server/reference-manifest.json (video name -> Supabase Storage path + local source).
 Videos live in the private Storage bucket `reference-media` (upload: scripts/upload-reference-media.mjs) and are
 fetched through /api/admin?view=ref-media&f=<name> (admin only -> short-lived signed URL), because the original
@@ -25,7 +25,8 @@ MANIFEST = {}
 def add(name, source):
     """Register a video: flat served name -> bucket path + source file (relative to RES)."""
     assert source.exists(), source
-    MANIFEST[name] = {'path': ('musk/' if name.startswith('musk-') else 'gallery/') + name, 'source': source.relative_to(RES).as_posix()}
+    folder = 'musk/' if name.startswith('musk-') else 'dex/' if name.startswith('dex-') else 'gallery/'
+    MANIFEST[name] = {'path': folder + name, 'source': source.relative_to(RES).as_posix()}
 
 
 def must_sub(pattern, repl, text, flags=re.S):
@@ -106,8 +107,24 @@ d = must_sub(r'if\(en\.isIntersecting\)\{.*?\} else v\.pause\(\);', 'if(en.isInt
 assert 'atob(' not in d and 'id="media"' not in d
 (OUT / 'reference-musk.html').write_bytes(wrap(d).encode('utf8'))
 
+# ---------- 3. effects dex (효과 도감) ----------
+# research/2026-11-09_effects-dex/build_dex.py writes dex.json + clips/; dex_page.html is the page template.
+DEX = RES / '2026-11-09_effects-dex'
+dex = json.loads((DEX / 'dex.json').read_text(encoding='utf8'))
+for e in dex['effects']:
+    for c in e['clips']['refs'] + (e['clips']['ours'] or []):
+        if c['media'].startswith('dex-'):
+            add(c['media'], DEX / 'clips' / c['media'][4:])
+        else:
+            assert c['media'] in MANIFEST, 'dex media not exported: ' + c['media']
+        c.pop('local', None)
+data = json.dumps(dex, ensure_ascii=False, separators=(',', ':')).replace('<', r'\u003c')
+x = (DEX / 'dex_page.html').read_text(encoding='utf8')
+assert x.count('__DEX__') == 1
+(OUT / 'reference-dex.html').write_bytes(wrap(x.replace('__DEX__', data)).encode('utf8'))
+
 # ---------- report ----------
-for n in ('reference-gallery.html', 'reference-musk.html'):
+for n in ('reference-gallery.html', 'reference-musk.html', 'reference-dex.html'):
     sz = (OUT / n).stat().st_size
     print(n, sz, 'OK' if sz < LIMIT else 'TOO BIG')
     assert sz < LIMIT
