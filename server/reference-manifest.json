@@ -551,6 +551,66 @@
   "path": "dex/dex-rhzuck-montage.mp4",
   "source": "2026-11-09_effects-dex/clips/rhzuck-montage.mp4"
  },
+ "dex-stage2-analogy-object-change.mp4": {
+  "path": "dex/dex-stage2-analogy-object-change.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-analogy-object-change.mp4"
+ },
+ "dex-stage2-blur-transition.mp4": {
+  "path": "dex/dex-stage2-blur-transition.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-blur-transition.mp4"
+ },
+ "dex-stage2-city-lights-offline.mp4": {
+  "path": "dex/dex-stage2-city-lights-offline.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-city-lights-offline.mp4"
+ },
+ "dex-stage2-comparison-table-build.mp4": {
+  "path": "dex/dex-stage2-comparison-table-build.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-comparison-table-build.mp4"
+ },
+ "dex-stage2-count-by-shapes.mp4": {
+  "path": "dex/dex-stage2-count-by-shapes.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-count-by-shapes.mp4"
+ },
+ "dex-stage2-digital-zoom.mp4": {
+  "path": "dex/dex-stage2-digital-zoom.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-digital-zoom.mp4"
+ },
+ "dex-stage2-hand-circle.mp4": {
+  "path": "dex/dex-stage2-hand-circle.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-hand-circle.mp4"
+ },
+ "dex-stage2-icon-shuffle.mp4": {
+  "path": "dex/dex-stage2-icon-shuffle.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-icon-shuffle.mp4"
+ },
+ "dex-stage2-object-on-white-card.mp4": {
+  "path": "dex/dex-stage2-object-on-white-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-object-on-white-card.mp4"
+ },
+ "dex-stage2-single-object-zoom-process.mp4": {
+  "path": "dex/dex-stage2-single-object-zoom-process.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-single-object-zoom-process.mp4"
+ },
+ "dex-stage2-source-chip.mp4": {
+  "path": "dex/dex-stage2-source-chip.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-source-chip.mp4"
+ },
+ "dex-stage2-timeline-dots.mp4": {
+  "path": "dex/dex-stage2-timeline-dots.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-timeline-dots.mp4"
+ },
+ "dex-stage2-trend-now-dashed.mp4": {
+  "path": "dex/dex-stage2-trend-now-dashed.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-trend-now-dashed.mp4"
+ },
+ "dex-stage2-typewriter-title-above-card.mp4": {
+  "path": "dex/dex-stage2-typewriter-title-above-card.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-typewriter-title-above-card.mp4"
+ },
+ "dex-stage2-whip-pan.mp4": {
+  "path": "dex/dex-stage2-whip-pan.mp4",
+  "source": "2026-11-09_effects-dex/clips/stage2-whip-pan.mp4"
+ },
  "map_clips_ours_demo1.mp4.mp4": {
   "path": "gallery/map_clips_ours_demo1.mp4.mp4",
   "source": "2026-11-08_claude-video-presentation/inline_sd/map_clips_ours_demo1.mp4.mp4"
