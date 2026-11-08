@@ -90,6 +90,10 @@ for k in keys:
         src, name = DEMO / 'clips' / '00_full.mp4', 'musk-00_full.mp4'
     elif k.startswith('d_'):
         src, name = DEMO / 'clips' / (k[2:] + '.mp4'), 'musk-' + k[2:] + '.mp4'
+    elif k in ('p_v1', 'p_v2'):
+        src, name = DEMO / 'pradj' / (k[2:] + '_full.mp4'), 'musk-pradj-' + k[2:] + '_full.mp4'
+    elif k.startswith('p_'):  # Pradj effects: p_<effect-id>_<ref|ours>
+        src, name = DEMO / 'pradj' / (k[2:] + '.mp4'), 'musk-pradj-' + k[2:] + '.mp4'
     else:
         rid = ids[k[2:]]
         src = GAL / 'inline_sd' / f'clips_{rid}.mp4.mp4'
