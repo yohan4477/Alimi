@@ -279,6 +279,114 @@
   "path": "dex/dex-cs-tier-list.mp4",
   "source": "2026-11-09_effects-dex/clips/cs-tier-list.mp4"
  },
+ "dex-ds-3d-icon-badge-pop.mp4": {
+  "path": "dex/dex-ds-3d-icon-badge-pop.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-3d-icon-badge-pop.mp4"
+ },
+ "dex-ds-compare-3d-icon-badge-pop.mp4": {
+  "path": "dex/dex-ds-compare-3d-icon-badge-pop.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-3d-icon-badge-pop.mp4"
+ },
+ "dex-ds-compare-echo-word-ghost-scale.mp4": {
+  "path": "dex/dex-ds-compare-echo-word-ghost-scale.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-echo-word-ghost-scale.mp4"
+ },
+ "dex-ds-compare-film-edge-code-flicker.mp4": {
+  "path": "dex/dex-ds-compare-film-edge-code-flicker.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-film-edge-code-flicker.mp4"
+ },
+ "dex-ds-compare-interviewer-question-bubble-zoom.mp4": {
+  "path": "dex/dex-ds-compare-interviewer-question-bubble-zoom.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-interviewer-question-bubble-zoom.mp4"
+ },
+ "dex-ds-compare-keyword-flicker-in.mp4": {
+  "path": "dex/dex-ds-compare-keyword-flicker-in.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-keyword-flicker-in.mp4"
+ },
+ "dex-ds-compare-letterbox-still-montage.mp4": {
+  "path": "dex/dex-ds-compare-letterbox-still-montage.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-letterbox-still-montage.mp4"
+ },
+ "dex-ds-compare-name-role-jumpcut.mp4": {
+  "path": "dex/dex-ds-compare-name-role-jumpcut.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-name-role-jumpcut.mp4"
+ },
+ "dex-ds-compare-review-card-chest-swap.mp4": {
+  "path": "dex/dex-ds-compare-review-card-chest-swap.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-review-card-chest-swap.mp4"
+ },
+ "dex-ds-compare-text-in-glasses-lens.mp4": {
+  "path": "dex/dex-ds-compare-text-in-glasses-lens.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-compare-text-in-glasses-lens.mp4"
+ },
+ "dex-ds-echo-word-ghost-scale.mp4": {
+  "path": "dex/dex-ds-echo-word-ghost-scale.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-echo-word-ghost-scale.mp4"
+ },
+ "dex-ds-film-edge-code-flicker.mp4": {
+  "path": "dex/dex-ds-film-edge-code-flicker.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-film-edge-code-flicker.mp4"
+ },
+ "dex-ds-interviewer-question-bubble-zoom.mp4": {
+  "path": "dex/dex-ds-interviewer-question-bubble-zoom.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-interviewer-question-bubble-zoom.mp4"
+ },
+ "dex-ds-keyword-flicker-in.mp4": {
+  "path": "dex/dex-ds-keyword-flicker-in.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-keyword-flicker-in.mp4"
+ },
+ "dex-ds-letterbox-still-montage.mp4": {
+  "path": "dex/dex-ds-letterbox-still-montage.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-letterbox-still-montage.mp4"
+ },
+ "dex-ds-name-role-jumpcut.mp4": {
+  "path": "dex/dex-ds-name-role-jumpcut.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-name-role-jumpcut.mp4"
+ },
+ "dex-ds-ours-3d-icon-badge-pop.mp4": {
+  "path": "dex/dex-ds-ours-3d-icon-badge-pop.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-3d-icon-badge-pop.mp4"
+ },
+ "dex-ds-ours-echo-word-ghost-scale.mp4": {
+  "path": "dex/dex-ds-ours-echo-word-ghost-scale.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-echo-word-ghost-scale.mp4"
+ },
+ "dex-ds-ours-film-edge-code-flicker.mp4": {
+  "path": "dex/dex-ds-ours-film-edge-code-flicker.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-film-edge-code-flicker.mp4"
+ },
+ "dex-ds-ours-interviewer-question-bubble-zoom.mp4": {
+  "path": "dex/dex-ds-ours-interviewer-question-bubble-zoom.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-interviewer-question-bubble-zoom.mp4"
+ },
+ "dex-ds-ours-keyword-flicker-in.mp4": {
+  "path": "dex/dex-ds-ours-keyword-flicker-in.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-keyword-flicker-in.mp4"
+ },
+ "dex-ds-ours-letterbox-still-montage.mp4": {
+  "path": "dex/dex-ds-ours-letterbox-still-montage.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-letterbox-still-montage.mp4"
+ },
+ "dex-ds-ours-name-role-jumpcut.mp4": {
+  "path": "dex/dex-ds-ours-name-role-jumpcut.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-name-role-jumpcut.mp4"
+ },
+ "dex-ds-ours-review-card-chest-swap.mp4": {
+  "path": "dex/dex-ds-ours-review-card-chest-swap.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-review-card-chest-swap.mp4"
+ },
+ "dex-ds-ours-text-in-glasses-lens.mp4": {
+  "path": "dex/dex-ds-ours-text-in-glasses-lens.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-ours-text-in-glasses-lens.mp4"
+ },
+ "dex-ds-review-card-chest-swap.mp4": {
+  "path": "dex/dex-ds-review-card-chest-swap.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-review-card-chest-swap.mp4"
+ },
+ "dex-ds-text-in-glasses-lens.mp4": {
+  "path": "dex/dex-ds-text-in-glasses-lens.mp4",
+  "source": "2026-11-09_effects-dex/clips/ds-text-in-glasses-lens.mp4"
+ },
  "dex-jc-big-word-pill.mp4": {
   "path": "dex/dex-jc-big-word-pill.mp4",
   "source": "2026-11-09_effects-dex/clips/jc-big-word-pill.mp4"
