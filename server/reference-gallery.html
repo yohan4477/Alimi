@@ -18,7 +18,7 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
-section[data-view="youtube"] .wrap{max-width:1180px;margin:0 auto;display:grid;gap:28px}
+section[data-view="youtube"] .wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
 section[data-view="youtube"] header{display:grid;gap:14px}
 section[data-view="youtube"] h1{font-size:clamp(24px,4vw,34px);margin:0;letter-spacing:-.01em;text-wrap:balance}
 section[data-view="youtube"] .src{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0}
@@ -32,7 +32,7 @@ section[data-view="youtube"] .bar button[aria-pressed="true"]{background:var(--i
 section[data-view="youtube"] .bar .count{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--muted)}
 section[data-view="youtube"] .sync{font-size:12.5px;color:var(--advise);margin:0;min-height:1.2em}
 section[data-view="youtube"] .list{display:grid;gap:22px}
-section[data-view="youtube"] .fx{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:14px;scroll-margin-top:12px;min-width:0}
+section[data-view="youtube"] .fx{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;scroll-margin-top:12px;min-width:0}
 section[data-view="youtube"] .fx[hidden]{display:none}
 section[data-view="youtube"] .fx-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 section[data-view="youtube"] .fx-head h2{font-size:19px;margin:0;min-width:0;overflow-wrap:anywhere}
@@ -243,7 +243,7 @@ section[data-view="youtube"] .cat[aria-current="page"]{color:var(--ink);border-b
 section[data-view="youtube"] .subtabs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
 section[data-view="youtube"] .subtabs a{font-size:14px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-decoration:none}
 section[data-view="youtube"] .subtabs a[aria-current="page"]{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
-section[data-view="reel"] .wrap{max-width:1180px;margin:0 auto;display:grid;gap:28px}
+section[data-view="reel"] .wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
 section[data-view="reel"] header{display:grid;gap:14px}
 section[data-view="reel"] h1{font-size:clamp(24px,4vw,34px);margin:0;letter-spacing:-.01em;text-wrap:balance}
 section[data-view="reel"] .src{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0}
@@ -257,7 +257,7 @@ section[data-view="reel"] .bar button[aria-pressed="true"]{background:var(--ink)
 section[data-view="reel"] .bar .count{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--muted)}
 section[data-view="reel"] .sync{font-size:12.5px;color:var(--advise);margin:0;min-height:1.2em}
 section[data-view="reel"] .list{display:grid;gap:22px}
-section[data-view="reel"] .fx{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:14px;scroll-margin-top:12px;min-width:0}
+section[data-view="reel"] .fx{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;scroll-margin-top:12px;min-width:0}
 section[data-view="reel"] .fx[hidden]{display:none}
 section[data-view="reel"] .fx-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 section[data-view="reel"] .fx-head h2{font-size:19px;margin:0;min-width:0;overflow-wrap:anywhere}
@@ -448,7 +448,7 @@ section[data-view="map"] .mono{font-family:var(--mono);font-size:12.5px;color:va
 section[data-view="map"] button:focus-visible,section[data-view="map"] a:focus-visible,section[data-view="map"] input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 section[data-view][hidden]{display:none}
 
-.chip.v2ok{color:var(--ok)}
+.chip.v2ok{color:var(--ok);white-space:normal;max-width:100%}
 .diag{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 4px;padding:6px 10px;border:1px dashed var(--line);border-radius:8px}
 .v1box{display:grid;gap:6px;min-width:0}
 .v1box[hidden]{display:none}
