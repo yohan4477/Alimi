@@ -63,24 +63,20 @@ try {
   await page.locator('#post-write[open]').waitFor();
   assert.equal(await page.locator('#write-title').inputValue(),'Explicitly published fixture');
   assert.equal(await page.locator('#write-body').inputValue(),'Edited public text');
+  // HTTP 503 is ambiguous: the backend may already have committed the post.
+  // Until server idempotency/result lookup exists, resubmitting must be blocked.
   fail = false;
   await page.locator('[data-chat-action="write-submit"]').click();
-  await page.locator('#post-view .post-body').waitFor();
-  assert.equal(await page.locator('#post-view .post-body').innerText(),'Edited public text');
-  assert.equal(writes.length,2); assert.equal(posts.length,1);
-  assert.equal(await page.evaluate(key => sessionStorage.getItem(key),key),null,'clear only after successful publication');
-  await page.waitForFunction(() => !document.querySelector('#post-write').open);
-  assert.equal(events.filter(e => e.name === 'beauty_post_published').length,1);
-  // Fetch the stored fixture again after a fresh document load, through the real public reader.
-  await page.goto(origin + '/' + region + '?lang=' + language + '&demo=0&room=tint');
-  await page.locator('.room-notice[data-topic-mode="posts"]').click();
-  await page.locator('[data-post="9001"]').first().click();
-  await page.locator('#post-view .post-body').waitFor();
-  assert.equal(await page.locator('#post-view .post-body').innerText(),'Edited public text');
-  assert.equal(writes.length,2,'reading a published post never resubmits it');
-  assert.ok(events.every(e => !JSON.stringify(e).includes('Edited public text') && !JSON.stringify(e).includes('My private tint')),'analytics contain no draft text');
+  await page.waitForTimeout(150);
+  assert.equal(writes.length,1,'an ambiguous response must not trigger another write');
+  assert.equal(posts.length,0,'fixture did not commit the first write');
+  assert.equal(await page.locator('#write-body').inputValue(),'Edited public text');
+  assert.equal(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)).body,key),'Edited public text');
+  assert.equal(await page.evaluate(id=>sessionStorage.getItem('seoulbeauty-post-pending:'+id),id),'pending');
+  assert.equal(events.filter(e=>e.name==='beauty_post_published').length,0);
+  assert.ok(events.every(e=>!JSON.stringify(e).includes('Edited public text')&&!JSON.stringify(e).includes('My private tint')),'analytics contain no draft text');
   assert.deepEqual(errors,[]);
-  console.log(`ok - ${region}/${language}: explicit publish, failure/reload retention, copied-link privacy, persisted fixture read, analytics boundaries`);
+  console.log(`ok - ${region}/${language}: ambiguous failure preserves draft and blocks duplicate retry`);
   await context.close();
  }
 } finally { await browser.close(); }

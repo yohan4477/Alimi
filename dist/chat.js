@@ -447,16 +447,38 @@ async function submitPost() {
   if (chat.room?.demo) return;
   keepDraftText(); const d = view.draft;
   if(d.submitting)return;
+  // create_post has no server idempotency key yet. Do not blindly repeat an
+  // ambiguous write from a game handoff after a network failure.
+  const pendingStore=handoffStorage();
+  const pendingKey=d.beautyHandoffId?'seoulbeauty-post-pending:'+d.beautyHandoffId:null;
+  if(pendingKey){
+    try{
+      if(pendingStore?.getItem(pendingKey)){
+        toast(locale().startsWith('ko')?'게시 결과를 확인할 수 없어. 내 글을 먼저 확인해 줘. 초안은 보관돼.':'Post status unknown. Check your posts first; your draft is saved.');
+        return;
+      }
+      pendingStore?.setItem(pendingKey,'pending');
+    }catch{
+      toast(locale().startsWith('ko')?'안전하게 게시 상태를 기록할 수 없어. 초안을 복사해 보관해 줘.':'Cannot safely track posting. Copy and keep your draft.');
+      return;
+    }
+  }
   d.submitting=true;const submit=$('[data-chat-action="write-submit"]');if(submit)submit.disabled=true;
   try {
     const p = await createPost(secret, chat.room.id, {...d, review: reviewPayload(d)});
+    if(pendingKey){try{pendingStore?.removeItem(pendingKey);}catch{}}
     track('post_create', null, {room: chat.room.id, kind: d.kind, item: d.item ? 1 : 0, from_chat: d.fromMessage ? 1 : 0, photos: d.photos.length, reasons: d.reasons.join(',')});
     if (d.kind === 'review' && d.saveProfile) saveFromReview(d).catch(() => {});
     if(d.beautyHandoffId){track('beauty_post_published',null,{source:'beauty_play',handoff_id:d.beautyHandoffId});clearHandoff(handoffStorage(),d.beautyHandoffId);beautyDraft=null;beautyDraftDismissed=true;}
     $('#post-write').close();
     if (d.fromMessage) toast(t('community.savedAsPost'));
     openTopic(chat.room, 'posts'); openPost(p.id);
-  } catch (e) { toast(t(errorKey(e.message))); }
+  } catch (e) {
+    // Without authoritative server status all failed writes are uncertain.
+    // Do not clear the pending guard on an error.
+    if(pendingKey)toast(locale().startsWith('ko')?'게시 여부가 불확실해 재전송하지 않았어. 내 글에서 확인해 줘.':'Posting status is uncertain. Check your posts before trying again.');
+    else toast(t(errorKey(e.message)));
+  }
   finally {d.submitting=false;if(submit)submit.disabled=false;}
 }
 
