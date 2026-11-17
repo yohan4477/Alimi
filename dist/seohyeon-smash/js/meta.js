@@ -4,7 +4,7 @@
 //   캠페인 = 깬 단계 큰 값, 총수 격파는 한쪽이라도 깼으면 깸 / 지도·오늘의 동네 최고 = 큰 값
 //   도감 = 합집합(처음 등록 시각은 이른 쪽) / 출석 = 마지막 출석일이 늦은 쪽(같으면 연속 일수 큰 쪽)
 //   보상(잔고 보너스·현무·돔) = 받은 보상마다 고유 번호(att날짜-n) → 합집합이라 두 번 더하지 않음, 쓴 보상도 번호로 합집합
-import { on } from './bus.js';
+import { on, quiet } from './bus.js';
 import { flagSvg } from './war.js';
 
 const $ = (id) => document.getElementById(id);
@@ -219,7 +219,9 @@ export function collect(id) {
 }
 function icHtml(e, big) { return e.flag ? flagSvg(e.flag, big ? 22 : 14) : esc(e.ic); }
 function nextToast() {
+  if (quiet() && toastQ.length) { toastT = setTimeout(nextToast, 300); return; }   // 미사일 비행·맞은 직후엔 미룸
   const el = $('colToast'), e = toastQ.shift();
+  if (el && !e) el.classList.remove('go');
   if (!el || !e) { toastT = 0; return; }
   el.innerHTML = `<b>📖 도감 등록!</b> <span class="ic">${icHtml(e)}</span> ${esc(e.nm)}`;
   el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');

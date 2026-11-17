@@ -2,12 +2,12 @@
 // 실제 회사 시세(market.json)를 출발점으로 쓰지만, 게임 안의 주가 변동은 전부 가상이다.
 // 회장님·사장님은 지어낸 만화 인물 (실존 인물 아님).
 import * as THREE from 'three';
-import { emit } from './bus.js';
+import { emit, on, ui, quiet as quietUI, charShow, charHide, charBusy } from './bus.js';
 
 const CFG = {
   dropPerShare: 60, maxDrop: 30, floor: -90, recover: 0.2,      // %, %/s
   crashDrop: 10, crashTotal: -25,
-  chairCool: 6, chairDur: 1.8,
+  chairCool: 6, chairDur: 1.6,
   maxWaves: 3, countdown: 3, travel: 3.0,
   icBase: 2.5e11, icStep: 5e10,                                 // 날아오는 미사일 직접 탭 요격 (급하니 비쌈)
 };
@@ -61,6 +61,7 @@ function buildDom() {
     <ul id="mkShopList"></ul><div id="mkShopMsg"></div></div>`;
   while (d.firstElementChild) document.body.appendChild(d.firstElementChild);
   $('mkChair').addEventListener('pointerdown', (e) => { e.stopPropagation(); hideChair(); });
+  on('char', (w) => { if (w !== 'mk' && S.chairT > 0) hideChair(); });   // 인물은 한 번에 하나
   $('mkIc').addEventListener('pointerdown', (e) => { e.stopPropagation(); interceptNearest(); });
   $('mkSh').addEventListener('pointerdown', (e) => { e.stopPropagation(); openShop(); });
   $('mkShopX').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeShop(); });
@@ -150,7 +151,7 @@ function flush(c) {
     crashCard(c, drop, lost);
     const wantRetal = !c.retal && S.wavesN < CFG.maxWaves;
     if (wantRetal) { c.retal = true; S.wavesN++; S.queue.push({ type: 'retal', c, lost: c.lost }); }
-    else S.queue.push({ type: 'react', c });
+    else S.queue.push({ type: 'react', c, at: performance.now() });
   }
 }
 
@@ -179,6 +180,7 @@ function renderTicker(force) {
 
 // ---------- 폭락 카드
 function crashCard(c, drop, lost) {
+  if (ui.incoming) { A.popup(null, `📉 폭락! ${esc(c.name)} <em>${fmtPct(c.pct)}</em>`); return; }   // 미사일 날아오는 동안은 피드 한 줄만
   $('mkCrName').textContent = c.name;
   $('mkCrPct').textContent = fmtPct(c.pct);
   $('mkCrCap').textContent = lost > 0 ? `시총 ${A.wonShort(lost)} 증발` : `이번 한 방 −${drop.toFixed(1)}%`;
@@ -223,15 +225,15 @@ function showChair(c, line, v) {
   const el = $('mkChair');
   $('mkFig').innerHTML = figSvg(v);
   $('mkWho').textContent = v === 'boss' ? '사장님 (가상 인물)' : '회장님 (가상 인물)';   // 회사 이름을 붙이면 실존 인물을 가리키게 되므로 직함만
-  $('mkSay').textContent = line;
-  const left = Math.random() < 0.5;
-  el.className = left ? 'L' : 'R';
+  $('mkSay').innerHTML = `<i>${v === 'boss' ? '사장님' : '회장님'}·가상</i> ${esc(line)}`;
+  el.className = 'L';   // 왼쪽 아래 작은 얼굴 + 한 줄 말풍선
   void el.offsetWidth; el.classList.add('in');
+  charShow('mk');
   S.chairT = CFG.chairDur; S.chairCool = CFG.chairCool;
   emit('collect', v === 'boss' ? 'p:ceo' : 'p:chair');
   A.sfx && A.sfx.ding && A.sfx.ding();
 }
-function hideChair() { const el = $('mkChair'); if (el) el.className = 'hidden'; S.chairT = 0; }
+function hideChair() { const el = $('mkChair'); if (el) el.className = 'hidden'; S.chairT = 0; charHide('mk'); }
 
 // ---------- 보복
 const missileGeo = new THREE.ConeGeometry(2.2, 9, 8).rotateX(Math.PI / 2);
@@ -269,7 +271,7 @@ function launchMissile(w, i) {
   const body = new THREE.Mesh(missileGeo, new THREE.MeshBasicMaterial({ color: 0xd8261c }));
   body.scale.setScalar(1.6);
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: A.glowTex, color: 0xff5040, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-  glow.scale.setScalar(34);
+  glow.scale.setScalar(48);
   g.add(body, glow); g.position.copy(from); A.scene.add(g);
   const el = document.createElement('button');
   el.className = 'mkRet'; el.innerHTML = '<span>요격</span>';
@@ -371,6 +373,9 @@ function missileHit(m) {
 // ---------- 매 프레임
 const _v = new THREE.Vector3(), _p = new THREE.Vector3();
 export function step(real, dt) {
+  const inc = !!(A && A.G.state === 'play' && S.missiles.some((m) => m.t >= 0));
+  if (inc && !ui.incoming) emit('char', 'none');   // 미사일이 날기 시작하면 인물은 내림 (미사일·요격이 보이게)
+  ui.incoming = inc;
   if (!A || A.G.state !== 'play') return;
   for (const c of S.cos) {
     if (c.pendT >= 0) { c.pendT += real; if (c.pendT > 0.15) flush(c); }
@@ -382,10 +387,14 @@ export function step(real, dt) {
   // 회장님
   if (S.chairCool > 0) S.chairCool -= real;
   if (S.chairT > 0) { S.chairT -= real; if (S.chairT <= 0) hideChair(); }
-  if (S.queue.length && S.chairCool <= 0 && S.crashT <= 0.6) {
+  const now = performance.now();
+  S.queue = S.queue.filter((q) => q.type === 'retal' || now - q.at < 4000);   // 늦은 반응 대사는 버림
+  const calm = !quietUI() && !charBusy('mk');
+  if (S.queue.length && S.chairCool <= 0 && S.crashT <= 0.6 && (calm || S.queue[0].type === 'retal')) {
     const q = S.queue.shift();
     if (q.type === 'retal') {
-      showChair(q.c, ORDER[Math.floor(Math.random() * ORDER.length)], q.c.cap > 1e13 ? 'chair' : 'boss');
+      if (calm) showChair(q.c, ORDER[Math.floor(Math.random() * ORDER.length)], q.c.cap > 1e13 ? 'chair' : 'boss');
+      else S.chairCool = CFG.chairCool;
       startWave(q);
     } else {
       showChair(q.c, REACT[Math.floor(Math.random() * REACT.length)], q.c.cap > 1e13 ? 'chair' : 'boss');
@@ -400,7 +409,10 @@ export function step(real, dt) {
     w.t += real;
     if (w.t < 0) { if (Math.ceil(-w.t) !== before) countdown(w); continue; }
     if (!w.launched) { w.launched = 1; if (S.inv.dome > 0) { S.inv.dome--; w.domed = true; A.banner('🔰 철벽 돔 가동!'); emit('collect', 'a:dome'); if (S.giftDome > 0) { S.giftDome--; emit('gift-used', 'dome'); } } countdown(w); for (let k = 0; k < w.n; k++) launchMissile(w, k); setTimeout(() => $('mkCount').classList.add('hidden'), 700); }
-    if (!S.missiles.some((m) => m.w === w)) S.waves.splice(i, 1);
+    if (!S.missiles.some((m) => m.w === w)) { S.waves.splice(i, 1); continue; }
+    // 조준된 자리: 빨간 고리가 맥박처럼 (어디로 오는지 보이게)
+    w.ringT = (w.ringT || 0) - real;
+    if (w.ringT <= 0 && A.rings) { w.ringT = 0.45; const b = w.tg.b; A.rings.add(b.cx, b.base + Math.max(2, b.cur) + 1, -b.cy, Math.max(30, b.rad * 1.5), 0xff2a1a, 0.5); }
   }
   // 미사일
   for (const m of S.missiles.slice()) {
@@ -413,7 +425,7 @@ export function step(real, dt) {
     m.g.lookAt(_v.copy(m.g.position).add(_p.sub(m.g.position).multiplyScalar(-1)));
     const f = A.fx();
     if (f.smoke) for (let s = 0; s < 2; s++) f.smoke.emit(m.g.position.x, m.g.position.y, m.g.position.z, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 1.4, 5, 16, 0.6, 0.95, 0.92, 0.9, 0.9);
-    if (f.fire) f.fire.emit(m.g.position.x, m.g.position.y, m.g.position.z, 0, 0, 0, 0.18, 9, 4, 1, 1, 0.45, 0.2, 0.9);
+    if (f.fire) for (let s = 0; s < 2; s++) f.fire.emit(m.g.position.x, m.g.position.y, m.g.position.z, 0, 0, 0, 0.35, 12, 5, 1, 1, 0.55, 0.25, 0.95);   // 밝은 꼬리
     const sc = A.screenOf(m.g.position.x, m.g.position.y, m.g.position.z);
     m.el.style.transform = `translate(${sc.x - 28}px, ${sc.y - 28}px)`;
     if (k >= 0.55 && !m.w.domed && S.inv.ic > 0 && !m.auto) { m.auto = 1; S.inv.ic--; S.blocked++; boomAt(m.g.position, 0x8fd8ff);

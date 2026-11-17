@@ -2,7 +2,7 @@
 // 지점장·사장님·총수는 지어낸 만화 인물 (실존 인물 아님, 실명·얼굴·사진 안 씀).
 import * as THREE from 'three';
 import { dailyMap, kstDate } from './meta.js';
-import { emit } from './bus.js';
+import { emit, on, quiet, charShow, charHide, charBusy } from './bus.js';
 
 const $ = (id) => document.getElementById(id);
 const QS = new URLSearchParams(location.search);
@@ -89,14 +89,18 @@ function figSvg(v, mood = 'shock') {
   ${f.mus ? `<path d="M64 96 Q80 86 96 96 Q80 101 64 96Z" fill="${v === 'boss' ? '#d8d8d2' : '#4a3626'}"/>` : ''}${mouth}${sweat}
   </svg>`;
 }
-let charT = 0;
+let charT = 0, sayQ = null;
+// 인물은 한 번에 하나 · 조용한 시간(미사일 비행·맞은 직후)엔 미뤘다가, 3초 넘게 묵으면 버림
 function say(v, line, mood) {
+  if (quiet() || charBusy('mp')) { sayQ = { v, line, mood, at: performance.now() }; return; }
+  sayQ = null;
   const el = $('mpChar'); if (!el) return;
   $('mpFig').innerHTML = figSvg(v, mood);
   $('mpWho').textContent = FIG[v].nm + (v === 'boss' ? ' (지어낸 인물)' : '');
-  $('mpSay').textContent = line;
-  el.className = 'R'; void el.offsetWidth; el.classList.add('in');
-  charT = 2.4;
+  $('mpSay').innerHTML = `<i>${FIG[v].nm}${v === 'boss' ? '·지어낸 인물' : ''}</i> ${esc(line)}`;
+  el.className = 'L'; void el.offsetWidth; el.classList.add('in');
+  charShow('mp');
+  charT = 1.6;
   emit('collect', 'p:' + v);
   try { A.sfx.ding(); } catch (e) { /* 무시 */ }
 }
@@ -122,18 +126,18 @@ function css() {
 #mpStage .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#ffb020,#ff5a2e); border-radius: 9px; transition: width .2s; }
 #mpStage.ok .bar i { background: linear-gradient(90deg,#36c46a,#8be36b); }
 #mpStage .sub { color: #ffd24a; font-size: 12px; }
-#mpChar { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 96px); right: 8px; z-index: 16; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
+#mpChar { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 96px); right: 8px; z-index: 16; display: flex; flex-direction: column; align-items: flex-end; pointer-events: auto; cursor: pointer; }
 #mpChar.hidden { display: none; }
 #mpChar.in { animation: mpIn .35s cubic-bezier(.2,1.4,.4,1) both; }
 #mpChar .bub { background: #fff; color: #1d2430; font-size: 16px; font-weight: 900; padding: 8px 12px; border-radius: 14px; border: 3px solid #1d2430; max-width: 220px; position: relative; margin-bottom: 8px; }
 #mpChar .who { font-size: 12px; font-weight: 800; color: #fff; background: #1d4fa0; border-radius: 99px; padding: 2px 9px; margin-bottom: -6px; position: relative; z-index: 1; }
 #mpFig svg { display: block; filter: drop-shadow(0 6px 8px rgba(0,0,0,.3)); }
 @keyframes mpIn { from { transform: translateX(120%); } to { transform: none; } }
-.mpBar { position: fixed; z-index: 9; transform: translate(-50%, -100%); pointer-events: none; background: rgba(20,24,32,.88); color: #fff; border-radius: 10px; padding: 3px 8px 5px; font-size: 12px; font-weight: 900; white-space: nowrap; text-align: center; }
+.mpBar { position: fixed; z-index: 9; transform: translate(-50%, -100%); pointer-events: none; background: rgba(20,24,32,.5); color: #fff; border-radius: 8px; padding: 2px 6px 3px; font-size: 10.5px; font-weight: 800; white-space: nowrap; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .mpBar .hp { display: flex; gap: 3px; justify-content: center; margin-top: 3px; }
-.mpBar .hp i { width: 16px; height: 7px; border-radius: 3px; background: #ff4a3a; }
+.mpBar .hp i { width: 11px; height: 5px; border-radius: 2px; background: #ff4a3a; }
 .mpBar .hp i.x { background: rgba(255,255,255,.2); }
-.mpBar.boss { background: rgba(120,20,20,.92); font-size: 13px; }
+.mpBar.boss { background: rgba(120,20,20,.55); font-size: 11.5px; }
 #mpRes { margin: 6px 0 10px; padding: 10px; border-radius: 14px; background: #1d2430; color: #fff; font-weight: 900; text-align: center; }
 #mpRes.ok { background: #1f7a44; }
 #mpRes b { display: block; font-size: 22px; color: #ffd24a; }
@@ -147,6 +151,9 @@ function buildDom() {
   const ch = document.createElement('div'); ch.id = 'mpChar'; ch.className = 'hidden';
   ch.innerHTML = '<div class="bub" id="mpSay"></div><div class="who" id="mpWho"></div><div id="mpFig"></div>';
   document.body.appendChild(ch);
+  const hideCh = () => { ch.className = 'hidden'; charT = 0; charHide('mp'); };
+  ch.addEventListener('pointerdown', (e) => { e.stopPropagation(); hideCh(); });   // 눌러서 닫기
+  on('char', (w) => { if (w !== 'mp' && charT > 0) hideCh(); });
   const st = document.createElement('div'); st.id = 'mpStage'; st.className = 'hidden';
   st.innerHTML = '<div class="row2"><span id="mpStT"></span><span id="mpStPct"></span><span id="mpStTime"></span></div><div class="bar"><i id="mpStBar"></i></div><div class="row2 sub"><span id="mpStP"></span><span id="mpStX"></span></div>';
   const hud = $('hud'); const mis = $('hudChips') || $('missions');
@@ -268,6 +275,7 @@ function showPins() {
   if (!isHome()) return;
   for (const p of BS.posts) {
     const sp = pinSprite('🏢 삼성 거점', '#1d4fa0'); sp.position.set(p.main.cx, p.main.base + p.main.h + 6, -p.main.cy); A.scene.add(sp); p.pin = sp; BS.pins.push(sp);
+    sp.scale.set(46, 18.4, 1); sp.material.opacity = 0.72;   // 작게·반투명 (부서지는 걸 가리지 않게)
   }
 }
 function summonBoss() {
@@ -396,7 +404,11 @@ function met() {
 let barT = 0;
 export function step(real) {
   if (!A) return;
-  if (charT > 0) { charT -= real; if (charT <= 0) { const el = $('mpChar'); if (el) el.className = 'hidden'; } }
+  if (charT > 0) { charT -= real; if (charT <= 0) { const el = $('mpChar'); if (el) el.className = 'hidden'; charHide('mp'); } }
+  if (sayQ && !quiet() && !charBusy('mp')) { const q = sayQ; if (performance.now() - q.at < 3000) say(q.v, q.line, q.mood); else sayQ = null; }
+  // 거점 이름표: 멀리 빼면 숨김 (총수 본사는 늘 보임)
+  const far = A.cam && A.cam.dist > (A.IS_TOUCH ? 1000 : 800);
+  for (const p of BS.posts) if (p.pin) p.pin.visible = !far;
   const G = A.G;
   if (CUR && G.state === 'play') {
     const p = Math.min(1, G.price / CUR.price);
@@ -419,7 +431,7 @@ export function step(real) {
     while (BS.bars.length < act.length) { const el = document.createElement('div'); el.className = 'mpBar'; document.body.appendChild(el); BS.bars.push(el); }
     BS.bars.forEach((el, i) => {
       const p = act[i];
-      if (!p) { el.style.display = 'none'; return; }
+      if (!p || (!p.boss && A.cam && A.cam.dist > (A.IS_TOUCH ? 1000 : 800))) { el.style.display = 'none'; return; }
       const s = A.screenOf(p.main.cx, p.main.base + p.main.h + 32, -p.main.cy);
       el.style.display = ''; el.className = 'mpBar' + (p.boss ? ' boss' : '');
       el.style.left = s.x + 'px'; el.style.top = s.y + 'px';

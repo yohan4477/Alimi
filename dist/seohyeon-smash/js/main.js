@@ -7,7 +7,7 @@ import * as WAR from './war.js';   // 참전 (게임 속 가상 전쟁)
 import * as AR from './arsenal.js';   // K-무기고
 import * as MP from './maps.js';   // 지도 고르기·캠페인 단계·삼성 거점 보스
 import * as META from './meta.js';   // 계정·영구 저장·오늘의 동네·출석·도감
-import { emit } from './bus.js';
+import { emit, ui } from './bus.js';
 
 const $ = (id) => document.getElementById(id);
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches;
@@ -375,16 +375,19 @@ function scoreHits(hits, shot, anchor, opt = {}) {
   G.price += sum; shot.val += sum;
   if (n > G.combo) G.combo = n;
   if (!G.big || list[0].val > G.big.val) G.big = { val: list[0].val, name: label(list[0].b), b: list[0].b };
-  // 큰 것만 이름 글자, 나머지는 「외 N채」 하나로
-  let maxPop = opt.chain ? 1 : (opt.few ? 2 : 4);
-  while (maxPop > 1 && list[maxPop - 1] && list[maxPop - 1].val * mult < 1e10) maxPop--;
-  list.slice(0, maxPop).forEach((g, i) => {
-    const nm = label(g.b);
-    const what = g.full ? (g.b.d.f >= 3 ? g.b.d.f + '층 ' : '') + (opt.verb || '붕괴!') : (opt.partVerb || '윗층 날아감!');
-    const txt = `${nm} ${what} <em>+${won(g.val * mult)}</em>${g.est ? ' <small>(추정)</small>' : ' <small>(실거래)</small>'}`;
-    popup(new THREE.Vector3(g.b.cx, g.b.base + g.b.h + 6, -g.b.cy), txt, i * 0.18, i === 0 && g.val > 5e10, i);
-  });
-  if (list.length > maxPop && !opt.chain) popup(anchor.clone().add(new THREE.Vector3(0, 10, 0)), `외 ${list.length - maxPop}채 <em>+${won(list.slice(maxPop).reduce((s, g) => s + g.val, 0) * mult)}</em>`, 1.0, false, maxPop);
+  // 한 번 맞을 때 글자 한 줄 (위 왼쪽 피드) + 맞은 자리에서 작은 숫자만 떠오름
+  const xm = mult > 1.001 ? ` <b>×${mult.toFixed(2)}</b>` : '';
+  const g0 = list[0], nFull = list.filter((g) => g.full).length;
+  let txt;
+  if (list.length === 1) {
+    const what = g0.full ? (g0.b.d.f >= 3 ? g0.b.d.f + '층 ' : '') + (opt.verb || '붕괴!') : (opt.partVerb || '윗층 날아감!');
+    txt = `${esc(label(g0.b))} ${what} <em>+${wonShort(sum)}</em>${xm}`;
+  } else {
+    const verb = (opt.verb || '붕괴!').replace(/!$/, '');
+    txt = `${list.length}채 ${nFull === list.length ? verb : nFull ? '부숨' : '반파'} <em>+${wonShort(sum)}</em>${xm} <small>${esc(label(g0.b))} 등</small>`;
+  }
+  if (opt.chain && shot.feedLi) shot.feedLi = feed(txt, shot.feedLi); else { const li = feed(txt); if (opt.chain) shot.feedLi = li; }
+  floater(anchor, '+' + wonShort(sum));
   if (!opt.chain && n >= 2) banner(`${n}채 콤보! ×${mult.toFixed(2)}`);
   if (list.some((g) => g.full && g.b.d.f >= 20)) slowmo();
   sfx.crumble(hits.length);
@@ -542,11 +545,7 @@ function fallDamage(s, tip) {
   missionEvent('chain', { shot });
 }
 function chainPopup(shot, pos, n, mult) {
-  const html = `연쇄 ×${n}! <em>보너스 ×${mult.toFixed(2)}</em>`;
-  const w = pos.clone().add(new THREE.Vector3(0, 30, 0));
-  if (shot.pop && pops.includes(shot.pop)) { shot.pop.el.innerHTML = html; shot.pop.t = 0.2; shot.pop.world = w; }
-  else shot.pop = popup(w, html, 0, false, -2, 'chain');
-  if (n >= 2) banner(`연쇄 ×${n}!`);
+  if (n >= 2) banner(`연쇄 ×${n}! 보너스 ×${mult.toFixed(2)}`);
   buzz([20, 30, 20]);
 }
 
@@ -676,6 +675,7 @@ function stepMeteors(dt) {
 }
 function impact(p, R, opt = {}) {   // opt.light: 지원·K무기 (번쩍·멈춤 없이 가볍게), opt.score: scoreHits 옵션
   const shot = newShot();
+  ui.quietUntil = performance.now() + 1500;   // 맞은 뒤 1.5초: 인물·토스트 미룸 (부서지는 걸 보게)
   const gy = groundAt(p.x, p.z) + 0.65;
   const gp = new THREE.Vector3(p.x, gy, p.z);
   if (!opt.light) { flash(0.55); hitstop(0.08); buzz(IS_TOUCH ? [35, 25, 60] : 40); }
@@ -1083,38 +1083,78 @@ function stompHit(f) {
   scoreHits(hits, shot, gp, { verb: '납작!', partVerb: '꿈틀 반파!' });
 }
 
-// ---------- 화면 글자
+// ---------- 화면 글자 (판 가운데는 비움: 글자는 위 왼쪽 피드 한 곳, 맞은 자리엔 배경 없는 작은 숫자만)
 const pops = [];
-function popup(world, html, delay = 0, big = false, row = 0, cls = '') {
+// 피드: 최근 3줄, 2.5초 뒤 사라짐. li 를 넘기면 그 줄을 고쳐 씀 (연쇄)
+function feed(html, li) {
+  const ul = $('feed'); if (!ul) return null;
+  if (!li || !li.isConnected) { li = document.createElement('li'); ul.prepend(li); while (ul.children.length > 3) ul.lastElementChild.remove(); }
+  li.innerHTML = html; li.classList.remove('out'); clearTimeout(li._t);
+  li._t = setTimeout(() => { li.classList.add('out'); li._t = setTimeout(() => li.remove(), 400); }, 2100);
+  return li;
+}
+// 맞은 자리에서 떠오르는 작은 숫자 (배경 없음, 0.8초) — 보복 미사일 날아오는 동안은 안 띄움
+function floater(world, text) {
+  if (!world || ui.incoming || !text) return;
   const el = document.createElement('div');
-  el.className = 'pop' + (big ? ' hot' : '') + (cls ? ' ' + cls : ''); el.innerHTML = html; el.style.opacity = '0';
+  el.className = 'pop fl'; el.textContent = text; el.style.opacity = '0';
   $('popups').appendChild(el);
-  const o = { el, world, t: -delay, row };
-  pops.push(o);
-  if (pops.length > 12) { const x = pops.shift(); x.el.remove(); }
-  return o;
+  pops.push({ el, world: world.clone(), t: 0, row: 0, dur: 0.8 });
+  if (pops.length > 8) { const x = pops.shift(); x.el.remove(); }
+}
+// 다른 모듈이 부르는 popup(): 글자는 피드로, <em> 숫자만 작은 떠오름으로
+function popup(world, html, delay = 0) {
+  const go = () => { feed(html); const m = /<em>([^<]+)<\/em>/.exec(html); if (m && world && /^[+−-]/.test(m[1].trim())) floater(world, m[1].trim().split(' ')[0]); };
+  if (delay > 0) setTimeout(go, delay * 1000); else go();
+  return null;
 }
 function stepPops(dt) {
   const v = new THREE.Vector3();
   for (let i = pops.length - 1; i >= 0; i--) {
     const p = pops[i]; p.t += dt;
-    if (p.t < 0) continue;
-    const k = p.t / 2.2;
+    const k = p.t / (p.dur || 2.2);
     if (k >= 1) { p.el.remove(); pops.splice(i, 1); continue; }
     v.copy(p.world).project(camera);
-    const x = (v.x * 0.5 + 0.5) * innerWidth, y = (-v.y * 0.5 + 0.5) * innerHeight - 40 * k - 10 + p.row * 30;
+    if (v.z > 1) { p.el.style.opacity = '0'; continue; }
+    const x = (v.x * 0.5 + 0.5) * innerWidth, y = (-v.y * 0.5 + 0.5) * innerHeight - 36 * k - 10;
     const w = p.el.offsetWidth;
-    const cx = Math.max(6, Math.min(innerWidth - w - 6, x - w / 2));
-    const sc = k < 0.08 ? 0.6 + k * 5 : 1;
-    p.el.style.transform = `translate(${cx}px, ${Math.max(150, Math.min(innerHeight - 110, y))}px) scale(${sc})`;
-    p.el.style.opacity = String(k < 0.08 ? k / 0.08 : k > 0.75 ? (1 - k) / 0.25 : 1);
+    p.el.style.transform = `translate(${Math.max(4, Math.min(innerWidth - w - 4, x - w / 2))}px, ${Math.max(0, Math.min(innerHeight - 20, y))}px)`;
+    p.el.style.opacity = String(k < 0.15 ? k / 0.15 : k > 0.6 ? (1 - k) / 0.4 : 1);
   }
 }
 let banTimer;
+// 위쪽 알림 띠 (콤보·연쇄·레벨 등). 보복 미사일이 날아오는 동안은 피드 한 줄로만
 function banner(t) {
+  if (ui.incoming && G.state === 'play') { feed(esc(t)); return; }
   const b = $('banner'); b.textContent = t; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
   clearTimeout(banTimer); banTimer = setTimeout(() => b.classList.remove('show'), 1500);
 }
+// 위 띠 자리: HUD 바로 밑 (알림 한 줄 + 피드). 다른 모듈 토스트도 이 줄로 모음
+const DOCK = ['mkCount', 'warBan', 'mkCrash', 'colToast', 'banner'];
+const ESSENTIAL = new Set(['mkCount']);
+let dockT = 0, ntSeq = 0, ntObs = null;
+const ntActive = (el) => !el.classList.contains('hidden') && (el.id !== 'banner' || el.classList.contains('show')) && (el.id !== 'colToast' || el.classList.contains('go'));
+function arrangeNotices() {
+  const row = $('noticeRow'); if (!row) return;
+  const act = [...row.children].filter((el) => { const a = ntActive(el); if (a && !el._act) el._seq = ++ntSeq; el._act = a; return a; });
+  const keepN = innerWidth >= 900 ? 2 : 1;   // 일반 알림은 폰 1개 · 넓은 화면 2개 (보복 카운트다운은 따로 항상)
+  const tr = act.filter((el) => !ESSENTIAL.has(el.id)).sort((a, b) => b._seq - a._seq);
+  for (const el of row.children) el.classList.toggle('ntOff', tr.indexOf(el) >= keepN);
+}
+function stepDock(real) {
+  dockT -= real; if (dockT > 0) return; dockT = 0.25;
+  const ts = $('topStack'), row = $('noticeRow'); if (!ts || !row) return;
+  for (const id of DOCK) { const el = $(id); if (el && el.parentElement !== row) { row.appendChild(el); el._act = false; } }
+  if (!ntObs) { ntObs = new MutationObserver(arrangeNotices); ntObs.observe(row, { attributes: true, subtree: true, attributeFilter: ['class'] }); }
+  const hud = $('hud'), play = G.state === 'play' && hud && !hud.classList.contains('hidden');
+  const top = play && innerWidth < 900 ? Math.round(hud.getBoundingClientRect().bottom) + 4 : 12;
+  if (ts._top !== top) { ts._top = top; ts.style.top = top + 'px'; }
+  ts.classList.toggle('over', !play);
+  // 월드 이름표: 멀리 빼면 숨김 (보스·우리 집은 maps.js·homePin 이 따로)
+  const far = cam.dist > (IS_TOUCH ? 1000 : 800);
+  for (const sp of lmLabels) sp.visible = !far;
+}
+const lmLabels = [];
 function updateHud() {
   $('hScore').textContent = won(G.price);
   $('hMeteor').textContent = G.meteors;
@@ -1646,7 +1686,7 @@ function resetCity() {
   timers.length = 0;
   hf.clear(); decals.clear(); smoke.clear(); fire.clear(); rings.clear();
   for (const m2 of meteors) scene.remove(m2.g); meteors.length = 0;
-  for (const p2 of pops) p2.el.remove(); pops.length = 0;
+  for (const p2 of pops) p2.el.remove(); pops.length = 0; { const f = $('feed'); if (f) f.innerHTML = ''; }
   setHome(G.home);
 }
 function homeNote() {
@@ -1777,7 +1817,7 @@ function frame(now) {
     stepMeteors(dt); stepSlabs(dt); stepLasers(dt); stepFeet(dt); stepChunks(dt); stepTrees(dt); rings.update(dt);
     const vh = innerHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     smoke.update(dt, vh); fire.update(dt, vh);
-    stepPops(real); MP.step(real); MK.step(real, dt); WAR.step(real, dt); AR.step(real, dt);
+    stepPops(real); stepDock(real); MP.step(real); MK.step(real, dt); WAR.step(real, dt); AR.step(real, dt);
     if (homeRing && homeRing.visible) { const s = city.B[G.home].rad * (1.25 + 0.15 * Math.sin(now / 250)); homeRing.scale.set(s, 1, s); }
     if (G.state === 'play') {
       if (G.armed) G.time -= dt;
@@ -1868,7 +1908,7 @@ async function initMarket() {
   fire = new Particles(scene, IS_TOUCH ? 1200 : 1600, glowTex, true);
   decals = new Decals(scene); rings = new Rings(scene);
   for (const l of data.labels) {
-    const sp = makeLabel(l.t); sp.position.set(l.u, (groundAt(l.u, -l.v) || 0) + (l.t === 'AK플라자' ? 118 : l.t === '서현역' ? 40 : 70), -l.v); scene.add(sp);
+    const sp = makeLabel(l.t); sp.position.set(l.u, (groundAt(l.u, -l.v) || 0) + (l.t === 'AK플라자' ? 118 : l.t === '서현역' ? 40 : 70), -l.v); scene.add(sp); lmLabels.push(sp);
   }
   await initMarket();
   const warApi = { G, city, data, scene, camera, cam, won, wonShort, banner, sfx, popup, rings, glowTex, updateHud, enemyStrike, MK, DEBUG, groundAt, renderWeapons,

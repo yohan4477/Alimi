@@ -152,3 +152,70 @@
 .colList .grid li.got { border-color: #f3c95a; background: #fffaf0; }
 .colList .grid li.lock .ic { filter: brightness(0) opacity(.22); }
 .colList .grid li.lock b { color: #a8adb5; }
+
+/* ===== 판 가운데 비우기 (요격·붕괴가 보이게) — 글자는 HUD 밑 위 띠, 인물은 왼쪽 아래 작게 ===== */
+#topStack { position: fixed; left: 8px; right: 8px; top: 130px; z-index: 18; pointer-events: none; display: flex; flex-direction: column; gap: 3px; }
+#topStack.over { z-index: 61; }
+#noticeRow { display: flex; justify-content: center; gap: 6px; min-width: 0; }
+#noticeRow > * { position: static !important; transform: none !important; inset: auto !important; width: auto !important; max-width: 100% !important; min-width: 0;
+  flex: 0 1 auto; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 6px rgba(0,0,0,.25) !important; }
+#noticeRow > .hidden, #noticeRow > .ntOff, #noticeRow > #banner:not(.show), #noticeRow > #colToast:not(.go) { display: none !important; }
+@keyframes ntIn { 0% { opacity: 0; scale: .75; } 12% { opacity: 1; scale: 1.06; } 22% { scale: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
+#noticeRow #banner { font-size: 17px; letter-spacing: -.5px; padding: 3px 12px; border-radius: 99px; background: rgba(20,24,32,.8); text-shadow: 0 2px 0 #b8341a; }
+#noticeRow #banner.show { animation: ntIn 1.5s ease-out forwards; }
+#noticeRow #colToast { font-size: 13px; padding: 4px 11px; }
+#noticeRow #colToast.go { animation: ntIn 1.8s ease-out forwards; }
+#noticeRow #mkCount { font-size: 12.5px; padding: 4px 10px; border-radius: 99px; }
+#noticeRow #mkCount b { font-size: 16px; } #noticeRow #mkCount small { display: inline; font-size: 11px; margin-left: 5px; }
+#noticeRow #mkCrash { display: flex; align-items: center; gap: 6px; padding: 3px 10px; border-width: 2px; border-radius: 99px; background: rgba(22,16,15,.9); }
+#noticeRow #mkCrash .t { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; min-width: 0; } #noticeRow #mkCrash .t b { font-size: 15px; }
+#noticeRow #mkCrash svg { width: 40px; height: 16px; margin: 0; flex: none; }
+#noticeRow #mkCrash .cap { font-size: 12px; flex: none; }
+#noticeRow #mkCrash.go { animation: ntIn 1.2s ease-out forwards; }
+#noticeRow #warBan { display: flex; align-items: center; gap: 6px; padding: 3px 12px; border-width: 2px; border-radius: 99px; background: rgba(20,26,36,.9); }
+#noticeRow #warBan.show { animation: ntIn 2.6s ease-out forwards; }
+#noticeRow #warBan .fl { margin: 0; flex: none; } #noticeRow #warBan .fl svg { width: 27px; height: 18px; }
+#noticeRow #warBan b { display: inline; font-size: 13.5px; letter-spacing: -.5px; overflow: hidden; text-overflow: ellipsis; animation: warShrink 2.6s linear forwards; }
+#noticeRow #warBan small { display: none; }
+@keyframes warShrink { 0%, 36% { font-size: 18px; } 44%, 100% { font-size: 13.5px; } }   /* 1초 뒤 띠로 줄어듦 */
+#feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; max-width: min(80vw, 440px); }
+#feed li { background: rgba(14,18,26,.45); color: #fff; font-size: 12.5px; font-weight: 800; line-height: 17px; padding: 1px 8px; border-radius: 7px; letter-spacing: -.3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; box-sizing: border-box; text-shadow: 0 1px 2px rgba(0,0,0,.6); transition: opacity .4s; animation: fdIn .2s ease-out; }
+#feed li.out { opacity: 0; }
+#feed em { font-style: normal; color: #ffd24a; } #feed b { color: #ffb08a; } #feed small { font-size: 10.5px; opacity: .75; font-weight: 600; }
+@keyframes fdIn { from { opacity: 0; translate: -8px 0; } }
+@media (min-width: 900px) { #noticeRow #banner { font-size: 22px; } #feed li { font-size: 13.5px; line-height: 19px; } }
+/* 맞은 자리 작은 숫자: 배경 없음 */
+.pop.fl { font-size: 13px; font-weight: 900; color: #ffe27a; background: none; padding: 0; text-shadow: 0 1px 2px rgba(0,0,0,.9), 0 0 6px rgba(0,0,0,.55); }
+@media (min-width: 900px) { .pop.fl { font-size: 15px; } }
+/* 인물: 한 번에 하나, 왼쪽 아래(무기 줄 위) 작은 얼굴 + 한 줄 말풍선, 눌러서 닫기 (maps.js 가 넣는 <style> 보다 우선하게 body 붙임) */
+body #mkChair, body #mpChar { position: fixed; left: 6px; right: auto; top: auto; bottom: calc(env(safe-area-inset-bottom) + 96px); width: 60px; height: 71px; z-index: 16; display: block; cursor: pointer; pointer-events: auto; }
+body #mkChair.hidden, body #mpChar.hidden { display: none; }
+body #mkFig svg, body #mpFig svg { width: 60px; height: 71px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.3)); }
+body #mkChair .who, body #mpChar .who { display: none; }
+body #mkChair .bub, body #mpChar .bub { position: absolute; left: 62px; bottom: 60px; margin: 0; font-size: 13px; font-weight: 900; line-height: 18px; padding: 3px 9px; border-width: 2px; border-radius: 10px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100vw - 80px); box-sizing: border-box; }
+body #mkChair .bub::after, body #mpChar .bub::after { display: none; }
+body #mkChair .bub i, body #mpChar .bub i { font-style: normal; font-size: 10px; font-weight: 800; color: #fff; background: #c8281e; border-radius: 99px; padding: 0 6px; margin-right: 2px; vertical-align: 1px; }
+body #mpChar .bub i { background: #1d4fa0; }
+body #mkChair.in, body #mpChar.in { animation: chIn .3s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes chIn { from { transform: translateX(-120%); } to { transform: none; } }
+@media (min-width: 900px) {
+  body #mkChair .bub, body #mpChar .bub { bottom: 40px; max-width: 420px; font-size: 14px; }
+  /* 넓은 화면: 위 띠는 왼쪽 위 (HUD 옆), 미션 목록은 오른쪽 (가상 주가판 밑) */
+  #topStack { right: auto; width: min(420px, calc(50vw - 330px)); }
+  #noticeRow { justify-content: flex-start; flex-wrap: wrap; }
+  #hud #missions { position: fixed; right: 12px; top: calc(env(safe-area-inset-top) + 124px); margin: 0; align-items: flex-end; max-width: 300px; }
+}
+#noticeRow { flex-wrap: wrap; }   /* 보복 카운트다운 + 알림 하나 → 폰은 두 줄까지 */
+@media (max-width: 899px) { #mkDef { left: 74px; right: 8px; transform: none; justify-content: center; } #mkDef button { padding: 9px 12px; font-size: 14px; } }
+/* 월드 표시: 작게·반투명 */
+#mkZone { width: 64px; font-size: 11px; background: rgba(200,40,30,.55); padding: 2px 0; border-radius: 7px; }
+/* 위 띠 높이 고정 (두 줄이어도 판 가운데 22% 선 위) */
+#noticeRow { row-gap: 2px; }
+#noticeRow > * { line-height: 20px !important; padding-top: 2px !important; padding-bottom: 2px !important; }
+#noticeRow #mkCount b, #noticeRow #banner, #noticeRow #mkCrash .t b { line-height: 20px; }
+@media (min-width: 900px) {
+  #hud #missions { top: calc(env(safe-area-inset-top) + 112px); gap: 2px; }
+  #hud #missions li { font-size: 12px; line-height: 16px; padding: 1px 8px; }
+}

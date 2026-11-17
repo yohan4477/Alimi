@@ -296,6 +296,6 @@ export function makeLabel(text) {
   g.fillStyle = '#1d2430'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 128, 35);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
-  sp.scale.set(64, 18, 1); sp.renderOrder = 10;
+  sp.scale.set(46, 13, 1); sp.renderOrder = 10; sp.material.opacity = 0.75;   // 작게·반투명
   return sp;
 }
