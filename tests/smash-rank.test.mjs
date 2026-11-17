@@ -4,7 +4,7 @@ import {createSmashRankHandler, hashPin, checkPin} from '../api/smash-rank.js';
 
 // 아주 작은 PostgREST 흉내: smash_scores / smash_players, eq 필터, POST/PATCH, count
 function fakeDb() {
-  const t = {smash_scores: [], smash_players: []};
+  const t = {smash_scores: [], smash_players: [], smash_progress: []};
   const fetcher = async (url, opt = {}) => {
     const u = new URL(url), name = u.pathname.split('/').pop(), rows = t[name], q = u.searchParams;
     const filt = (r) => [...q.entries()].every(([k, v]) => !v.startsWith('eq.') || String(r[k]) === v.slice(3)) &&
@@ -12,6 +12,7 @@ function fakeDb() {
     if (opt.method === 'POST') {
       const b = JSON.parse(opt.body);
       if (name === 'smash_players' && rows.some((r) => r.nickname === b.nickname)) return new Response(null, {status: 409});
+      if (name === 'smash_progress') { const i = rows.findIndex((r) => r.nickname === b.nickname); if (i >= 0) { rows[i] = {...rows[i], ...b}; return new Response(null, {status: 201}); } }
       rows.push({...b, created_at: new Date().toISOString(), updated_at: b.updated_at || new Date().toISOString()});
       return new Response(null, {status: 201});
     }
@@ -24,9 +25,9 @@ function fakeDb() {
   };
   return {t, fetcher};
 }
-async function call(h, method, body, ip = '1.1.1.1') {
+async function call(h, method, body, ip = '1.1.1.1', action = '') {
   const res = {setHeader() {}, end(b) { this.body = JSON.parse(b); }};
-  await h({method, url: '/api/smash-rank?game=seohyeon', headers: {origin: 'https://seoulbeauty.me', 'x-forwarded-for': ip, 'user-agent': 't'}, body}, res);
+  await h({method, url: '/api/smash-rank?game=seohyeon' + (action ? '&action=' + action : ''), headers: {origin: 'https://seoulbeauty.me', 'x-forwarded-for': ip, 'user-agent': 't'}, body}, res);
   return [res.statusCode, res.body];
 }
 
@@ -59,4 +60,19 @@ test('five wrong pins lock the nickname', async () => {
   await call(h, 'POST', {nickname: '민수', pin: 'abcd', score: 1}, 'x0');
   for (let i = 1; i <= 5; i++) assert.equal((await call(h, 'POST', {nickname: '민수', pin: 'zzzz', score: 2}, 'x' + i))[0], 403);
   assert.equal((await call(h, 'POST', {nickname: '민수', pin: 'abcd', score: 2}, 'x9'))[0], 423);
+});
+
+test('progress save/load needs the right pin', async () => {
+  const db = fakeDb();
+  const h = createSmashRankHandler({env: {SUPABASE_SECRET_KEY: 'sb_secret_x'}, fetcher: db.fetcher});
+  let [s, b] = await call(h, 'POST', {nickname: '지수', pin: 'pass1', data: {arsenal: {k9: 2}, cash: 5}}, 'p1', 'save');
+  assert.equal(s, 200); assert.equal(b.created, true);
+  [s, b] = await call(h, 'POST', {nickname: '지수', pin: 'pass1', data: {arsenal: {k9: 3}, cash: 9}}, 'p2', 'save');
+  assert.equal(s, 200);
+  [s, b] = await call(h, 'POST', {nickname: '지수', pin: 'pass1'}, 'p3', 'load');
+  assert.equal(s, 200); assert.deepEqual(b.data, {arsenal: {k9: 3}, cash: 9});
+  [s] = await call(h, 'POST', {nickname: '지수', pin: 'nope'}, 'p4', 'load');
+  assert.equal(s, 403);
+  [s] = await call(h, 'POST', {nickname: '지수', pin: 'pass1', data: [1, 2]}, 'p5', 'save');
+  assert.equal(s, 400);
 });

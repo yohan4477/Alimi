@@ -1,4 +1,5 @@
-// 「서현역 부수기」 순위표 API. GET ?game=seohyeon → 상위 20 + 내 점수 순위(?score=), POST {nickname, pin, score, destroyed} → 등록(닉네임 첫 등록이면 비밀번호 설정, 이후엔 비밀번호 확인, 닉네임당 최고 점수만).
+// 「서현역 부수기」 순위표·진행 저장 API. POST ?action=load|save {nickname, pin, data} → 진행(무기고·해금·도감) 불러오기/저장.
+// 순위표 API. GET ?game=seohyeon → 상위 20 + 내 점수 순위(?score=), POST {nickname, pin, score, destroyed} → 등록(닉네임 첫 등록이면 비밀번호 설정, 이후엔 비밀번호 확인, 닉네임당 최고 점수만).
 // Supabase public.smash_scores (migration 20261117090000). 테이블이 없으면 503.
 import {createHash, scryptSync, randomBytes, timingSafeEqual} from 'node:crypto';
 const ALLOWED = new Set(['https://seoulbeauty.me', 'https://www.seoulbeauty.me', 'https://alimi-omega.vercel.app']);
@@ -6,6 +7,8 @@ const URL_BASE = 'https://mqsnshnlfwsgabrsmqsz.supabase.co/rest/v1/smash_scores'
 const MAX_SCORE = 1e17;            // 원. 도시 전체 추정 집값보다 넉넉히 큰 상한
 const COOLDOWN_MS = 20000;         // 같은 접속에서 20초에 한 번
 const BAD = /[\u0000-\u001f<>]/;
+const PROGRESS = 'https://mqsnshnlfwsgabrsmqsz.supabase.co/rest/v1/smash_progress';
+const MAX_PROGRESS = 30000;   // 진행 저장 JSON 최대 바이트
 const PLAYERS = 'https://mqsnshnlfwsgabrsmqsz.supabase.co/rest/v1/smash_players';
 const MAX_FAILS = 5, LOCK_MS = 10 * 60 * 1000;   // 비밀번호 5번 틀리면 10분 잠금
 export const hashPin = (pin, salt = randomBytes(16).toString('hex')) => 'scrypt$' + salt + '$' + scryptSync(pin, salt, 32).toString('hex');
@@ -56,15 +59,18 @@ export function createSmashRankHandler({env = process.env, fetcher = fetch} = {}
       let body = req.body;
       if (body === undefined) {
         const chunks = []; let size = 0;
-        for await (const c of req) { size += c.length; if (size > 1024) return send(413, {error: 'Too large'}); chunks.push(c); }
+        for await (const c of req) { size += c.length; if (size > MAX_PROGRESS + 2048) return send(413, {error: 'Too large'}); chunks.push(c); }
         body = Buffer.concat(chunks).toString();
       }
-      if (typeof body === 'string') { if (Buffer.byteLength(body) > 1024) return send(413, {error: 'Too large'}); try { body = JSON.parse(body); } catch { return send(400, {error: 'Invalid JSON'}); } }
+      if (typeof body === 'string') { if (Buffer.byteLength(body) > MAX_PROGRESS + 2048) return send(413, {error: 'Too large'}); try { body = JSON.parse(body); } catch { return send(400, {error: 'Invalid JSON'}); } }
+      const action = u.searchParams.get('action') || 'score';
+      if (action === 'score' && Buffer.byteLength(JSON.stringify(body ?? {})) > 1024) return send(413, {error: 'Too large'});
       const nickname = typeof body?.nickname === 'string' ? body.nickname.trim() : '';
       const score = Number(body?.score), destroyed = Number(body?.destroyed ?? 0);
       if (!nickname || [...nickname].length > 12 || BAD.test(nickname)) return send(400, {error: '닉네임은 1~12자'});
-      if (!Number.isInteger(score) || score < 0 || score >= MAX_SCORE) return send(400, {error: 'Invalid score'});
-      if (!Number.isInteger(destroyed) || destroyed < 0 || destroyed > 100000) return send(400, {error: 'Invalid destroyed'});
+      if (action === 'score' && (!Number.isInteger(score) || score < 0 || score >= MAX_SCORE)) return send(400, {error: 'Invalid score'});
+      if (action === 'score' && (!Number.isInteger(destroyed) || destroyed < 0 || destroyed > 100000)) return send(400, {error: 'Invalid destroyed'});
+      if (!['score', 'load', 'save'].includes(action)) return send(400, {error: 'Invalid action'});
       const pin = typeof body?.pin === 'string' ? body.pin : '';
       if ([...pin].length < 4 || [...pin].length > 20) return send(400, {error: '비밀번호는 4~20자'});
       const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'none';
@@ -72,7 +78,7 @@ export function createSmashRankHandler({env = process.env, fetcher = fetch} = {}
       const recent = await get({select: 'updated_at', client_hash: 'eq.' + client_hash, order: 'updated_at.desc', limit: '1'});
       if (!recent.ok) return send(503, {error: 'Please try again'});
       const last = (await recent.json())[0];
-      if (last && Date.now() - Date.parse(last.updated_at) < COOLDOWN_MS) return send(429, {error: '잠시 후 다시 등록해 주세요'});
+      if (action === 'score' && last && Date.now() - Date.parse(last.updated_at) < COOLDOWN_MS) return send(429, {error: '잠시 후 다시 등록해 주세요'});
       // 닉네임 주인 확인
       const pr = await fetcher(PLAYERS + '?' + new URLSearchParams({select: 'pin_hash,fail_count,locked_until', nickname: 'eq.' + nickname}), {headers, redirect: 'error', signal: AbortSignal.timeout(8000)});
       if (!pr.ok) return send(503, {error: 'Please try again'});
@@ -92,6 +98,21 @@ export function createSmashRankHandler({env = process.env, fetcher = fetch} = {}
           return send(403, {error: '이미 있는 닉네임이에요. 비밀번호가 달라요'});
         }
         if (player.fail_count) await patchPlayer({fail_count: 0, locked_until: null});
+      }
+      // 진행 저장/불러오기 (닉네임 주인만)
+      if (action === 'load') {
+        const r = await fetcher(PROGRESS + '?' + new URLSearchParams({select: 'data,updated_at', nickname: 'eq.' + nickname}), {headers, redirect: 'error', signal: AbortSignal.timeout(8000)});
+        if (!r.ok) return send(503, {error: 'Please try again'});
+        const row = (await r.json())[0];
+        return send(200, {ok: true, created, data: row ? row.data : null, updated_at: row ? row.updated_at : null});
+      }
+      if (action === 'save') {
+        const data = body?.data;
+        if (!data || typeof data !== 'object' || Array.isArray(data) || Buffer.byteLength(JSON.stringify(data)) > MAX_PROGRESS) return send(400, {error: 'Invalid data'});
+        const r = await fetcher(PROGRESS + '?on_conflict=nickname', {method: 'POST', headers: {...headers, Prefer: 'resolution=merge-duplicates,return=minimal'},
+          body: JSON.stringify({nickname, data, updated_at: new Date().toISOString()}), redirect: 'error', signal: AbortSignal.timeout(8000)});
+        if (!r.ok) return send(503, {error: 'Could not save'});
+        return send(200, {ok: true, created});
       }
       // 닉네임당 최고 점수 한 줄
       const cur = await get({select: 'score', game: 'eq.' + game, nickname: 'eq.' + nickname, limit: '1'});
