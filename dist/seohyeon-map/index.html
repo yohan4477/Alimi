@@ -201,19 +201,24 @@ const qEl = $("q"), resEl = $("results");
 const norm = s => (s || "").toLowerCase().replace(/\s+/g, "");
 function search(q) {
   const n = norm(q); if (!n) return [];
-  const out = [];
+  const out = [], toks = q.trim().toLowerCase().split(/\s+/).filter(Boolean).map(t => t.replace(/동$/, "") || t);
   for (const p of PLACES) if (norm(p.n).includes(n) || (n.length >= 2 && norm(p.k).includes(n))) out.push({ place: p, title: p.n, sub: "장소 · " + p.k });
   for (const b of BLDG) {
     const name = norm((b.n || "") + (b.d || "")); let hit = null;
     if (name && name.includes(n)) hit = { b, title: (b.n || "") + (b.d ? " " + b.d : ""), sub: [b.a, b.k, b.f ? b.f + "층" : ""].filter(Boolean).join(" · ") };
-    else if ((b.a && norm(b.a).includes(n)) || (b.j && norm(b.j).includes(n))) hit = { b, title: norm(b.a).includes(n) ? b.a : b.j, sub: [b.n || b.k, b.f ? b.f + "층" : ""].filter(Boolean).join(" · ") };
+    else if ((b.a && norm(b.a).includes(n)) || (b.j && norm(b.j).includes(n)) || (toks.length > 1 && toks.every(t => [b.a, b.j, (b.n || "") + (b.d || "")].some(f => f && (isNaN(t) ? norm(f).includes(t) : (norm(f).match(/\d+/g) || []).includes(t)))))) {
+      // 주소 검색: 한 단지 여러 동이 같은 주소를 쓰므로 제목은 건물명+동, 주소는 부제로
+      const nm = (b.n || "") + (b.d ? " " + b.d : "");
+      hit = { b, title: nm.trim() || b.a || b.j, sub: [b.a || b.j, b.f ? b.f + "층" : ""].filter(Boolean).join(" · "), addr: 1 };
+    }
     else { const shop = (b.s || []).find(s => norm(s).includes(n));
       if (shop) hit = { b, title: shop, sub: "가게 · " + (b.n || b.k || "건물") };
       else if (n.length >= 2 && norm(b.k).includes(n)) hit = { b, title: b.n || b.k, sub: [b.k, b.f ? b.f + "층" : "", b.y ? b.y + "년" : ""].filter(Boolean).join(" · ") }; }
     if (hit) out.push(hit);
   }
-  const sc = r => (norm(r.title) === n ? 0 : norm(r.title).startsWith(n) ? 1 : 2) * 1000 + (r.title || "").length - (r.place ? 1500 : 0);
-  return out.sort((a, b) => sc(a) - sc(b)).slice(0, 40);
+  const sc = r => (norm(r.title) === n ? 0 : norm(r.title).startsWith(n) ? 1 : 2) * 1000 + (r.addr ? 0 : (r.title || "").length) - (r.place ? 1500 : 0);
+  const dn = r => +(((r.b && r.b.d) || "").match(/(\d+)동/) || [0, 1e6])[1];   // 같은 점수면 동 번호 순
+  return out.sort((a, b) => sc(a) - sc(b) || dn(a) - dn(b)).slice(0, 60);
 }
 let cur = [], sel = -1;
 function go(r) { r.place ? flyToPlace(r.place) : flyTo(r.b); resEl.hidden = true; }
