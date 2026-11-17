@@ -296,7 +296,7 @@ function startAnim(A) {
   function posOn(ei, from, t, off) {
     const e = E[ei]; let a = N[e[0]], b = N[e[1]]; if (e[0] !== from) [a, b] = [b, a];
     const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
-    return [a[0] + dx * t + uy * off, a[1] + dy * t - ux * off, ux, uy];
+    return [a[0] + dx * t + uy * off, a[1] + dy * t - ux * off, ux, uy, (a[2] || 0) * (1 - t) + (b[2] || 0) * t];   // 5번째 = 육교 위 높이
   }
   const carGeo = c => posOn(c.ei, c.from, c.t, laneOff(E[c.ei], c.li));
   const pedOff = (e, s) => e[2] === 1 ? 0 : s * (e[3] / 2 + 1.3);
@@ -352,14 +352,14 @@ function startAnim(A) {
     quad(c.map(q => P(q[0], q[1], z1)), sh(col, 1.06));
   }
   function drawCar(c, g) {
-    const [u, v, ux, uy] = g;
-    if (T.s < 0.25) { const [x, y] = P(u, v, .8), r = Math.max(2.2, T.s * 9); ctx.fillStyle = sh(c.col, 1); ctx.fillRect(x - r, y - r * .7, r * 2, r * 1.1); return; }
-    quad([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => P(u + a * ux * 2.2 - b * uy * .9 + .5, v + a * uy * 2.2 + b * ux * .9, 0)), "rgba(20,24,40,.25)");
-    box(u, v, ux, uy, 2.2, .9, 0, .9, c.col);
-    box(u - ux * .2, v - uy * .2, ux, uy, 1.1, .8, .9, 1.5, [52, 62, 78]);
+    const [u, v, ux, uy, h = 0] = g;
+    if (T.s < 0.25) { const [x, y] = P(u, v, h + .8), r = Math.max(2.2, T.s * 9); ctx.fillStyle = sh(c.col, 1); ctx.fillRect(x - r, y - r * .7, r * 2, r * 1.1); return; }
+    quad([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => P(u + a * ux * 2.2 - b * uy * .9 + .5, v + a * uy * 2.2 + b * ux * .9, h)), "rgba(20,24,40,.25)");
+    box(u, v, ux, uy, 2.2, .9, h, h + .9, c.col);
+    box(u - ux * .2, v - uy * .2, ux, uy, 1.1, .8, h + .9, h + 1.5, [52, 62, 78]);
   }
   function drawPed(p, g, now) {
-    const [x, y] = P(g[0], g[1], 0), s = T.s * A.S / 3;
+    const [x, y] = P(g[0], g[1], g[4] || 0), s = T.s * A.S / 3;
     const bob = Math.sin(now / 160 + p.ph) * .25 * s, w = Math.max(1.5, .9 * s);
     ctx.fillStyle = "rgba(20,24,40,.25)"; ctx.fillRect(x - w, y - .3 * s, w * 2, .6 * s);
     ctx.fillStyle = "#3a3f4a"; ctx.fillRect(x - w / 2, y - 1.4 * s + bob, w, 1.4 * s);
@@ -367,9 +367,18 @@ function startAnim(A) {
     ctx.fillStyle = "#e8c4a0"; ctx.fillRect(x - w * .4, y - 4.5 * s + bob, w * .8, .9 * s);
     ctx.fillStyle = "#2a2622"; ctx.fillRect(x - w * .4, y - 4.5 * s + bob, w * .8, .32 * s);
   }
-  function withClip(blds, fn) {
-    if (!blds.size) { fn(); return; }
+  const OCC = (A.occ || []).map(o => { const [x, y, w, h] = bbox(o.p); return Object.assign(o, { bb: [x, y, x + w, y + h] }); });
+  // 육교 상판 아래·뒤(땅 깊이가 상판 앞끝보다 안쪽)에 있고 상판보다 낮은 것은 상판 윤곽 바깥만 그림
+  function deckCover(pts, gy, h) { const out = [];
+    for (const o of OCC) { if (h > o.h - .5 || gy > o.y + .5) continue; const bb = o.bb;
+      if (pts.some(([x, y]) => x >= bb[0] && x <= bb[2] && y >= bb[1] && y <= bb[3] && inPoly(x, y, o.p))) out.push(o); }
+    return out; }
+  function withClip(blds, fn, decks) {
+    if (!blds.size && !(decks && decks.length)) { fn(); return; }
     ctx.save();
+    for (const o of decks || []) { const p = o.p; ctx.beginPath(); ctx.rect(-1e5, -1e5, 2e5, 2e5);
+      ctx.moveTo(T.x0 + p[0] * T.s, T.y0 + p[1] * T.s); for (let k = 2; k < p.length; k += 2) ctx.lineTo(T.x0 + p[k] * T.s, T.y0 + p[k + 1] * T.s);
+      ctx.closePath(); ctx.clip("evenodd"); }
     for (const i of blds) { const p = BLDG[i].p; ctx.beginPath(); ctx.rect(-1e5, -1e5, 2e5, 2e5);
       ctx.moveTo(T.x0 + p[0] * T.s, T.y0 + p[1] * T.s); for (let k = 2; k < p.length; k += 2) ctx.lineTo(T.x0 + p[k] * T.s, T.y0 + p[k + 1] * T.s);
       ctx.closePath(); ctx.clip("evenodd"); }
@@ -397,11 +406,11 @@ function startAnim(A) {
       if (T.s >= .35) for (const p of peds) { const g = pedGeo(p), [x, y] = IX(g[0], g[1]); if (x > vx0 && x < vx1 && y > vy0 && y < vy1) items.push([1, p, g, y]); }
       items.sort((a, b) => a[3] - b[3]);
       for (const [k, o, g] of items) {
-        const [u, v, ux, uy] = g;
-        const pts = k ? [IX(u, v)] : [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, 0]].map(([a, b]) => IX(u + a * ux * 2.2 - b * uy * .9, v + a * uy * 2.2 + b * ux * .9));
-        const cov = covering(pts);
+        const [u, v, ux, uy, h = 0] = g;
+        const pts = k ? [IX(u, v, h), IX(u, v, h + 1.6)] : [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, 0]].map(([a, b]) => IX(u + a * ux * 2.2 - b * uy * .9, v + a * uy * 2.2 + b * ux * .9, h + .8));
+        const cov = covering(pts), dc = deckCover(pts, IX(u, v)[1], h);
         if (k && cov.size) continue;
-        withClip(cov, () => k ? drawPed(o, g, now) : drawCar(o, g));
+        withClip(cov, () => k ? drawPed(o, g, now) : drawCar(o, g), dc);
       }
       ctx.globalAlpha = 1;
     } catch (e) { window.__animErr = String(e && e.stack || e); }
