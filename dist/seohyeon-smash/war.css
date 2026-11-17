@@ -1,0 +1,95 @@
+/* ===== 참전 (war.js) ===== */
+.flag { display: inline-block; vertical-align: middle; border-radius: 2px; box-shadow: 0 0 0 .5px rgba(0,0,0,.2); }
+#warGauge { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top) + 1px); width: min(96vw, 560px); height: 12px; z-index: 9;
+  display: flex; align-items: center; gap: 4px; pointer-events: none; }
+#warGauge.hidden { display: none; }
+#warGauge .bar { flex: 1; height: 6px; border-radius: 99px; background: #3a6fd8; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+#warGauge .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #d2451e, #ff7a3a); transition: width .25s linear; }
+#warGauge .bar b { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: rgba(255,255,255,.9); }
+#warGauge .side { display: flex; align-items: center; gap: 2px; white-space: nowrap; }
+#warGauge .side span { opacity: .45; line-height: 0; }
+#warGauge .side span.on { opacity: 1; filter: drop-shadow(0 0 3px #ffd24a); }
+#warGauge .side .def { font-size: 10px; opacity: 1; line-height: 1; }
+#warGauge .side em { font-style: normal; font-size: 9.5px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.7); display: none; }
+@media (min-width: 900px) { #warGauge { top: calc(env(safe-area-inset-top) + 2px); } #warGauge .side em { display: inline; } }
+
+#warBan { position: fixed; left: 50%; top: 31%; transform: translate(-50%,-50%); z-index: 17; pointer-events: none; text-align: center; color: #fff;
+  background: #141a24; border-radius: 18px; padding: 12px 18px 11px; max-width: 92vw; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+#warBan.hidden { display: none; }
+#warBan.show { animation: warIn 2.6s ease-out forwards; }
+#warBan.p { border: 3px solid #ff7a3a; } #warBan.d { border: 3px solid #5aa0ff; }
+#warBan .fl { line-height: 0; margin-bottom: 6px; }
+#warBan .fl .flag { box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+#warBan b { display: block; font-size: 24px; font-weight: 900; letter-spacing: -1px; white-space: nowrap; }
+#warBan small { display: block; white-space: nowrap; font-size: 12px; font-weight: 700; color: #cfd6e2; margin-top: 3px; }
+@media (max-width: 420px) { #warBan b { font-size: 20px; } }
+@keyframes warIn { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.6); } 10% { opacity: 1; transform: translate(-50%,-50%) scale(1.08); }
+  18% { transform: translate(-50%,-50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-56%) scale(1); } }
+
+.warNote { margin-top: 4px !important; color: #3a4a6a !important; }
+#warEnd { margin: 8px 0 4px; font-size: 13.5px; }
+#warEnd.hidden { display: none; }
+#warEnd .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; }
+#warEnd .lab { font-weight: 800; color: #556; margin-right: 4px; }
+#warEnd .fc { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; }
+#warEnd .fc small { font-size: 10.5px; font-weight: 800; }
+#warEnd .fc.p small { color: #c2421c; } #warEnd .fc.d small { color: #2d62b8; }
+#warEnd i { font-style: normal; color: #aab; }
+#warEnd .none { color: #889; }
+#warEnd .res { margin-top: 6px; text-align: center; font-weight: 700; }
+#warEnd .res b { font-size: 18px; margin: 0 2px; } #warEnd .res.win b { color: #d2451e; } #warEnd .res.lose b { color: #2d62b8; }
+#warEnd .res small { color: #778; }
+
+/* ===== K-무기고 (arsenal.js) ===== */
+#weapons.ar { gap: 5px; }
+#weapons.ar .wp { width: min(82px, calc((100vw - 46px) / 5)); position: relative; overflow: hidden; }
+.wp .kic { font-size: 13px !important; font-weight: 900; letter-spacing: -.5px; height: 26px; line-height: 26px; color: #1d2b4a; }
+.wp.on .kic { color: #fff; }
+.wp .lv { display: block; font-size: 9.5px; font-weight: 800; color: #6a7484; }
+.wp.on .lv { color: #ffe0d0; }
+.wp.pas { background: rgba(225,240,255,.94); }
+.wp .cdv { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: rgba(20,28,40,.55); color: #fff; font-style: normal; font-weight: 900; font-size: 15px;
+  display: flex; align-items: flex-start; justify-content: center; pointer-events: none; }
+.wp.arBtn { background: #1d2b4a; color: #fff; }
+.wp.arBtn .kic { color: #ffd24a; font-size: 18px !important; }
+
+#arSheet { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 76px); width: min(96vw, 460px); max-height: min(70vh, 640px);
+  z-index: 18; background: #fffdf8; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.35); display: flex; flex-direction: column; overflow: hidden; color: #263040; }
+#arSheet.hidden { display: none; }
+#arSheet .hd { display: flex; align-items: center; gap: 8px; padding: 10px 12px 6px; }
+#arSheet .hd b { font-size: 17px; font-weight: 900; }
+#arSheet .hd span { flex: 1; font-size: 11.5px; color: #6a7484; }
+#arSheet .hd em { font-style: normal; font-weight: 900; color: #d2451e; }
+#arSheet .x { border: 0; background: #eef1f5; border-radius: 9px; width: 32px; height: 32px; font-size: 15px; cursor: pointer; }
+#arSheet .slots { padding: 0 12px 6px; border-bottom: 1px solid #eceae4; }
+#arSheet .slots small { font-size: 10.5px; color: #8a909a; }
+#arSheet .sl { display: flex; gap: 5px; margin-top: 3px; }
+#arSheet .slot { flex: 1; min-width: 0; border: 2px solid #dde1e8; background: #fff; border-radius: 10px; font: inherit; font-size: 11px; font-weight: 800; padding: 3px 2px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #263040; }
+#arSheet .slot .kic { display: block; font-size: 13px; }
+#arSheet .slot.sel { border-color: #d2451e; background: #fff1ea; }
+#arSheet .list { overflow-y: auto; padding: 0 12px 6px; -webkit-overflow-scrolling: touch; }
+#arSheet section h4 { margin: 10px 0 2px; font-size: 13px; display: flex; align-items: baseline; gap: 6px; }
+#arSheet .mkb { background: #1d2b4a; color: #fff; border-radius: 6px; padding: 2px 7px; font-size: 12px; }
+#arSheet h4 small { font-size: 10px; color: #8a909a; font-weight: 700; }
+#arSheet ul { list-style: none; margin: 0; padding: 0; }
+#arSheet li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid #f0eee8; }
+#arSheet li .kic { flex: none; width: 40px; text-align: center; font-size: 12px; font-weight: 900; background: #eef2f8; border-radius: 8px; padding: 6px 0; color: #1d2b4a; }
+#arSheet li .kic.b { font-size: 18px; background: #f6f3ec; }
+#arSheet li .tx { flex: 1; min-width: 0; font-size: 13px; }
+#arSheet li .tx small { display: block; font-size: 11px; color: #6a7484; }
+#arSheet li .tx .free { display: block; font-style: normal; font-size: 10.5px; color: #2b7a46; font-weight: 700; }
+#arSheet .dots i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #dde1e8; margin-right: 2px; }
+#arSheet .dots i.y { background: #d2451e; }
+#arSheet li .bt { display: flex; flex-direction: column; gap: 4px; flex: none; }
+#arSheet li button { border: 0; font: inherit; font-size: 12px; font-weight: 800; border-radius: 9px; padding: 6px 9px; cursor: pointer; background: #d2451e; color: #fff; white-space: nowrap; }
+#arSheet li button small { font-weight: 700; opacity: .85; }
+#arSheet li button[data-eq] { background: #1d2b4a; }
+#arSheet li button:disabled { background: #d8dce3; color: #8a909a; cursor: default; }
+#arSheet .arNote { margin: 0; padding: 6px 12px 9px; font-size: 10.5px; color: #8a909a; border-top: 1px solid #eceae4; }
+#arStock { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 164px); transform: translateX(-50%); z-index: 12; pointer-events: none; opacity: 0;
+  background: rgba(16,60,34,.9); color: #fff; font-size: 12.5px; font-weight: 700; padding: 4px 11px; border-radius: 99px; white-space: nowrap; }
+#arStock em { font-style: normal; color: #7dff9e; font-weight: 900; } #arStock small { opacity: .7; font-size: 10px; }
+#arStock.go { animation: arUp 1.8s ease-out forwards; }
+@keyframes arUp { 0% { opacity: 0; transform: translate(-50%, 8px); } 12% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -10px); } }
+.arEnd { margin: 4px 0; font-size: 12.5px; text-align: center; color: #2b6a3c; }
+.arEnd.hidden { display: none; }

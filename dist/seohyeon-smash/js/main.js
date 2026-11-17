@@ -2,6 +2,10 @@
 import * as THREE from 'three';
 import { buildCity, makeLabel, pip, pipRings, distToRing, ringArea } from './city.js';
 import { Particles, Decals, Rings, Sfx, glowTex } from './fx.js';
+import * as MK from './market.js';   // 가상 주가·회장님·보복·방어 상점
+import * as WAR from './war.js';   // 참전 (게임 속 가상 전쟁)
+import * as AR from './arsenal.js';   // K-무기고
+import * as MP from './maps.js';   // 지도 고르기·캠페인 단계·삼성 거점 보스
 
 const $ = (id) => document.getElementById(id);
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches;
@@ -55,7 +59,7 @@ scene.add(boomLight);
 
 // ---------- 카메라
 const PORTRAIT = () => innerWidth < innerHeight;
-const MAXD = () => (PORTRAIT() ? 4300 : 2800);
+const MAXD = () => (PORTRAIT() ? 4300 : 2800) * Math.max(1, (data && data.R ? data.R : 1000) / 1000);
 const cam = { tx: 0, tz: 0, dist: innerWidth < innerHeight ? 4300 : 2700, el: THREE.MathUtils.degToRad(34), az: THREE.MathUtils.degToRad(45),
   shake: 0, anim: null };
 function placeCamera() {
@@ -130,7 +134,9 @@ function unlocked(w) {
   return false;
 }
 function renderWeapons() {
-  const el = $('weapons'); el.innerHTML = '';
+  const el = $('weapons');
+  if (AR.render(el, WEAPONS, unlocked, (id) => { G.weapon = id; renderWeapons(); showModeHint(); })) return;
+  el.innerHTML = '';
   for (const w of WEAPONS) {
     const ok = unlocked(w);
     const b = document.createElement('button');
@@ -336,7 +342,9 @@ function applyCut(b, keep, shot) {
   if (live) G.destVol += b.vol * frac;
   const full = keep <= 0.01;
   if (full) { b.gone = true; if (live) G.dest++; shot.full++; decals.rubble(b, b.base + 0.05); }
+  MP.onCut(b, full, val, live);
   missionEvent('cut', { b, val, full, shot });
+  MK.onCut(b, live ? frac : 0, val);
   if (b.i === G.home && live) homeHit(full);
   return { b, val, full, floors: Math.max(1, Math.round(b.d.f * frac)) };
 }
@@ -535,6 +543,7 @@ function chainPopup(shot, pos, n, mult) {
 
 // 높은 건물이면 쓰러뜨리고, 아니면 폭발
 function knock(b, keep, gp, power, R, shot, dirFrom, opt = {}) {
+  { const k2 = MP.armor(b, keep); if (k2 !== keep) { keep = k2; if (k2 > 0) opt = Object.assign({}, opt, { noTopple: true }); } }   // 거점·본사·팹은 여러 번 (마지막 방은 통째로)
   const canTopple = b.cur >= TALL && slabs.length < MAX_SLABS && (keep === 0 || opt.force) && !opt.noTopple;
   if (canTopple) {
     let dx = b.cx - dirFrom.x, dz = -b.cy - dirFrom.z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
@@ -652,19 +661,19 @@ function stepMeteors(dt) {
       fire.emit(p.x + rnd(1.5), p.y + rnd(1.5), p.z + rnd(1.5), rnd(4), rnd(4), rnd(4), 0.45, 9 + m.R * 0.2, 2, 0.9, 1, 0.62, 0.25);
       if (s % 2 === 0) smoke.emit(p.x, p.y, p.z, rnd(2), rnd(2), rnd(2), 1.3, 6, 20, 0.35, 0.5, 0.47, 0.45);
     }
-    if (k >= 1) { scene.remove(m.g); m.g.children[0].material.dispose(); m.g.children[1].material.dispose(); meteors.splice(i, 1); impact(m.target, m.R); }
+    if (k >= 1 || (!m.wc && k > 0.6 && (m.wc = 1) && WAR.blockMeteor(m.g.position))) { scene.remove(m.g); m.g.children[0].material.dispose(); m.g.children[1].material.dispose(); meteors.splice(i, 1); if (k >= 1) impact(m.target, m.R); }
   }
 }
-function impact(p, R) {
+function impact(p, R, opt = {}) {   // opt.light: 지원·K무기 (번쩍·멈춤 없이 가볍게), opt.score: scoreHits 옵션
   const shot = newShot();
   const gy = groundAt(p.x, p.z) + 0.65;
   const gp = new THREE.Vector3(p.x, gy, p.z);
-  flash(0.55); hitstop(0.08); buzz(IS_TOUCH ? [35, 25, 60] : 40);
+  if (!opt.light) { flash(0.55); hitstop(0.08); buzz(IS_TOUCH ? [35, 25, 60] : 40); }
   boomLight.position.set(p.x, p.y + 25, p.z); boomLight.intensity = 9000; boomLight.distance = R * 8;
   shake(6 + R * 0.12);
   rings.add(gp.x, gp.y, gp.z, R); rings.add(gp.x, gp.y, gp.z, R * 0.6, 0xffb070, 0.6);
   decals.crater(gp.x, gp.y, gp.z, R * 0.55);
-  const lf = load();
+  const lf = load() * (opt.light ? 0.35 : 1);
   for (let i = 0; i < 40 * lf; i++) fire.emit(p.x + rnd(4), p.y + 2, p.z + rnd(4), rnd(R * 0.9), Math.random() * R * 0.9, rnd(R * 0.9), 0.5 + Math.random() * 0.5, 14 + R * 0.3, 30 + R * 0.5, 1, 1, 0.55 + Math.random() * 0.2, 0.2, 0.86);
   for (let i = 0; i < 70 * lf; i++) {
     const a = Math.random() * 6.28, s = R * (0.6 + Math.random() * 0.9);
@@ -696,8 +705,9 @@ function impact(p, R) {
   }
   blastTreesCars(p, R, power);
   bridgeDamage(p, R);
-  scoreHits(hits, shot, gp);
+  const sum = scoreHits(hits, shot, gp, opt.score || {});
   updateHud();
+  return sum;
 }
 
 // ---------- 무기 2: 지진
@@ -845,107 +855,221 @@ function stepLasers(dt) {
   }
 }
 
-// ---------- 무기 4: 괴수 발자국
-const footMat = new THREE.MeshLambertMaterial({ color: 0x5f8f4a });
-const clawMat = new THREE.MeshLambertMaterial({ color: 0xf2ead8 });
-const footDark = new THREE.MeshLambertMaterial({ color: 0x46703a });
-function makeFoot(s) {
-  // 위에서 내려오는 도마뱀 다리: 발바닥 + 앞발가락 3(발톱) + 뒷발톱, 다리에 줄무늬
-  const g = new THREE.Group();
-  const sole = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.08, 1, 20), footMat);
-  sole.scale.set(s * 0.6, s * 0.3, s * 0.62); sole.position.set(0, s * 0.15, s * 0.1); g.add(sole);
-  const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.85, 1, 16).translate(0, 0.5, 0), footMat);
-  leg.scale.set(s * 0.6, s * 7, s * 0.6); leg.position.set(0, s * 0.25, s * 0.2); g.add(leg);
-  for (let i = 0; i < 6; i++) {
-    const band = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 16, 1, true), footDark);
-    const y = s * (0.7 + i * 0.75), r = s * 0.6 * (0.85 - (0.85 - 0.62) * Math.min(1, (y - s * 0.25) / (s * 7))) + s * 0.012;
-    band.scale.set(r, s * 0.16, r); band.position.set(0, y, s * 0.2); g.add(band);
+// ---------- 무기 4: 괴수 발자국 (단단한 공룡 다리 — 늘어나지 않음, 크기는 균일 배율만)
+// 발 좌표(발 단위): y 위, +z = 발가락 쪽, 발뒤꿈치 z≈-1.1, 가운데 발톱 끝 z≈2.4
+const FOOT_TOES = [{ a: -0.62, L: 1.85 }, { a: 0, L: 2.2 }, { a: 0.62, L: 1.85 }];   // fx.js 발자국 그림과 같은 값
+const FOOT_HEEL = -1.0, FOOT_MID = 1.1;            // 발자국 가운데 (탭한 자리에 맞춤)
+const FOOT_COL = {
+  skin: new THREE.Color(0x3f7a2e), dark: new THREE.Color(0x285020), belly: new THREE.Color(0x9fba66), bellyDark: new THREE.Color(0x7f9c4c),
+  sole: new THREE.Color(0x24381c), claw: new THREE.Color(0xf4ead2), clawTip: new THREE.Color(0xbfae88),
+};
+function footPart(geo, mat4, paint) {
+  // 면마다 색(평면 음영 + 비늘 얼룩), 법선은 면 법선
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  g.applyMatrix4(mat4); g.computeVertexNormals();
+  const P = g.attributes.position, N = g.attributes.normal, n = P.count;
+  const col = new Float32Array(n * 3), c = new THREE.Color(), nv = new THREE.Vector3(), cv = new THREE.Vector3();
+  for (let i = 0; i < n; i += 3) {
+    nv.set(N.getX(i), N.getY(i), N.getZ(i));
+    cv.set((P.getX(i) + P.getX(i + 1) + P.getX(i + 2)) / 3, (P.getY(i) + P.getY(i + 1) + P.getY(i + 2)) / 3, (P.getZ(i) + P.getZ(i + 1) + P.getZ(i + 2)) / 3);
+    paint(c, nv, cv);
+    const j = 0.94 + Math.random() * 0.12;                  // 비늘 얼룩
+    for (let k = 0; k < 3; k++) col.set([c.r * j, c.g * j, c.b * j], (i + k) * 3);
   }
-  for (let i = 0; i < 3; i++) {
-    const a = (i - 1) * 0.5;
-    const toe = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), i === 1 ? footMat : footMat);
-    toe.scale.set(s * 0.24, s * 0.2, s * 0.55);
-    toe.position.set(Math.sin(a) * s * 0.72, s * 0.17, -Math.cos(a) * s * 0.72); toe.rotation.y = -a; g.add(toe);
-    const claw = new THREE.Mesh(new THREE.ConeGeometry(s * 0.11, s * 0.36, 8), clawMat);
-    claw.rotation.x = -Math.PI / 2 - 0.25; claw.rotation.z = a;
-    claw.position.set(Math.sin(a) * s * 1.28, s * 0.14, -Math.cos(a) * s * 1.28); g.add(claw);
-  }
-  const back = new THREE.Mesh(new THREE.ConeGeometry(s * 0.09, s * 0.3, 8), clawMat);
-  back.rotation.x = Math.PI / 2 + 0.25; back.position.set(0, s * 0.12, s * 0.78); g.add(back);
-  g.traverse((o) => { if (o.isMesh) o.castShadow = renderer.shadowMap.enabled; });
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return g;
 }
+function mergeGeos(list, alphaFn) {
+  let n = 0; for (const g of list) n += g.attributes.position.count;
+  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * (alphaFn ? 4 : 3));
+  let o = 0;
+  for (const g of list) {
+    const P = g.attributes.position, N = g.attributes.normal, C = g.attributes.color;
+    pos.set(P.array, o * 3); nor.set(N.array, o * 3);
+    for (let i = 0; i < P.count; i++) {
+      if (alphaFn) col.set([C.getX(i), C.getY(i), C.getZ(i), alphaFn(P.getY(i))], (o + i) * 4);
+      else col.set([C.getX(i), C.getY(i), C.getZ(i)], (o + i) * 3);
+    }
+    o += P.count; g.dispose();
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(col, alphaFn ? 4 : 3));
+  g.computeBoundingSphere();
+  return g;
+}
+const LEG_TILT = -0.3;      // 다리 위쪽이 화면 안쪽(카메라 반대)으로 기움
+const ANKLE = new THREE.Vector3(0, 0.95, -0.45);
+// 다리 옆모습 (발목부터 높이, 반지름): 발목 굵고 → 잘록 → 종아리 불룩 → 허벅지로 굵어짐
+const LEG_PROFILE = [[0.0, 0.8], [0.7, 0.66], [1.6, 0.68], [2.6, 0.86], [3.6, 1.06], [4.6, 1.2], [6.5, 1.42], [8.5, 1.62], [11, 1.82], [13.5, 1.98], [18, 2.2]];
+const LEG_SOLID = 13.5;      // 여기까지 불투명, 위는 점점 투명
+let footGeo = null, legGeo = null;
+function buildFootGeo() {
+  const M = () => new THREE.Matrix4();
+  const skinPaint = (c, n, p) => {
+    if (n.y < -0.55) c.copy(FOOT_COL.sole);
+    else if (n.y > 0.55 && p.y > 0.45) c.copy(FOOT_COL.skin).lerp(FOOT_COL.dark, 0.3);   // 발등은 조금 어둡게
+    else c.copy(FOOT_COL.skin);
+  };
+  const parts = [];
+  // 발바닥 판 (넓고 낮은 9각) + 볼록한 발등
+  parts.push(footPart(new THREE.CylinderGeometry(0.95, 1.05, 0.5, 9), M().makeTranslation(0, 0.25, -0.15).multiply(M().makeScale(1.1, 1, 0.95)), skinPaint));
+  parts.push(footPart(new THREE.IcosahedronGeometry(1.0, 1), M().makeTranslation(0, 0.5, -0.2).multiply(M().makeScale(1.05, 0.55, 1.0)), skinPaint));
+  // 발가락 3 + 마디 + 휜 발톱
+  for (const { a, L } of FOOT_TOES) {
+    const ry = M().makeRotationY(a);
+    const toe = new THREE.CylinderGeometry(0.27, 0.42, L, 7).rotateX(Math.PI / 2);
+    parts.push(footPart(toe, ry.clone().multiply(M().makeTranslation(0, 0.34, 0.5 + L / 2)).multiply(M().makeScale(1, 0.8, 1)), (c, n, p) => {
+      skinPaint(c, n, p);
+      if (n.y > 0.3) { const r = Math.hypot(p.x, p.z); if (Math.floor(r * 2.6) % 2) c.lerp(FOOT_COL.dark, 0.45); }   // 발가락 마디 줄
+    }));
+    parts.push(footPart(new THREE.IcosahedronGeometry(0.4, 0), ry.clone().multiply(M().makeTranslation(0, 0.36, 0.5 + L * 0.5)).multiply(M().makeScale(1.05, 0.85, 1.15)), skinPaint));
+    parts.push(footPart(new THREE.IcosahedronGeometry(0.31, 0), ry.clone().multiply(M().makeTranslation(0, 0.3, 0.5 + L)), skinPaint));
+    // 발톱: 앞·아래로 휜 두 토막
+    const c1 = new THREE.ConeGeometry(0.25, 0.55, 6).translate(0, 0.27, 0);
+    parts.push(footPart(c1, ry.clone().multiply(M().makeTranslation(0, 0.38, 0.5 + L)).multiply(M().makeRotationX(Math.PI / 2 - 0.2)).multiply(M().makeScale(1, 1, 0.7)),
+      (c) => c.copy(FOOT_COL.claw)));
+    const c2 = new THREE.ConeGeometry(0.15, 0.5, 6).translate(0, 0.25, 0);
+    parts.push(footPart(c2, ry.clone().multiply(M().makeTranslation(0, 0.43, 0.97 + L)).multiply(M().makeRotationX(Math.PI / 2 + 0.85)).multiply(M().makeScale(1, 1, 0.7)),
+      (c) => c.copy(FOOT_COL.clawTip)));
+  }
+  // 뒷발톱
+  parts.push(footPart(new THREE.ConeGeometry(0.16, 0.5, 6).translate(0, 0.25, 0), M().makeTranslation(0, 0.4, -1.0).multiply(M().makeRotationX(-Math.PI / 2 - 0.5)), (c) => c.copy(FOOT_COL.claw)));
+  // 발목 + 다리: 앞쪽은 밝은 배 비늘(가로 줄), 뒤쪽은 어두운 등
+  const legPaint = (c, n, p) => {
+    c.copy(FOOT_COL.skin);
+    if (n.z > 0.7) c.copy(Math.floor(p.y * 1.9) % 2 ? FOOT_COL.belly : FOOT_COL.bellyDark);
+    else if (n.z < -0.4) c.lerp(FOOT_COL.dark, 0.5);
+  };
+  const legM = M().makeTranslation(ANKLE.x, ANKLE.y, ANKLE.z).multiply(M().makeRotationX(LEG_TILT));
+  parts.push(footPart(new THREE.IcosahedronGeometry(0.88, 1), M().makeTranslation(ANKLE.x, ANKLE.y, ANKLE.z).multiply(M().makeScale(1.05, 0.8, 1.1)), legPaint));
+  const lathe = (pts) => new THREE.LatheGeometry(pts.map(([h, r]) => new THREE.Vector2(r, h)), 9);
+  parts.push(footPart(lathe(LEG_PROFILE.filter(([h]) => h <= LEG_SOLID)), legM, legPaint));
+  // 다리 뒤 돌기(비늘판)
+  for (let i = 0; i < 4; i++) {
+    const h = 0.9 + i * 0.95, r = 0.66 + 0.12 * i;
+    parts.push(footPart(new THREE.ConeGeometry(0.2, 0.5, 4), legM.clone().multiply(M().makeTranslation(0, h, -r)).multiply(M().makeRotationX(-Math.PI / 2 - 0.5)),
+      (c) => c.copy(FOOT_COL.dark)));
+  }
+  footGeo = mergeGeos(parts);
+  // 허벅지 쪽: 굵어지며 위로 갈수록 투명 (끝이 보이지 않음)
+  const up = footPart(lathe(LEG_PROFILE.filter(([h]) => h >= LEG_SOLID)), legM, legPaint);
+  const y0 = ANKLE.y + LEG_SOLID * Math.cos(LEG_TILT), y1 = ANKLE.y + 18 * Math.cos(LEG_TILT);
+  legGeo = mergeGeos([up], (y) => THREE.MathUtils.clamp(1 - (y - y0) / (y1 - y0), 0, 1) ** 1.4);
+}
+const footSkinMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+const footLegMat = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, depthWrite: false });
+// 발자국 안쪽 판정 점 (발 단위, [x, z, 반지름])
+const FOOT_SAMPLES = (() => {
+  const s = [[0, -0.2, 0.8]];
+  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; s.push([Math.cos(a) * 0.7, -0.2 + Math.sin(a) * 0.55, 0.42]); }
+  for (const { a, L } of FOOT_TOES) for (let t = 0.6; t <= L + 1.0; t += 0.4) s.push([Math.sin(a) * t, Math.cos(a) * t, t > L + 0.5 ? 0.18 : 0.38]);
+  return s;
+})();
 const shadowTex = (() => {
   const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
-  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(0,0,0,0.6)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.4)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
   g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
 })();
+const footPool = [];
+function getFoot() {
+  let o = footPool.find((x) => !x.busy);
+  if (!o) {
+    if (!footGeo) buildFootGeo();
+    const root = new THREE.Group(), pivot = new THREE.Group();
+    const skin = new THREE.Mesh(footGeo, footSkinMat), leg = new THREE.Mesh(legGeo, footLegMat);
+    skin.castShadow = renderer.shadowMap.enabled; leg.renderOrder = 4;
+    pivot.position.z = FOOT_HEEL; skin.position.z = -FOOT_HEEL; leg.position.z = -FOOT_HEEL;   // 뒤꿈치 축으로 까딱
+    pivot.add(skin, leg); root.add(pivot); root.visible = false; scene.add(root);
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, depthTest: false }));
+    sh.renderOrder = 3; sh.visible = false; scene.add(sh);
+    o = { root, pivot, sh, busy: false }; footPool.push(o);
+  }
+  o.busy = true; return o;
+}
+function freeFoot(o) { o.busy = false; o.root.visible = false; o.sh.visible = false; }
 const feet = [];
+const FT = { sh: 0.35, down: 0.25, slap: 0.07, hold: 0.3, lift: 0.5 };
+function footToWorld(f, x, z, out) {   // 발 단위 (x,z) → 월드 (발이 내려앉은 자리 기준)
+  const c = Math.cos(f.yaw), s = Math.sin(f.yaw), lx = x * f.k, lz = (z - FOOT_MID) * f.k;
+  out.x = f.p.x + lx * c + lz * s; out.z = f.p.z - lx * s + lz * c; return out;
+}
+function footCover(f, b) {   // 건물과 발바닥의 최소 틈 (0 이하 = 밟힘)
+  let d = 1e9; const w = { x: 0, z: 0 };
+  for (const [x, z, r] of FOOT_SAMPLES) { footToWorld(f, x, z, w); d = Math.min(d, bDist(b, w.x, w.z) - r * f.k); if (d <= 0) return d; }
+  return d;
+}
+function placeFoot(f, y, pitch, back) {
+  const w = { x: 0, z: 0 }; footToWorld(f, 0, -back, w);
+  f.o.root.position.set(w.x, f.gy + y, w.z); f.o.pivot.rotation.x = pitch;
+}
 function stomp(p) {
   if (!useShot()) return;
-  const R = radius(), s = R * 1.15;
-  const foot = makeFoot(s);
+  const R = radius(), k = R * 0.9;   // 레벨에 따라 균일 배율만 (발자국 = 피해 범위)
   const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
-  foot.rotation.y = Math.atan2(fwd.x, fwd.z) + Math.PI;   // 발가락이 화면 아래(카메라 쪽)
-  const gy = groundAt(p.x, p.z);
-  foot.position.set(p.x, gy + 520, p.z); scene.add(foot);
-  const sh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
-  sh.position.set(p.x, gy + 0.8, p.z); sh.renderOrder = 3; scene.add(sh);
-  // 발이 닿는 영역의 건물 중 가장 높은 꼭대기
-  let top = 0;
-  for (const b of city.B) if (!b.gone && Math.hypot(b.cx - p.x, -b.cy - p.z) < s * 1.1) top = Math.max(top, b.cur);
-  feet.push({ foot, sh, p: p.clone(), gy, s, R, t: 0, top, hit: false, fwd });
-  sfx.drop(0.42);
+  const yaw = Math.atan2(-fwd.x, -fwd.z) + 0.35;   // 발가락이 카메라 쪽(살짝 비스듬)
+  const o = getFoot(), gy = groundAt(p.x, p.z);
+  const f = { o, p: p.clone(), gy, k, R, yaw, t: 0, hit: false, slapped: false, dropped: false, top: 0 };
+  o.root.scale.setScalar(k); o.root.rotation.y = yaw;
+  const c = { x: 0, z: 0 }; footToWorld(f, 0, FOOT_MID, c);
+  o.sh.position.set(c.x, gy + 0.8, c.z); o.sh.rotation.y = yaw; o.sh.visible = true; o.sh.scale.set(0.001, 1, 0.001);
+  for (const b of city.B) {
+    if (b.gone || Math.hypot(b.cx - p.x, -b.cy - p.z) - b.rad > k * 2.6) continue;
+    if (footCover(f, b) <= 0) f.top = Math.max(f.top, b.cur);
+  }
+  f.H0 = Math.max(600, k * 26);
+  placeFoot(f, f.H0, -0.3, 0);
+  feet.push(f);
+  sfx.stompRumble(); shake(5); if (IS_TOUCH) buzz(25);
 }
 function stepFeet(dt) {
   for (let i = feet.length - 1; i >= 0; i--) {
     const f = feet[i]; f.t += dt;
-    const T1 = 0.42, T2 = 1.15, T3 = 1.75;
-    let y;
-    if (f.t < T1) { const k = f.t / T1; y = 520 * (1 - k * k); }
-    else if (f.t < T2) y = 0;
-    else { const k = Math.min(1, (f.t - T2) / (T3 - T2)); y = 600 * k * k; }
-    f.foot.position.y = f.gy + y;
-    const sk = THREE.MathUtils.clamp(1 - y / 520, 0.15, 1);
-    f.sh.scale.set(f.s * 2.4 * sk, 1, f.s * 3 * sk); f.sh.material.opacity = sk;
-    if (!f.hit && y <= Math.max(0, f.top - 2)) { f.hit = true; stompHit(f); }
-    if (f.t >= T3) { scene.remove(f.foot); scene.remove(f.sh); f.sh.geometry.dispose(); f.sh.material.dispose(); feet.splice(i, 1); }
+    const t = f.t, T1 = FT.sh, T2 = T1 + FT.down, T3 = T2 + FT.slap, T4 = T3 + FT.hold, T5 = T4 + FT.lift;
+    let y, pitch, back = 0;
+    if (t < T1) { y = f.H0; pitch = -0.3; if (t < T1 - 0.05) shake(4); }
+    else if (t < T2) {                       // 빠르게 내려옴 (ease-in), 발가락 들고 뒤꿈치부터
+      if (!f.dropped) { f.dropped = true; f.o.root.visible = true; sfx.drop(FT.down); }
+      const q = (t - T1) / FT.down; y = f.H0 * (1 - q * q); pitch = -0.3 + 0.08 * q; back = 1.2 * (1 - q);
+    } else if (t < T3) { y = 0; const q = (t - T2) / FT.slap; pitch = -0.22 * (1 - q * q); }   // 발가락 철썩
+    else if (t < T4) { y = 0; pitch = 0; }
+    else {                                    // 들어 올려 뒤로 빠짐 (ease-in-out)
+      const q = Math.min(1, (t - T4) / FT.lift), e = q * q * (3 - 2 * q);
+      y = f.H0 * e * e * e; pitch = 0.35 * Math.min(1, e * 2); back = 4 * e;
+    }
+    placeFoot(f, y, pitch, back);
+    // 그림자: 내려올수록 커지고 진해짐
+    const near = t < T2 ? Math.min(1, t / T2) : t < T4 ? 1 : 1 - Math.min(1, (t - T4) / FT.lift);
+    const sk = 0.5 + 0.5 * near * near;
+    f.o.sh.scale.set(f.k * 4.0 * sk, 1, f.k * 5.0 * sk); f.o.sh.material.opacity = 0.4 + 0.45 * near;
+    if (!f.hit && t >= T1 && y <= Math.max(0, f.top - 2) && (f.top > 2 || t >= T2)) { f.hit = true; stompHit(f); }
+    if (!f.slapped && t >= T3) { f.slapped = true; shake(10); sfx.thud(0.5); }
+    if (t >= T5) { freeFoot(f.o); feet.splice(i, 1); }
   }
 }
 function stompHit(f) {
-  const { p, s, R } = f, shot = newShot();
+  const { p, k } = f, shot = newShot();
   const gp = new THREE.Vector3(p.x, f.gy + 0.6, p.z);
-  flash(0.35); hitstop(0.1); shake(18 + R * 0.15); buzz(IS_TOUCH ? [90, 30, 60] : 90); sfx.thud(1.1);
-  rings.add(gp.x, gp.y, gp.z, s * 1.2, 0xfff2c8, 0.9); rings.add(gp.x, gp.y, gp.z, s * 0.8, 0xc9a46c, 1.1, 0.08, true);
-  // 발자국 모양 자국: 발바닥 + 발가락 3
-  decals.crater(gp.x, gp.y, gp.z + 0, s * 0.62);
-  const rot = f.foot.rotation.y;
-  for (let i = 0; i < 3; i++) {
-    const a = (i - 1) * 0.45, lx = Math.sin(a) * s * 0.8, lz = -Math.cos(a) * s * 0.8;
-    const wx = lx * Math.cos(rot) + lz * Math.sin(rot), wz = -lx * Math.sin(rot) + lz * Math.cos(rot);
-    decals.crater(gp.x + wx, gp.y, gp.z + wz, s * 0.22);
-  }
-  const lf = load();
-  for (let i = 0; i < 80 * lf; i++) {
-    const a = Math.random() * 6.28, sp = s * (0.8 + Math.random());
-    smoke.emit(gp.x + Math.cos(a) * s * 0.8, gp.y + 2, gp.z + Math.sin(a) * s * 0.8, Math.cos(a) * sp, 1 + Math.random() * 5, Math.sin(a) * sp,
-      2.8 + Math.random() * 2, 14 + s * 0.2, 40 + s * 0.6, 0.6, 0.82, 0.77, 0.68, 0.86);
+  flash(0.35); hitstop(0.12); shake(22 + f.R * 0.2); if (IS_TOUCH) buzz([110, 30, 70]); sfx.thud(1.2);
+  rings.add(gp.x, gp.y, gp.z, k * 1.9, 0xfff2c8, 0.9); rings.add(gp.x, gp.y, gp.z, k * 1.4, 0xc9a46c, 1.2, 0.06, true);
+  decals.footprint(gp.x, gp.y, gp.z, k, f.yaw, FOOT_MID);
+  const lf = load(), w = { x: 0, z: 0 };
+  for (let i = 0; i < 70 * lf; i++) {   // 발바닥 둘레에서 먼지가 바깥으로
+    const [x, z] = FOOT_SAMPLES[1 + Math.floor(Math.random() * (FOOT_SAMPLES.length - 1))];
+    footToWorld(f, x * 1.3, (z - FOOT_MID) * 1.3 + FOOT_MID, w);
+    let dx = w.x - p.x, dz = w.z - p.z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
+    const sp = k * (1.6 + Math.random() * 1.8);
+    smoke.emit(w.x, gp.y + 2, w.z, dx * sp, 1 + Math.random() * 6, dz * sp, 1.6 + Math.random() * 1.6, 8 + k * 0.25, 26 + k * 0.7, 0.45, 0.82, 0.77, 0.68, 0.86);
   }
   const hits = [];
   for (const b of city.B) {
-    if (b.gone) continue;
-    const dc = Math.hypot(b.cx - p.x, -b.cy - p.z);
-    if (dc - b.rad > s * 1.6) continue;
-    const dist = bDist(b, p.x, p.z);
-    if (dc < s * 0.95 || dist < s * 0.5) {        // 밟힘: 납작
-      hits.push(knock(b, 0, gp, 10, s, shot, gp, { noTopple: true, down: 0.85 }));
-    } else if (dist < s * 1.4) {                   // 옆: 높은 건물은 바깥으로 쓰러짐
-      const keep = b.cur * 0.5;
-      hits.push(knock(b, b.cur >= TALL ? 0 : (keep < 3 ? 0 : keep), gp, 14, s, shot, gp, { force: true }));
-    }
+    if (b.gone || Math.hypot(b.cx - p.x, -b.cy - p.z) - b.rad > k * 3.2) continue;
+    const d = footCover(f, b);
+    if (d <= 0) hits.push(knock(b, 0, gp, 10, k * 1.6, shot, gp, { noTopple: true, down: 0.85 }));        // 밟힘: 납작
+    else if (d < k * 0.45) { const keep = b.cur * 0.5; hits.push(knock(b, b.cur >= TALL ? 0 : (keep < 3 ? 0 : keep), gp, 14, k * 1.6, shot, gp, { force: true })); }   // 옆: 바깥으로
   }
-  blastTreesCars(p, s * 1.3, 14);
-  bridgeDamage(p, s);
+  blastTreesCars(p, k * 1.45, 14);
+  bridgeDamage(p, k * 1.5);
   scoreHits(hits, shot, gp, { verb: '납작!', partVerb: '꿈틀 반파!' });
 }
 
@@ -1019,21 +1143,23 @@ function buildMissionPool() {
   const tallRow = B.filter((b) => b.h >= 70);
   P.push({ id: 'chain4', t: '연쇄 ×4 만들기', at: tallRow.length ? densest(tallRow, 120) : null, bonus: 3e11, best: 0,
     test: (m) => Math.min(1, m.best / 4), prog: (m) => `${Math.min(4, m.best)}/4` });
-  if (city.bridge.length) {
+  if (city.bridge.length && MP.isHome()) {
     const ids = [...new Set(city.bridge.map((d) => d.bid))];
     const cs = ids.map((id) => { const l = city.bridge.filter((d) => d.bid === id); return { x: l.reduce((s, d) => s + d.x, 0) / l.length, z: l.reduce((s, d) => s + d.z, 0) / l.length }; });
     cs.sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z));
     P.push({ id: 'bridge', t: '탄천 다리 끊기', at: cs[0], bonus: 2e11, cut: 0, test: (m) => (m.cut ? 1 : 0) });
   }
-  const sib = B.filter((b) => SIBUM.has(b.d.n) && b.cx > 150);
+  const sib = B.filter((b) => SIBUM.has(b.d.n) && b.cx > 150 && MP.isHome());
   if (sib.length) {
     const tot = sib.reduce((s, b) => s + b.price, 0), PCT = 15;
     P.push({ id: 'sibum', t: `시범단지 ${PCT}% 부수기`, at: densest(sib, 120), bonus: 3e11, set: new Set(sib), v: 0, tot,
       test: (m) => Math.min(1, m.v / m.tot / (PCT / 100)), prog: (m) => `${Math.min(PCT, m.v / m.tot * 100).toFixed(0)}/${PCT}%` });
   }
   const f20 = B.filter((b) => b.d.f >= 20);
-  P.push({ id: 'f20', t: '20층 이상 3채', at: densest(f20, 120), bonus: 2.5e11, cnt: 0, test: (m) => Math.min(1, m.cnt / 3), prog: (m) => `${Math.min(3, m.cnt)}/3` });
+  if (f20.length >= 3) P.push({ id: 'f20', t: '20층 이상 3채', at: densest(f20, 120), bonus: 2.5e11, cnt: 0, test: (m) => Math.min(1, m.cnt / 3), prog: (m) => `${Math.min(3, m.cnt)}/3` });
+  const mk = MK.mission(); if (mk) P.push(mk);
   P.push({ id: 'jo', t: '3조 원 넘기기', bonus: 2e11, test: () => Math.min(1, G.price / 3e12), prog: () => `${wonShort(Math.min(G.price, 3e12))}` });
+  P.push(...MP.missions(B));
   POOL = P;
 }
 function pickMissions() {
@@ -1189,7 +1315,7 @@ function setupChallenge() {
 function shareUrl() {
   const u = new URL(location.href.split('?')[0].split('#')[0]);
   if (G.home >= 0) u.searchParams.set('home', city.B[G.home].d.id);
-  u.searchParams.set('score', String(Math.round(G.price)));
+  MP.decorateUrl(u); u.searchParams.set('score', String(Math.round(G.price)));
   const nick = $('nick').value.trim().slice(0, 12);
   if (nick) u.searchParams.set('by', nick);
   return u.toString();
@@ -1201,7 +1327,7 @@ async function copyText(t) {
     ta.remove(); return ok;
   }
 }
-const shareText = () => `서현역 부수기: 집값 ${won(G.price)} 날림! 이 기록 깰 수 있어요?`;
+const shareText = () => `${MP.title()}: ${MP.isHome() ? '집값' : '건물값'} ${won(G.price)} 날림! 이 기록 깰 수 있어요?`;
 function saveNick() { store('seohyeon-smash-nick', $('nick').value.trim().slice(0, 12)); }
 async function copyLinkNow() { saveNick(); const url = shareUrl(); $('shareMsg').textContent = (await copyText(`${shareText()}
 ${url}`)) ? '도전 링크를 복사했어요. 카톡에 붙여 넣으세요' : url; }
@@ -1246,10 +1372,18 @@ async function makeCard() {
   g.fillStyle = gr; g.fillRect(0, PH - 260, W, 260);
   // 상단 띠
   g.fillStyle = 'rgba(255,253,248,0.92)'; g.beginPath(); g.roundRect(40, 40, 380, 70, 35); g.fill();
-  g.fillStyle = '#d2451e'; g.font = `900 40px ${F}`; g.textBaseline = 'middle'; g.fillText('서현역 부수기', 72, 76);
+  g.fillStyle = '#d2451e'; g.font = `900 40px ${F}`; g.textBaseline = 'middle'; g.fillText(MP.title(), 72, 76);
+  const mks = MK.summary();   // 날린 시가총액 알약 (사진 오른쪽 위)
+  if (mks.capLost > 0) {
+    const t1 = `📉 날린 시총 ${wonShort(mks.capLost)}`, t2 = mks.worst ? `${mks.worst.name} ${mks.worst.pct.toFixed(1)}% · 가상 주가` : '가상 주가';
+    g.font = `900 36px ${F}`; const w1 = g.measureText(t1).width; g.font = `700 24px ${F}`; const pw = Math.max(w1, g.measureText(t2).width) + 48;
+    g.fillStyle = 'rgba(22,16,15,0.9)'; g.beginPath(); g.roundRect(W - 40 - pw, 40, pw, 104, 24); g.fill();
+    g.textAlign = 'right'; g.fillStyle = '#ff5a4f'; g.font = `900 36px ${F}`; g.fillText(t1, W - 64, 76);
+    g.fillStyle = '#ffd24a'; g.font = `700 24px ${F}`; g.fillText(t2, W - 64, 118); g.textAlign = 'left';
+  }
   // 큰 글자
   g.fillStyle = '#fff'; g.textBaseline = 'alphabetic';
-  g.font = `900 64px ${F}`; g.fillText('서현동', 60, PH - 130);
+  g.font = `900 64px ${F}`; g.fillText(MP.place(), 60, PH - 130);
   const big = won(G.price).replace(' 원', '원');
   let fs = 108; g.font = `900 ${fs}px ${F}`;
   while (g.measureText(big + ' 날렸다').width > W - 120 && fs > 60) { fs -= 4; g.font = `900 ${fs}px ${F}`; }
@@ -1271,6 +1405,7 @@ async function makeCard() {
     g.fillStyle = m.done ? '#289650' : '#9aa0aa';
     g.fillText(`${m.done ? '✔' : '✘'} ${m.t}`, 60, y); y += 50;
   }
+  WAR.drawCard(g, 40, 126, F);   // 참전국 국기 줄
   const hn = homeNote();
   if (hn) { g.fillStyle = G.homeLost ? '#c23a12' : '#2b6a3c'; g.font = `800 36px ${F}`; g.fillText(hn, 60, y + 6); }
   // 바닥 띠
@@ -1333,11 +1468,12 @@ function groundPick(x, y) {   // 레이저용: 지면
   return p;
 }
 function fire1(p) {
+  if (AR.isK(G.weapon)) { AR.fire(G.weapon, p); return; }
   if (G.weapon === 'quake') quake(p);
   else if (G.weapon === 'stomp') stomp(p);
   else launch(p);
 }
-const laserMode = () => G.weapon === 'laser' && G.state === 'play';
+const laserMode = () => (G.weapon === 'laser' || AR.isDrag(G.weapon)) && G.state === 'play';
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 canvas.addEventListener('pointerdown', (e) => {
   canvas.setPointerCapture(e.pointerId);
@@ -1382,7 +1518,7 @@ function up(e) {
   pointers.delete(e.pointerId);
   if (pointers.size < 2) pinch0 = null;
   if (laserA && pointers.size === 0) {
-    if (tapStart && tapStart.moved >= 10) fireLaser(laserA, groundPick(e.clientX, e.clientY));
+    if (tapStart && tapStart.moved >= 10) { if (AR.isDrag(G.weapon)) { laserPrev.visible = false; AR.fireLine(laserA, clampLaser(laserA, groundPick(e.clientX, e.clientY))); } else fireLaser(laserA, groundPick(e.clientX, e.clientY)); }
     else { laserPrev.visible = false; if (tapStart && G.state === 'play') showModeHint(); }
     laserA = null; tapStart = null; return;
   }
@@ -1413,7 +1549,8 @@ function startRound() {
   $('cardPrev').classList.add('hidden');
   const hb = G.home >= 0 ? city.B[G.home] : null;
   easeCam(hb ? { tx: hb.cx, tz: -hb.cy, dist: IS_TOUCH ? 640 : 540 } : { tx: 15, tz: 30, dist: IS_TOUCH ? 620 : 520 }, 2.2);
-  pickMissions(); renderWeapons();
+  pickMissions(); MK.reset(); WAR.reset(); AR.reset(); renderWeapons();
+  MP.start();
   updateHud();
   showTapHint();
 }
@@ -1439,7 +1576,7 @@ function resetCity() {
   while (chunks.length) removeChunk(chunks.length - 1);
   for (const s2 of slabs) { scene.remove(s2.grp); s2.mesh.geometry.dispose(); } slabs.length = 0;
   for (const l of lasers) scene.remove(l.g); lasers.length = 0;
-  for (const f of feet) { scene.remove(f.foot); scene.remove(f.sh); } feet.length = 0;
+  for (const f of feet) freeFoot(f.o); feet.length = 0;
   timers.length = 0;
   hf.clear(); decals.clear(); smoke.clear(); fire.clear(); rings.clear();
   for (const m2 of meteors) scene.remove(m2.g); meteors.length = 0;
@@ -1454,6 +1591,7 @@ function homeNote() {
 }
 function endRound() {
   G.state = 'end';
+  MK.end(); WAR.end(); AR.end();
   hideTapHint(); laserPrev.visible = false;
   // 우리 집 결과 반영
   if (G.home >= 0) {
@@ -1493,6 +1631,7 @@ function endRound() {
   $('nick').value = store('seohyeon-smash-nick') || CH.nickSelf || '';
   $('cardPrev').classList.add('hidden'); lastCardBlob = null;
   $('weapons').classList.add('hidden'); $('modeHint').classList.add('hidden');
+  MP.end();
   $('end').classList.remove('hidden');
   G.ranked = false; $('rankBtn').disabled = false; $('rankBtn').textContent = '등록';
   $('rankMsg').textContent = '닉네임을 적고 등록하면 순위에 올라가요';
@@ -1509,7 +1648,7 @@ function drawRank(top, mine) {
 }
 async function loadRank() {
   try {
-    const r = await fetch(`${RANK_API}?game=seohyeon&score=${Math.round(G.price)}`, { cache: 'no-store' });
+    const r = await fetch(`${RANK_API}?game=${MP.gameId()}&score=${Math.round(G.price)}`, { cache: 'no-store' });
     if (!r.ok) throw 0;
     const d = await r.json(); drawRank(d.top);
     if (d.rank) $('rankMsg').textContent = `지금 점수면 ${d.rank}위예요`;
@@ -1524,7 +1663,7 @@ $('rankBtn').onclick = async () => {
   $('rankBtn').disabled = true; $('rankMsg').textContent = '등록 중…';
   try {
     const score = Math.round(G.price);
-    const r = await fetch(RANK_API + '?game=seohyeon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname: nick, pin, score, destroyed: G.dest }) });
+    const r = await fetch(RANK_API + '?game=' + MP.gameId(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname: nick, pin, score, destroyed: G.dest }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) { $('rankMsg').textContent = d.error || '등록하지 못했어요'; $('rankBtn').disabled = false; return; }
     G.ranked = true; store('seohyeon-smash-nick', nick);
@@ -1562,13 +1701,13 @@ function frame(now) {
     stepMeteors(dt); stepSlabs(dt); stepLasers(dt); stepFeet(dt); stepChunks(dt); stepTrees(dt); rings.update(dt);
     const vh = innerHeight * renderer.getPixelRatio() / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     smoke.update(dt, vh); fire.update(dt, vh);
-    stepPops(real);
+    stepPops(real); MP.step(real); MK.step(real, dt); WAR.step(real, dt); AR.step(real, dt);
     if (homeRing && homeRing.visible) { const s = city.B[G.home].rad * (1.25 + 0.15 * Math.sin(now / 250)); homeRing.scale.set(s, 1, s); }
     if (G.state === 'play') {
       if (G.armed) G.time -= dt;
       if (Math.ceil(G.time) !== Number($('hTime').textContent)) updateHud();
       if (G.home >= 0 && !G.homeLost && !G.homeSafeShown && G.dest >= HOME_SAFE_N) { G.homeSafeShown = true; banner('우리 집 지키는 중! ×1.5'); }
-      const busy = meteors.length || slabs.length || lasers.length || feet.length || timers.length;
+      const busy = meteors.length || slabs.length || lasers.length || feet.length || timers.length || AR.busy() || WAR.busy();
       if (G.time <= 0 || (G.meteors <= 0 && !busy)) {
         G.endWait += real;
         if (G.time <= 0 || G.endWait > 2.5) { G.time = Math.max(0, G.time); updateHud(); endRound(); }
@@ -1590,12 +1729,44 @@ function frame(now) {
   }
 }
 
+// ---------- 가상 주가 연결 (js/market.js)
+function enemyStrike(b) {   // 보복 미사일: 건물만 부숨 (점수·파괴 통계·미션에 안 셈)
+  const gp = new THREE.Vector3(b.cx, b.base + 0.65, -b.cy), R = 22;
+  flash(0.35); shake(10); buzz([60, 40, 120]); sfx.boom(0.9);
+  boomLight.position.set(gp.x, gp.y + 25, gp.z); boomLight.intensity = 7000; boomLight.distance = R * 8;
+  rings.add(gp.x, gp.y, gp.z, R, 0xff6040); decals.crater(gp.x, gp.y, gp.z, R * 0.5);
+  for (let i = 0; i < 30; i++) fire.emit(gp.x + rnd(4), gp.y + 2, gp.z + rnd(4), rnd(R), Math.random() * R, rnd(R), 0.6, 14, 34, 1, 1, 0.5, 0.2, 0.86);
+  const st = G.state; G.state = 'enemy';
+  let r;
+  try { r = knock(b, 0, gp, 30, R, newShot(), gp, { noTopple: true }); } finally { G.state = st; }
+  if (b.i === G.home && st === 'play') homeHit(r.full);
+  return r;
+}
+function repairHome() {
+  const b = city.B[G.home]; if (!b) return false;
+  const A1 = city.bmesh.geometry.attributes, P = A1.position.array, U = A1.uv.array;
+  for (let k = b.start; k < b.start + b.count; k++) { P[k * 3 + 1] = city.origPos[k * 3 + 1]; U[k * 2 + 1] = city.origUV[k * 2 + 1]; }
+  A1.position.needsUpdate = A1.uv.needsUpdate = true;
+  b.cur = b.h; b.gone = false; G.homeLost = false;
+  setHome(G.home);
+  popup(new THREE.Vector3(b.cx, b.base + b.h + 20, -b.cy), '🔧 우리 집 수리 완료!', 0, true, -1);
+  return true;
+}
+async function initMarket() {
+  try {
+    await MK.init({ G, city, scene, camera, won, wonShort, banner, sfx, popup, rings, glowTex, updateHud, enemyStrike, repairHome,
+      fx: () => ({ smoke, fire }), missionPing: () => missionEvent('price', {}),
+      screenOf(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; } });
+  } catch (e) { console.warn('market', e); }
+}
+
 // ---------- 불러오기
 (async function boot() {
   $('bestStart').textContent = bestGet() ? `최고 기록 ${won(bestGet())} · 누적 ${wonShort(totalGet())}` : '';
   placeCamera(); requestAnimationFrame(frame);
   try {
-    data = await (await fetch('city.json')).json();
+    await MP.boot();
+    data = await (await fetch(MP.cityUrl())).json();
   } catch (e) { $('go').textContent = '데이터를 못 불러왔습니다'; console.error(e); return; }
   city = buildCity(data, scene);
   totalVol = city.B.reduce((s, b) => s + b.vol, 0);
@@ -1623,11 +1794,20 @@ function frame(now) {
   for (const l of data.labels) {
     const sp = makeLabel(l.t); sp.position.set(l.u, (groundAt(l.u, -l.v) || 0) + (l.t === 'AK플라자' ? 118 : l.t === '서현역' ? 40 : 70), -l.v); scene.add(sp);
   }
+  await initMarket();
+  const warApi = { G, city, data, scene, camera, cam, won, wonShort, banner, sfx, popup, rings, glowTex, updateHud, enemyStrike, MK, DEBUG, groundAt, renderWeapons,
+    blast: impact, useShot, bestGet, totalGet, fx: () => ({ smoke, fire }),
+    screenOf(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; } };
+  try { WAR.init(warApi); AR.init(warApi, WEAPONS); } catch (e) { console.warn('war', e); }
   buildMissionPool();
   setupChallenge();
   $('go').disabled = false; $('go').textContent = CH.active ? '도전 시작' : '시작';
-  window.__game = { G, launch, pick, cam, chunks: () => chunks.length, slabs: () => slabs.length, city, start: startRound, won, setHome, fireLaser, quake, stomp,
-    groundPick, makeCard, TS, fireAt(x, z) { fire1(new THREE.Vector3(x, groundAt(x, z), z)); }, missions: () => G.missions.map((m) => ({ t: m.t, done: m.done })),
+  try {
+    MP.init({ G, city, data, scene, camera, cam, wonShort, banner, popup, sfx, later, easeCam, IS_TOUCH, again: () => { resetCity(); startRound(); },
+      screenOf(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; } });
+  } catch (e) { console.warn('maps', e); }
+  window.__game = { G, launch, pick, cam, chunks: () => chunks.length, slabs: () => slabs.length, city, start: startRound, won, setHome, fireLaser, quake, stomp, feet,
+    groundPick, makeCard, TS, market: MK, fireAt(x, z) { fire1(new THREE.Vector3(x, groundAt(x, z), z)); }, missions: () => G.missions.map((m) => ({ t: m.t, done: m.done })),
     screenOf(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; },
     // 검사용: 높은 건물 옆을 쳐서 연쇄가 날 자리
     chainSpot() {

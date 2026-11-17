@@ -25,6 +25,32 @@ const smokeTex = (() => {
 const craterTex = radialTex([[0, 'rgba(30,24,20,0.95)'], [0.35, 'rgba(55,44,36,0.9)'], [0.55, 'rgba(90,72,58,0.75)'],
   [0.72, 'rgba(120,100,80,0.45)'], [1, 'rgba(120,100,80,0)']], 256);
 
+// 공룡 발자국 (발 단위 x∈[-2.3,2.3], z∈[-1.6,3.8] → 캔버스, 아래쪽 = 발가락)
+const FP = { x0: -2.3, x1: 2.3, z0: -1.6, z1: 3.8 };
+const footprintTex = (() => {
+  const W = 256, H = Math.round(256 * (FP.z1 - FP.z0) / (FP.x1 - FP.x0));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'), sx = W / (FP.x1 - FP.x0);
+  const X = (x) => (x - FP.x0) * sx, Z = (z) => (z - FP.z0) * sx;
+  const toes = [[-0.62, 1.85], [0, 2.2], [0.62, 1.85]];   // main.js FOOT_TOES 와 같은 값
+  const shape = (pad) => {
+    g.beginPath(); g.ellipse(X(0), Z(-0.2), (1.12 + pad) * sx, (0.98 + pad) * sx, 0, 0, Math.PI * 2); g.fill();
+    for (const [a, L] of toes) {
+      g.lineWidth = (0.75 + pad * 2) * sx; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(X(Math.sin(a) * 0.4), Z(Math.cos(a) * 0.4)); g.lineTo(X(Math.sin(a) * (L + 0.55)), Z(Math.cos(a) * (L + 0.55))); g.stroke();
+    }
+  };
+  g.filter = 'blur(5px)'; g.fillStyle = g.strokeStyle = 'rgba(120,100,80,0.5)'; shape(0.16);    // 밀려난 흙 테
+  g.filter = 'blur(2px)'; g.fillStyle = g.strokeStyle = 'rgba(48,38,30,0.92)'; shape(0);         // 눌린 자국
+  g.filter = 'none'; g.fillStyle = 'rgba(25,19,15,0.95)';
+  for (const [a, L] of toes) {                                                                 // 발톱 긁힘
+    const ca = Math.cos(a), sa = Math.sin(a), px = -ca, pz = sa;
+    const bx = sa * (L + 0.6), bz = ca * (L + 0.6), tx = sa * (L + 1.3), tz = ca * (L + 1.3);
+    g.beginPath(); g.moveTo(X(bx + px * 0.17), Z(bz + pz * 0.17)); g.lineTo(X(tx), Z(tz)); g.lineTo(X(bx - px * 0.17), Z(bz - pz * 0.17)); g.closePath(); g.fill();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+
 const VS = `
 attribute float size; attribute float alpha; attribute vec3 tint;
 varying float vA; varying vec3 vC;
@@ -102,6 +128,13 @@ export class Decals {
     const m = new THREE.Mesh(this.geo, new THREE.MeshLambertMaterial({ map: craterTex, transparent: true, depthWrite: false,
       polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
     m.position.set(x, y + 0.15, z); m.scale.set(r * 2.2, 1, r * 2.2); m.rotation.y = Math.random() * 6; m.renderOrder = 2;
+    this.scene.add(m); this.list.push(m);
+  }
+  footprint(x, y, z, k, yaw, mid = 0) {   // 공룡 발자국: 발 크기 k, 발 방향 yaw, 탭 자리 = 발 단위 z=mid
+    const m = new THREE.Mesh(this.geo, new THREE.MeshLambertMaterial({ map: footprintTex, transparent: true, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+    const cz = ((FP.z0 + FP.z1) / 2 - mid) * k, c = Math.cos(yaw), s = Math.sin(yaw);
+    m.position.set(x + cz * s, y + 0.18, z + cz * c); m.rotation.y = yaw; m.scale.set((FP.x1 - FP.x0) * k, 1, (FP.z1 - FP.z0) * k); m.renderOrder = 2;
     this.scene.add(m); this.list.push(m);
   }
   rubble(b, y) {
@@ -214,6 +247,12 @@ export class Sfx {
     this._noise(t, dur, 5000, 2500, 3, 0.25, 'bandpass');
   }
   sizzle() { if (!this.ok) return; this._noise(this.ctx.currentTime, 0.18, 7000, 3000, 2, 0.2, 'highpass'); }
+  stompRumble() {                  // 괴수 발: 그림자 생길 때 낮은 우르릉
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    this._tone(t, 'sine', 42, 30, 0.6, 0.6, 0.12);
+    this._noise(t, 0.6, 260, 70, 0.8, 0.45);
+  }
   drop(dur = 0.4) {                // 괴수 발: 휘이익 내려옴
     if (!this.ok) return;
     const t = this.ctx.currentTime;
