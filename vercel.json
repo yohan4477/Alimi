@@ -83,5 +83,12 @@
       "destination": "/terms.html"
     }
   ],
-  "buildCommand": "npm run build:beauty-play"
+  "buildCommand": "npm run build:beauty-play",
+  "redirects": [
+    {
+      "source": "/seohyeon-map",
+      "destination": "/seohyeon-map/",
+      "permanent": false
+    }
+  ]
 }

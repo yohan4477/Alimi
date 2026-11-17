@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>서현역 도트 지도</title>
+<meta name="description" content="분당 서현역 반경 1km를 공공데이터(GIS건물통합정보·OSM)로 찍은 아이소메트릭 픽셀 지도">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --sky: #cde1e8; --ink: #151a21; --soft: rgba(21, 26, 33, .6);
+    --glass: rgba(255, 255, 255, .55); --glass2: rgba(255, 255, 255, .78); --edge: rgba(255, 255, 255, .72);
+    --line: rgba(21, 26, 33, .09); --dark: rgba(18, 22, 30, .8); --accent: #ff6a3d; --r: 18px;
+    --shadow: 0 10px 30px rgba(18, 38, 52, .15), 0 1px 2px rgba(18, 38, 52, .08);
+    --font: "Pretendard Variable", Pretendard, "Malgun Gothic", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--sky); color: var(--ink); font-family: var(--font); overflow: hidden; letter-spacing: -.01em; -webkit-font-smoothing: antialiased; }
+  #stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(120% 90% at 50% 40%, #e2eef2 0%, var(--sky) 60%, #b8d2da 100%); }
+  #map { width: 100%; height: 100%; }
+  body.reels #stage { background: #101317; }
+  body.reels #map { width: min(100%, calc(100vh * 9 / 16)); height: min(100%, calc(100vw * 16 / 9)); }
+  .ui { position: fixed; z-index: 10; }
+  .panel, button, #results, #q { -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%); }
+  .panel { background: var(--glass); border: 1px solid var(--edge); border-radius: var(--r); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.8); }
+  #title { top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; padding: 16px 16px 14px; }
+  #title h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -.03em; }
+  #title p { margin: 4px 0 0; font-size: 12.5px; color: var(--soft); }
+  #search { margin-top: 12px; position: relative; }
+  #q { width: min(260px, calc(100vw - 66px)); font: 500 14px var(--font); padding: 10px 14px; border: 1px solid var(--line);
+    border-radius: 12px; background: rgba(255,255,255,.62); color: var(--ink); -webkit-appearance: none; appearance: none; }
+  #q:focus-visible { outline: none; background: rgba(255,255,255,.92); box-shadow: 0 0 0 3px rgba(255,106,61,.22); border-color: rgba(255,106,61,.5); }
+  #results { list-style: none; margin: 8px 0 0; padding: 4px; max-height: 46vh; overflow-y: auto; width: min(260px, calc(100vw - 66px));
+    background: var(--glass2); border: 1px solid var(--edge); border-radius: 14px; box-shadow: var(--shadow); }
+  #results li { padding: 9px 11px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 10px; }
+  #results li:hover, #results li.on { background: rgba(21,26,33,.06); }
+  #results li small { display: block; font-size: 12px; font-weight: 450; color: var(--soft); margin-top: 2px; }
+  #btns { top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: 50vw; }
+  button { font: 600 13.5px var(--font); border: 1px solid var(--edge); border-radius: 999px; padding: 10px 16px; background: var(--glass);
+    color: var(--ink); cursor: pointer; box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.8); transition: background .2s, transform .15s; }
+  button:hover { background: var(--glass2); }
+  button:active { transform: scale(.97); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #tour { background: var(--dark); color: #fff; border-color: rgba(255,255,255,.14); }
+  #help { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 16px; font-size: 12px; font-weight: 500; color: var(--soft);
+    padding: 6px 12px; border-radius: 999px; background: var(--glass); border: 1px solid var(--edge); backdrop-filter: blur(22px); }
+  #credit { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); right: 16px; font-size: 12px; color: var(--soft); }
+  #credit summary { cursor: pointer; list-style: none; padding: 6px 12px; background: var(--glass); border: 1px solid var(--edge); border-radius: 999px; font-weight: 600; color: var(--ink); }
+  #credit summary::-webkit-details-marker { display: none; }
+  #credit div { background: var(--glass2); border: 1px solid var(--edge); border-radius: 14px; padding: 12px 14px; max-width: 280px; line-height: 1.65; margin-bottom: 8px; }
+  #credit[open] { display: flex; flex-direction: column-reverse; align-items: flex-end; }
+  #card { left: 16px; bottom: calc(52px + env(safe-area-inset-bottom, 0px)); width: min(300px, calc(100vw - 32px)); padding: 16px 16px 14px; }
+  #card .eb { font-size: 11.5px; font-weight: 600; color: var(--accent); }
+  #card b { display: block; font-size: 18px; font-weight: 700; letter-spacing: -.03em; margin: 3px 30px 6px 0; overflow-wrap: anywhere; line-height: 1.3; }
+  #cm { font-size: 13px; line-height: 1.6; color: var(--soft); white-space: pre-line; }
+  #cs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  #cs span { font-size: 12px; font-weight: 500; background: rgba(255,255,255,.6); border: 1px solid var(--line); padding: 3px 9px; border-radius: 999px; }
+  #cardx { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; padding: 0; font-size: 16px; line-height: 1; box-shadow: none; background: rgba(21,26,33,.06); border: 0; }
+  body:has(#card:not([hidden])) #help { display: none; }
+  .hl { outline: 2px solid #fff; box-shadow: 0 0 0 4px var(--accent), 0 0 0 9999px rgba(14,20,28,.3); animation: pulse 1.2s ease-in-out 3; pointer-events: none; border-radius: 6px; }
+  .hl.pin { border-radius: 50%; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 9px rgba(255,106,61,.35), 0 0 0 9999px rgba(14,20,28,.3); } }
+  @media (prefers-reduced-motion: reduce) { .hl { animation: none; } button { transition: none; } }
+  body.clean .ui { display: none; }
+  #map canvas { image-rendering: pixelated; }
+  [hidden] { display: none !important; }
+  @media (max-width: 640px) {
+    #title h1 { font-size: 17px; }
+    #btns { top: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 16px; right: auto; max-width: none; justify-content: flex-start; }
+    #help, #credit { display: none; }
+    #card { bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
+  }
+</style>
+</head>
+<body>
+<div id="stage"><div id="map" aria-label="서현역 반경 1km 도트 지도"></div></div>
+<div class="ui panel" id="title">
+  <h1>서현역 도트 지도</h1>
+  <p>서현동 · 이매동 · 수내동, 역에서 1km 안쪽</p>
+  <div id="search">
+    <input id="q" type="search" placeholder="건물, 가게, 주소로 찾기" autocomplete="off" aria-label="건물이나 가게 이름 검색">
+    <ul id="results" hidden></ul>
+  </div>
+</div>
+<div class="ui" id="btns">
+  <button id="tour" type="button">한 바퀴 둘러보기</button>
+  <button id="home" type="button">처음 화면</button>
+  <button id="reels" type="button">9:16</button>
+  <button id="clean" type="button">글자 숨김</button>
+</div>
+<div class="ui" id="help">끌어서 움직이고, 건물을 누르면 정보가 나와요</div>
+<details class="ui" id="credit"><summary>출처</summary>
+  <div>건물: 국토교통부 GIS건물통합정보·도로명주소 건물 (VWorld)<br>도로·가게·공원: © OpenStreetMap 기여자 (ODbL)<br>그림은 데이터로 자동 생성 — 층수가 빈 건물은 유형으로 추정</div>
+</details>
+<div class="ui panel" id="card" hidden>
+  <button id="cardx" type="button" aria-label="닫기">×</button>
+  <div class="eb" id="cu">건물</div>
+  <b id="cn"></b>
+  <div id="cm"></div>
+  <div id="cs"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.1/openseadragon.min.js"></script>
+<script>
+(async function () {
+const META = await (await fetch("meta.json")).json();
+const [W, H] = META.size, [cx, cy] = META.center_px;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const viewer = OpenSeadragon({
+  id: "map",
+  tileSources: { Image: { xmlns: "http://schemas.microsoft.com/deepzoom/2008", Url: META.tiles.url, Format: "jpg", Overlap: "0",
+                 TileSize: String(META.tiles.tile), Size: { Width: String(W), Height: String(H) } } },
+  showNavigationControl: false, imageSmoothingEnabled: false, maxZoomPixelRatio: 3, minZoomImageRatio: 0.6,
+  visibilityRatio: 0.4, animationTime: 1.2, springStiffness: 6,
+  gestureSettingsMouse: { clickToZoom: false, dblClickToZoom: true },
+});
+window.viewer = viewer;
+const I2V = (x, y, w, h) => viewer.viewport.imageToViewportRectangle(x, y, w, h);
+function rectAt(x, y, w) {
+  const el = document.getElementById("map"), h = w * (el.clientHeight / el.clientWidth);
+  return I2V(x - w / 2, y - h / 2, w, h);
+}
+
+// ---- 둘러보기: 전체 → 데이터에서 고른 명소들 → 역 바짝
+let timers = [];
+function stopTour() { timers.forEach(clearTimeout); timers = []; viewer.animationTime = 1.2; }
+function tour() {
+  stopTour();
+  const steps = [{ t: 0, x: W / 2, y: H / 2, w: W * 1.05, a: 0.01 }];
+  let t = 1600;
+  for (const s of META.tour) { steps.push({ t, x: s.x, y: s.y - s.w * 0.04, w: s.w, a: 2.6 }); t += 3200; }
+  const cl = META.close || [cx, cy]; steps.push({ t, x: cl[0], y: cl[1] - 140, w: 1000, a: 2.8 });
+  steps.forEach(s => timers.push(setTimeout(() => {
+    viewer.animationTime = reduce ? 0.01 : s.a;
+    viewer.viewport.fitBounds(rectAt(s.x, s.y, s.w), s.a < 0.05 || reduce);
+  }, s.t)));
+  timers.push(setTimeout(() => { viewer.animationTime = 1.2; }, t + 3500));
+}
+function home() { stopTour(); viewer.viewport.goHome(); }
+function reels() { document.body.classList.toggle("reels"); requestAnimationFrame(() => { dispatchEvent(new Event("resize")); viewer.viewport.goHome(true); }); }
+function clean() { document.body.classList.toggle("clean"); }
+
+// ---- 건물·장소 정보
+let BLDG = [], PLACES = [];
+const card = document.getElementById("card");
+const $ = id => document.getElementById(id);
+function inPoly(x, y, p) {
+  let c = false;
+  for (let i = 0, j = p.length - 2; i < p.length; j = i, i += 2) {
+    const xi = p[i], yi = p[i + 1], xj = p[j], yj = p[j + 1];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+}
+function bbox(p) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let i = 0; i < p.length; i += 2) { x0 = Math.min(x0, p[i]); x1 = Math.max(x1, p[i]); y0 = Math.min(y0, p[i + 1]); y1 = Math.max(y1, p[i + 1]); }
+  return [x0, y0, x1 - x0, y1 - y0];
+}
+function showInfo(b) {
+  $("cu").textContent = b.k || "건물";
+  $("cn").textContent = (b.n || (b.s && b.s[0]) || b.k || "이름 없는 건물") + (b.d ? " " + b.d : "");
+  const meta = [b.u, b.f ? `지상 ${b.f}층` : "", b.y ? `${b.y}년 사용승인` : ""].filter(Boolean).join(" · ");
+  const addr = [b.a, b.j ? `(${b.j})` : ""].filter(Boolean).join(" ");
+  $("cm").textContent = (addr ? addr + "\n" : "") + meta;
+  const cs = $("cs"); cs.textContent = "";
+  (b.s || []).forEach(s => { const e = document.createElement("span"); e.textContent = s; cs.appendChild(e); });
+  card.hidden = false;
+}
+let hlEl = null;
+function clearHL() { if (hlEl) { viewer.removeOverlay(hlEl); hlEl = null; } }
+function flyTo(b) {
+  stopTour();
+  const [x, y, w, h] = bbox(b.p);
+  viewer.viewport.fitBounds(rectAt(x + w / 2, y + h / 2, Math.max(w * 5, 700)));
+  clearHL(); hlEl = document.createElement("div"); hlEl.className = "hl";
+  viewer.addOverlay({ element: hlEl, location: I2V(x, y, w, h) });
+  showInfo(b);
+}
+function flyToPlace(p) {
+  stopTour();
+  const big = /공원|하천|호수|학교/.test(p.k);
+  viewer.viewport.fitBounds(rectAt(p.x, p.y - 100, big ? 3000 : 1000));
+  clearHL(); hlEl = document.createElement("div"); hlEl.className = "hl pin";
+  viewer.addOverlay({ element: hlEl, location: I2V(p.x - 50, p.y - 50, 100, 100) });
+  $("cu").textContent = p.k; $("cn").textContent = p.n; $("cm").textContent = ""; $("cs").textContent = "";
+  card.hidden = false;
+}
+viewer.addHandler("canvas-click", e => {
+  if (!e.quick || !BLDG.length) return;
+  const pt = viewer.viewport.viewerElementToImageCoordinates(e.position);
+  for (let i = BLDG.length - 1; i >= 0; i--) if (inPoly(pt.x, pt.y, BLDG[i].p)) { showInfo(BLDG[i]); return; }
+  card.hidden = true;
+});
+$("cardx").onclick = () => { card.hidden = true; clearHL(); };
+
+// ---- 검색
+const qEl = $("q"), resEl = $("results");
+const norm = s => (s || "").toLowerCase().replace(/\s+/g, "");
+function search(q) {
+  const n = norm(q); if (!n) return [];
+  const out = [];
+  for (const p of PLACES) if (norm(p.n).includes(n) || (n.length >= 2 && norm(p.k).includes(n))) out.push({ place: p, title: p.n, sub: "장소 · " + p.k });
+  for (const b of BLDG) {
+    const name = norm((b.n || "") + (b.d || "")); let hit = null;
+    if (name && name.includes(n)) hit = { b, title: (b.n || "") + (b.d ? " " + b.d : ""), sub: [b.a, b.k, b.f ? b.f + "층" : ""].filter(Boolean).join(" · ") };
+    else if ((b.a && norm(b.a).includes(n)) || (b.j && norm(b.j).includes(n))) hit = { b, title: norm(b.a).includes(n) ? b.a : b.j, sub: [b.n || b.k, b.f ? b.f + "층" : ""].filter(Boolean).join(" · ") };
+    else { const shop = (b.s || []).find(s => norm(s).includes(n));
+      if (shop) hit = { b, title: shop, sub: "가게 · " + (b.n || b.k || "건물") };
+      else if (n.length >= 2 && norm(b.k).includes(n)) hit = { b, title: b.n || b.k, sub: [b.k, b.f ? b.f + "층" : "", b.y ? b.y + "년" : ""].filter(Boolean).join(" · ") }; }
+    if (hit) out.push(hit);
+  }
+  const sc = r => (norm(r.title) === n ? 0 : norm(r.title).startsWith(n) ? 1 : 2) * 1000 + (r.title || "").length - (r.place ? 1500 : 0);
+  return out.sort((a, b) => sc(a) - sc(b)).slice(0, 40);
+}
+let cur = [], sel = -1;
+function go(r) { r.place ? flyToPlace(r.place) : flyTo(r.b); resEl.hidden = true; }
+function render() {
+  resEl.textContent = "";
+  cur.forEach((r, i) => { const li = document.createElement("li"); if (i === sel) li.className = "on";
+    li.textContent = r.title || "이름 없는 건물"; const sm = document.createElement("small"); sm.textContent = r.sub; li.appendChild(sm);
+    li.onclick = () => go(r); resEl.appendChild(li); });
+  if (!cur.length && qEl.value.trim()) { const li = document.createElement("li"); li.textContent = "찾는 이름이 없어요"; li.style.cursor = "default";
+    const sm = document.createElement("small"); sm.textContent = "다른 이름이나 가게 이름으로 찾아보세요"; li.appendChild(sm); resEl.appendChild(li); }
+  resEl.hidden = !qEl.value.trim();
+}
+qEl.addEventListener("input", () => { cur = search(qEl.value); sel = -1; render(); });
+qEl.addEventListener("keydown", e => {
+  e.stopPropagation();
+  if (e.key === "ArrowDown") { sel = Math.min(cur.length - 1, sel + 1); render(); e.preventDefault(); }
+  else if (e.key === "ArrowUp") { sel = Math.max(0, sel - 1); render(); e.preventDefault(); }
+  else if (e.key === "Enter" && cur.length) go(cur[Math.max(0, sel)]);
+  else if (e.key === "Escape") resEl.hidden = true;
+});
+$("tour").onclick = tour; $("home").onclick = home; $("reels").onclick = reels; $("clean").onclick = clean;
+addEventListener("keydown", e => {
+  if (e.target === qEl) return;
+  if (e.code === "Space") { e.preventDefault(); tour(); } else if (e.key === "0") home();
+  else if (e.key === "r" || e.key === "R") reels(); else if (e.key === "h" || e.key === "H") clean();
+});
+window.__tour = tour; window.__flyTo = q => { const r = search(q)[0]; if (r) go(r); return r && r.title; };
+
+const [bj, pj, aj] = await Promise.all(["buildings.json", "places.json", "anim.json"].map(u => fetch(u).then(r => r.json()).catch(() => null)));
+BLDG = bj || []; PLACES = pj || [];
+if (aj && !/[?&]still\b/.test(location.search)) startAnim(aj);
+
+// ---- 움직이는 차·사람 (그림 위 캔버스)
+function startAnim(A) {
+  const cv = document.createElement("canvas");
+  cv.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1";
+  viewer.container.appendChild(cv);
+  const ctx = cv.getContext("2d");
+  const MOB = matchMedia("(max-width: 700px)").matches, NCAR = MOB ? 500 : 900, NPED = MOB ? 800 : 1600;
+  const CARC = [[214,60,50],[240,240,236],[40,44,52],[60,110,200],[200,200,204],[240,200,60],[90,140,110],[150,40,50],[235,235,232],[60,62,70]];
+  const SHIRT = [[220,70,60],[60,110,200],[240,240,236],[40,40,46],[240,190,60],[90,150,100],[200,120,170]];
+  const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
+  const N = A.nodes, E = A.edges, adj = N.map(() => []);
+  E.forEach((e, i) => { adj[e[0]].push(i); adj[e[1]].push(i); });
+  const isCar = e => e[2] === 0 && e[3] >= 4.5;
+  const carDeg = N.map((_, i) => adj[i].filter(j => isCar(E[j])).length);
+  const elen = ei => { const e = E[ei], a = N[e[0]], b = N[e[1]]; return Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; };
+  const other = (ei, n) => E[ei][0] === n ? E[ei][1] : E[ei][0];
+  const canGo = (ei, from) => isCar(E[ei]) && !(E[ei][4] && E[ei][0] !== from);
+  // 차선: 우측통행. 양방향은 가운데에서 오른쪽, 일방통행은 폭 전체를 나눠 씀
+  function laneOff(e, li) {
+    const w = e[3];
+    if (e[4]) { const n = Math.max(1, Math.round(w / 3.3)); return -w / 2 + (Math.min(li, n - 1) + 0.5) * w / n; }
+    const n = Math.max(1, Math.floor(w / 2 / 3.3)); return (Math.min(li, n - 1) + 0.5) * (w / 2) / n;
+  }
+  const carEdges = E.map((e, i) => i).filter(i => isCar(E[i]));
+  const walkEdges = E.map((e, i) => i).filter(i => E[i][2] === 1 || E[i][3] >= 7);
+  let cars = [], peds = [];
+  function spawnCar(c) {
+    for (let k = 0; k < 30; k++) {
+      const ei = pick(carEdges), e = E[ei], from = e[4] ? e[0] : (Math.random() < .5 ? e[0] : e[1]);
+      const vmax = e[3] >= 14 ? rnd(10, 15) : e[3] >= 7 ? rnd(6, 9) : rnd(3, 5);
+      return Object.assign(c || {}, { ei, from, t: Math.random(), li: Math.floor(Math.random() * 3), v: vmax * .7, vmax, col: pick(CARC) });
+    }
+  }
+  function nextEdge(c) {
+    const to = other(c.ei, c.from);
+    let opts = adj[to].filter(j => j !== c.ei && canGo(j, to));
+    if (!opts.length) return carDeg[to] <= 1 ? -1 : (canGo(c.ei, to) ? c.ei : -1);
+    const a = N[c.from], b = N[to];
+    return opts.map(j => { const n2 = N[other(j, to)], d1 = [b[0] - a[0], b[1] - a[1]], d2 = [n2[0] - b[0], n2[1] - b[1]];
+      const cos = (d1[0] * d2[0] + d1[1] * d2[1]) / ((Math.hypot(...d1) * Math.hypot(...d2)) || 1);
+      return [j, cos * 1.3 + Math.random() * .9 + (E[j][3] >= 10 ? .3 : 0)]; }).sort((x, y) => y[1] - x[1])[0][0];
+  }
+  function posOn(ei, from, t, off) {
+    const e = E[ei]; let a = N[e[0]], b = N[e[1]]; if (e[0] !== from) [a, b] = [b, a];
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+    return [a[0] + dx * t + uy * off, a[1] + dy * t - ux * off, ux, uy];
+  }
+  const carGeo = c => posOn(c.ei, c.from, c.t, laneOff(E[c.ei], c.li));
+  const pedOff = (e, s) => e[2] === 1 ? 0 : s * (e[3] / 2 + 1.3);
+  const pedGeo = p => posOn(p.ei, p.from, p.t, pedOff(E[p.ei], p.s));
+  for (let i = 0; i < NCAR; i++) cars.push(spawnCar());
+  for (let i = 0; i < NPED; i++) { const ei = pick(walkEdges); peds.push({ ei, from: E[ei][0], t: Math.random(), s: Math.random() < .5 ? 1 : -1, sp: rnd(.9, 1.5), col: pick(SHIRT), ph: Math.random() * 6 }); }
+  function sim(dt) {
+    const lanes = new Map();
+    for (const c of cars) { const k = c.ei * 32 + (E[c.ei][0] === c.from ? 0 : 16) + c.li; (lanes.get(k) || lanes.set(k, []).get(k)).push(c); }
+    for (const l of lanes.values()) l.sort((a, b) => a.t - b.t);
+    for (const l of lanes.values()) for (let i = 0; i < l.length; i++) {
+      const c = l[i], L = elen(c.ei);
+      let room = i < l.length - 1 ? (l[i + 1].t - c.t) * L - 6 : 1e9;
+      const target = Math.min(c.vmax, Math.max(0, room) * 1.1);
+      c.v += Math.max(-8 * dt, Math.min(3 * dt, target - c.v));
+      c.t += Math.max(0, Math.min(c.v * dt, room)) / L;
+      if (c.t >= 1) {
+        const nx = nextEdge(c);
+        if (nx < 0) { spawnCar(c); continue; }
+        const to = other(c.ei, c.from); c.t = (c.t - 1) * L / elen(nx); c.from = to; c.ei = nx;
+      }
+    }
+    for (const p of peds) {
+      p.t += p.sp * dt / elen(p.ei);
+      if (p.t >= 1) { const to = other(p.ei, p.from), opts = adj[to].filter(j => j !== p.ei && (E[j][2] === 1 || E[j][3] >= 7));
+        if (opts.length) { p.ei = pick(opts); p.from = to; } else { p.from = to; } p.t = 0; }
+    }
+  }
+  for (let k = 0; k < 400; k++) sim(0.25);
+  // 가림: 땅 점이 건물 윤곽 안이면 그 윤곽 바깥만 그림
+  let grid = null;
+  function buildGrid() { grid = new Map(); BLDG.forEach((b, i) => { const [x, y, w, h] = bbox(b.p); b._bb = [x, y, x + w, y + h];
+    for (let gx = Math.floor(x / 256); gx <= Math.floor((x + w) / 256); gx++) for (let gy = Math.floor(y / 256); gy <= Math.floor((y + h) / 256); gy++) { const k = gx * 1000 + gy; (grid.get(k) || grid.set(k, []).get(k)).push(i); } }); }
+  function covering(pts) { const out = new Set();
+    for (const [x, y] of pts) for (const i of grid.get(Math.floor(x / 256) * 1000 + Math.floor(y / 256)) || []) { const bb = BLDG[i]._bb;
+      if (x >= bb[0] && x <= bb[2] && y >= bb[1] && y <= bb[3] && inPoly(x, y, BLDG[i].p)) out.add(i); } return out; }
+  let T = null;
+  const IX = (u, v, h) => [A.ox + (u + v) * A.S, A.oy + (u - v) * A.S / 2 - (h || 0) * A.SZ];
+  const P = (u, v, h) => { const [x, y] = IX(u, v, h); return [T.x0 + x * T.s, T.y0 + y * T.s]; };
+  const sh = (c, f) => `rgb(${Math.min(255, c[0] * f) | 0},${Math.min(255, c[1] * f) | 0},${Math.min(255, c[2] * f) | 0})`;
+  function quad(pts, fill) { ctx.beginPath(); ctx.moveTo(...pts[0]); for (let i = 1; i < pts.length; i++) ctx.lineTo(...pts[i]); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); }
+  function box(u, v, ux, uy, hl, hw, z0, z1, col) {
+    const c = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => [u + a * ux * hl - b * uy * hw, v + a * uy * hl + b * ux * hw]);
+    const f = [];
+    for (let i = 0; i < 4; i++) { const q1 = c[i], q2 = c[(i + 1) % 4]; const dx = q2[0] - q1[0], dy = q2[1] - q1[1];
+      // 바깥 법선이 보는 쪽(남동)이면 보임 — 꼭짓점 순서 방향에 맞춰 부호 판정
+      f.push([(q1[0] + q2[0]) / 2 - (q1[1] + q2[1]) / 2, q1, q2, dx, dy]); }
+    const area = c.reduce((s, q, i) => { const r = c[(i + 1) % 4]; return s + q[0] * r[1] - r[0] * q[1]; }, 0), ccw = area > 0;
+    f.sort((a, b) => a[0] - b[0]);
+    for (const [, q1, q2, dx, dy] of f) { const vis = ccw ? dx + dy > 0 : dx + dy < 0; if (!vis) continue;
+      const L = Math.hypot(dx, dy) || 1, nv = ccw ? -dx / L : dx / L;
+      quad([P(q1[0], q1[1], z0), P(q2[0], q2[1], z0), P(q2[0], q2[1], z1), P(q1[0], q1[1], z1)], sh(col, .74 + .2 * Math.max(0, -nv))); }
+    quad(c.map(q => P(q[0], q[1], z1)), sh(col, 1.06));
+  }
+  function drawCar(c, g) {
+    const [u, v, ux, uy] = g;
+    if (T.s < 0.25) { const [x, y] = P(u, v, .8), r = Math.max(2.2, T.s * 9); ctx.fillStyle = sh(c.col, 1); ctx.fillRect(x - r, y - r * .7, r * 2, r * 1.1); return; }
+    quad([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => P(u + a * ux * 2.2 - b * uy * .9 + .5, v + a * uy * 2.2 + b * ux * .9, 0)), "rgba(20,24,40,.25)");
+    box(u, v, ux, uy, 2.2, .9, 0, .9, c.col);
+    box(u - ux * .2, v - uy * .2, ux, uy, 1.1, .8, .9, 1.5, [52, 62, 78]);
+  }
+  function drawPed(p, g, now) {
+    const [x, y] = P(g[0], g[1], 0), s = T.s * A.S / 3;
+    const bob = Math.sin(now / 160 + p.ph) * .25 * s, w = Math.max(1.5, .9 * s);
+    ctx.fillStyle = "rgba(20,24,40,.25)"; ctx.fillRect(x - w, y - .3 * s, w * 2, .6 * s);
+    ctx.fillStyle = "#3a3f4a"; ctx.fillRect(x - w / 2, y - 1.4 * s + bob, w, 1.4 * s);
+    ctx.fillStyle = sh(p.col, 1); ctx.fillRect(x - w / 2, y - 3.6 * s + bob, w, 2.2 * s);
+    ctx.fillStyle = "#e8c4a0"; ctx.fillRect(x - w * .4, y - 4.5 * s + bob, w * .8, .9 * s);
+    ctx.fillStyle = "#2a2622"; ctx.fillRect(x - w * .4, y - 4.5 * s + bob, w * .8, .32 * s);
+  }
+  function withClip(blds, fn) {
+    if (!blds.size) { fn(); return; }
+    ctx.save();
+    for (const i of blds) { const p = BLDG[i].p; ctx.beginPath(); ctx.rect(-1e5, -1e5, 2e5, 2e5);
+      ctx.moveTo(T.x0 + p[0] * T.s, T.y0 + p[1] * T.s); for (let k = 2; k < p.length; k += 2) ctx.lineTo(T.x0 + p[k] * T.s, T.y0 + p[k + 1] * T.s);
+      ctx.closePath(); ctx.clip("evenodd"); }
+    fn(); ctx.restore();
+  }
+  let last = performance.now();
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    if (document.hidden) return;
+    try {
+      sim(dt);
+      const dpr = Math.min(2, devicePixelRatio || 1), W_ = cv.clientWidth, H_ = cv.clientHeight;
+      if (cv.width !== Math.round(W_ * dpr) || cv.height !== Math.round(H_ * dpr)) { cv.width = Math.round(W_ * dpr); cv.height = Math.round(H_ * dpr); }
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+      const vp = viewer.viewport, p0 = vp.imageToViewerElementCoordinates(new OpenSeadragon.Point(0, 0)), p1 = vp.imageToViewerElementCoordinates(new OpenSeadragon.Point(1000, 0));
+      T = { x0: p0.x, y0: p0.y, s: (p1.x - p0.x) / 1000 };
+      if (T.s < 0.06) return;
+      if (!grid) buildGrid();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.globalAlpha = Math.min(1, (T.s - .06) / .05);
+      const vx0 = -T.x0 / T.s - 40, vy0 = -T.y0 / T.s - 40, vx1 = (W_ - T.x0) / T.s + 40, vy1 = (H_ - T.y0) / T.s + 40;
+      const items = [];
+      for (const c of cars) { const g = carGeo(c), [x, y] = IX(g[0], g[1]); if (x > vx0 && x < vx1 && y > vy0 && y < vy1) items.push([0, c, g, y]); }
+      if (T.s >= .35) for (const p of peds) { const g = pedGeo(p), [x, y] = IX(g[0], g[1]); if (x > vx0 && x < vx1 && y > vy0 && y < vy1) items.push([1, p, g, y]); }
+      items.sort((a, b) => a[3] - b[3]);
+      for (const [k, o, g] of items) {
+        const [u, v, ux, uy] = g;
+        const pts = k ? [IX(u, v)] : [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, 0]].map(([a, b]) => IX(u + a * ux * 2.2 - b * uy * .9, v + a * uy * 2.2 + b * ux * .9));
+        const cov = covering(pts);
+        if (k && cov.size) continue;
+        withClip(cov, () => k ? drawPed(o, g, now) : drawCar(o, g));
+      }
+      ctx.globalAlpha = 1;
+    } catch (e) { window.__animErr = String(e && e.stack || e); }
+  }
+  window.__anim = () => ({ cars: cars.length, peds: peds.length, err: window.__animErr || null });
+  requestAnimationFrame(frame);
+}
+})();
+</script>
+</body>
+</html>
