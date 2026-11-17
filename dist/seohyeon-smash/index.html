@@ -83,7 +83,9 @@
 
     <section class="eSec">
       <h3>🏆 전체 순위에 올리기</h3>
-      <div class="row"><input id="nick" maxlength="12" placeholder="닉네임 (12자까지)"><button id="rankBtn" class="mid">등록</button></div>
+      <div class="row"><input id="nick" maxlength="12" placeholder="닉네임 (12자까지)"></div>
+      <div class="row"><input id="pin" type="password" maxlength="20" autocomplete="off" placeholder="비밀번호 (4자 이상)"><button id="rankBtn" class="mid">등록</button></div>
+      <p class="note">처음 쓰는 닉네임이면 이 비밀번호로 내 닉네임이 됩니다. 다른 곳에 쓰는 비밀번호는 쓰지 마세요.</p>
       <p class="note" id="rankMsg">닉네임을 적고 등록하면 순위에 올라가요</p>
       <ol id="rankList" class="rankList"></ol>
     </section>

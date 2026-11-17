@@ -1512,15 +1512,18 @@ $('rankBtn').onclick = async () => {
   if (G.ranked) return;
   const nick = ($('nick').value || '').trim();
   if (!nick) { $('rankMsg').textContent = '닉네임을 먼저 적어 주세요'; $('nick').focus(); return; }
+  const pin = $('pin').value;
+  if ([...pin].length < 4) { $('rankMsg').textContent = '비밀번호를 4자 이상 적어 주세요'; $('pin').focus(); return; }
   $('rankBtn').disabled = true; $('rankMsg').textContent = '등록 중…';
   try {
     const score = Math.round(G.price);
-    const r = await fetch(RANK_API + '?game=seohyeon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname: nick, score, destroyed: G.dest }) });
+    const r = await fetch(RANK_API + '?game=seohyeon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname: nick, pin, score, destroyed: G.dest }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) { $('rankMsg').textContent = d.error || '등록하지 못했어요'; $('rankBtn').disabled = false; return; }
     G.ranked = true; store('seohyeon-smash-nick', nick);
-    $('rankBtn').textContent = '등록됨'; $('rankMsg').textContent = `${d.rank}위로 등록했어요!`;
-    drawRank(d.top, { nick, score });
+    $('rankBtn').textContent = '등록됨';
+    $('rankMsg').textContent = d.created ? `「${nick}」 닉네임을 만들고 ${d.rank}위로 등록했어요!` : d.improved ? `최고 기록 갱신! ${d.rank}위` : `최고 기록(${wonShort(d.best)})이 더 높아요. 지금 ${d.rank}위`;
+    drawRank(d.top, { nick, score: d.best });
   } catch { $('rankMsg').textContent = '등록하지 못했어요'; $('rankBtn').disabled = false; }
 };
 $('again').onclick = () => { resetCity(); startRound(); };
