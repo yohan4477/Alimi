@@ -89,6 +89,11 @@
       "source": "/seohyeon-map",
       "destination": "/seohyeon-map/",
       "permanent": false
+    },
+    {
+      "source": "/seohyeon-smash",
+      "destination": "/seohyeon-smash/",
+      "permanent": false
     }
   ]
 }
