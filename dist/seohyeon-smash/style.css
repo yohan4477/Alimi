@@ -144,5 +144,5 @@ h1 { margin: 6px 0 12px; font-size: 34px; font-weight: 900; letter-spacing: -1.5
 #end .rankList li.me{color:#d24a1f;font-weight:700}
 
 /* 끝 화면 점수 아래 그림 */
-#end .eShot{display:block;width:100%;aspect-ratio:720/420;object-fit:cover;border-radius:14px;margin:8px 0 6px;background:#dfe6ea;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#end .eShot{display:block;width:100%;aspect-ratio:1080/1350;object-fit:cover;border-radius:14px;margin:8px 0 6px;background:#dfe6ea;box-shadow:0 4px 14px rgba(0,0,0,.12)}
 #end .eSec .row input{padding:10px 12px;font-size:15px;border:1px solid #ccd3dc;border-radius:10px}

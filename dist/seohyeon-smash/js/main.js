@@ -1287,7 +1287,7 @@ async function cardFile() {
   await new Promise((r) => setTimeout(r, 30));
   const cv = await makeCard();
   lastCardBlob = await new Promise((r) => cv.toBlob(r, 'image/png'));
-  const img = $('cardPrev'); img.src = URL.createObjectURL(lastCardBlob); img.classList.remove('hidden');
+  
   return new File([lastCardBlob], 'seohyeon-smash.png', { type: 'image/png' });
 }
 function downloadCard() { const a = document.createElement('a'); a.href = URL.createObjectURL(lastCardBlob); a.download = 'seohyeon-smash.png'; document.body.appendChild(a); a.click(); a.remove(); }
@@ -1466,9 +1466,13 @@ function endRound() {
   store('seohyeon-smash-total', Math.round(totalGet() + G.price));
   const newly = WEAPONS.filter((w) => unlocked(w) && !before.includes(w.id));
   $('eScore').textContent = won(G.price);
-  // 점수 아래 그림: 부서진 곳을 보기 좋은 각도로 한 장
-  try { const shot = cardShot(720, 420); $('eShot').src = shot.toDataURL('image/jpeg', 0.82); $('eShot').style.display = ''; }
-  catch (e) { $('eShot').style.display = 'none'; }
+  // 맨 위: 결과 카드 그대로 (공유·저장도 이 그림을 씀)
+  $('eShot').style.display = 'none';
+  setTimeout(async () => {
+    try { const cv = await makeCard(); lastCardBlob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+      $('eShot').src = URL.createObjectURL(lastCardBlob); $('eShot').style.display = ''; $('end').querySelector('.card').scrollTop = 0; }
+    catch (e) { $('eShot').style.display = 'none'; }
+  }, 60);
   $('eKick').textContent = G.homeLost ? '내 집까지 날렸다…' : (G.home >= 0 && G.dest >= HOME_SAFE_N ? '우리 집은 지켰다!' : '게임 끝!');
   let note = homeNote();
   if (CH.active && CH.score) {
