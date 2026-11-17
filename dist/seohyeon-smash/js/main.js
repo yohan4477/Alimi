@@ -1612,7 +1612,7 @@ function startRound() {
   $('start').classList.add('hidden'); $('end').classList.add('hidden'); $('hud').classList.remove('hidden'); $('weapons').classList.remove('hidden');
   $('cardPrev').classList.add('hidden');
   const hb = G.home >= 0 ? city.B[G.home] : null;
-  easeCam(hb ? { tx: hb.cx, tz: -hb.cy, dist: IS_TOUCH ? 640 : 540 } : { tx: 15, tz: 30, dist: IS_TOUCH ? 620 : 520 }, 2.2);
+  easeCam(hb ? { tx: hb.cx, tz: -hb.cy, dist: IS_TOUCH ? 1050 : 850 } : { tx: 15, tz: 30, dist: IS_TOUCH ? 1150 : 900 }, 2.2);   // 시작은 넓게 (너무 줌인돼 있던 것)
   pickMissions(); MK.reset(); WAR.reset(); AR.reset(); renderWeapons();
   MK.addGiftDome(META.giftCount('dome'));
   MP.start();

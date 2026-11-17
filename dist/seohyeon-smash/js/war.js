@@ -55,11 +55,12 @@ const flagImg = {};
 for (const k in FLAG_SVG) { const im = new Image(); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="120" height="80">${FLAG_SVG[k]}</svg>`); flagImg[k] = im; }
 
 // ---------- 나라 정보 (사이드: p = 플레이어 편, d = 방어군 편)
+const WAR_START = 25, HOLD_S = 4;   // 첫 참전은 25초 뒤부터, 우세·열세가 4초 이어져야
 const C = {
-  kp: { nm: '북한', side: 'p', ban: '북한 참전! 지원군 남하', who: '북측 사령관', say: '지원 포격 개시!', dur: 15 },
-  cn: { nm: '중국', side: 'p', ban: '중국 참전! 항모 전단 출격', who: '항모 함장', say: '전투기 발진!', dur: 15 },
-  jp: { nm: '일본', side: 'd', ban: '일본 참전! 방어군 지원', who: '방공 지휘관', say: '운석 요격 준비!', dur: 18 },
-  us: { nm: '미국', side: 'd', ban: '미국 참전! 항모 타격단 도착', who: '타격단 사령관', say: '폭격기 출격!', dur: 18 },
+  kp: { nm: '북한', side: 'p', ban: '우리가 밀려서 북한 참전! 지원군 남하', who: '북측 사령관', say: '지원 포격 개시!', dur: 15 },
+  cn: { nm: '중국', side: 'p', ban: '판이 기울자 중국 참전! 항모 전단 출격', who: '항모 함장', say: '전투기 발진!', dur: 15 },
+  jp: { nm: '일본', side: 'd', ban: '우리가 너무 세서 방어군이 일본에 지원 요청!', who: '방공 지휘관', say: '운석 요격 준비!', dur: 18 },
+  us: { nm: '미국', side: 'd', ban: '중국까지 붙자 미국 참전! 항모 타격단 도착', who: '타격단 사령관', say: '폭격기 출격!', dur: 18 },
 };
 
 // ---------- 공용 모형 (단순 도형 · 실제 부대 표식 없음)
@@ -514,10 +515,10 @@ export function step(real, dt) {
   W.lowT = W.g < 0.3 ? W.lowT + real : 0;
   W.hiT = W.g > 0.72 ? W.hiT + real : 0;
   W.midT = W.g < 0.45 ? (W.midT || 0) + real : 0;
-  if (W.cool <= 0 && W.t > 4) {
+  if (W.cool <= 0 && W.t > WAR_START) {   // 판 시작 직후엔 참전 없음 (서현역 부수다 갑자기 외국군이 나오던 문제)
     const jpThenCn = W.order.includes('jp') && !W.order.includes('cn') && (W.midT > 1.5 || W.t - W.since.jp > 12);
     if (jpThenCn) enter('cn');
-    else if (W.lowT > 1.5) { const c = nextEntry('low'); if (c) enter(c); W.lowT = 0; }
-    else if (W.hiT > 1.5) { const c = nextEntry('high'); if (c) enter(c); W.hiT = 0; }
+    else if (W.lowT > HOLD_S) { const c = nextEntry('low'); if (c) enter(c); W.lowT = 0; }
+    else if (W.hiT > HOLD_S) { const c = nextEntry('high'); if (c) enter(c); W.hiT = 0; }
   }
 }
