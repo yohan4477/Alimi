@@ -256,6 +256,7 @@ function cutBuilding(b, keepH) {
 const meteorGeo = new THREE.IcosahedronGeometry(1, 1);
 function launch(target) {
   if (G.state !== 'play' || G.meteors <= 0) return;
+  if (!G.armed) { G.armed = true; hideTapHint(); }   // 첫 탭부터 시간이 흐름
   G.meteors--;
   const R = radius();
   const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
@@ -526,11 +527,20 @@ function clampCam() {
 function startRound() {
   sfx.init();
   if (sfx.ctx && sfx.ctx.state === 'suspended') sfx.ctx.resume();
-  Object.assign(G, { state: 'play', price: 0, dest: 0, destVol: 0, meteors: ROUND_METEORS, time: ROUND_TIME, lvl: 1, combo: 0, big: null, endWait: 0 });
+  Object.assign(G, { armed: false, state: 'play', price: 0, dest: 0, destVol: 0, meteors: ROUND_METEORS, time: ROUND_TIME, lvl: 1, combo: 0, big: null, endWait: 0 });
   $('start').classList.add('hidden'); $('end').classList.add('hidden'); $('hud').classList.remove('hidden');
   easeCam({ tx: 15, tz: 30, dist: IS_TOUCH ? 620 : 520 }, 2.2);
   updateHud();
+  showTapHint();
 }
+// 처음 안내: 카메라가 다가간 뒤 화면 가운데에 「톡 누르면 운석」 손가락 표시, 첫 탭까지 시간 멈춤
+let hintTimer = 0;
+function showTapHint() {
+  const h = $('tapHint'); clearTimeout(hintTimer);
+  h.classList.add('hidden');
+  hintTimer = setTimeout(() => { if (G.state === 'play' && !G.armed) h.classList.remove('hidden'); }, 1600);
+}
+function hideTapHint() { clearTimeout(hintTimer); $('tapHint').classList.add('hidden'); }
 function resetCity() {
   const g = city.bmesh.geometry;
   g.attributes.position.array.set(city.origPos); g.attributes.uv.array.set(city.origUV);
@@ -598,7 +608,7 @@ function frame(now) {
     smoke.update(dt, vh); fire.update(dt, vh);
     stepPops(dt);
     if (G.state === 'play') {
-      G.time -= dt;
+      if (G.armed) G.time -= dt;
       if (Math.ceil(G.time) !== Number($('hTime').textContent)) updateHud();
       if (G.time <= 0 || (G.meteors <= 0 && meteors.length === 0)) {
         G.endWait += dt;

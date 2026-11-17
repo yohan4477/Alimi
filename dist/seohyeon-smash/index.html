@@ -29,12 +29,17 @@
   </div>
 </div>
 <div id="banner"></div>
+<div id="tapHint" class="hidden" aria-live="polite">
+  <div class="ring"></div><div class="ring r2"></div>
+  <div class="finger">👆</div>
+  <div class="msg"><b>건물을 톡 누르세요!</b><br>누른 자리에 운석이 떨어집니다<br><small>첫 탭부터 60초 시작</small></div>
+</div>
 
 <div id="start" class="overlay">
   <div class="card">
     <div class="kicker">분당 서현역 반경 1km 미니어처</div>
     <h1>서현역 부수기</h1>
-    <p class="how">지도 아무 곳이나 <b>탭</b>하면 메테오가 떨어집니다.<br>드래그로 이동 · 두 손가락/휠로 확대<br>60초, 메테오 20개로 <b>집값</b>을 최대한 날리세요!</p>
+    <p class="how"><b>건물을 누르면(클릭) 그 자리에 운석이 떨어져 부서집니다.</b><br>드래그로 이동 · 두 손가락/휠로 확대<br>60초, 메테오 20개로 <b>집값</b>을 최대한 날리세요!</p>
     <p class="best" id="bestStart"></p>
     <button id="go" class="big" disabled>불러오는 중…</button>
     <p class="note">실제 건물 이름·층수 데이터 기반 · 사람은 등장하지 않습니다</p>
