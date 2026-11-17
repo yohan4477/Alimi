@@ -150,24 +150,38 @@ export function buildCity(data, scene, opts) {
   // 고가 상판
   const deckC = new THREE.Color().setRGB(0.58, 0.58, 0.6, THREE.SRGBColorSpace);
   const deckTop = new THREE.Color().setRGB(0.36, 0.37, 0.4, THREE.SRGBColorSpace);
-  for (const [q, h0, h1, pillar] of data.decks) {
+  const brb = new Buf(), bridge = [];
+  for (const [q, h0, h1, pillar, bid] of data.decks) {
+    const tb = bid ? brb : gb;
+    const st0 = tb.count;
     const pts = [[q[0], q[1], h0], [q[2], q[3], h0], [q[4], q[5], h1], [q[6], q[7], h1]];
     const top = pts.map(([u, v, h]) => P3(u, h, v)), bot = pts.map(([u, v, h]) => P3(u, h - 1.1, v));
-    gb.tri(top[0], top[1], top[2], UP, deckTop); gb.tri(top[0], top[2], top[3], UP, deckTop);
-    gb.tri(bot[0], bot[2], bot[1], [0, -1, 0], deckC); gb.tri(bot[0], bot[3], bot[2], [0, -1, 0], deckC);
+    tb.tri(top[0], top[1], top[2], UP, deckTop); tb.tri(top[0], top[2], top[3], UP, deckTop);
+    tb.tri(bot[0], bot[2], bot[1], [0, -1, 0], deckC); tb.tri(bot[0], bot[3], bot[2], [0, -1, 0], deckC);
     const f = [q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7]], s = Math.sign(ringArea(f));
     for (let i = 0; i < 4; i++) {
       const j = (i + 1) % 4;
       const dx = q[j * 2] - q[i * 2], dy = q[j * 2 + 1] - q[i * 2 + 1], L = Math.hypot(dx, dy) || 1;
       const n = [dy / L * s, 0, dx / L * s];
-      gb.tri(bot[i], bot[j], top[j], n, deckC); gb.tri(bot[i], top[j], top[i], n, deckC);
+      tb.tri(bot[i], bot[j], top[j], n, deckC); tb.tri(bot[i], top[j], top[i], n, deckC);
     }
     if (pillar) {
       const cu = (q[0] + q[2] + q[4] + q[6]) / 4, cv = (q[1] + q[3] + q[5] + q[7]) / 4, hh = (h0 + h1) / 2 - 1.1, r = 0.7;
       const sq = [cu - r, cv - r, cu + r, cv - r, cu + r, cv + r, cu - r, cv + r];
-      walls(gb, sq, 0, hh, deckC, 3, 1, false);
+      walls(tb, sq, 0, hh, deckC, 3, 1, false);
+    }
+    if (bid) {
+      const cu = (q[0] + q[2] + q[4] + q[6]) / 4, cv = (q[1] + q[3] + q[5] + q[7]) / 4;
+      bridge.push({ bid, start: st0, count: tb.count - st0, x: cu, z: -cv, h: (h0 + h1) / 2, gone: false,
+        len: Math.max(Math.hypot(q[2] - q[0], q[3] - q[1]), Math.hypot(q[4] - q[2], q[5] - q[3])) });
     }
   }
+  if (bridge.length) {
+    const bm = new THREE.Mesh(brb.geometry(), new THREE.MeshLambertMaterial({ vertexColors: true }));
+    bm.receiveShadow = true; bm.castShadow = true; scene.add(bm);
+    out.bridgeMesh = bm; out.bridgeOrig = bm.geometry.attributes.position.array.slice();
+  }
+  out.bridge = bridge;
   const groundMesh = new THREE.Mesh(gb.geometry(), new THREE.MeshLambertMaterial({ vertexColors: true }));
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
@@ -207,6 +221,8 @@ export function buildCity(data, scene, opts) {
   out.bmesh = bmesh; out.B = B; out.win = win;
   out.origPos = bg.attributes.position.array.slice();
   out.origUV = bg.attributes.uv.array.slice();
+  out.origCol = bg.attributes.color.array.slice();
+  bg.attributes.color.setUsage(THREE.DynamicDrawUsage);
 
   // ---- 나무 (인스턴스)
   const trunk = new THREE.CylinderGeometry(0.28, 0.38, 2.4, 5).translate(0, 1.2, 0);

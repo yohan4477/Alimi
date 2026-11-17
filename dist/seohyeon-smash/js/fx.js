@@ -114,6 +114,13 @@ export class Decals {
     const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: c }));
     m.position.y = y; m.receiveShadow = true; this.scene.add(m); this.list.push(m);
   }
+  scorch(ax, az, bx, bz, y) {   // 레이저 자국: 땅 위 검붉은 줄
+    const L = Math.hypot(bx - ax, bz - az);
+    const m = new THREE.Mesh(this.geo, new THREE.MeshBasicMaterial({ color: 0x3a1a12, transparent: true, opacity: 0.75, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+    m.position.set((ax + bx) / 2, y + 0.2, (az + bz) / 2); m.scale.set(L, 1, 2.2); m.rotation.y = -Math.atan2(bz - az, bx - ax); m.renderOrder = 2;
+    this.scene.add(m); this.list.push(m);
+  }
   clear() { for (const m of this.list) { this.scene.remove(m); m.material.dispose(); if (m.geometry !== this.geo) m.geometry.dispose(); } this.list = []; }
 }
 
@@ -122,14 +129,16 @@ export class Rings {
     this.scene = scene; this.list = [];
     this.geo = new THREE.RingGeometry(0.9, 1, 72).rotateX(-Math.PI / 2);
   }
-  add(x, y, z, r, color = 0xfff2c8, dur = 0.9) {
-    const m = new THREE.Mesh(this.geo, new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
-    m.position.set(x, y + 1.2, z); m.renderOrder = 7; this.scene.add(m);
-    this.list.push({ m, t: 0, r, dur });
+  add(x, y, z, r, color = 0xfff2c8, dur = 0.9, delay = 0, normal = false) {
+    const m = new THREE.Mesh(this.geo, new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      blending: normal ? THREE.NormalBlending : THREE.AdditiveBlending }));
+    m.position.set(x, y + 1.2, z); m.renderOrder = 7; m.visible = delay <= 0; m.scale.setScalar(0.001); this.scene.add(m);
+    this.list.push({ m, t: -delay, r, dur });
   }
+  clear() { for (const o of this.list) { this.scene.remove(o.m); o.m.material.dispose(); } this.list = []; }
   update(dt) {
     this.list = this.list.filter((o) => {
-      o.t += dt; const k = o.t / o.dur;
+      o.t += dt; if (o.t < 0) return true; o.m.visible = true; const k = o.t / o.dur;
       if (k >= 1) { this.scene.remove(o.m); o.m.material.dispose(); return false; }
       const s = o.r * (0.2 + 2.8 * (1 - Math.pow(1 - k, 3)));
       o.m.scale.set(s, 1, s); o.m.material.opacity = 0.7 * (1 - k) * (1 - k);
@@ -180,6 +189,69 @@ export class Sfx {
     if (!this.ctx || this.muted || n <= 0) return;
     const t = this.ctx.currentTime;
     for (let i = 0; i < Math.min(8, n + 2); i++) this._noise(t + 0.25 + i * 0.13 + Math.random() * 0.1, 0.5 + Math.random() * 0.5, 900, 150, 1.2, 0.25);
+  }
+  _tone(t, type, f0, f1, dur, g0, att = 0.01) {
+    const c = this.ctx, o = c.createOscillator(); o.type = type;
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(g0, t + att);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.out); o.start(t); o.stop(t + dur + 0.05);
+  }
+  get ok() { return this.ctx && !this.muted; }
+  rumble(size = 1) {               // 지진: 낮게 우르릉
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    this._tone(t, 'sawtooth', 46, 28, 2.2, 0.35 * size, 0.25);
+    this._tone(t + 0.1, 'sine', 34, 22, 2.4, 0.8 * size, 0.2);
+    this._noise(t, 2.4, 420, 60, 0.8, 0.8 * size);
+    for (let i = 0; i < 6; i++) this._noise(t + 0.3 + i * 0.28 + Math.random() * 0.1, 0.4, 700, 120, 1, 0.3);
+  }
+  zap(dur = 0.5) {                 // 레이저: 지잉
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    this._tone(t, 'square', 1500, 380, dur, 0.12, 0.005);
+    this._tone(t, 'sawtooth', 2400, 900, dur * 0.8, 0.06, 0.005);
+    this._noise(t, dur, 5000, 2500, 3, 0.25, 'bandpass');
+  }
+  sizzle() { if (!this.ok) return; this._noise(this.ctx.currentTime, 0.18, 7000, 3000, 2, 0.2, 'highpass'); }
+  drop(dur = 0.4) {                // 괴수 발: 휘이익 내려옴
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    this._tone(t, 'sine', 900, 160, dur, 0.18, 0.02);
+    this._noise(t, dur, 400, 1800, 3, 0.3, 'bandpass');
+  }
+  thud(size = 1) {                 // 쿵!
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    this._tone(t, 'sine', 70, 26, 1.1, 1.1 * size, 0.005);
+    this._tone(t, 'triangle', 140, 40, 0.35, 0.5 * size, 0.005);
+    this._noise(t, 1.2, 1600, 80, 0.7, 1.0 * size);
+  }
+  creak() {                        // 기우는 소리
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    this._tone(t, 'sawtooth', 120, 70, 0.7, 0.07, 0.15);
+  }
+  crash(size = 1) {                // 쓰러져 닿음
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    this._tone(t, 'sine', 90, 30, 0.8, 0.6 * Math.min(1.4, size), 0.005);
+    this._noise(t, 1.1, 2400, 140, 0.7, 0.7 * Math.min(1.4, size));
+  }
+  chain(n) {                       // 연쇄: 올라가는 삑
+    if (!this.ok) return;
+    const t = this.ctx.currentTime, f = 440 * Math.pow(1.122, Math.min(12, n));
+    this._tone(t, 'triangle', f, f * 1.5, 0.18, 0.22, 0.005);
+  }
+  fanfare() {
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    [523, 659, 784, 1047].forEach((f, i) => this._tone(t + i * 0.09, 'triangle', f, f, 0.32, 0.22, 0.01));
+  }
+  sad() {
+    if (!this.ok) return;
+    const t = this.ctx.currentTime;
+    [392, 370, 349, 311].forEach((f, i) => this._tone(t + i * 0.28, 'triangle', f, f * 0.97, 0.3, 0.2, 0.02));
   }
   ding() {
     if (!this.ctx || this.muted) return;

@@ -18,7 +18,7 @@
 <div id="hud" class="hidden">
   <div class="row">
     <div class="box score"><span class="lab">부순 집값</span><b id="hScore">0원</b></div>
-    <div class="box"><span class="lab">메테오</span><b id="hMeteor">20</b></div>
+    <div class="box"><span class="lab">남은 탄</span><b id="hMeteor">20</b></div>
     <div class="box"><span class="lab">시간</span><b id="hTime">60</b></div>
     <button id="mute" class="box btn" aria-label="소리">소리 켬</button>
   </div>
@@ -27,7 +27,10 @@
     <div class="pill">파괴율 <b id="hPct">0.00</b>%</div>
     <div class="pill lv">Lv.<b id="hLv">1</b> · 반경 <b id="hRad">24</b>m</div>
   </div>
+  <ul id="missions"></ul>
 </div>
+<div id="weapons" class="hidden"></div>
+<div id="modeHint" class="hidden"></div>
 <div id="banner"></div>
 <div id="tapHint" class="hidden" aria-live="polite">
   <div class="ring"></div><div class="ring r2"></div>
@@ -39,29 +42,53 @@
   <div class="card">
     <div class="kicker">분당 서현역 반경 1km 미니어처</div>
     <h1>서현역 부수기</h1>
-    <p class="how"><b>건물을 누르면(클릭) 그 자리에 운석이 떨어져 부서집니다.</b><br>드래그로 이동 · 두 손가락/휠로 확대<br>60초, 메테오 20개로 <b>집값</b>을 최대한 날리세요!</p>
+    <div id="chal" class="chal hidden"></div>
+    <p class="how"><b>건물을 누르면 운석이 떨어집니다.</b><br>높은 건물은 쓰러지며 옆 건물까지 연쇄로!<br>60초, 20발로 <b>집값</b>을 최대한 날리세요.</p>
+    <div class="homeRow">
+      <button id="homeBtn" class="mid">🏠 우리 집 정하기 <small>(선택)</small></button>
+      <div id="homeSel" class="homeSel"></div>
+    </div>
     <p class="best" id="bestStart"></p>
     <button id="go" class="big" disabled>불러오는 중…</button>
     <p class="note">실제 건물 이름·층수 데이터 기반 · 사람은 등장하지 않습니다</p>
   </div>
 </div>
 
+<div id="homePanel" class="overlay hidden">
+  <div class="card">
+    <div class="kicker">우리 집 정하기</div>
+    <input id="homeQ" type="search" placeholder="아파트 이름·동·주소 (예: 한양 323동)" autocomplete="off">
+    <ul id="homeList"></ul>
+    <div class="btns">
+      <button id="homeNone" class="big ghost">안 정함</button>
+      <button id="homeClose" class="big ghost">닫기</button>
+    </div>
+  </div>
+</div>
+
 <div id="end" class="overlay hidden">
   <div class="card">
-    <div class="kicker">게임 끝!</div>
+    <div class="kicker" id="eKick">게임 끝!</div>
     <div class="sub">부순 집값 총</div><h1 id="eScore">0원</h1>
+    <p class="eNote" id="eNote"></p>
     <ul class="stats">
-      <li>붕괴한 건물 <b id="eDest">0</b>채</li>
-      <li>도시 파괴율 <b id="ePct">0</b>%</li>
-      <li>최고 콤보 <b id="eCombo">0</b>채</li>
+      <li>붕괴 <b id="eDest">0</b>채 · 파괴율 <b id="ePct">0</b>%</li>
+      <li>최고 콤보 <b id="eCombo">0</b>채 · 최고 연쇄 <b id="eChain">0</b></li>
       <li>가장 큰 건물 <b id="eBig">-</b></li>
     </ul>
+    <ul id="eMis" class="eMis"></ul>
     <p class="best" id="eBest"></p>
+    <p class="unlock" id="eUnlock"></p>
     <div class="btns">
       <button id="again" class="big">다시</button>
-      <button id="share" class="big ghost">결과 복사</button>
+      <button id="cardBtn" class="big ghost">결과 카드</button>
+    </div>
+    <div class="btns sh">
+      <input id="nick" maxlength="12" placeholder="닉네임(선택)">
+      <button id="share" class="mid">도전 링크</button>
     </div>
     <p class="note" id="shareMsg"></p>
+    <img id="cardPrev" class="hidden" alt="결과 카드">
   </div>
 </div>
 <script type="module" src="js/main.js"></script>

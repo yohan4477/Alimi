@@ -66,3 +66,61 @@ h1 { margin: 6px 0 12px; font-size: 34px; font-weight: 900; letter-spacing: -1.5
 #tapHint .msg small{opacity:.75}
 @keyframes th-pulse{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.8);opacity:0}}
 @keyframes th-tap{0%,100%{transform:translateY(0)}45%{transform:translateY(10px) scale(.92)}}
+
+/* 미션 */
+#missions { list-style: none; margin: 6px auto 0; padding: 0; max-width: 420px; display: flex; flex-direction: column; gap: 3px; align-items: center; }
+#missions li { pointer-events: auto; cursor: pointer; background: rgba(255,255,255,.86); color: #263040; border-radius: 9px; padding: 3px 9px;
+  font-size: 12px; font-weight: 700; white-space: nowrap; box-shadow: 0 1px 4px rgba(30,40,60,.15); display: flex; gap: 5px; align-items: center; }
+#missions li .ck { width: 14px; height: 14px; border-radius: 4px; border: 2px solid #9aa3b0; display: inline-block; flex: none; }
+#missions li .pg { color: #d2451e; font-variant-numeric: tabular-nums; }
+#missions li .go { color: #7a8494; font-weight: 600; font-size: 11px; }
+#missions li.done { background: rgba(40,150,80,.92); color: #fff; }
+#missions li.done .ck { border-color: #fff; background: #fff; position: relative; }
+#missions li.done .ck::after { content: ''; position: absolute; left: 3px; top: 0; width: 4px; height: 8px; border: solid #289650; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+#missions li.done .pg, #missions li.done .go { color: #e6ffe9; }
+
+/* 무기 */
+#weapons { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 10px calc(env(safe-area-inset-bottom) + 10px); display: flex; gap: 6px; justify-content: center; pointer-events: none; }
+.wp { pointer-events: auto; border: 0; font: inherit; cursor: pointer; background: rgba(255,255,255,.9); color: #263040; border-radius: 14px;
+  padding: 6px 4px 5px; width: 82px; text-align: center; box-shadow: 0 2px 8px rgba(30,40,60,.2); line-height: 1.15; }
+.wp .ic { font-size: 22px; display: block; }
+.wp .nm { font-size: 12.5px; font-weight: 800; display: block; }
+.wp .lk { font-size: 10px; font-weight: 700; color: #8a909a; display: block; }
+.wp.on { background: #d2451e; color: #fff; box-shadow: 0 3px 0 #9e2f12; }
+.wp.locked { background: rgba(225,228,234,.92); color: #8a909a; }
+.wp.locked .ic { filter: grayscale(1); opacity: .55; }
+#modeHint { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 84px); transform: translateX(-50%); pointer-events: none;
+  background: rgba(18,22,30,.78); color: #fff; font-size: 12.5px; font-weight: 700; padding: 5px 11px; border-radius: 99px; white-space: nowrap; }
+
+/* 시작 화면: 우리 집·도전 */
+.chal { background: #fff1e6; border: 2px solid #ffb48a; border-radius: 14px; padding: 10px 12px; margin: 0 0 12px; font-size: 14px; line-height: 1.5;
+  color: #5a2a10; word-break: keep-all; }
+.chal b { color: #c23a12; }
+.chal .tg { display: flex; gap: 6px; margin-top: 8px; }
+.chal .tg button { flex: 1; border: 0; border-radius: 10px; padding: 8px 0; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; background: #fff; color: #5a2a10; box-shadow: 0 2px 0 #e6b394; }
+.chal .tg button.on { background: #d2451e; color: #fff; box-shadow: 0 2px 0 #9e2f12; }
+.homeRow { margin: 4px 0 2px; }
+.mid { border: 0; border-radius: 12px; padding: 10px 14px; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; background: #eef1f5; color: #2a3446; box-shadow: 0 3px 0 #c5ccd6; }
+.mid small { font-weight: 600; color: #7a8494; font-size: 12px; }
+.homeSel { font-size: 13px; font-weight: 700; color: #2b6a3c; min-height: 1em; margin-top: 6px; word-break: keep-all; }
+#homeQ { width: 100%; font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 12px; border: 2px solid #d5dae2; margin: 10px 0 8px; outline: none; }
+#homeQ:focus { border-color: #d2451e; }
+#homeList { list-style: none; margin: 0 0 12px; padding: 0; max-height: 46vh; overflow-y: auto; text-align: left; -webkit-user-select: none; touch-action: pan-y; }
+#homeList li { padding: 9px 10px; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 700; color: #1d2430; border-bottom: 1px solid #eef0f3; }
+#homeList li small { display: block; font-size: 12px; font-weight: 600; color: #7a8494; }
+#homeList li:active, #homeList li:hover { background: #fff1e6; }
+#homeList .empty { color: #8a909a; font-weight: 600; cursor: default; }
+
+/* 끝 화면 */
+.card { max-height: calc(100vh - 32px); overflow-y: auto; }
+#end .card { padding-top: 20px; }
+.eNote { font-size: 14px; font-weight: 800; color: #c23a12; margin: 0 0 8px; min-height: 0; word-break: keep-all; }
+.eNote:empty { display: none; }
+.eMis { list-style: none; padding: 0; margin: 4px 0 4px; font-size: 13.5px; font-weight: 700; line-height: 1.7; color: #3a4252; }
+.eMis .y { color: #289650; } .eMis .n { color: #9aa0aa; }
+.unlock { font-size: 13px; font-weight: 800; color: #7a3fc0; margin: -6px 0 10px; }
+.unlock:empty { display: none; }
+.btns.sh { margin-top: 10px; align-items: stretch; }
+.btns.sh input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 12px; border: 2px solid #d5dae2; outline: none; }
+#cardPrev { width: 100%; border-radius: 12px; margin-top: 10px; box-shadow: 0 4px 14px rgba(20,30,50,.2); }
+.pop.chain { font-size: 18px; background: rgba(122,63,192,.94); }
