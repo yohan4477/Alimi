@@ -1466,6 +1466,9 @@ function endRound() {
   store('seohyeon-smash-total', Math.round(totalGet() + G.price));
   const newly = WEAPONS.filter((w) => unlocked(w) && !before.includes(w.id));
   $('eScore').textContent = won(G.price);
+  // 점수 아래 그림: 부서진 곳을 보기 좋은 각도로 한 장
+  try { const shot = cardShot(720, 420); $('eShot').src = shot.toDataURL('image/jpeg', 0.82); $('eShot').style.display = ''; }
+  catch (e) { $('eShot').style.display = 'none'; }
   $('eKick').textContent = G.homeLost ? '내 집까지 날렸다…' : (G.home >= 0 && G.dest >= HOME_SAFE_N ? '우리 집은 지켰다!' : '게임 끝!');
   let note = homeNote();
   if (CH.active && CH.score) {
