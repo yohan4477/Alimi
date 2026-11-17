@@ -365,7 +365,7 @@ function scoreHits(hits, shot, anchor, opt = {}) {
   list.slice(0, maxPop).forEach((g, i) => {
     const nm = label(g.b);
     const what = g.full ? (g.b.d.f >= 3 ? g.b.d.f + '층 ' : '') + (opt.verb || '붕괴!') : (opt.partVerb || '윗층 날아감!');
-    const txt = `${nm} ${what} <em>+${won(g.val * mult)}</em>${g.est ? ' <small>(추정)</small>' : ''}`;
+    const txt = `${nm} ${what} <em>+${won(g.val * mult)}</em>${g.est ? ' <small>(추정)</small>' : ' <small>(실거래)</small>'}`;
     popup(new THREE.Vector3(g.b.cx, g.b.base + g.b.h + 6, -g.b.cy), txt, i * 0.18, i === 0 && g.val > 5e10, i);
   });
   if (list.length > maxPop && !opt.chain) popup(anchor.clone().add(new THREE.Vector3(0, 10, 0)), `외 ${list.length - maxPop}채 <em>+${won(list.slice(maxPop).reduce((s, g) => s + g.val, 0) * mult)}</em>`, 1.0, false, maxPop);
