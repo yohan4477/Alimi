@@ -1201,15 +1201,11 @@ async function copyText(t) {
     ta.remove(); return ok;
   }
 }
-$('share').onclick = async () => {
-  store('seohyeon-smash-nick', $('nick').value.trim().slice(0, 12));
-  const url = shareUrl();
-  const text = `서현역 부수기: 집값 ${won(G.price)} 날림! 이 기록 깰 수 있어요?`;
-  if (navigator.share) {
-    try { await navigator.share({ title: '서현역 부수기', text, url }); $('shareMsg').textContent = '보냈어요!'; return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  $('shareMsg').textContent = (await copyText(`${text}\n${url}`)) ? '링크 복사했어요!' : url;
-};
+const shareText = () => `서현역 부수기: 집값 ${won(G.price)} 날림! 이 기록 깰 수 있어요?`;
+function saveNick() { store('seohyeon-smash-nick', $('nick').value.trim().slice(0, 12)); }
+async function copyLinkNow() { saveNick(); const url = shareUrl(); $('shareMsg').textContent = (await copyText(`${shareText()}
+${url}`)) ? '도전 링크를 복사했어요. 카톡에 붙여 넣으세요' : url; }
+$('copyLink').onclick = copyLinkNow;
 
 // ---------- 결과 카드 (1080×1350)
 function cardShot(w, h) {
@@ -1285,21 +1281,31 @@ async function makeCard() {
   return cv;
 }
 let lastCardBlob = null;
-$('cardBtn').onclick = async () => {
-  $('shareMsg').textContent = '카드 만드는 중…';
+async function cardFile() {
+  if (lastCardBlob) return new File([lastCardBlob], 'seohyeon-smash.png', { type: 'image/png' });
+  $('shareMsg').textContent = '그림 만드는 중…';
   await new Promise((r) => setTimeout(r, 30));
   const cv = await makeCard();
-  const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
-  lastCardBlob = blob;
-  const url = URL.createObjectURL(blob);
-  const img = $('cardPrev'); img.src = url; img.classList.remove('hidden');
-  const file = new File([blob], 'seohyeon-smash.png', { type: 'image/png' });
-  if (navigator.canShare && navigator.canShare({ files: [file] }) && IS_TOUCH) {
-    try { await navigator.share({ files: [file], title: '서현역 부수기', text: `서현동 ${won(G.price)} 날렸다` }); $('shareMsg').textContent = '보냈어요!'; return; } catch (e) { /* 저장으로 */ }
+  lastCardBlob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+  const img = $('cardPrev'); img.src = URL.createObjectURL(lastCardBlob); img.classList.remove('hidden');
+  return new File([lastCardBlob], 'seohyeon-smash.png', { type: 'image/png' });
+}
+function downloadCard() { const a = document.createElement('a'); a.href = URL.createObjectURL(lastCardBlob); a.download = 'seohyeon-smash.png'; document.body.appendChild(a); a.click(); a.remove(); }
+// 한 번에 보내기: 그림 + 도전 링크. 공유 창이 없으면(PC) 그림 저장 + 링크 복사
+$('shareAll').onclick = async () => {
+  saveNick();
+  const file = await cardFile(), url = shareUrl(), text = shareText();
+  if (navigator.share) {
+    const withFile = navigator.canShare && navigator.canShare({ files: [file] });
+    try { await navigator.share(withFile ? { files: [file], title: '서현역 부수기', text: `${text}
+${url}` } : { title: '서현역 부수기', text, url }); $('shareMsg').textContent = '보냈어요!'; return; }
+    catch (e) { if (e && e.name === 'AbortError') { $('shareMsg').textContent = ''; return; } }
   }
-  const a = document.createElement('a'); a.href = url; a.download = 'seohyeon-smash.png'; document.body.appendChild(a); a.click(); a.remove();
-  $('shareMsg').textContent = '카드를 저장했어요!';
+  downloadCard(); const ok = await copyText(`${text}
+${url}`);
+  $('shareMsg').textContent = ok ? '그림을 저장하고 링크를 복사했어요' : '그림을 저장했어요';
 };
+$('saveImg').onclick = async () => { await cardFile(); downloadCard(); $('shareMsg').textContent = '그림을 저장했어요'; };
 
 // ---------- 입력: 드래그 이동 / 핀치·휠 확대 / 탭 = 무기
 const pointers = new Map();
@@ -1478,10 +1484,10 @@ function endRound() {
   $('eUnlock').textContent = newly.length ? `새 무기 열림: ${newly.map((w) => w.ic + ' ' + w.nm).join(', ')}` : '';
   $('shareMsg').textContent = '';
   $('nick').value = store('seohyeon-smash-nick') || CH.nickSelf || '';
-  $('cardPrev').classList.add('hidden');
+  $('cardPrev').classList.add('hidden'); lastCardBlob = null;
   $('weapons').classList.add('hidden'); $('modeHint').classList.add('hidden');
   $('end').classList.remove('hidden');
-  G.ranked = false; $('rankBtn').disabled = false; $('rankBtn').textContent = '내 점수 등록';
+  G.ranked = false; $('rankBtn').disabled = false; $('rankBtn').textContent = '등록';
   $('rankMsg').textContent = '닉네임을 적고 등록하면 순위에 올라가요';
   loadRank();
 }

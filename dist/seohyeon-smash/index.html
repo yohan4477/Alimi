@@ -79,20 +79,22 @@
     <ul id="eMis" class="eMis"></ul>
     <p class="best" id="eBest"></p>
     <p class="unlock" id="eUnlock"></p>
-    <div class="btns">
-      <button id="again" class="big">다시</button>
-      <button id="cardBtn" class="big ghost">결과 카드</button>
-    </div>
-    <div class="btns sh">
-      <input id="nick" maxlength="12" placeholder="닉네임(선택)">
-      <button id="share" class="mid">도전 링크</button>
-    </div>
-    <p class="note" id="shareMsg"></p>
-    <div id="rankBox" class="rank">
-      <div class="rankHead"><b>전체 순위</b><button id="rankBtn" class="mid">내 점수 등록</button></div>
+    <button id="again" class="big wide">다시 하기</button>
+
+    <section class="eSec">
+      <h3>🏆 전체 순위에 올리기</h3>
+      <div class="row"><input id="nick" maxlength="12" placeholder="닉네임 (12자까지)"><button id="rankBtn" class="mid">등록</button></div>
       <p class="note" id="rankMsg">닉네임을 적고 등록하면 순위에 올라가요</p>
-      <ol id="rankList"></ol>
-    </div>
+      <ol id="rankList" class="rankList"></ol>
+    </section>
+
+    <section class="eSec">
+      <h3>📣 친구한테 자랑하기</h3>
+      <p class="note">결과 그림과 「내 기록 깨 봐」 링크를 같이 보내요. 친구가 열면 내 점수에 도전해요.</p>
+      <button id="shareAll" class="mid wide">카톡·인스타로 보내기</button>
+      <div class="row two"><button id="saveImg" class="mid ghost">그림만 저장</button><button id="copyLink" class="mid ghost">링크만 복사</button></div>
+      <p class="note" id="shareMsg"></p>
+    </section>
     <img id="cardPrev" class="hidden" alt="결과 카드">
   </div>
 </div>
