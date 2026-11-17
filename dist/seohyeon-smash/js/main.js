@@ -1467,10 +1467,10 @@ function endRound() {
   const newly = WEAPONS.filter((w) => unlocked(w) && !before.includes(w.id));
   $('eScore').textContent = won(G.price);
   // 맨 위: 결과 카드 그대로 (공유·저장도 이 그림을 씀)
-  $('eShot').style.display = 'none';
+  $('eShot').style.display = 'none'; $('end').classList.remove('hasCard');
   setTimeout(async () => {
     try { const cv = await makeCard(); lastCardBlob = await new Promise((r) => cv.toBlob(r, 'image/png'));
-      $('eShot').src = URL.createObjectURL(lastCardBlob); $('eShot').style.display = ''; $('end').querySelector('.card').scrollTop = 0; }
+      $('eShot').src = URL.createObjectURL(lastCardBlob); $('eShot').style.display = ''; $('end').classList.add('hasCard'); $('end').querySelector('.card').scrollTop = 0; }
     catch (e) { $('eShot').style.display = 'none'; }
   }, 60);
   $('eKick').textContent = G.homeLost ? '내 집까지 날렸다…' : (G.home >= 0 && G.dest >= HOME_SAFE_N ? '우리 집은 지켰다!' : '게임 끝!');
