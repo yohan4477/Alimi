@@ -124,3 +124,10 @@ h1 { margin: 6px 0 12px; font-size: 34px; font-weight: 900; letter-spacing: -1.5
 .btns.sh input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 12px; border: 2px solid #d5dae2; outline: none; }
 #cardPrev { width: 100%; border-radius: 12px; margin-top: 10px; box-shadow: 0 4px 14px rgba(20,30,50,.2); }
 .pop.chain { font-size: 18px; background: rgba(122,63,192,.94); }
+
+/* 전체 순위 */
+.rank{margin-top:14px;text-align:left;border-top:1px solid rgba(0,0,0,.08);padding-top:10px}
+.rank .rankHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rank ol{margin:6px 0 0;padding-left:26px;max-height:190px;overflow:auto;font-size:14px;line-height:1.7}
+.rank li b{float:right;font-variant-numeric:tabular-nums}
+.rank li.me{color:#d24a1f;font-weight:700}

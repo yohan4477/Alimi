@@ -1481,7 +1481,42 @@ function endRound() {
   $('cardPrev').classList.add('hidden');
   $('weapons').classList.add('hidden'); $('modeHint').classList.add('hidden');
   $('end').classList.remove('hidden');
+  G.ranked = false; $('rankBtn').disabled = false; $('rankBtn').textContent = '내 점수 등록';
+  $('rankMsg').textContent = '닉네임을 적고 등록하면 순위에 올라가요';
+  loadRank();
 }
+// ---------- 전체 순위 (seoulbeauty.me/api/smash-rank)
+const RANK_API = '/api/smash-rank';
+function drawRank(top, mine) {
+  const ol = $('rankList'); ol.textContent = '';
+  (top || []).forEach((r) => { const li = document.createElement('li'); li.textContent = r.nickname + ' ';
+    const b = document.createElement('b'); b.textContent = wonShort(r.score); li.appendChild(b);
+    if (mine && r.nickname === mine.nick && r.score === mine.score) li.className = 'me'; ol.appendChild(li); });
+  if (!top || !top.length) { const li = document.createElement('li'); li.textContent = '아직 기록이 없어요. 1등 해 보세요!'; ol.appendChild(li); }
+}
+async function loadRank() {
+  try {
+    const r = await fetch(`${RANK_API}?game=seohyeon&score=${Math.round(G.price)}`, { cache: 'no-store' });
+    if (!r.ok) throw 0;
+    const d = await r.json(); drawRank(d.top);
+    if (d.rank) $('rankMsg').textContent = `지금 점수면 ${d.rank}위예요`;
+  } catch { $('rankMsg').textContent = '순위를 불러오지 못했어요'; }
+}
+$('rankBtn').onclick = async () => {
+  if (G.ranked) return;
+  const nick = ($('nick').value || '').trim();
+  if (!nick) { $('rankMsg').textContent = '닉네임을 먼저 적어 주세요'; $('nick').focus(); return; }
+  $('rankBtn').disabled = true; $('rankMsg').textContent = '등록 중…';
+  try {
+    const score = Math.round(G.price);
+    const r = await fetch(RANK_API + '?game=seohyeon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname: nick, score, destroyed: G.dest }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { $('rankMsg').textContent = d.error || '등록하지 못했어요'; $('rankBtn').disabled = false; return; }
+    G.ranked = true; store('seohyeon-smash-nick', nick);
+    $('rankBtn').textContent = '등록됨'; $('rankMsg').textContent = `${d.rank}위로 등록했어요!`;
+    drawRank(d.top, { nick, score });
+  } catch { $('rankMsg').textContent = '등록하지 못했어요'; $('rankBtn').disabled = false; }
+};
 $('again').onclick = () => { resetCity(); startRound(); };
 $('go').onclick = startRound;
 $('mute').onclick = () => { sfx.setMuted(!sfx.muted); $('mute').textContent = sfx.muted ? '소리 끔' : '소리 켬'; };
