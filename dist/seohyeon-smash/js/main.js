@@ -6,6 +6,8 @@ import * as MK from './market.js';   // 가상 주가·회장님·보복·방어
 import * as WAR from './war.js';   // 참전 (게임 속 가상 전쟁)
 import * as AR from './arsenal.js';   // K-무기고
 import * as MP from './maps.js';   // 지도 고르기·캠페인 단계·삼성 거점 보스
+import * as META from './meta.js';   // 계정·영구 저장·오늘의 동네·출석·도감
+import { emit } from './bus.js';
 
 const $ = (id) => document.getElementById(id);
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches;
@@ -342,6 +344,12 @@ function applyCut(b, keep, shot) {
   if (live) G.destVol += b.vol * frac;
   const full = keep <= 0.01;
   if (full) { b.gone = true; if (live) G.dest++; shot.full++; decals.rubble(b, b.base + 0.05); }
+  if (full && live) {   // 도감
+    const n = b.d.n;
+    if (n === 'AK PLAZA 분당점') emit('collect', 'lm:ak'); else if (n === '분당오벨리스크') emit('collect', 'lm:obelisk');
+    if (SIBUM.has(n) && MP.isHome()) emit('collect', 'lm:sibum');
+    if (b.d.f >= 20) emit('collect', 'lm:tall');
+  }
   MP.onCut(b, full, val, live);
   missionEvent('cut', { b, val, full, shot });
   MK.onCut(b, live ? frac : 0, val);
@@ -530,6 +538,7 @@ function fallDamage(s, tip) {
   chainPopup(shot, mid, shot.chain, mult);
   sfx.chain(shot.chain);
   if (shot.chain >= 3) slowmo();
+  if (shot.chain >= 5 && G.state === 'play') emit('collect', 'a:chain5');
   missionEvent('chain', { shot });
 }
 function chainPopup(shot, pos, n, mult) {
@@ -569,6 +578,7 @@ function bridgeDamage(p, R) {
     for (let i = 0; i < 3; i++) spawnChunk(poolP, d.x + rnd(3), d.h, d.z + rnd(3), 3.5, 1.1, 3.5, Math.random() * 6, gray, new THREE.Vector3(rnd(4), 3, rnd(4)), 0.05 * i);
     for (let i = 0; i < 6; i++) smoke.emit(d.x + rnd(4), 1, d.z + rnd(4), rnd(3), 6 + Math.random() * 6, rnd(3), 1.6, 6, 18, 0.7, 0.8, 0.9, 1.0, 0.9);
     missionEvent('bridge', { d });
+    if (G.state === 'play') emit('collect', 'lm:bridge');
   }
   if (any) P.needsUpdate = true;
 }
@@ -1113,6 +1123,7 @@ function updateHud() {
   $('hPct').textContent = (G.destVol / totalVol * 100).toFixed(2);
   $('hLv').textContent = G.lvl; $('hRad').textContent = radius();
   missionEvent('price', {});
+  misChip();
 }
 
 // ---------- 미션
@@ -1163,14 +1174,15 @@ function buildMissionPool() {
   POOL = P;
 }
 function pickMissions() {
+  const rand = MP.isDaily() ? META.seeded('daily|' + MP.gameId()) : Math.random;   // 오늘의 동네: 모두 같은 미션 3개
   const pool = POOL.slice();
   const cxs = pool.filter((m) => m.kind === 'cx');
-  const one = cxs[Math.floor(Math.random() * cxs.length)];
+  const one = cxs[Math.floor(rand() * cxs.length)];
   const cand = pool.filter((m) => m.kind !== 'cx' || m === one);
   const out = [];
   if (QS.get('mis')) for (const id of QS.get('mis').split(',')) { const m = cand.find((x) => x.id === id || x.id.startsWith(id)); if (m && !out.includes(m)) out.push(m); }
   while (out.length < 3 && cand.length) {
-    const m = cand.splice(Math.floor(Math.random() * cand.length), 1)[0];
+    const m = cand.splice(Math.floor(rand() * cand.length), 1)[0];
     if (!out.includes(m)) out.push(m);
   }
   G.missions = out.map((m) => Object.assign(Object.create(m), { done: false, cnt: 0, best: 0, cut: 0, v: 0, p: 0 }));
@@ -1185,7 +1197,54 @@ function renderMissions() {
     li.onclick = (e) => { e.stopPropagation(); if (m.at) easeCam({ tx: m.at.x, tz: m.at.z, dist: IS_TOUCH ? 640 : 560 }, 1.1); };
     ul.appendChild(li);
   });
+  misChip();
 }
+// ---------- 폰 HUD: 미션·주가는 작은 칩 → 누르면 펼침, 메뉴(☰)에 소리·방어 상점·도감
+let misOpenT = 0, lastMisDone = -1;
+function misChip() {
+  const n = G.missions.filter((m) => m.done).length, el = $('misN'); if (!el) return;
+  const t = `${n}/${G.missions.length}`;
+  if (el.textContent !== t) el.textContent = t;
+  if (lastMisDone >= 0 && n > lastMisDone) { const c = $('misChip'); c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash'); }
+  lastMisDone = n;
+  $('misChip').classList.toggle('all', n > 0 && n === G.missions.length);
+}
+function toggleMis(force) {
+  const ul = $('missions'), on = force !== undefined ? force : !ul.classList.contains('open');
+  ul.classList.toggle('open', on); $('misChip').classList.toggle('on', on);
+  clearTimeout(misOpenT); if (on) { toggleTicker(false); misOpenT = setTimeout(() => toggleMis(false), 6000); }
+}
+function toggleTicker(force) {
+  const tk = $('mkTicker'); if (!tk) return;
+  const on = force !== undefined ? force : !tk.classList.contains('open');
+  tk.classList.toggle('open', on); $('mkChip').classList.toggle('on', on);
+  if (on) toggleMis(false);
+}
+function toggleMenu(force) {
+  const m = $('hudMenu'), on = force !== undefined ? force : m.classList.contains('hidden');
+  m.classList.toggle('hidden', !on); $('menuBtn').setAttribute('aria-expanded', String(on));
+}
+for (const [id, fn] of [['misChip', () => toggleMis()], ['mkChip', () => toggleTicker()], ['menuBtn', () => toggleMenu()],
+  ['menuCol', () => { toggleMenu(false); META.openCol(); }], ['menuQuit', () => { toggleMenu(false); if (G.state === 'play') { G.time = 0; G.armed = true; } }]]) {
+  const el = $(id); el.style.pointerEvents = 'auto';
+  el.addEventListener('pointerdown', (e) => e.stopPropagation());
+  el.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+}
+// 출석 선물 현무 버튼 (무기 바 위 왼쪽)
+function giftBtn() {
+  const n = META.giftCount('hyunmoo'), b = $('giftBtn');
+  b.classList.toggle('hidden', !(n > 0 && G.state === 'play'));
+  b.classList.toggle('on', G.weapon === 'gift');
+  $('giftN').textContent = n;
+}
+$('giftBtn').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('giftBtn').onclick = (e) => {
+  e.stopPropagation();
+  if (G.weapon === 'gift') { G.weapon = G.prevWeapon || 'meteor'; renderWeapons(); giftBtn(); return; }
+  G.prevWeapon = G.weapon; G.weapon = 'gift'; renderWeapons(); giftBtn();
+  const h = $('modeHint'); h.textContent = '🎁 선물 현무: 건물을 톡 → 3초 뒤 초대형 한 방 (탄 안 씀)'; h.classList.remove('hidden');
+  clearTimeout(mhTimer); mhTimer = setTimeout(() => h.classList.add('hidden'), 3000);
+};
 function missionEvent(type, ev) {
   if (G.state !== 'play' || !G.missions.length) return;
   let changed = false;
@@ -1250,7 +1309,7 @@ function tintHome(b) {
 function homeHit(full) {
   const b = city.B[G.home];
   if (full && !G.homeLost) {
-    G.homeLost = true;
+    G.homeLost = true; emit('collect', 'a:home');
     later(0.5, () => { banner('내 집 날림…'); sfx.sad(); buzz([200, 100, 300]); });
     popup(new THREE.Vector3(b.cx, b.base + b.h + 20, -b.cy), '내 집 날림… <em>끝나면 −30%</em>', 0.3, true, -1);
     if (homePin) { homePin.material.map.dispose(); homePin.material.map = pinTex('💥 내 집…', '#c23a12'); }
@@ -1468,6 +1527,11 @@ function groundPick(x, y) {   // 레이저용: 지면
   return p;
 }
 function fire1(p) {
+  if (G.weapon === 'gift') {
+    if (!G.armed) { G.armed = true; hideTapHint(); }
+    if (AR.fireGift(p)) META.useGift('hyunmoo');
+    G.weapon = G.prevWeapon || 'meteor'; renderWeapons(); giftBtn(); return;
+  }
   if (AR.isK(G.weapon)) { AR.fire(G.weapon, p); return; }
   if (G.weapon === 'quake') quake(p);
   else if (G.weapon === 'stomp') stomp(p);
@@ -1550,7 +1614,9 @@ function startRound() {
   const hb = G.home >= 0 ? city.B[G.home] : null;
   easeCam(hb ? { tx: hb.cx, tz: -hb.cy, dist: IS_TOUCH ? 640 : 540 } : { tx: 15, tz: 30, dist: IS_TOUCH ? 620 : 520 }, 2.2);
   pickMissions(); MK.reset(); WAR.reset(); AR.reset(); renderWeapons();
+  MK.addGiftDome(META.giftCount('dome'));
   MP.start();
+  lastMisDone = -1; toggleMis(false); toggleMenu(false); toggleTicker(false); giftBtn();
   updateHud();
   showTapHint();
 }
@@ -1632,11 +1698,20 @@ function endRound() {
   $('cardPrev').classList.add('hidden'); lastCardBlob = null;
   $('weapons').classList.add('hidden'); $('modeHint').classList.add('hidden');
   MP.end();
+  META.roundEnd({ gameId: MP.gameId(), price: G.price, daily: MP.isDaily() });
+  toggleMenu(false); $('giftBtn').classList.add('hidden');
+  if (G.weapon === 'gift') G.weapon = G.prevWeapon || 'meteor';
   $('end').classList.remove('hidden');
   G.ranked = false; $('rankBtn').disabled = false; $('rankBtn').textContent = '등록';
-  $('rankMsg').textContent = '닉네임을 적고 등록하면 순위에 올라가요';
-  loadRank();
+  const ac = META.account(), daily = MP.isDaily();
+  $('end').querySelector('.eSec h3').textContent = daily ? `📅 오늘의 동네 순위 (${MP.dailyInfo().short})` : '🏆 전체 순위에 올리기';
+  $('end').classList.toggle('acct', !!ac);
+  if (ac) { $('nick').value = ac.nick; $('pin').value = ac.pin; }
+  $('rankMsg').textContent = ac ? `👤 ${ac.nick} 으로 자동 등록 중…` : '닉네임을 적고 등록하면 순위에 올라가요';
+  loadRank().then(() => { if (ac && G.price > 0 && G.state === 'end') submitRank(); });
+  refreshBest();
 }
+function refreshBest() { $('bestStart').textContent = bestGet() ? `최고 기록 ${won(bestGet())} · 누적 ${wonShort(totalGet())}` : ''; }
 // ---------- 전체 순위 (seoulbeauty.me/api/smash-rank)
 const RANK_API = '/api/smash-rank';
 function drawRank(top, mine) {
@@ -1654,7 +1729,8 @@ async function loadRank() {
     if (d.rank) $('rankMsg').textContent = `지금 점수면 ${d.rank}위예요`;
   } catch { $('rankMsg').textContent = '순위를 불러오지 못했어요'; }
 }
-$('rankBtn').onclick = async () => {
+$('rankBtn').onclick = () => submitRank();
+async function submitRank() {
   if (G.ranked) return;
   const nick = ($('nick').value || '').trim();
   if (!nick) { $('rankMsg').textContent = '닉네임을 먼저 적어 주세요'; $('nick').focus(); return; }
@@ -1671,10 +1747,10 @@ $('rankBtn').onclick = async () => {
     $('rankMsg').textContent = d.created ? `「${nick}」 닉네임을 만들고 ${d.rank}위로 등록했어요!` : d.improved ? `최고 기록 갱신! ${d.rank}위` : `최고 기록(${wonShort(d.best)})이 더 높아요. 지금 ${d.rank}위`;
     drawRank(d.top, { nick, score: d.best });
   } catch { $('rankMsg').textContent = '등록하지 못했어요'; $('rankBtn').disabled = false; }
-};
+}
 $('again').onclick = () => { resetCity(); startRound(); };
 $('go').onclick = startRound;
-$('mute').onclick = () => { sfx.setMuted(!sfx.muted); $('mute').textContent = sfx.muted ? '소리 끔' : '소리 켬'; };
+$('mute').onclick = (e) => { e.stopPropagation(); sfx.setMuted(!sfx.muted); $('mute').textContent = sfx.muted ? '🔇 소리 끔' : '🔊 소리 켬'; };
 
 // ---------- 루프
 let last = performance.now(), fpsN = 0, fpsT = 0, lowT = 0;
@@ -1762,7 +1838,7 @@ async function initMarket() {
 
 // ---------- 불러오기
 (async function boot() {
-  $('bestStart').textContent = bestGet() ? `최고 기록 ${won(bestGet())} · 누적 ${wonShort(totalGet())}` : '';
+  refreshBest();
   placeCamera(); requestAnimationFrame(frame);
   try {
     await MP.boot();
@@ -1796,7 +1872,7 @@ async function initMarket() {
   }
   await initMarket();
   const warApi = { G, city, data, scene, camera, cam, won, wonShort, banner, sfx, popup, rings, glowTex, updateHud, enemyStrike, MK, DEBUG, groundAt, renderWeapons,
-    blast: impact, useShot, bestGet, totalGet, fx: () => ({ smoke, fire }),
+    blast: impact, useShot, bestGet, totalGet, bonusGet: () => META.bonus(), fx: () => ({ smoke, fire }),
     screenOf(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; } };
   try { WAR.init(warApi); AR.init(warApi, WEAPONS); } catch (e) { console.warn('war', e); }
   buildMissionPool();
@@ -1806,8 +1882,13 @@ async function initMarket() {
     MP.init({ G, city, data, scene, camera, cam, wonShort, banner, popup, sfx, later, easeCam, IS_TOUCH, again: () => { resetCity(); startRound(); },
       screenOf(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; } });
   } catch (e) { console.warn('maps', e); }
+  try {
+    META.init({ maps: MP.mapsList(), weapons: AR.catalog(), won, wonShort, banner, sfx, dailyInfo: MP.dailyInfo, isDaily: MP.isDaily,
+      goDaily: () => MP.goDaily(),
+      reload() { AR.reload(); MP.reload(); refreshBest(); } });
+  } catch (e) { console.warn('meta', e); }
   window.__game = { G, launch, pick, cam, chunks: () => chunks.length, slabs: () => slabs.length, city, start: startRound, won, setHome, fireLaser, quake, stomp, feet,
-    groundPick, makeCard, TS, market: MK, fireAt(x, z) { fire1(new THREE.Vector3(x, groundAt(x, z), z)); }, missions: () => G.missions.map((m) => ({ t: m.t, done: m.done })),
+    groundPick, makeCard, TS, market: MK, endRound, toggleMis, toggleTicker, toggleMenu, giftBtn, fireAt(x, z) { fire1(new THREE.Vector3(x, groundAt(x, z), z)); }, missions: () => G.missions.map((m) => ({ t: m.t, done: m.done })),
     screenOf(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera); return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight }; },
     // 검사용: 높은 건물 옆을 쳐서 연쇄가 날 자리
     chainSpot() {

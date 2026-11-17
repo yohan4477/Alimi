@@ -2,6 +2,7 @@
 // 실제 나라 이름·국기만 쓰고, 실존 인물(지도자·군인)은 어디에도 나오지 않는다.
 // 지휘관 글자는 「북측 사령관」처럼 역할 이름만.
 import * as THREE from 'three';
+import { emit } from './bus.js';
 
 let A = null;
 const $ = (id) => document.getElementById(id);
@@ -312,6 +313,7 @@ function enter(code) {
   W.active[code] = u;
   showBanner(code);
   horn(c.side);
+  emit('collect', 'war:' + code);
   renderGauge(true);
   return true;
 }

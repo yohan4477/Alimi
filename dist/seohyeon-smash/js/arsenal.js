@@ -2,6 +2,7 @@
 // 실제 부대 표식 없음, 작은 태극 원만. 방산주 오름은 게임 속 가상 주가.
 import * as THREE from 'three';
 import { Models, shoot, boom, roundelSprite } from './war.js';
+import { emit } from './bus.js';
 
 let A = null, BASE = null;
 const $ = (id) => document.getElementById(id);
@@ -52,7 +53,8 @@ const KEY = 'seohyeon-smash-ark';
 const P = { lv: {}, spent: 0, equip: DEF_EQUIP.slice() };
 function load() { try { const o = JSON.parse(localStorage.getItem(KEY) || '{}'); Object.assign(P, o); if (!Array.isArray(P.equip) || P.equip.length !== 4) P.equip = DEF_EQUIP.slice(); } catch (e) { /* 무시 */ } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { /* 무시 */ } }
-const points = () => (A.DEBUG ? 999 * JO : Math.max(0, A.totalGet() - P.spent));
+// 잔고 = 누적 부순 집값 + 출석 보너스 − 쓴 돈
+const points = () => (A.DEBUG ? 999 * JO : Math.max(0, A.totalGet() + (A.bonusGet ? A.bonusGet() : 0) - P.spent));
 // 캠페인 진행 (maps.js 가 저장한 깬 단계 수, 읽기만)
 function stage() { try { return Number(JSON.parse(localStorage.getItem('smash-camp-v1') || '{}').cleared || 0); } catch (e) { return 0; } }
 export function lvl(id) {
@@ -148,7 +150,7 @@ function renderSheet() {
 }
 function equip(id) {
   const old = P.equip[slotSel];
-  P.equip[slotSel] = id; save();
+  P.equip[slotSel] = id; save(); emit('save');
   if (A.G.weapon === old) A.G.weapon = byId(id).kind === 'passive' ? 'meteor' : id;
   if (A.G.state === 'play' && id === 'k10' && !S.k10Given) giveK10();
   slotSel = (slotSel + 1) % 4;
@@ -159,7 +161,7 @@ function buy(id) {
   const c = cost(w, l);
   if (points() < c) return;
   if (!A.DEBUG) P.spent += c;
-  P.lv[id] = l + 1; save();
+  P.lv[id] = l + 1; save(); emit('save');
   A.sfx && A.sfx.ding && A.sfx.ding();
   renderSheet(); A.renderWeapons();
 }
@@ -256,6 +258,7 @@ function ready(w) {
   if (S.ops.length >= 8) { A.banner('출동 중인 부대가 많아요'); return false; }
   if (!A.useShot()) return false;
   S.cd[w.id] = V(w, 'cd') * S.cdMul; S.uses++;
+  emit('collect', 'w:' + w.id);
   bump(w, 0.8 + lvl(w.id) * 0.6);
   return true;
 }
@@ -278,15 +281,7 @@ export function fire(id, p) {
     }
     A.sfx && A.sfx.boom && A.sfx.boom(0.35);
   } else if (w.kind === 'big') {
-    const mark = { t: 0, life: 3.2, p: p.clone(), R, w };
-    A.rings.add(p.x, p.y + 1, p.z, R, 0xff2a20, 3);
-    A.popup(p.clone().add(new THREE.Vector3(0, 40, 0)), `🎯 ${w.sn} 낙하 3초 전`, 0, true, -1);
-    mark.step = (o, dt) => {
-      if (!o.fired && o.t > 1.6) { o.fired = 1; const from = p.clone().add(new THREE.Vector3(0, 900, 0)); shoot(from, p, { dur: 1.3, arc: 0, size: 3, glow: 40, color: 0xffffff, onHit: (q) => {
-        if (A.war && A.war.blockMeteor(q)) return;
-        A.blast(q, R, { score: { verb: '현무 직격!', partVerb: '현무 충격파!' } }); } }); }
-    };
-    S.ops.push(mark);
+    bigStrike(w, p, R);
   } else if (w.kind === 'drive') {
     const m = getModel(w.model); if (!m) return true;
     const dir = camDir(), start = p.clone().addScaledVector(dir, w.speed * w.life * 0.7);
@@ -314,6 +309,27 @@ export function fire(id, p) {
   A.updateHud();
   return true;
 }
+function bigStrike(w, p, R, tag = '') {
+  const mark = { t: 0, life: 3.2, p: p.clone(), R, w };
+  A.rings.add(p.x, p.y + 1, p.z, R, 0xff2a20, 3);
+  A.popup(p.clone().add(new THREE.Vector3(0, 40, 0)), `🎯 ${tag}${w.sn} 낙하 3초 전`, 0, true, -1);
+  mark.step = (o) => {
+    if (!o.fired && o.t > 1.6) { o.fired = 1; const from = p.clone().add(new THREE.Vector3(0, 900, 0)); shoot(from, p, { dur: 1.3, arc: 0, size: 3, glow: 40, color: 0xffffff, onHit: (q) => {
+      if (A.war && A.war.blockMeteor(q)) return;
+      A.blast(q, R, { score: { verb: '현무 직격!', partVerb: '현무 충격파!' } }); } }); }
+  };
+  S.ops.push(mark);
+}
+// 출석 선물 현무: 탄·재장전·레벨 없이 한 발 (반경은 지금 레벨, 없으면 Lv1)
+export function fireGift(p) {
+  const w = KW.find((x) => x.id === 'hyunmoo');
+  if (!w || A.G.state !== 'play') return false;
+  bigStrike(w, p, V(w, 'R'), '🎁 선물 ');
+  emit('collect', 'w:hyunmoo'); bump(w, 2);
+  return true;
+}
+export const catalog = () => KW.map((w) => ({ id: w.id, nm: w.nm, chip: w.chip, kind: w.kind }));
+export function reload() { load(); if (A && A.renderWeapons) A.renderWeapons(); }
 export function fireLine(a, b) {
   const w = KW.find((x) => x.id === A.G.weapon); if (!w) return;
   if (!ready(w)) return;
@@ -414,6 +430,7 @@ export function interceptEnemy(p) {  // war.js 의 폭격 · 직접 요격
   src = homePos() || (S.ship ? S.ship.position.clone().setY(30) : p.clone().add(new THREE.Vector3(0, -80, 200)));
   boom(p, 0x8fd8ff, 22, 30);
   A.popup(p.clone(), `🛡 ${w.sn} 요격 성공!`, 0, false, 0);
+  emit('collect', 'w:' + w.id);
   bump(w, 0.6);
   return true;
 }
@@ -429,7 +446,7 @@ function stepDefense(real) {
       if (k < 0.15 || k > 0.45 || S.icT > 0) continue;
       const w = equipped('cheongung') ? KW.find((x) => x.id === 'cheongung') : KW.find((x) => x.id === 'jeongjo');
       if (Math.random() >= V(w, 'p')) { m.arTag = 1; continue; }
-      m.arTag = 1; S.icT = V(w, 'icd');
+      m.arTag = 1; S.icT = V(w, 'icd'); emit('collect', 'w:' + w.id);
       const src = homePos() || (S.ship ? S.ship.position.clone().setY(30) : m.g.position.clone().add(new THREE.Vector3(0, -100, 150)));
       const to = new THREE.Vector3(); m.g.getWorldPosition(to);
       shoot(src, to.clone().lerp(m.to, 0.25), { dur: 0.45, arc: 20, size: 0.8, color: 0x8fd8ff, smoke: true, onHit: () => {
@@ -451,13 +468,13 @@ function stepDefense(real) {
     if (S.strikeT <= 0) {
       S.strikeT = V(w, 'strike');
       const b = nearB(new THREE.Vector3(A.cam.tx, 0, A.cam.tz), 300);
-      if (b && S.ship) { const to = new THREE.Vector3(b.cx, b.base + Math.min(b.cur, 8), -b.cy); shoot(S.ship.position.clone().setY(20), to, { dur: 2.0, arc: 260, size: 1.2, color: 0xfff0b0, onHit: (q) => hit(w, q, V(w, 'R'), '이지스 타격', false) }); bump(w, 0.5); }
+      if (b && S.ship) { emit('collect', 'w:jeongjo'); const to = new THREE.Vector3(b.cx, b.base + Math.min(b.cur, 8), -b.cy); shoot(S.ship.position.clone().setY(20), to, { dur: 2.0, arc: 260, size: 1.2, color: 0xfff0b0, onHit: (q) => hit(w, q, V(w, 'R'), '이지스 타격', false) }); bump(w, 0.5); }
     }
   }
 }
 function giveK10() {
   const w = KW.find((x) => x.id === 'k10'); const n = V(w, 'n');
-  S.k10Given = true; S.cdMul = V(w, 'cdm');
+  S.k10Given = true; S.cdMul = V(w, 'cdm'); emit('collect', 'w:k10');
   A.G.meteors += n; A.updateHud();
   setTimeout(() => A.G.state === 'play' && A.banner(`K10 탄약 보급 +${n}발`), 900);
 }

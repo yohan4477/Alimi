@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="market.css">
 <link rel="stylesheet" href="war.css">
+<link rel="stylesheet" href="meta.css">
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
 </script>
@@ -18,18 +19,24 @@
 <div id="popups"></div>
 
 <div id="hud" class="hidden">
-  <div class="row">
-    <div class="box score"><span class="lab">부순 집값</span><b id="hScore">0원</b></div>
+  <div class="row top">
+    <div class="box score"><span class="lab"><span id="hScoreLab">부순 집값</span> <i class="lvTag">Lv.<b id="hLv">1</b></i></span><b id="hScore">0원</b></div>
     <div class="box"><span class="lab">남은 탄</span><b id="hMeteor">20</b></div>
     <div class="box"><span class="lab">시간</span><b id="hTime">60</b></div>
-    <button id="mute" class="box btn" aria-label="소리">소리 켬</button>
+    <button id="menuBtn" class="box btn menuBtn" aria-label="메뉴" aria-expanded="false">☰</button>
   </div>
   <div class="row small">
     <div class="pill">붕괴 <b id="hDest">0</b>채</div>
     <div class="pill">파괴율 <b id="hPct">0.00</b>%</div>
-    <div class="pill lv">Lv.<b id="hLv">1</b> · 반경 <b id="hRad">24</b>m</div>
+    <div class="pill lv">반경 <b id="hRad">24</b>m</div>
   </div>
+  <div id="hudChips" class="chips"><button id="misChip" class="chip">🎯 미션 <b id="misN">0/3</b> <i>▾</i></button><button id="mkChip" class="chip mk hidden">📉 <span id="mkChipT">가상 주가</span> <i>▾</i></button><button id="giftBtn" class="chip gift hidden">🎁 현무 <b id="giftN">1</b></button></div>
   <ul id="missions"></ul>
+  <div id="hudMenu" class="hidden">
+    <button id="mute">🔊 소리 켬</button>
+    <button id="menuCol">📖 도감</button>
+    <button id="menuQuit">⏹ 이번 판 끝내기</button>
+  </div>
 </div>
 <div id="weapons" class="hidden"></div>
 <div id="modeHint" class="hidden"></div>

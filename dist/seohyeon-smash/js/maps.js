@@ -1,6 +1,8 @@
 // 지도 고르기(서현역 + 삼성전자 사업장) · 캠페인 단계 · 서현역 삼성 거점 보스전
 // 지점장·사장님·총수는 지어낸 만화 인물 (실존 인물 아님, 실명·얼굴·사진 안 씀).
 import * as THREE from 'three';
+import { dailyMap, kstDate } from './meta.js';
+import { emit } from './bus.js';
 
 const $ = (id) => document.getElementById(id);
 const QS = new URLSearchParams(location.search);
@@ -21,14 +23,18 @@ let PROG = load();
 const factoriesOpen = () => DEBUG || PROG.boss || PROG.cleared >= 3;
 const stageOpen = (k) => DEBUG || k <= PROG.cleared;
 const mapOpen = (id) => id === 'seohyeon' || factoriesOpen();
+let DAILY = 'seohyeon';             // 오늘의 동네 지도 (잠겨 있어도 오늘은 열림)
+const DDATE = kstDate();            // 페이지를 연 날 (자정을 넘겨도 같은 순위표)
 
 // ---------- 고른 것 (모드·단계)
-const SEL = { mode: QS.get('mode') === 'free' ? 'free' : (QS.get('mode') === 'camp' ? 'camp' : null), stage: null, map: MAP };
+const SEL = { mode: ['free', 'camp', 'daily'].includes(QS.get('mode')) ? QS.get('mode') : null, stage: null, map: MAP };
 let CUR = null;        // 지금 판의 단계 (자유 모드면 null)
 
 export async function boot() {
   try { IDX = await (await fetch('maps/index.json', { cache: 'no-store' })).json(); } catch (e) { /* 서현역만 */ }
-  if (!IDX.maps.some((m) => m.id === MAP) || !mapOpen(MAP)) MAP = 'seohyeon';
+  DAILY = dailyMap(IDX.maps.map((m) => m.id));
+  if (SEL.mode === 'daily') MAP = DAILY;
+  else if (!IDX.maps.some((m) => m.id === MAP) || !mapOpen(MAP)) MAP = 'seohyeon';
   INFO = IDX.maps.find((m) => m.id === MAP) || IDX.maps[0];
   SEL.map = MAP;
   const qs = Number(QS.get('stage'));
@@ -43,7 +49,12 @@ export async function boot() {
   }
 }
 export const cityUrl = () => (MAP === 'seohyeon' ? 'city.json' : `maps/${MAP}/city.json`);
-export const gameId = () => (MAP === 'seohyeon' ? 'seohyeon' : MAP);
+export const isDaily = () => SEL.mode === 'daily' && MAP === DAILY;
+export const gameId = () => (isDaily() ? 'daily-' + DDATE : MAP === 'seohyeon' ? 'seohyeon' : MAP);
+export const mapsList = () => IDX.maps.slice();
+export function dailyInfo() { const m = IDX.maps.find((x) => x.id === DAILY) || IDX.maps[0]; return { id: DAILY, short: m.short || DAILY, date: DDATE, here: DAILY === MAP }; }
+export function goDaily() { SEL.mode = 'daily'; renderPanel(); const go = $('go'); if (go && !go.disabled) go.click(); }
+export function reload() { PROG = load(); if (!QS.get('stage') && IDX.stages.length) SEL.stage = Math.max(0, Math.min(PROG.cleared, IDX.stages.length - 1)); renderPanel(); }
 export const isHome = () => MAP === 'seohyeon';
 export const title = () => (MAP === 'seohyeon' ? '서현역 부수기' : `${INFO.short} 부수기`);
 export const place = () => INFO.place || INFO.short;
@@ -86,6 +97,7 @@ function say(v, line, mood) {
   $('mpSay').textContent = line;
   el.className = 'R'; void el.offsetWidth; el.classList.add('in');
   charT = 2.4;
+  emit('collect', 'p:' + v);
   try { A.sfx.ding(); } catch (e) { /* 무시 */ }
 }
 
@@ -136,8 +148,8 @@ function buildDom() {
   ch.innerHTML = '<div class="bub" id="mpSay"></div><div class="who" id="mpWho"></div><div id="mpFig"></div>';
   document.body.appendChild(ch);
   const st = document.createElement('div'); st.id = 'mpStage'; st.className = 'hidden';
-  st.innerHTML = '<div class="row2"><span id="mpStT"></span><span id="mpStTime"></span></div><div class="bar"><i id="mpStBar"></i></div><div class="row2 sub"><span id="mpStP"></span><span id="mpStX"></span></div>';
-  const hud = $('hud'); const mis = $('missions');
+  st.innerHTML = '<div class="row2"><span id="mpStT"></span><span id="mpStPct"></span><span id="mpStTime"></span></div><div class="bar"><i id="mpStBar"></i></div><div class="row2 sub"><span id="mpStP"></span><span id="mpStX"></span></div>';
+  const hud = $('hud'); const mis = $('hudChips') || $('missions');
   if (hud) hud.insertBefore(st, mis || null);
   // 시작 화면 고르기 판
   const card = document.querySelector('#start .card');
@@ -145,7 +157,7 @@ function buildDom() {
   p.innerHTML = '<div class="tabs"><button data-m="camp">🏁 캠페인</button><button data-m="free">🎮 자유 모드</button></div><ul id="mpList"></ul>';
   const how = card && card.querySelector('.how');
   if (card) card.insertBefore(p, how ? how.nextSibling : $('go'));
-  p.querySelectorAll('.tabs button').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); SEL.mode = b.dataset.m; if (SEL.mode === 'free') SEL.map = MAP; renderPanel(); }));
+  p.querySelectorAll('.tabs button').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); SEL.mode = b.dataset.m; if (SEL.mode === 'free') SEL.map = MAP; if (SEL.mode === 'camp' && IDX.stages[SEL.stage] && !stageOpen(SEL.stage)) SEL.stage = 0; renderPanel(); }));
   // 끝 화면 단계 결과
   const end = document.querySelector('#end .card');
   const r = document.createElement('div'); r.id = 'mpRes'; r.className = 'hidden';
@@ -155,7 +167,7 @@ function buildDom() {
   document.addEventListener('click', (e) => {
     const go = e.target.closest && e.target.closest('#go');
     if (!go) return;
-    const want = SEL.mode === 'camp' ? IDX.stages[SEL.stage].map : SEL.map;
+    const want = wantMap();
     if (want !== MAP) { e.stopImmediatePropagation(); e.preventDefault(); navigate(want, SEL.mode, SEL.stage); }
   }, true);
   // 지도 이름
@@ -163,7 +175,7 @@ function buildDom() {
     document.title = title();
     const h1 = document.querySelector('#start h1'); if (h1) h1.textContent = title();
     const kk = document.querySelector('#start .kicker'); if (kk) kk.textContent = `${INFO.name} 반경 ${(INFO.R / 1000).toFixed(1)}km 미니어처`;
-    const lab = document.querySelector('#hud .score .lab'); if (lab) lab.textContent = '부순 건물값';
+    const lab = $('hScoreLab') || document.querySelector('#hud .score .lab'); if (lab) lab.textContent = '부순 건물값';
     const how2 = document.querySelector('#start .how'); if (how2) how2.innerHTML = '<b>건물을 누르면 운석이 떨어집니다.</b><br>반도체 팹은 튼튼해서 두 번 맞아야 무너져요.<br>60초, 20발로 <b>건물값</b>을 최대한 날리세요. <small>(공장 값은 연면적 기준 추정)</small>';
   }
 }
@@ -172,15 +184,22 @@ function navigate(map, mode, stage) {
   if (map !== 'seohyeon') u.searchParams.set('map', map);
   u.searchParams.set('mode', mode);
   if (mode === 'camp') u.searchParams.set('stage', String(stage + 1));
+  if (mode === 'daily') u.searchParams.delete('map');
   if (DEBUG) u.searchParams.set('debug', '1');
   location.href = u.toString();
 }
 const won = (n) => (A ? A.wonShort(n) : String(n));
+const wantMap = () => (SEL.mode === 'camp' ? IDX.stages[SEL.stage].map : SEL.mode === 'daily' ? DAILY : SEL.map);
 function renderPanel() {
   const ul = $('mpList'); if (!ul) return;
   document.querySelectorAll('#mpPanel .tabs button').forEach((b) => b.classList.toggle('on', b.dataset.m === SEL.mode));
   ul.innerHTML = '';
-  if (SEL.mode === 'camp') {
+  if (SEL.mode === 'daily') {
+    const m = IDX.maps.find((x) => x.id === DAILY) || {};
+    const li = document.createElement('li'); li.className = 'on';
+    li.innerHTML = `<span class="n">📅</span><span>오늘의 동네 · ${esc(m.short || DAILY)}<small>모두 같은 지도·미션 3개 · 순위는 오늘 자정까지</small></span><span class="st">▶</span>`;
+    ul.appendChild(li);
+  } else if (SEL.mode === 'camp') {
     IDX.stages.forEach((s, k) => {
       const m = IDX.maps.find((x) => x.id === s.map) || {};
       const open = stageOpen(k), done = k < PROG.cleared;
@@ -202,9 +221,9 @@ function renderPanel() {
   }
   const go = $('go');
   if (go && !go.disabled) {
-    const want = SEL.mode === 'camp' ? IDX.stages[SEL.stage].map : SEL.map;
+    const want = wantMap();
     const wm = IDX.maps.find((x) => x.id === want) || {};
-    go.textContent = want !== MAP ? `▶ ${wm.short || want}(으)로 이동` : SEL.mode === 'camp' ? `${SEL.stage + 1}단계 시작` : (go.dataset.mpDef || go.textContent);
+    go.textContent = want !== MAP ? `▶ ${wm.short || want}(으)로 이동` : SEL.mode === 'daily' ? '📅 오늘의 동네 시작' : SEL.mode === 'camp' ? `${SEL.stage + 1}단계 시작` : (go.dataset.mpDef || go.textContent);
   }
 }
 
@@ -295,7 +314,7 @@ export function armor(b, keep) {
 export function onCut(b, full, val, live) {
   if (!A || !live) return;
   if (b.d.co === '005930') BS.campVal += val;
-  if (full && b.d.fab) BS.fabDown++;
+  if (full && b.d.fab) { BS.fabDown++; emit('collect', 'fab:' + MAP); }
   if (full && b.d.co === '005930') BS.facDown = (BS.facDown || 0) + 1;
   if (!isHome()) return;
   const p = postOf(b);
@@ -310,8 +329,9 @@ export function onCut(b, full, val, live) {
       A.later(0.4, () => { say('boss', '이럴 수가… 공장만은 안 된다…!', 'shock'); A.banner('🏭 공장으로 진격!'); try { A.sfx.fanfare(); } catch (e) { /* 무시 */ } });
       A.popup(at, '총수 본사 함락! <em>공장으로 진격!</em>', 0.2, true, -1);
       if (!PROG.boss) { PROG.boss = true; save(PROG); BS.newUnlock = true; }
+      emit('collect', 'lm:hq');
     } else {
-      BS.down++;
+      BS.down++; emit('collect', 'lm:post');
       A.popup(at, `거점 함락! <em>${Math.min(BS.down, 3)}/3</em>`, 0.2, true, -1);
       if (BS.down >= 3) summonBoss();
     }
@@ -347,7 +367,7 @@ export function init(api) {
   }
   if (isHome()) setupBoss();
   renderPanel();
-  window.__maps = { SEL, BS, PROG: () => PROG, IDX: () => IDX, setProg(p) { PROG = Object.assign(PROG, p); save(PROG); renderPanel(); }, MAP };
+  window.__maps = { SEL, BS, DAILY: () => DAILY, isDaily, PROG: () => PROG, IDX: () => IDX, setProg(p) { PROG = Object.assign(PROG, p); save(PROG); renderPanel(); }, MAP };
 }
 export function refreshStart() { renderPanel(); }
 export function start() {
@@ -362,6 +382,8 @@ export function start() {
   if (CUR && CUR.boss) summonBoss();
   const st = $('mpStage'); if (st) { st.classList.toggle('hidden', !CUR); st.classList.remove('ok'); }
   if (CUR) A.later(0.3, () => A.banner(`${CUR.k + 1}단계 · ${CUR.t}`));
+  else if (isDaily()) A.later(0.3, () => A.banner(`📅 오늘의 동네 · ${INFO.short}`));
+  emit('collect', 'map:' + MAP);
   const r = $('mpRes'); if (r) r.className = 'hidden';
 }
 function met() {
@@ -386,6 +408,7 @@ export function step(real) {
     if (CUR.sam) x.push(`거점 ${Math.min(BS.down, CUR.sam)}/${CUR.sam}`);
     if (CUR.boss) x.push(BS.beaten ? '본사 ✔' : '본사 ✘');
     $('mpStX').textContent = x.join(' · ');
+    $('mpStPct').textContent = `${(p * 100).toFixed(0)}%${x.length ? ' · ' + x.join(' · ') : ''}`;
     if (!BS.met && met()) { BS.met = true; $('mpStage').classList.add('ok'); A.banner('🎯 목표 달성! 남은 시간 동안 더 부숴요'); try { A.sfx.fanfare(); } catch (e) { /* 무시 */ } }
   }
   // 체력 막대 (맞은 거점·본사)

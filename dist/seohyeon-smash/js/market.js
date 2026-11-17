@@ -2,6 +2,7 @@
 // 실제 회사 시세(market.json)를 출발점으로 쓰지만, 게임 안의 주가 변동은 전부 가상이다.
 // 회장님·사장님은 지어낸 만화 인물 (실존 인물 아님).
 import * as THREE from 'three';
+import { emit } from './bus.js';
 
 const CFG = {
   dropPerShare: 60, maxDrop: 30, floor: -90, recover: 0.2,      // %, %/s
@@ -64,10 +65,10 @@ function buildDom() {
   $('mkSh').addEventListener('pointerdown', (e) => { e.stopPropagation(); openShop(); });
   $('mkShopX').addEventListener('pointerdown', (e) => { e.stopPropagation(); closeShop(); });
   $('mkShop').addEventListener('pointerdown', (e) => e.stopPropagation());
-  // HUD 작은 버튼
-  const row = document.getElementById('hud');
+  // 방어 상점 버튼: HUD 메뉴(☰) 안 (없으면 HUD)
+  const row = document.getElementById('hudMenu') || document.getElementById('hud');
   if (row && S.cos.length) { const b = document.createElement('button'); b.id = 'mkShopBtn'; b.className = 'mkShopBtn'; b.textContent = '🛡 방어 상점';
-    b.addEventListener('pointerdown', (e) => { e.stopPropagation(); openShop(); }); row.appendChild(b); }
+    b.addEventListener('pointerdown', (e) => { e.stopPropagation(); openShop(); row.classList && row.id === 'hudMenu' && row.classList.add('hidden'); }); row.prepend(b); }
   // 시작 화면 안내 한 줄
   const note = document.querySelector('#start .note');
   if (note && S.cos.length) { const p = document.createElement('p'); p.className = 'note mkStartNote'; p.textContent = '📉 부순 건물 속 회사 주가가 떨어져요 · 게임 속 가상 주가 — 실제 주가와 무관'; note.after(p); }
@@ -82,14 +83,14 @@ export function reset() {
   clearMissiles();
   if (S.dome) { A.scene.remove(S.dome); S.dome = null; }
   closeShop();
-  Object.assign(S, { inv: { ic: 0, sh: 0, dome: 0 }, buys: { ic: 0, sh: 0, dome: 0, fix: 0 }, capLost: 0, chairT: 0, chairCool: 0, crashT: 0, waves: [], wavesN: 0, shots: 0, blocked: 0, spent: 0, bought: 0, queue: [], lastB: null, zone: null, lossTotal: 0 });
+  Object.assign(S, { giftDome: 0, inv: { ic: 0, sh: 0, dome: 0 }, buys: { ic: 0, sh: 0, dome: 0, fix: 0 }, capLost: 0, chairT: 0, chairCool: 0, crashT: 0, waves: [], wavesN: 0, shots: 0, blocked: 0, spent: 0, bought: 0, queue: [], lastB: null, zone: null, lossTotal: 0 });
   hideChair(); $('mkCrash').classList.add('hidden'); $('mkCount').classList.add('hidden'); $('mkDef').classList.add('hidden');
-  $('mkTicker').classList.add('hidden'); $('mkList').innerHTML = '';
+  tickerShow(false); $('mkList').innerHTML = '';
   renderTicker(true);
 }
 export function end() {
   clearMissiles(); hideChair(); S.queue = []; closeShop();
-  $('mkCount').classList.add('hidden'); $('mkDef').classList.add('hidden'); $('mkCrash').classList.add('hidden'); $('mkTicker').classList.add('hidden');
+  $('mkCount').classList.add('hidden'); $('mkDef').classList.add('hidden'); $('mkCrash').classList.add('hidden'); tickerShow(false);
   const ul = $('mkEnd'); if (!ul) return;
   const w = worstCo();
   const li = [];
@@ -139,8 +140,9 @@ function flush(c) {
   c.lost += lost; S.capLost += lost; c.hits++; c.flashT = 1.2;
   c.worst = Math.min(c.worst, c.pct);
   c.hist.push(c.pct);
-  $('mkTicker').classList.remove('hidden');
+  tickerShow(true);
   renderTicker(true);
+  emit('collect', 'co:' + c.code);
   A.missionPing && A.missionPing();
   const crossed = !c.crashed && c.pct <= CFG.crashTotal;
   if (drop >= CFG.crashDrop || crossed) {
@@ -152,7 +154,12 @@ function flush(c) {
   }
 }
 
-// ---------- 시세판
+// ---------- 시세판 (폰: HUD 작은 칩 「📉 회사 −12%」 → 누르면 펼침)
+function tickerShow(on) {
+  $('mkTicker').classList.toggle('hidden', !on);
+  const ch = $('mkChip'); if (ch) ch.classList.toggle('hidden', !on);
+  if (!on) $('mkTicker').classList.remove('open');
+}
 function spark(c) {
   const h = c.hist.slice(-40); if (h.length < 2) h.unshift(0);
   const lo = Math.min(-5, ...h), W = 64, H = 22;
@@ -166,6 +173,8 @@ function renderTicker(force) {
     <svg viewBox="0 0 64 22" preserveAspectRatio="none"><polyline points="${spark(c)}" fill="none" stroke="#ff3b30" stroke-width="2"/></svg>
     <span class="p">${fmtPct(c.pct)}</span></li>`).join('');
   $('mkCap').textContent = S.capLost > 0 ? `날린 시총 ${A.wonShort(S.capLost)}` : '날린 시총 0';
+  const ct = $('mkChipT');
+  if (ct) { const w = top[0]; const t = w ? `${w.name.length > 6 ? w.name.slice(0, 6) + '…' : w.name} ${fmtPct(w.pct)}` : '가상 주가'; if (ct.textContent !== t) ct.textContent = t; }
 }
 
 // ---------- 폭락 카드
@@ -219,6 +228,7 @@ function showChair(c, line, v) {
   el.className = left ? 'L' : 'R';
   void el.offsetWidth; el.classList.add('in');
   S.chairT = CFG.chairDur; S.chairCool = CFG.chairCool;
+  emit('collect', v === 'boss' ? 'p:ceo' : 'p:chair');
   A.sfx && A.sfx.ding && A.sfx.ding();
 }
 function hideChair() { const el = $('mkChair'); if (el) el.className = 'hidden'; S.chairT = 0; }
@@ -240,6 +250,7 @@ function startWave(q) {
   const tg = pickTarget();
   const w = { c, n, tg, t: -CFG.countdown, launched: 0 };
   S.waves.push(w);
+  const tk = $('mkTicker'), ch = $('mkChip'); if (tk) tk.classList.remove('open'); if (ch) ch.classList.remove('on');   // 폰: 보복 경고 자리 비움
   countdown(w);
 }
 function countdown(w) {
@@ -388,7 +399,7 @@ export function step(real, dt) {
     const before = Math.ceil(-w.t);
     w.t += real;
     if (w.t < 0) { if (Math.ceil(-w.t) !== before) countdown(w); continue; }
-    if (!w.launched) { w.launched = 1; if (S.inv.dome > 0) { S.inv.dome--; w.domed = true; A.banner('🔰 철벽 돔 가동!'); } countdown(w); for (let k = 0; k < w.n; k++) launchMissile(w, k); setTimeout(() => $('mkCount').classList.add('hidden'), 700); }
+    if (!w.launched) { w.launched = 1; if (S.inv.dome > 0) { S.inv.dome--; w.domed = true; A.banner('🔰 철벽 돔 가동!'); emit('collect', 'a:dome'); if (S.giftDome > 0) { S.giftDome--; emit('gift-used', 'dome'); } } countdown(w); for (let k = 0; k < w.n; k++) launchMissile(w, k); setTimeout(() => $('mkCount').classList.add('hidden'), 700); }
     if (!S.missiles.some((m) => m.w === w)) S.waves.splice(i, 1);
   }
   // 미사일
@@ -433,6 +444,9 @@ export function step(real, dt) {
   } else if (zm) zm.remove();
 }
 
+// 출석 선물 돔: 판 시작 때 넣어 줌 (실제로 쓰였을 때만 선물 하나를 씀)
+export function addGiftDome(n) { if (!(n > 0)) return; S.inv.dome += n; S.giftDome = n; }
+export const hasMarket = () => S.cos.length > 0;
 // 검사용
 export const _S = S;
 export { openShop, buy as _buy };
